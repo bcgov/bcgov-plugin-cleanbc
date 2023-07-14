@@ -1,0 +1,1 @@
+const bcgovBlockThemePlugin_initFrontend=function(){requestAnimationFrame((()=>{document.querySelector("body")}))};"complete"===document.readyState?bcgovBlockThemePlugin_initFrontend():document.addEventListener("DOMContentLoaded",bcgovBlockThemePlugin_initFrontend());

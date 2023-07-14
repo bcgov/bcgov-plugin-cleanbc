@@ -1,0 +1,122 @@
+/* stylelint-disable no-descending-specificity */
+/* stylelint-disable selector-class-pattern */
+
+// CSS console.log
+// body.home * {
+// 	box-sizing: border-box;
+// 	outline: 3px solid rgb(0, 255, 0) !important;
+// 	// background: rgba(0, 255, 0, 0.01) !important;
+// }
+
+:root {
+	color-scheme: light dark;
+	color: $white;
+	background-color: $mineshaft;
+
+	font-synthesis: none;
+	text-rendering: optimizelegibility;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	-webkit-text-size-adjust: 100%;
+}
+
+:where(.is-layout-flex) {
+	gap: 1rem;
+}
+
+html {
+	--scroll-padding: 2rem !important;
+}
+
+body {
+	flex-direction: column;
+
+	.notification {
+		padding: 0.5rem 2rem;
+		width: calc(100vw - 4rem);
+	}
+}
+
+body:not(body.wp-admin):not(body.editor-styles-wrapper):not(body.error404) {
+	padding: 0;
+	margin: 0;
+	display: flex;
+	place-items: center;
+	min-height: 100vh;
+	overflow-x: hidden;
+}
+
+
+.banner-content {
+
+	&.has-media-on-the-right {
+
+		.wp-block-media-text__content {
+			padding-left: 0;
+		}
+	}
+}
+
+.box-shadow,
+.drop-shadow,
+.dropshadow {
+	box-shadow: var(--box-shadow);
+}
+
+#post-content {
+	isolation: isolate;
+}
+
+.sr-only {
+	border: 0 !important;
+	clip: rect(1px, 1px, 1px, 1px) !important;
+	clip-path: inset(50%) !important;
+	height: 1px !important;
+	margin: -1px !important;
+	overflow: hidden !important;
+	padding: 0 !important;
+	position: absolute !important;
+	width: 1px !important;
+	white-space: nowrap !important;
+}
+
+.sr-only-focusable:focus-visible,
+.sr-only-focusable:active {
+	clip: auto !important;
+	clip-path: none !important;
+	height: auto !important;
+	margin: auto !important;
+	overflow: visible !important;
+	width: auto !important;
+	white-space: normal !important;
+}
+
+// Display exclusions
+
+.small-screen {
+	display: block;
+	@media (min-width: 1024px) {
+		display: none;
+	}
+}
+
+.mobile-only {
+	display: block;
+	@media (min-width: 782px) {
+		display: none;
+	}
+}
+
+.large-screen {
+	display: none;
+	@media (min-width: 1024px) {
+		display: block;
+	}
+}
+
+.tablet-plus {
+	display: none;
+	@media (min-width: 782px) {
+		display: block;
+	}
+}
