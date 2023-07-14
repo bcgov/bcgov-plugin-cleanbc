@@ -7,7 +7,7 @@
  * Author: Nate King
  * License: GPL-2.0+
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
- * Repository: https://github.com/codewisenate/buybc-block-theme-supplimental-plugin
+ * Repository: https://github.com/codewisenate/BCGov-Block-Theme-Helper-Plugin
  */
 
 // Exit if accessed directly
