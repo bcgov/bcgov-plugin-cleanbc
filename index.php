@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Plugin Name: BCGov Block Theme Frontend Enhancements
- * Description: A plugin to load custom scripts, styles and theme settings to augment the default BCGov Block Theme capabilities
+ * Plugin Name: CleanBC BCGov Block Theme Frontend Enhancements
+ * Description: A plugin to load custom blocks, scripts, styles and theme settings to augment the default BCGov Block Theme capabilities. Also enables VueJS Actions filtering.
  * Version: 1.0.0
  * Author: Nate King
  * License: GPL-2.0+
