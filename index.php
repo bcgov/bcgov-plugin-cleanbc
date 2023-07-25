@@ -16,6 +16,22 @@ if (!defined('ABSPATH')) {
 }
 
 /**
+ * Additional JS variables.
+ *
+ * @example Sets array values for use in globally scoped JS.
+ * @return array
+ */
+function set_javascript_variables() {
+
+    $javascript_variables = [
+        'domain' => home_url(),
+    ];
+
+    return $javascript_variables;
+}
+
+
+/**
  * Load public and admin assets.
  * 
  * @return void
@@ -36,7 +52,6 @@ function custom_assets_loader_plugin() {
         
         $javascript_variables = set_javascript_variables();
         wp_localize_script( 'custom-public-plugin-js', 'plugin', $javascript_variables );
-        
         foreach ($public_css_files as $file) {
             $file_url = plugins_url(str_replace($plugin_dir, '', $file), __FILE__);
             wp_enqueue_style('custom-public-' . basename($file, '.css'), $file_url);
@@ -64,20 +79,6 @@ function custom_assets_loader_plugin() {
 add_action('wp_enqueue_scripts', 'custom_assets_loader_plugin');
 add_action('admin_enqueue_scripts', 'custom_assets_loader_plugin');
 
-/**
- * Additional JS variables.
- *
- * @example Sets array values for use in globally scoped JS.
- * @return array
- */
-function set_javascript_variables() {
-
-    $javascript_variables = [
-        'domain'=> home_url(),
-    ];
-
-    return $javascript_variables;
-}
 
 /**
  * Load the Override theme.json and update the provided theme.json object.

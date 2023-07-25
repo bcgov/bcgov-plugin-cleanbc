@@ -77,6 +77,21 @@ const perPage = 100;
 const excludedTags = ['Actions we are taking'];
 
 
+// Define window.plugin and its properties at a global scope
+if (typeof window.plugin === 'undefined') {
+  window.plugin = {};
+}
+
+// Get the current domain
+const currentDomain = window.location.hostname;
+
+// Check if the domains match
+if (currentDomain.includes('vanity')) {
+  window.plugin.domain = 'https://test.vanity.blog.gov.bc.ca/cleanbc';
+} else {
+  window.plugin.domain = '';
+}
+
 /**
  * Fetches post data from the WordPress API.
  *
@@ -86,7 +101,7 @@ const excludedTags = ['Actions we are taking'];
 const fetchData = async (offset = 0) => {
   try {
 
-    const filterPostUrl = `/wp-json/wp/v2/${filterPostType.value}?_embed&per_page=${perPage}&offset=${offset}`;
+    const filterPostUrl = `${window.plugin.domain}/wp-json/wp/v2/${filterPostType.value}?_embed&per_page=${perPage}&offset=${offset}`;
     const filterPostResponse = await fetch(filterPostUrl);
 
     console.log()
