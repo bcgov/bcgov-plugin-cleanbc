@@ -76,7 +76,6 @@ const perPage = 100;
 /** Array of excluded tags/categories */
 const excludedTags = ['Actions we are taking'];
 
-let domainURL = '';
 
 /**
  * Fetches post data from the WordPress API.
@@ -86,10 +85,8 @@ let domainURL = '';
  */
 const fetchData = async (offset = 0) => {
   try {
-    if (undefined !== window.plugin) {
-      domainURL = window.plugin.domain;
-    } 
-    const filterPostUrl = `${domainURL}/wp-json/wp/v2/${filterPostType.value}?_embed&per_page=${perPage}&offset=${offset}`;
+
+    const filterPostUrl = `/wp-json/wp/v2/${filterPostType.value}?_embed&per_page=${perPage}&offset=${offset}`;
     const filterPostResponse = await fetch(filterPostUrl);
 
     console.log()
