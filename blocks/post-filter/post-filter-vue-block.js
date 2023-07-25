@@ -75,10 +75,10 @@ class VueAppEditorComponent extends wp.element.Component {
                 .map((type) => {
                     const postType = postTypes[type];
                     console.log(postType)
-                    const label = postType.name ? postType.name : type;
+                    const label = postType.name ? postType.name : postType.rest_base;
                     return {
                         label,
-                        value: type,
+                        value: postType.rest_base,
                     };
                 });
 

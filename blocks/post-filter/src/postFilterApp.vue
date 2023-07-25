@@ -74,7 +74,9 @@ const showLoadingMessage = ref(true);
 /** Define perPage constant (max 100 due to WordPress API limitations) */
 const perPage = 100;
 /** Array of excluded tags/categories */
-const excludedTags = ['Actions we are taking']; 
+const excludedTags = ['Actions we are taking'];
+
+let domainURL = '';
 
 /**
  * Fetches post data from the WordPress API.
@@ -84,14 +86,13 @@ const excludedTags = ['Actions we are taking'];
  */
 const fetchData = async (offset = 0) => {
   try {
-    const filterPostUrl = `/wp-json/wp/v2/${filterPostType.value}?_embed&per_page=${perPage}&offset=${offset}`;
+    if (undefined !== window.plugin) {
+      domainURL = window.plugin.domain;
+    } 
+    const filterPostUrl = `${domainURL}/wp-json/wp/v2/${filterPostType.value}?_embed&per_page=${perPage}&offset=${offset}`;
     const filterPostResponse = await fetch(filterPostUrl);
 
-    console.log(filterPostUrl)
-
-    if (!filterPostResponse.ok) {
-      throw new Error('Network response was not ok');
-    }
+    console.log()
 
     const filterPostsData = await filterPostResponse.json();
 

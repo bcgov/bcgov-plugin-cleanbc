@@ -3,7 +3,7 @@
 /**
  * Plugin Name: CleanBC BCGov Block Theme Frontend Enhancements
  * Description: A plugin to load custom blocks, scripts, styles and theme settings to augment the default BCGov Block Theme capabilities. Also enables VueJS Actions filtering.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Nate King
  * License: GPL-2.0+
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
@@ -21,7 +21,7 @@ if (!defined('ABSPATH')) {
  * @return void
  */
 function custom_assets_loader_plugin() {
-    
+
     $plugin_dir = plugin_dir_path(__FILE__);
     $assets_dir = $plugin_dir . 'dist/assets/';
 
@@ -54,11 +54,28 @@ function custom_assets_loader_plugin() {
             wp_enqueue_script('custom-admin-' . basename($file, '.js'), $file_url, [], false, true);
         }
     }
+
+    $javascript_variables = set_javascript_variables();
+	wp_localize_script( 'custom-public-' . basename($file, '.js'), 'plugin', $javascript_variables );
 }
 
 add_action('wp_enqueue_scripts', 'custom_assets_loader_plugin');
 add_action('admin_enqueue_scripts', 'custom_assets_loader_plugin');
 
+/**
+ * Additional JS variables.
+ *
+ * @example Sets array values for use in globally scoped JS.
+ * @return array
+ */
+function set_javascript_variables() {
+
+    $javascript_variables = [
+        'domain'=> home_url(),
+    ];
+
+    return $javascript_variables;
+}
 
 /**
  * Load the Override theme.json and update the provided theme.json object.
