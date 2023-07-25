@@ -22,9 +22,6 @@ if (!defined('ABSPATH')) {
  */
 function custom_assets_loader_plugin() {
 
-    $javascript_variables = set_javascript_variables();
-	wp_localize_script( 'custom-public-' . basename($file, '.js'), 'plugin', $javascript_variables );
-
     $plugin_dir = plugin_dir_path(__FILE__);
     $assets_dir = $plugin_dir . 'dist/assets/';
 
@@ -36,6 +33,10 @@ function custom_assets_loader_plugin() {
 
     // Load public CSS and JS files
     if (!is_admin()) {
+        
+        $javascript_variables = set_javascript_variables();
+        wp_localize_script( 'custom-public-plugin-js', 'plugin', $javascript_variables );
+        
         foreach ($public_css_files as $file) {
             $file_url = plugins_url(str_replace($plugin_dir, '', $file), __FILE__);
             wp_enqueue_style('custom-public-' . basename($file, '.css'), $file_url);
@@ -45,6 +46,7 @@ function custom_assets_loader_plugin() {
             $file_url = plugins_url(str_replace($plugin_dir, '', $file), __FILE__);
             wp_enqueue_script('custom-public-' . basename($file, '.js'), $file_url, [], false, true);
         }
+
     } else {
         // Load admin CSS and JS files
         foreach ($admin_css_files as $file) {
