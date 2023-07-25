@@ -1,8 +1,8 @@
 import './assets/shared.css';
 import { createApp } from 'vue';
-import App from './postsFilterApp.vue';
+import App from './postFilterApp.vue';
 
-const wcagFilterApp = {
+const postTypeFilterApp = {
     initVueApp: function (selector, attributes) {
         console.log('Mounting vue app...');
 
@@ -21,4 +21,10 @@ const wcagFilterApp = {
     }
 };
 
-wcagFilterApp.initVueApp('#app');
+if ('complete' === document.readyState) {
+    postTypeFilterApp.initVueApp('#app');
+} else {
+    document.addEventListener('DOMContentLoaded', postTypeFilterApp.initVueApp('#app'));
+}
+
+

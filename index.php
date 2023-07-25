@@ -20,8 +20,8 @@ if (!defined('ABSPATH')) {
  * 
  * @return void
  */
-function custom_assets_loader_plugin()
-{
+function custom_assets_loader_plugin() {
+    
     $plugin_dir = plugin_dir_path(__FILE__);
     $assets_dir = $plugin_dir . 'dist/assets/';
 
@@ -67,8 +67,7 @@ add_action('admin_enqueue_scripts', 'custom_assets_loader_plugin');
  * 
  * @return object The updated theme.json object.
  */
-function filter_theme_json_theme_plugin($theme_json)
-{
+function filter_theme_json_theme_plugin($theme_json) {
 
     $plugin_theme_json_path = trailingslashit(plugin_dir_path(__FILE__)) . 'theme/theme.json';
     $plugin_theme_json = json_decode(file_get_contents($plugin_theme_json_path), true);
@@ -84,11 +83,10 @@ add_filter('wp_theme_json_data_theme', 'filter_theme_json_theme_plugin');
 /**
  * Register block to load the Vue.js app.
  */
-function vuejs_wordpress_block_plugin()
-{
+function vuejs_wordpress_block_plugin() {
     wp_enqueue_script(
         'vuejs-wordpress-block',
-        plugin_dir_url(__FILE__) . 'blocks/general-vue-app/general-vue-block.js',
+        plugin_dir_url(__FILE__) . 'blocks/post-filter/post-filter-vue-block.js',
         array('wp-blocks', 'wp-element', 'wp-editor')
     );
 }
@@ -98,10 +96,9 @@ add_action('enqueue_block_editor_assets', 'vuejs_wordpress_block_plugin');
 /**
  * Load VueJS app assets onto the client.
  */
-function vuejs_app_plugin()
-{
+function vuejs_app_plugin() {
     // Check if the current page contains the block
-    if (has_block('bcgov-block-theme-plugin/vuejs-wordpress-block')) {
+    if (has_block('cleanbc-bcgov-block-theme-plugin/post-filter-block')) {
         $plugin_dir = plugin_dir_path(__FILE__);
         $assets_dir = $plugin_dir . 'dist/assets/';
 
@@ -125,8 +122,8 @@ add_action('enqueue_block_editor_assets', 'vuejs_app_plugin');
  * @param array $attributes The block attributes.
  * @return string The HTML output for the block.
  */
-function vuejs_app_dynamic_block_plugin($attributes)
-{
+function vuejs_app_dynamic_block_plugin($attributes) {
+   
     $plugin_dir = plugin_dir_path(__FILE__);
     $assets_dir = $plugin_dir . 'dist/assets/';
 
@@ -143,22 +140,24 @@ function vuejs_app_dynamic_block_plugin($attributes)
         wp_enqueue_script('vue-app-' . basename($file, '.js'), $file_url, [], false, true);
     }
 
-    // Access the 'columns' attribute
+    // Set up the attributes passed to the Vue frontend, with defaults
     $columns = isset($attributes['columns']) ? $attributes['columns'] : 3;  // Fallback to '3' if not set
-
-    // Access the 'className' attribute
     $className = isset($attributes['className']) ? $attributes['className'] : '';
+    $postType = isset($attributes['postType']) ? $attributes['postType'] : 'posts';
+    $postTypeLabel = isset($attributes['postTypeLabel']) ? $attributes['postTypeLabel'] : 'Posts';
+    $headingSize = isset($attributes['headingSize']) ? $attributes['headingSize'] : 'h3';
+    $headingLinkActive = isset($attributes['headingLinkActive']) ? $attributes['headingLinkActive'] : 'false';
+    $useExcerpt = isset($attributes['useExcerpt']) ? $attributes['useExcerpt'] : 'excerpt';
 
     // Add the 'data-columns' attribute to the output div
-    return '<div id="app" class="' . esc_attr($className) . '" data-columns="' . esc_attr($columns) . '">Loading...</div>';
+    return '<div id="app" class="' . esc_attr($className) . '" data-columns="' . esc_attr($columns) . '" data-post-type="' . esc_attr($postType) . '"  data-heading-size="' . esc_attr($headingSize) . '" data-heading-link-active="' . esc_attr($headingLinkActive) . '" data-use-excerpt="' . esc_attr($useExcerpt) . '" data-post-type-label="' . esc_attr($postTypeLabel) . '">Loading...</div>';
 }
 
 /**
  * Initialize the VueJS app block.
  */
-function vuejs_app_block_init_plugin()
-{
-    register_block_type('bcgov-block-theme-plugin/vuejs-wordpress-block', [
+function vuejs_app_block_init_plugin() {
+    register_block_type('cleanbc-bcgov-block-theme-plugin/post-filter-block', [
         'render_callback' => 'vuejs_app_dynamic_block_plugin',
     ]);
 }

@@ -1,7 +1,7 @@
 {
     "name": "codewisenate/cleanbc-bcgov-block-theme-helper-plugin",
     "description": "Frontend plugin to augment Clean BC using Block Theme for BC Gov",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "type": "wordpress-plugin",
     "license": "Apache-2.0"
 }

@@ -16,4 +16,13 @@
 * For admin editor based styles use: html :where(.editor-styles-wrapper) { } 
 */
 
-html :where(.editor-styles-wrapper) { }
+html :where(.editor-styles-wrapper) {
+
+	#app {
+		background-color: lightgray;
+		border: 1px solid gray;
+		padding: 2rem;
+		text-align: center;
+	}
+
+ }
