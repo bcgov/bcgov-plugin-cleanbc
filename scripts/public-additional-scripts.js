@@ -15,7 +15,6 @@ const bcgovBlockThemePlugin = {
 		*/
 		requestAnimationFrame(() => {
 
-			//console.log('Public script loaded');
 			const body = document.querySelector('body');
 
 		});

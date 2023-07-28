@@ -74,7 +74,6 @@ class VueAppEditorComponent extends wp.element.Component {
                 .filter((type) => !blockedPostTypes.includes(type))
                 .map((type) => {
                     const postType = postTypes[type];
-                    console.log(postType)
                     const label = postType.name ? postType.name : postType.rest_base;
                     return {
                         label,
@@ -217,7 +216,7 @@ class VueAppEditorComponent extends wp.element.Component {
  * @param {Function} settings.save - Set to null – uses register_block_type in PHP to render block.
  * @returns {void}
  */
-registerBlockType('cleanbc-bcgov-block-theme-plugin/post-filter-block', {
+registerBlockType('cleanbc-plugin/post-filter-block', {
     title: 'CleanBC Post Filter',
     icon: 'filter',
     category: 'theme',

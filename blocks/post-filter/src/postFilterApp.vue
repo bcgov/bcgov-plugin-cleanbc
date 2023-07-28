@@ -59,7 +59,7 @@
 /**
  * Vue component script for the CleanBC Post Filter.
  */
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 
 const filterPostType = ref('');
 const filterPostTypeName = ref('');
@@ -76,21 +76,21 @@ const perPage = 100;
 /** Array of excluded tags/categories */
 const excludedTags = ['Actions we are taking'];
 
+/**
+ * Checks if the DOM is fully loaded and interactive. See onMounted.
+ */
+const isDOMReady = () => {
+  return document.readyState === 'complete' || document.readyState === 'interactive';
+};
 
-// Define window.plugin and its properties at a global scope
-if (typeof window.plugin === 'undefined') {
-  window.plugin = {};
-}
-
-// Get the current domain
-const currentDomain = window.location.hostname;
-
-// Check if the domains match
-if (currentDomain.includes('vanity')) {
-  window.plugin.domain = 'https://test.vanity.blog.gov.bc.ca/cleanbc';
-} else {
-  window.plugin.domain = '';
-}
+/**
+ * Watches the `window.site?.domain` variable and invokes `fetchData` when it becomes truthy.
+ */
+watch(() => window.site?.domain, (newVal, oldVal) => {
+  if (newVal) {
+    fetchData();
+  }
+});
 
 /**
  * Fetches post data from the WordPress API.
@@ -101,10 +101,8 @@ if (currentDomain.includes('vanity')) {
 const fetchData = async (offset = 0) => {
   try {
 
-    const filterPostUrl = `${window.plugin.domain}/wp-json/wp/v2/${filterPostType.value}?_embed&per_page=${perPage}&offset=${offset}`;
+    const filterPostUrl = `${window.site?.domain ? window.site.domain : ''}/wp-json/wp/v2/${filterPostType.value}?_embed&per_page=${perPage}&offset=${offset}`;
     const filterPostResponse = await fetch(filterPostUrl);
-
-    console.log()
 
     const filterPostsData = await filterPostResponse.json();
 
@@ -213,9 +211,12 @@ const filteredTags = (tags, excludedTags) => {
   return tags.filter(tag => !excludedTags.includes(tag));
 };
 
-/** 
- * Fetch data and set initial values on component mount. 
- * */
+/**
+ * Executes the provided callback function when the component is mounted and the DOM is is fully loaded/inserted
+ * into the DOM. If the DOM is already ready when the component is mounted, it immediately fetches data 
+ * if `window.site?.domain` is truthy. Otherwise, it waits for the DOM to be fully loaded before fetching data 
+ * if `window.site?.domain` is truthy.
+ */
 onMounted(() => {
 
   const appElement = document.getElementById('app');
@@ -227,10 +228,19 @@ onMounted(() => {
   headingLinkActive.value = appElement.getAttribute('data-heading-link-active');
   useExcerpt.value = appElement.getAttribute('data-use-excerpt');
 
-  fetchData();
+  if (isDOMReady() && window.site?.domain) {
+    fetchData();
+  } else {
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.site?.domain) {
+        fetchData();
+      }
+    });
+  }
 
   showLoadingMessage.value = true;
 });
+
 </script>
 
 <style lang="scss" scoped>

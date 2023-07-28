@@ -4,7 +4,7 @@ import App from './postFilterApp.vue';
 
 const postTypeFilterApp = {
     initVueApp: function (selector, attributes) {
-        console.log('Mounting vue app...');
+        console.info('Mounting vue app...');
 
         // Check if there's an existing Vue instance and destroy it
         if (window.vueInstance) {
