@@ -38,6 +38,10 @@ class EnqueueAndInject
 			$file_url = plugins_url(str_replace($plugin_dir, '', $file), __DIR__);
 			wp_enqueue_script('custom-public-' . basename($file, '.js'), $file_url, [], false, true);
 		}
+
+		$javascript_variables = $this->bcgov_plugin_set_javascript_variables();
+		wp_localize_script( 'custom-public-' . basename($file, '.js'), 'pluginCleanbc', $javascript_variables );
+
 	}
 
 	/**
@@ -81,5 +85,21 @@ class EnqueueAndInject
 		$plugin_theme_json = json_decode(file_get_contents($plugin_theme_json_path), true);
 
 		return $theme_json->update_with($plugin_theme_json);
+	}
+
+	/**
+     * Enqueue JS variables.
+     *
+     * @example Sets array values for use in globally scoped JS.
+     * @return array
+     */
+    public function bcgov_plugin_set_javascript_variables() {
+
+		$javascript_variables = [
+			'domain'                  => home_url(),
+			'siteName'                => 'cleanbc',
+		];
+
+		return $javascript_variables;
 	}
 }
