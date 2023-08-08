@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Plugin Name: BCGov Frontend Supplimental: CleanBC
+ * Plugin Name: BCGov Frontend Supplemental: CleanBC
  * Description: A plugin to load custom blocks, scripts, styles and theme settings to augment the default BCGov Block Theme capabilities. Also enables Vue-based posts filtering.
  * Version: 1.0.2
  * Author: Nate King
