@@ -18,7 +18,7 @@ class EnableVueApp {
 		wp_enqueue_script(
 			'vuejs-wordpress-block',
 			plugin_dir_url(__DIR__) . 'blocks/post-filter/post-filter-vue-block.js',
-			array('wp-blocks', 'wp-element', 'wp-editor')
+			['wp-blocks', 'wp-element', 'wp-editor']
 		);
 	}
 
@@ -64,7 +64,7 @@ class EnableVueApp {
 
 		foreach ($public_js_files as $file) {
 			$file_url = plugins_url(str_replace($plugin_dir, '', $file), __DIR__);
-			wp_enqueue_script('vue-app-' . basename($file, '.js'), $file_url, [], false, true);
+			wp_enqueue_script('vue-app-' . basename($file, '.js'), $file_url, ['bcgov-block-theme-public'], false, true); // Sets the dependency to Block Theme to enqueue after
 		}
 
 		// Set up the attributes passed to the Vue frontend, with defaults
