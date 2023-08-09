@@ -1,8 +1,8 @@
 {
-  "name": "digimod-block-theme-supplemental",
+  "name": "bcgov-plugin-cleanbc",
   "author": "Nate King",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.3",
   "type": "module",
   "scripts": {
     "dev": "vite",

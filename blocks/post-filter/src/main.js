@@ -2,6 +2,7 @@ import './assets/shared.css';
 import { createApp } from 'vue';
 import App from './postFilterApp.vue';
 
+
 const postTypeFilterApp = {
     initVueApp: function (selector, attributes) {
         console.info('Mounting vue app...');
@@ -26,5 +27,3 @@ if ('complete' === document.readyState) {
 } else {
     document.addEventListener('DOMContentLoaded', postTypeFilterApp.initVueApp('#app'));
 }
-
-

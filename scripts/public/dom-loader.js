@@ -1,4 +1,4 @@
-import { qs, qsa } from '../utils';
+import { qs, qsa, addSafeEventListener } from '../utils';
 
 /**
  * General CleanBC DOM manipulation.
@@ -35,14 +35,6 @@ const bcgovBlockThemePlugin = {
 					}
 				});
 			}
-			/**
-			 * Manage events after page scroll.
-			 */
-			const cleanbcWindowScroll = () => {
-				// Do nothing for now – will remove if not needed.
-			};
-			window.addEventListener('scroll', cleanbcWindowScroll);
-
 		});
 	}
 }
@@ -53,3 +45,12 @@ if ('complete' === document.readyState) {
 } else {
 	document.addEventListener('DOMContentLoaded', bcgovBlockThemePlugin.initFrontendDomLoader());
 }
+
+/**
+ * Manage events after page scroll.
+ */
+addSafeEventListener(document, 'scroll', () => {
+	// Do nothing for now – will remove if not needed.
+});
+
+
