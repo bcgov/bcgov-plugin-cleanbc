@@ -1,9 +1,12 @@
 # Changelog
 
+## 1.0.4 August 16, 2023
+- fixed the svg clip path injection to work with refactored output
+
 ## 1.0.2 July 27, 2023
 - refactored plugin to OOP with PHP class loader
 - modified the Vue component to check for the site domain exposed by the Block Theme as part of data fetch
-- separated Vue and general scripts/styles into their own hook class files
+- separated Vue and general scripts/styles into their own hook class files 
 - minor logging and styles cleanup
 
 ## 1.0.1 July 25, 2023
