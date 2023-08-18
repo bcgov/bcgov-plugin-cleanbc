@@ -1,7 +1,8 @@
 # Changelog
 
-## 1.0.4 August 16, 2023
+## 1.0.4 August 17, 2023
 - fixed the svg clip path injection to work with refactored output
+- sweeping changes to header and menu system ([DESCW-1390](https://apps.itsm.gov.bc.ca/jira/browse/DESCW-1390))
 
 ## 1.0.2 July 27, 2023
 - refactored plugin to OOP with PHP class loader
