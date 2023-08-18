@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.5 August 18, 2023
+- fixed the highlighting state of menu items using :has() – fallback for unsupported browsers provided
+
 ## 1.0.4 August 17, 2023
 - fixed the svg clip path injection to work with refactored output
 - sweeping changes to header and menu system ([DESCW-1390](https://apps.itsm.gov.bc.ca/jira/browse/DESCW-1390))
