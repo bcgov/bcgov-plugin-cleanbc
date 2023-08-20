@@ -79,7 +79,6 @@ body.cleanbc {
 
       a.current-menu-ancestor {
         text-decoration: underline;
-        // font-weight: 700;
       }
 
       @supports selector(:has(*)) {
@@ -93,14 +92,14 @@ body.cleanbc {
       li:has(a.current-menu-ancestor),
       li.current-menu-item:has(a:hover),
       a.current-menu-ancestor {
-        background-color: #f3f9fb !important;
+        background-color: var(--wp--preset--color--custom-light-highlight, $lighthighlightblue) !important;
       }
 
 
       &__container {
         >.wp-block-navigation-submenu {
           &.current-menu-item {
-            background-color: #f3f9fb !important;
+            background-color: var(--wp--preset--color--custom-light-highlight, $lighthighlightblue) !important;
           }
         }
       }
@@ -109,7 +108,7 @@ body.cleanbc {
 
 
         >a.wp-block-navigation-item__content {
-          background-color: #f3f9fb !important;
+          background-color: var(--wp--preset--color--custom-light-highlight, $lighthighlightblue) !important;
           font-weight: 700 !important;
         }
       }
@@ -232,7 +231,7 @@ body.cleanbc {
               &:hover,
               &:focus {
                 background-color: transparent;
-                border-left: 4px solid #005C97;
+                border-left: 4px solid var(--wp--preset--color--secondary-brand);
               }
             }
 
