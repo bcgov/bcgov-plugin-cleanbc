@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.6 August 21, 2023
+- added search toggle icon and search field logic to expose the WordPress search capability ([DESCW-1391](https://apps.itsm.gov.bc.ca/jira/browse/DESCW-1391))
+
 ## 1.0.5 August 18, 2023
 - fixed the highlighting state of menu items using :has() – fallback for unsupported browsers provided
 
