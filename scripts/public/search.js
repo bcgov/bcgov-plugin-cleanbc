@@ -24,8 +24,6 @@ const bcgovBlockThemePlugin = {
 				
 				toggleSearchBtn.addEventListener('click', function (event) {
 
-					console.log('clicked search icon');
-
 					event.preventDefault();
 					
 					const searchInput = searchFieldContainer.querySelector('input');
