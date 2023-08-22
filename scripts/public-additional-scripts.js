@@ -1,6 +1,7 @@
 import './public/accessibility';
 import './public/dom-loader';
 import './public/landing-banners';
+import './public/search';
 
 /**
  * All pages DOM manipulation.
