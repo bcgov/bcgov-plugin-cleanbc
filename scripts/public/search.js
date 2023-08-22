@@ -1,4 +1,4 @@
-import { qs, qsa, addSafeEventListener } from '../utils';
+import { qs } from '../utils';
 
 /**
  * General CleanBC DOM manipulation.
@@ -11,8 +11,8 @@ const bcgovBlockThemePlugin = {
 		*/
 		requestAnimationFrame(() => {
 
-			const toggleSearchBtn = document.querySelector('.toggle-search-btn a');
-			const searchFieldContainer = document.querySelector('#search-field-container');
+			const toggleSearchBtn = qs('.toggle-search-btn a');
+			const searchFieldContainer = qs('#search-field-container');
 			const siblingElement = searchFieldContainer.previousElementSibling;
 			
 			if (searchFieldContainer && siblingElement) {
@@ -26,7 +26,7 @@ const bcgovBlockThemePlugin = {
 
 					event.preventDefault();
 					
-					const searchInput = searchFieldContainer.querySelector('input');
+					const searchInput = qs('input', searchFieldContainer);
 
 					if (searchFieldContainer) {
 						searchFieldContainer.classList.toggle('hidden');
