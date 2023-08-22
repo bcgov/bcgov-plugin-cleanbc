@@ -14,25 +14,28 @@ const bcgovBlockThemePlugin = {
 			const toggleSearchBtn = qs('.toggle-search-btn a');
 			const searchFieldContainer = qs('#search-field-container');
 			const siblingElement = searchFieldContainer.previousElementSibling;
+			const searchInput = qs('input', searchFieldContainer);
+			const searchButton = qs('button', searchFieldContainer);
 			
 			if (searchFieldContainer && siblingElement) {
 				siblingElement.parentNode.insertBefore(searchFieldContainer, siblingElement);
 			}
 			
 			if (toggleSearchBtn) {
-
 				
 				toggleSearchBtn.addEventListener('click', function (event) {
 
 					event.preventDefault();
 					
-					const searchInput = qs('input', searchFieldContainer);
-
 					if (searchFieldContainer) {
-						searchFieldContainer.classList.toggle('hidden');
 
-						if (!searchFieldContainer.classList.contains('hidden') && searchInput) {
-							searchInput.focus();
+						if (searchFieldContainer.classList.contains('hidden')) {
+							searchFieldContainer.classList.remove('hidden');
+							if (searchInput) {
+								searchInput.focus();
+							}
+						} else {
+							searchFieldContainer.classList.add('hidden');
 						}
 					}
 				});
@@ -44,6 +47,30 @@ const bcgovBlockThemePlugin = {
 				  }
 				});
 				
+			}
+
+			if (searchFieldContainer) {
+				 
+				searchInput.addEventListener('blur', function (event) {
+					event.preventDefault();
+					requestAnimationFrame(() => {
+						if (searchButton === document.activeElement) return;
+						if (toggleSearchBtn === document.activeElement) return;
+						toggleSearchBtn.focus();
+						toggleSearchBtn.click();
+					});
+				});
+
+				searchButton.addEventListener('blur', function (event) {
+					event.preventDefault();
+					requestAnimationFrame(() => {
+						if (searchInput === document.activeElement) return;
+						if (toggleSearchBtn === document.activeElement) return;
+						toggleSearchBtn.focus();
+						toggleSearchBtn.click();
+					});
+				});
+
 			}
 
 		});
