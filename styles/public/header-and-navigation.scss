@@ -35,6 +35,31 @@ header {
   }
 }
 
+// Notification banner adjustments to work with Search bar
+body.custom-cleanbc {
+
+  .notification {
+
+    padding: 0 2rem 0;
+    width: calc(100vw - 4rem);
+    margin-bottom: -1rem;
+
+    button {
+      max-width: 32ch;
+    }
+
+    .inner-container {
+      text-align: center;
+      padding: 2rem;
+    }
+
+    ~ div #search-field-container form {
+      position: relative;
+      top: -0.5rem;
+    }
+  }
+}
+
 #search-field-container {
 
   padding-right: 1rem !important;
