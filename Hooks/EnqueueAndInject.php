@@ -96,8 +96,9 @@ class EnqueueAndInject
     public function bcgov_plugin_set_javascript_variables() {
 
 		$javascript_variables = [
-			'domain'                  => home_url(),
-			'siteName'                => 'cleanbc',
+			'domain'    => home_url(),
+			'siteName'  => 'cleanbc',
+			'pluginDir' => plugin_dir_url(__DIR__),
 		];
 
 		return $javascript_variables;

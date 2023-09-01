@@ -102,6 +102,7 @@ const fetchData = async (offset = 0) => {
   try {
 
     const filterPostUrl = `${window.site?.domain ? window.site.domain : ''}/wp-json/wp/v2/${filterPostType.value}?_embed&per_page=${perPage}&offset=${offset}`;
+    console.log('filterPostUrl', filterPostUrl)
     const filterPostResponse = await fetch(filterPostUrl);
 
     const filterPostsData = await filterPostResponse.json();
@@ -219,7 +220,7 @@ const filteredTags = (tags, excludedTags) => {
  */
 onMounted(() => {
 
-  const appElement = document.getElementById('app');
+  const appElement = document.getElementById('postFilterApp');
   cssClass.value = appElement.getAttribute('class');
   columns.value = parseInt(appElement.getAttribute('data-columns'));
   filterPostType.value = appElement.getAttribute('data-post-type');

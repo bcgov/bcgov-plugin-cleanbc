@@ -2,12 +2,18 @@
 @import './public/general.scss';
 @import './public/header-and-navigation.scss';
 
-// CSS console.log
-// body.home * {
-// 	box-sizing: border-box;
-// 	outline: 3px solid rgb(0, 255, 0) !important;
-// 	// background: rgba(0, 255, 0, 0.01) !important;
-// }
+@import './public/go-electric/_mixins.scss';
+@import './public/go-electric/_variables.scss';
+@import './public/go-electric/_quiz.scss';
+@import './public/go-electric/_vehicles.scss';
+@import './public/go-electric/_blocks.scss';
+@import './public/go-electric/_breadcrumbs.scss';
+@import './public/go-electric/_cards.scss';
+@import './public/go-electric/_columns.scss';
+@import './public/go-electric/_footer.scss';
+@import './public/go-electric/_groups.scss';
+@import './public/go-electric/_header.scss';
+@import './public/go-electric/_style.scss';
 
 :root {
 	color-scheme: light dark;

@@ -30,6 +30,7 @@ class Setup
         // Filters.
         add_filter('wp_theme_json_data_theme', [$plugin_enqueue_and_inject, 'filter_theme_json_theme_plugin']);
         add_filter('get_the_date', [$plugin_search, 'bcgov_modify_search_result_date'], 10, 2);
+        add_filter( 'block_categories_all', [$plugin_enable_vue_app, 'custom_block_categories'], 10, 2 );
 
         // Actions.
         add_action('pre_get_posts', [$plugin_search, 'bcgov_included_post_types_in_search']);
@@ -39,5 +40,6 @@ class Setup
         add_action('wp_enqueue_scripts', [$plugin_enable_vue_app, 'vuejs_app_plugin']);
         add_action('admin_enqueue_scripts', [$plugin_enable_vue_app, 'vuejs_app_plugin']);
         add_action('init', [$plugin_enable_vue_app, 'vuejs_app_block_init_plugin']);
+        add_action('rest_api_init',[$plugin_enable_vue_app, 'custom_api_posts_routes']);
     }
 }
