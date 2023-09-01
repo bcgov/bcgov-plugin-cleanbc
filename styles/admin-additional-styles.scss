@@ -18,7 +18,8 @@
 
 html :where(.editor-styles-wrapper) {
 
-	#app {
+	#postFilterApp,
+	#vehicleFilterApp {
 		background-color: lightgray;
 		border: 1px solid gray;
 		padding: 2rem;

@@ -13,20 +13,24 @@ const bcgovBlockThemePlugin = {
 
 			const toggleSearchBtn = qs('.toggle-search-btn a');
 			const searchFieldContainer = qs('#search-field-container');
-			const siblingElement = searchFieldContainer.previousElementSibling;
-			const searchInput = qs('input', searchFieldContainer);
-			const searchButton = qs('button', searchFieldContainer);
-			
-			if (searchFieldContainer && siblingElement) {
-				siblingElement.parentNode.insertBefore(searchFieldContainer, siblingElement);
-			}
-			
+
 			if (toggleSearchBtn) {
-				
+	
+				if (searchFieldContainer) {
+					const siblingElement = searchFieldContainer.previousElementSibling;
+
+					const searchInput = qs('input', searchFieldContainer);
+					const searchButton = qs('button', searchFieldContainer);
+				}
+
+				if (searchFieldContainer && siblingElement) {
+					siblingElement.parentNode.insertBefore(searchFieldContainer, siblingElement);
+				}
+
 				toggleSearchBtn.addEventListener('click', function (event) {
 
 					event.preventDefault();
-					
+
 					if (searchFieldContainer) {
 
 						if (searchFieldContainer.classList.contains('hidden')) {
@@ -41,16 +45,16 @@ const bcgovBlockThemePlugin = {
 				});
 
 				toggleSearchBtn.addEventListener('keydown', (event) => {
-				  if (event.code === 'Space' || event.code === 'Enter') {
-					event.preventDefault();
-					toggleSearchBtn.click();
-				  }
+					if (event.code === 'Space' || event.code === 'Enter') {
+						event.preventDefault();
+						toggleSearchBtn.click();
+					}
 				});
-				
+
 			}
 
 			if (searchFieldContainer) {
-				 
+
 				searchInput.addEventListener('blur', function (event) {
 					event.preventDefault();
 					requestAnimationFrame(() => {

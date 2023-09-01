@@ -1,0 +1,270 @@
+/* stylelint-disable no-descending-specificity */
+body.custom-goelectricbc {
+
+	/** Where block styles go. */
+	.is-style-bcgov-primary-button {
+
+		&.wp-block-button {
+
+			.wp-block-button {
+
+				&__link {
+					border: 2px solid $prussianblue;
+					font-size: 1.2rem !important;
+					padding: 1.333rem;
+
+					&:hover,
+					&:focus {
+						color: $prussianblue;
+						background-color: $snow;
+					}
+
+					&:focus {
+						outline: 2px dashed $headeryellow;
+						outline-offset: -4px;
+					}
+				}
+			}
+
+			&.business {
+
+				&.wp-block-button {
+
+					.wp-block-button {
+
+						&__link {
+							background-image: linear-gradient(0deg, $sushigreen 15%, $prussianblue 15%);
+							border: none;
+							padding-bottom: 2rem;
+
+							&:hover,
+							&:focus {
+								background-image: linear-gradient(0deg, $sushigreen 15%, $snow 15%);
+								border: none;
+								color: $prussianblue;
+							}
+
+							&:focus {
+								outline: 2px dashed $prussianblue;
+								outline-offset: -4px;
+							}
+						}
+					}
+				}
+			}
+
+			&.disabled {
+
+				.wp-block-button {
+
+					&__link {
+						color: $snow;
+						background-color: $dawngray;
+						border: 2px solid $dawngray;
+						pointer-events: none;
+
+						&:hover,
+						&:focus {
+							color: $snow;
+							background-color: $dawngray;
+							pointer-events: none;
+						}
+					}
+				}
+			}
+
+			&.external {
+
+				.wp-block-button {
+
+					&__link {
+						position: relative;
+						padding-right: 2.5rem;
+
+						&::after {
+							content: "";
+							background-image: $external-link-icon-light;
+							display: block;
+							height: 1rem;
+							width: 1rem;
+							position: absolute;
+							top: auto;
+							bottom: 40%;
+							left: auto;
+							right: 1rem;
+						}
+
+						&:hover,
+						&:focus {
+
+							&::after {
+								content: "";
+								background-image: $external-link-icon-dark;
+							}
+						}
+					}
+				}
+			}
+
+			&.light,
+			&.yellow {
+
+				.wp-block-button {
+
+					&__link {
+						color: $prussianblue;
+						background-color: $headeryellow;
+						border: 2px solid $headeryellow;
+
+						&:hover,
+						&:focus {
+							color: $prussianblue;
+							background-color: $snow;
+						}
+
+						&:focus {
+							outline: 2px dashed $prussianblue;
+							outline-offset: -4px;
+						}
+					}
+				}
+
+				&.external {
+
+					.wp-block-button {
+
+						&__link {
+
+							&::after {
+								background-image: $external-link-icon-dark;
+							}
+						}
+					}
+				}
+			}
+
+			&.personal {
+
+				&.wp-block-button {
+
+					.wp-block-button {
+
+						&__link {
+							background-image: linear-gradient(0deg, $bondiblue 15%, $prussianblue 15%);
+							border: none;
+							padding-bottom: 2rem;
+
+							&:hover,
+							&:focus {
+								background-image: linear-gradient(0deg, $bondiblue 15%, $snow 15%);
+								border: none;
+								color: $prussianblue;
+							}
+
+							&:focus {
+								outline: 2px dashed $prussianblue;
+								outline-offset: -4px;
+							}
+						}
+					}
+				}
+			}
+
+			&.secondary {
+
+				.wp-block-button {
+
+					&__link {
+						color: $midnightblue;
+						background-color: $snow;
+						border: 2px solid $bahamablue;
+
+						&:hover,
+						&:focus {
+							color: $snow;
+							background-color: $bahamablue;
+							border: 2px solid $bahamablue;
+						}
+					}
+				}
+
+				&.external {
+
+					.wp-block-button {
+
+						&__link {
+
+							&::after {
+								background-image: $external-link-icon-dark;
+							}
+
+							&:hover,
+							&:focus {
+
+								&::after {
+									background-image: $external-link-icon-light;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	.wp-block-table {
+		margin: 0;
+
+		table {
+			border: 1px solid rgba($mineshaft, 0.33);
+			border-collapse: separate !important;
+			border-spacing: 0;
+			border-radius: 0.66rem;
+			width: 100%;
+			margin: 0;
+			padding: 0;
+
+			td,
+			th {
+				border-left: 1px solid rgba($mineshaft, 0.33);
+				border-top: 1px solid rgba($mineshaft, 0.33);
+				padding: 10px;
+				word-break: normal;
+
+				@media (max-width: $breakpoint-sm) {
+					font-size: 4vw;
+				}
+			}
+
+			th {
+				border-top: none;
+				background-color: $squeezeblue;
+			}
+
+			td:first-child,
+			th:first-child {
+				border-left: none;
+			}
+
+			th:first-child {
+				border-radius: 0.66rem 0 0 0;
+			}
+
+			th:last-child {
+				border-radius: 0 0.66rem 0 0;
+			}
+
+			th:only-child {
+				border-radius: 0.66rem 0.66rem 0 0;
+			}
+
+			tr:last-child td:first-child {
+				border-radius: 0 0 0 0.66rem;
+			}
+
+			tr:last-child td:last-child {
+				border-radius: 0 0 0.66rem 0;
+			}
+		}
+	}
+}

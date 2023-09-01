@@ -6,13 +6,13 @@ const { PanelBody, TextControl, __experimentalNumberControl, SelectControl, Togg
 /**
  * A custom WordPress block editor component for the CleanBC Post Filter block.
  *
- * @class VueAppEditorComponent
+ * @class PostFilterVueAppEditorComponent
  * @extends {wp.element.Component}
  */
-class VueAppEditorComponent extends wp.element.Component {
+class PostFilterVueAppEditorComponent extends wp.element.Component {
 
     /**
-   * Constructor for the VueAppEditorComponent class.
+   * Constructor for the PostFilterVueAppEditorComponent class.
    * Initializes the component and sets the initial state.
    *
    * @constructor
@@ -29,7 +29,7 @@ class VueAppEditorComponent extends wp.element.Component {
      * Lifecycle method called after the component is mounted.
      * Initializes the Vue app and fetches the available post types.
      *
-     * @memberof VueAppEditorComponent
+     * @memberof PostFilterVueAppEditorComponent
      * @method componentDidMount
      * @returns {void}
      */
@@ -42,7 +42,7 @@ class VueAppEditorComponent extends wp.element.Component {
      * Lifecycle method called after the component is updated.
      * Re-initializes the Vue app if any attributes are updated.
      *
-     * @memberof VueAppEditorComponent
+     * @memberof PostFilterVueAppEditorComponent
      * @method componentDidUpdate
      * @param {Object} prevProps - Previous props of the component.
      * @returns {void}
@@ -57,7 +57,7 @@ class VueAppEditorComponent extends wp.element.Component {
      * Fetches the available post types from the WordPress REST API.
      * Filters out the blocked post types and updates the component state.
      *
-     * @memberof VueAppEditorComponent
+     * @memberof PostFilterVueAppEditorComponent
      * @async
      * @method fetchPostTypes
      * @returns {void}
@@ -90,21 +90,21 @@ class VueAppEditorComponent extends wp.element.Component {
       /**
      * Initializes the Vue app assuming 'initVueApp' is a function in the Vue JavaScript that starts the Vue app.
      *
-     * @memberof VueAppEditorComponent
+     * @memberof PostFilterVueAppEditorComponent
      * @method initVueApp
      * @returns {void}
      */
     initVueApp() {
         // Assuming 'initVueApp' is a function in your Vue JavaScript that starts the Vue app
-        // window.initVueApp('#app');
+        // window.initVueApp('#postFilterApp');
     }
 
     /**
      * Renders the component JSX.
      *
-     * @memberof VueAppEditorComponent
+     * @memberof PostFilterVueAppEditorComponent
      * @method render
-     * @returns {JSX.Element} The JSX element representing the VueAppEditorComponent.
+     * @returns {JSX.Element} The JSX element representing the PostFilterVueAppEditorComponent.
      */
     render() {
         // todo: make this into jsx and introduce build process for the block
@@ -188,7 +188,7 @@ class VueAppEditorComponent extends wp.element.Component {
                 )
             ),
             createElement('div', {
-                id: 'app',
+                id: 'postFilterApp',
                 class: className,
                 'data-heading-size': headingSize,
                 'data-heading-link-active': headingLinkActive,
@@ -218,8 +218,9 @@ class VueAppEditorComponent extends wp.element.Component {
  */
 registerBlockType('cleanbc-plugin/post-filter-block', {
     title: 'CleanBC Post Filter',
+    description: 'Use only one Post Filter block per page',
     icon: 'filter',
-    category: 'theme',
+    category: 'plugin',
     attributes: {
         className: {
             type: 'string',
@@ -250,6 +251,6 @@ registerBlockType('cleanbc-plugin/post-filter-block', {
             default: 'excerpt',
         },
     },
-    edit: VueAppEditorComponent,
+    edit: PostFilterVueAppEditorComponent,
     save: () => null,
 });

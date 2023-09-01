@@ -2,7 +2,7 @@
   "name": "bcgov-plugin-cleanbc",
   "author": "Nate King",
   "private": true,
-  "version": "1.0.7",
+  "version": "1.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,7 +12,8 @@
     "test": "vitest"
   },
   "dependencies": {
-    "vue": "^3.3.2"
+    "vue": "^3.3.2",
+    "vue-slider-component": "^4.1.0-beta.7"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.2.0",

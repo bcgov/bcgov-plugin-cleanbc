@@ -9,7 +9,7 @@ export default defineConfig({
   ],
   resolve: {
       alias: {
-        '@': fileURLToPath(new URL('blocks/post-filter/app/vue/src', import.meta.url))
+        '@': fileURLToPath(new URL('blocks/vue-blocks/src/', import.meta.url))
       }
     },
   build: {
@@ -23,7 +23,7 @@ export default defineConfig({
       input: {
         public: resolve(__dirname, 'public.html'),
         admin: resolve(__dirname, 'admin.html'),
-        vue: resolve(__dirname,'blocks/post-filter/vue.html')
+        vuePosts: resolve(__dirname,'blocks/vue-blocks/vue.html')
       },
     },
   },
