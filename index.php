@@ -2,8 +2,8 @@
 
 /**
  * Plugin Name: BCGov Frontend Supplemental: CleanBC
- * Description: A plugin to load custom blocks, scripts, styles and theme settings to augment the default BCGov Block Theme capabilities. Also enables Vue-based posts filtering.
- * Version: 1.0.8
+ * Description: A plugin to load custom blocks, scripts, styles and theme settings to augment the default BCGov Block Theme capabilities on the Clean BC and Go Electric BC websites. Also enables Vue-based posts filtering.
+ * Version: 1.1.0
  * Author: Nate King
  * License: GPL-2.0+
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt

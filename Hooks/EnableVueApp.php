@@ -164,7 +164,7 @@ class EnableVueApp {
 			if (!empty($post->post_excerpt)) {
 				$excerpt = apply_filters('the_excerpt', $post->post_excerpt);
 			} else {
-				$excerpt = wp_trim_words($content, 30, '...'); // Generate excerpt with 20 words
+				$excerpt = wp_trim_words($content, 30, '...'); // Generate excerpt with 30 words
 			}
 	
 			$posts_data[] = (object) array(

@@ -1,14 +1,13 @@
 <template>
-  <h3 class="mb-2 d-none d-md-block">Filter vehicles ({{ searchvehicles.length }} of {{ vehicles.length }})</h3>
-  <div class="container-fluid flex-container">
+  <h3 class="mb-2 d-none d-md-block">Filter vehicles <span v-if="vehicles.length !== undefined">({{ searchvehicles.length }} of {{ vehicles.length }})</span> <span v-else>(no vehicles currently available)</span></h3>
+  <div class="container-fluid flex-container" v-if="vehicles.length">
     <div id="vue-app" class="row scrollable">
       <div class="filter-container filter-container-desktop d-none d-md-block">
         <div class="filter-flex-container">
           <div class="flex-group">
             <h4 id="make-header-mobile">By make or model</h4>
             <div class="mb-2"><input type="text" v-model="filterValue" class="form-control"
-                placeholder="filter by name..." aria-label="enter a vehicle make or model to filter the options below"
-                aria-labelledby='make-header-mobile' /></div>
+                placeholder="filter by name..." aria-label="enter a vehicle make or model to filter the options below" /></div>
             <p class="msrp-link text-dark">Or EV Type using initialism eg: BEV, PHEV, etc.</p>
           </div>
           <div class="flex-group">
@@ -33,8 +32,7 @@
                   @click="changeOrder('msrp')" aria-label="sort available vehicles by MSRP">MSRP<sup> *</sup></button>
               </div>
               <div class="btn-group-horizontal" role="group">
-                <!-- <button type="button" class="btn btn-default btn-33" :class="{ active: isClass }" @click="changeOrder('class')" aria-label="sort available vehicles by Class">Class</button> -->
-                <button type="button" class="btn btn-default btn-50" :class="{ active: isType }"
+                 <button type="button" class="btn btn-default btn-50" :class="{ active: isType }"
                   @click="changeOrder('type')" aria-label="sort available vehicles by Type">EV Type</button>
                 <button type="button" class="btn btn-default btn-50" :class="{ active: isRebate }"
                   @click="changeOrder('rebate')" aria-label="sort vehicles by Rebate">Rebate Amt.</button>
@@ -70,16 +68,16 @@
         <h3 class="mt-3">Filter vehicles ({{ searchvehicles.length }} of {{ vehicles.length }})</h3>
         <h4 id="make-header">By make or model or type</h4>
         <p class="mb-2"><input type="text" v-model="filterValue" class="form-control" placeholder="filter by name..."
-            aria-labelledby="make-header" /></p>
+            aria-label="enter a vehicle make or model to filter the options below" /></p>
         <p class="msrp-link text-dark">Or EV Type using initialism eg: BEV, PHEV, etc.</p>
         <div class="filter-flex-container">
           <div class="flex-group">
             <h4>MSRP Range</h4>
-            <p class="msrp-range-slider">
+            <div class="msrp-range-slider">
               <vue-slider ref="slider" v-model="rangeValue" v-bind="rangeOptions"></vue-slider>
             <p class="msrp-range">${{ rangeValue[0] | addComma }} – <span class="max-msrp">${{ rangeValue[1] | addComma
             }}</span></p>
-            </p>
+            </div>
             <p class="msrp-link"><a href="#disclaimer" aria-label="navigate to the M.S.R.P. disclaimer information">Price
                 range as shown is based on automaker <nobr>MSRP<sup> *</sup></nobr></a></p>
           </div>
@@ -110,7 +108,6 @@
                 <span class="filter-header">Style &rtrif;</span>
                 <button type="button" class="btn btn-default" :class="{ active: isType }" @click="changeOrder('type')"
                   aria-label="sort vehicles by Type">EV Type</button>
-                <!-- <button type="button" class="btn btn-default" :class="{ active: isClass }" @click="changeOrder('class')" aria-label="sort available vehicles by Class">Class</button> -->
               </div>
             </div>
           </div>
@@ -249,7 +246,9 @@ const rangeOptions = {
 };
 
 const searchvehicles = computed(() => {
+
   let result = vehicles.value;
+
   if (!filterValue.value && rangeValue.value[1] === 70000 && rangeValue.value[0] === 28000) {
     return result;
   }
@@ -283,6 +282,9 @@ const getEVArray = () => {
     .then((json) => {
       vehicles.value = json;
       vehicles.value.sort((a, b) => a.model.toLowerCase().localeCompare(b.model.toLowerCase()));
+    })
+    .catch((error) => {
+      console.error('Error fetching vehicle data:', error);
     });
 };
 
@@ -297,28 +299,25 @@ const changeOrder = (val) => {
   isElectricRange.value = selection === 'rangeElectric';
   isFullRange.value = selection === 'rangeFull';
 
-  if (selection === 'make') {
-    vehicles.value.sort((a, b) => (a.make > b.make ? 1 : -1));
-  } else if (selection === 'model') {
-    vehicles.value.sort((a, b) => a.model.toLowerCase().localeCompare(b.model.toLowerCase()));
-  } else if (selection === 'msrp') {
-    vehicles.value.sort((a, b) => (a.minMsrp > b.minMsrp ? -1 : 1));
-  } else if (selection === 'class') {
-    vehicles.value.sort((a, b) => (a.vehicle_class > b.vehicle_class ? 1 : -1));
-  } else if (selection === 'rebate') {
-    vehicles.value.sort((a, b) =>
-      a.rebate_provincial + a.rebate_federal > b.rebate_provincial + b.rebate_federal ? -1 : 1
-    );
-  } else if (selection === 'type') {
-    vehicles.value.sort((a, b) => (a.type > b.type ? 1 : -1));
-  } else if (selection === 'rangeElectric') {
-    vehicles.value.sort((a, b) => (parseInt(a.rangeElectricKm) > parseInt(b.rangeElectricKm) ? -1 : 1));
-  } else if (selection === 'rangeFull') {
-    vehicles.value.sort((a, b) => {
+  // Hash map of sorting functions
+  const sortFunctions = {
+    make: (a, b) => (a.make > b.make ? 1 : -1),
+    model: (a, b) => a.model.toLowerCase().localeCompare(b.model.toLowerCase()),
+    msrp: (a, b) => (a.minMsrp > b.minMsrp ? -1 : 1),
+    class: (a, b) => (a.vehicle_class > b.vehicle_class ? 1 : -1),
+    rebate: (a, b) => (a.rebate_provincial + a.rebate_federal > b.rebate_provincial + b.rebate_federal ? -1 : 1),
+    type: (a, b) => (a.type > b.type ? 1 : -1),
+    rangeElectric: (a, b) => (parseInt(a.rangeElectricKm) > parseInt(b.rangeElectricKm) ? -1 : 1),
+    rangeFull: (a, b) => {
       let aIntToParse = null === a.rangeFullKm || 0 === a.rangeFullKm ? a.rangeElectricKm : a.rangeFullKm;
       let bIntToParse = null === b.rangeFullKm || 0 === b.rangeFullKm ? b.rangeElectricKm : b.rangeFullKm;
       return parseInt(aIntToParse) > parseInt(bIntToParse) ? -1 : 1;
-    });
+    }
+  };
+
+  // Sort vehicles based on the selection
+  if (sortFunctions.hasOwnProperty(selection)) {
+    vehicles.value.sort(sortFunctions[selection]);
   }
 };
 
@@ -491,7 +490,6 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
       }
 
       @media (max-width: 640px) {
-        // was $breakpoint-xs
         min-width: 100%;
         max-width: 100%;
       }
@@ -687,7 +685,6 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
 
       display: flex;
       flex: 1 0 auto;
-      ;
       flex-direction: column;
       justify-content: flex-start;
       align-content: center;
@@ -947,7 +944,6 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
 }
 
 #feature-image {
-  //content: $menuBG;
   max-width: 280px;
   margin: auto;
 }
@@ -966,7 +962,6 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
 }
 
 #feature-image {
-  //content: $menuBG;
   max-width: 280px;
   margin: auto;
 }

@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.8 September 1, 2023
+## 1.1.0 September 1, 2023
 - Refactoring to incorporate the Go Electric styles and Vehicle filtering app. Adjusts the header display in conjunction with FSE updates. Various WordPress hooks to drive custom API and plugin specific blocks. ([DESCW-1477](https://apps.itsm.gov.bc.ca/jira/browse/DESCW-1477))
 
 ## 1.0.7 August 23, 2023
