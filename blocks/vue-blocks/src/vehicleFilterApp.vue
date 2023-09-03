@@ -167,16 +167,12 @@
           </div>
         </div>
       </template>
-      <keep-alive>
-        <template>
-          <div class="vehicle-details" v-if="searchvehicles.length == 0">
-            <p><img :src="cleanBCLeaf" /></p>
-            <h3 class="no-content">We're unable to find any Electric Vehicles that match your criteria</h3>
-            <p class="no-content">Your filtering options did not return any results. Please try refining your input or
-              parameters. Common issues include invalid makes or models, or too narrow a price range.</p>
-          </div>
-        </template>
-      </keep-alive>
+      <div class="vehicle-details" v-if='searchvehicles.length === 0'>
+          <div class="no-content"><img :src="cleanBCLeaf" /></div>
+          <h3 class="no-content">We're unable to find any Electric Vehicles that match your criteria</h3>
+          <p class="no-content">Your filtering options did not return any results. Please try refining your input or
+            parameters. Common issues include invalid makes or models, or too narrow a price range.</p>
+        </div>
     </div>
   </div>
 </template>
@@ -264,8 +260,11 @@ const searchvehicles = computed(() => {
       return true;
     }
 
-    if (minPriceRange > actualVehiclePriceMin || maxPriceRange < actualVehiclePriceMax) {
-      return false;
+    if (minPriceRange > actualVehiclePriceMin) {
+      if (actualVehiclePriceMin ===  actualVehiclePriceMax) return false;
+      if (minPriceRange >= actualVehiclePriceMax || maxPriceRange < actualVehiclePriceMax) {
+        return false;
+      }
     }
 
     return (
@@ -755,11 +754,19 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
           width: 100%;
         }
       }
-
+      div.no-content {
+        img {
+          position: relative;
+          left: 25%;
+          scale: 75%;
+        }
+      }
       h3.no-content {
         font-size: 1.4rem;
         color: $bahamablue;
         font-weight: 700;
+        padding: 0;
+        margin: 0 !important;
       }
 
       p.no-content {
