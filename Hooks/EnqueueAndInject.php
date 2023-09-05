@@ -103,4 +103,21 @@ class EnqueueAndInject
 
 		return $javascript_variables;
 	}
+
+	/**
+	 * Adds the cleanbc class to the body tag of the current page/post. 
+	 * This is a necessary body class for both CleanBC and Go Electric BC.
+	 *
+	 * @since 1.1.0
+	 * @param array $classes An array of existing classes for the body tag.
+	 * @return array The modified array of classes with the custom class added.
+     */
+	public function add_cleanbc_class_to_body( $classes ) {
+		
+		$custom_body_class_name = 'cleanbc';
+		
+		$classes[] = $custom_body_class_name;
+		
+		return $classes;
+	}
 }
