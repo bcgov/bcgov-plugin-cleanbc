@@ -133,19 +133,6 @@ body.custom-goelectricbc {
 						color: $snow;
 						padding-left: 5rem;
 
-						h3 {
-							font-size: 6rem;
-							position: absolute;
-							top: calc(50% - 3.5rem);
-							bottom: 0;
-							left: 1rem;
-						}
-
-						h4 {
-							line-height: 1.2;
-							margin: 0.5rem 0;
-						}
-
 						&::after {
 							content: $detail-container-down-arrow;
 							height: auto;

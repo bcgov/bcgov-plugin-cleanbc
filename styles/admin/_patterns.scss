@@ -1,0 +1,52 @@
+html body.wp-admin .editor-styles-wrapper {
+
+	.inset-card-container {
+
+		background-image: $inset-card-bg;
+
+		background-size: cover;
+		background-position: center;
+		background-repeat: no-repeat;
+		border-radius: 0.66rem;
+
+		@media (max-width: 1200px) {
+			border-radius: 0;
+		}
+
+		margin: 2rem auto;
+		padding: 2rem;
+
+		.wp-block-columns {
+			background-color: $snow;
+			border-radius: 0.66rem;
+			margin: 0 !important;
+
+			.wp-block-column {
+
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				margin: auto;
+				padding: 2rem;
+			}
+
+			.wp-block-image {
+				margin: 0;
+				padding: 0;
+				border-radius: 0.66rem;
+			}
+		}
+		&.inset-card-container.green {
+			background-image: $inset-card-bg-green;
+		}
+
+		&.inset-card-container.orange {
+			background-image: $inset-card-bg-orange;
+
+		}
+
+		&.inset-card-container.yellow {
+			background-image: $inset-card-bg-yellow;
+		}
+	}
+}
