@@ -1,0 +1,19 @@
+body.custom-goelectricbc  {
+
+	.banner {
+		margin: 0 !important;
+		
+		/* banner media-text override */
+		& .wp-block-media-text .wp-block-media-text__content {
+			padding: 0;
+		}
+		
+		/* banner with overlayed texture */
+		&.with-overlay-bg .bg-overlay {
+			background-image: url(https://goelectricbc.gov.bc.ca/app/uploads/sites/538/2023/09/banner-overlay-desktop.png);
+			background-position: center;
+			background-size: cover;
+			background-repeat: no-repeat;
+		}
+	}
+}

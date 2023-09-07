@@ -1,1 +1,0 @@
-*{--box-shadow: rgba(0, 0, 0, .1) 0px 20px 25px -5px, rgba(0, 0, 0, .04) 0px 10px 10px -5px}*::selection{background-color:#1e9dd3}html :where(.editor-styles-wrapper) #postFilterApp,html :where(.editor-styles-wrapper) #vehicleFilterApp{background-color:#d3d3d3;border:1px solid gray;padding:2rem;text-align:center}
