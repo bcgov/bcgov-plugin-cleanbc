@@ -348,7 +348,7 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
 
 #vehicleFilterApp {
   color: $mineshaft;
-  width: 100vw;
+  width: 100%;
   z-index: 9;
 
   h3 {
