@@ -10,10 +10,16 @@ body.custom-goelectricbc  {
 		
 		/* banner with overlayed texture */
 		&.with-overlay-bg .bg-overlay {
-			background-image: url(https://goelectricbc.gov.bc.ca/app/uploads/sites/538/2023/09/banner-overlay-desktop.png);
-			background-position: center;
-			background-size: cover;
+			background-image: $header-bg-overlay;
 			background-repeat: no-repeat;
+
+			background-position: center;
+  			background-size: cover;
+			
+			@media (min-width: $breakpoint-wp-block-sm) {
+				background-position: center right;
+				background-size: contain;
+			}
 		}
 	}
 }

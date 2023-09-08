@@ -4,10 +4,10 @@ body.custom-goelectricbc {
 	.wp-block-group {
 
 		&.blue-header,
+		&.custom-header,
 		&.green-header,
 		&.orange-header,
 		&.yellow-header {
-			background-color: $bondiblue;
 			background-image: $header-bg-overlay;
 			background-position: right center;
 			background-repeat: no-repeat;
@@ -73,7 +73,10 @@ body.custom-goelectricbc {
 				}
 			}
 		}
-
+		&.blue-header {
+			background-color: $bondiblue;
+		}
+		
 		&.green-header {
 			background-color: $sushigreen;
 		}
