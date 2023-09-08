@@ -87,9 +87,18 @@ body.custom-goelectricbc {
 /* Main Content
 * - includes landing-area structure: see "Landing area imagery" for images
 */
-#post-content {
+.post-content {
 	margin: 0;
 	padding: 0;
+
+	.entry-content > * {
+		padding: 0 2rem;
+		
+		&.alignfull {
+			padding: 0;
+		}
+	}
+
 
 	body.custom-goelectricbc.home & .entry-content,
 	body.custom-goelectricbc.template-vehicle-app & .entry-content {
@@ -159,11 +168,6 @@ body.custom-goelectricbc {
 			justify-content: center;
 			align-items: flex-start;
 			margin: 0 auto 4rem !important;
-
-			@media screen and (max-width: $breakpoint-lg) {
-				margin-left: 2rem;
-				margin-right: 2rem;
-			}
 		}
 	}
 }
