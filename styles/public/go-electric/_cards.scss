@@ -5,6 +5,36 @@ body.custom-goelectricbc {
 	/* Card and card container styles
 	*
 	*/
+	.three-up-card-feature {
+
+		.wp-block-columns {
+
+			.wp-block-group {
+				height: 100%;
+
+				.pills {
+					display: flex;
+					justify-content: flex-start;
+					align-items: flex-start;
+					margin: 1rem 0 0;
+					padding: 0;
+
+					* {
+						color: #002A4E;
+					  line-height: 1;
+					  margin: 0.85rem 0.25rem 0.85rem 0;
+						  display: inline-block;
+						width: fit-content;
+						padding: 0.66rem 1.66rem !important;
+						border: 1px solid #002A4E !important;
+						border-radius: 999px;
+						font-size: 0.85rem;
+					}
+				}
+			}
+		}
+	}
+
 	.wp-block-bcgov-card-container {
 		margin: 0 auto;
 
