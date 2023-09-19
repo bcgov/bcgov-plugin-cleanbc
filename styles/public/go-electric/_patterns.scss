@@ -1,18 +1,46 @@
 /* column drop shadow override */
 body.custom-goelectricbc {
 
+    .pill {
+        display: inline-block;
+    }
 
-	.pill {
-		display: inline-block;
+    .sticky-menu {
+        position: sticky;
+        top: 6.5rem;
+        bottom: 4rem;
+    }
+
+    .wp-block-column.is-style-dropshadow,
+    .wp-block-image.is-style-dropshadow img {
+        box-shadow: -1px 5px 17px 0px rgba(0, 42, 78, 0.10);
+    }
+
+	.wp-block-media-text:not(.link-card) {
+		display: flex;
+		flex-direction: column;
+		.wp-block-media-text__content {
+			order: 1;
+		}
+		.wp-block-media-text__media {
+			order: 2;
+			padding-inline: 1rem;
+		}
+
+		@media (min-width: 600px) {
+
+			display: grid;
+			flex-direction: unset;
+
+			.wp-block-media-text__content {
+				order: unset;
+			}
+	
+			.wp-block-media-text__media {
+				order: unset;
+				padding-inline: inherit;
+			}
+		}
 	}
 
-	.sticky-menu {
-		position: sticky;
-		top: 6.5rem;
-		bottom: 4rem;
-	}
-
-	.wp-block-column.is-style-dropshadow, .wp-block-image.is-style-dropshadow img {
-		box-shadow: -1px 5px 17px 0px rgba(0, 42, 78, 0.10);
-	}
 }

@@ -322,7 +322,7 @@ body.cleanbc {
 
             &.wp-block-navigation__submenu-container {
               a {
-
+                width: 100%;
                 padding: 0.5rem;
 
                 @media (min-width: $breakpoint-sm) {
