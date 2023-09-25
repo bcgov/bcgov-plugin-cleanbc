@@ -1,4 +1,6 @@
 # Changelog
+## 1.1.1 September 25, 2023
+- General styles and improved vehicle price range filtering. ([DESCW-1479](https://apps.itsm.gov.bc.ca/jira/browse/DESCW-1479))
 
 ## 1.1.0 September 19, 2023
 - Mobile and other various style updates ([DESCW-1479](https://apps.itsm.gov.bc.ca/jira/browse/DESCW-1479))
