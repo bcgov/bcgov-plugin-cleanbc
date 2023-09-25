@@ -260,11 +260,17 @@ const searchvehicles = computed(() => {
       return true;
     }
 
-    if (minPriceRange > actualVehiclePriceMin) {
-      if (actualVehiclePriceMin ===  actualVehiclePriceMax) return false;
-      if (minPriceRange >= actualVehiclePriceMax || maxPriceRange < actualVehiclePriceMax) {
-        return false;
-      }
+    if (minPriceRange > actualVehiclePriceMax) {
+      return false;
+    }
+    if (maxPriceRange < actualVehiclePriceMin ) {
+      return false;
+    }
+    if (minPriceRange < actualVehiclePriceMin && maxPriceRange < actualVehiclePriceMax) {
+      return true;
+    }
+    if (minPriceRange > actualVehiclePriceMin && maxPriceRange > actualVehiclePriceMax) {
+      return true;
     }
 
     return (
@@ -406,11 +412,11 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
   justify-content: center;
   align-content: center;
   flex-direction: column;
-  max-width: 1400px;
+  max-width: 1440px;
   width: 100%;
 
   .row {
-    max-width: 1400px;
+    max-width: 1440px;
     width: 100%;
 
     display: flex;
@@ -1120,7 +1126,7 @@ DUMP
 
 /* FEEDBACK BUTTON */
 .feedback-container {
-  max-width: 1400px;
+  max-width: 1440px;
   margin: 2rem auto 0;
   white-space: nowrap;
 }
