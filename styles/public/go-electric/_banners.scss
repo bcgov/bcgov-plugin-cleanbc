@@ -1,25 +1,29 @@
-body.custom-goelectricbc  {
+body.custom-goelectricbc {
 
-	.banner {
-		margin: 0 !important;
-		
-		/* banner media-text override */
-		& .wp-block-media-text .wp-block-media-text__content {
-			padding: 0;
-		}
-		
-		/* banner with overlayed texture */
-		&.with-overlay-bg .bg-overlay {
-			background-image: $header-bg-overlay;
-			background-repeat: no-repeat;
+    &.home .landing-button .wp-block-button__link:is(:hover, :focus-visible) {
+        outline-color: $white !important;
+    }
 
-			background-position: center;
-  			background-size: cover;
-			
-			@media (min-width: $breakpoint-wp-block-sm) {
-				background-position: center right;
-				background-size: contain;
-			}
-		}
-	}
+    .banner {
+        margin: 0 !important;
+
+        /* banner media-text override */
+        & .wp-block-media-text .wp-block-media-text__content {
+            padding: 0;
+        }
+
+        /* banner with overlayed texture */
+        &.with-overlay-bg .bg-overlay {
+            background-image: $header-bg-overlay;
+            background-repeat: no-repeat;
+
+            background-position: center;
+            background-size: cover;
+
+            @media (min-width: $breakpoint-wp-block-sm) {
+                background-position: center right;
+                background-size: contain;
+            }
+        }
+    }
 }

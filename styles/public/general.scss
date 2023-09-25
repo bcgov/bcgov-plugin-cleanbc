@@ -94,7 +94,14 @@ textarea {
     a {
         text-underline-offset: 4px;
         text-decoration-color:
-            color-mix(in srgb, currentColor 33%, transparent);
+        color-mix(in srgb, currentColor 33%, transparent);
+
+        &:is(:hover, :focus-visible) {
+            display: inline-block;
+            outline: 2px solid currentColor;
+            outline-offset: 2px;
+            border-radius: 3px;
+        }
     }
 }
 
