@@ -390,6 +390,7 @@ onMounted(() => {
         img {
             max-width: 3rem;
             padding: 0.25rem;
+            margin-right: 0.66rem;
         }
     }
 }
@@ -402,6 +403,7 @@ onMounted(() => {
     img.category-icon {
         width: 3rem;
         padding: 0.25rem;
+        margin-right: 0.66rem;
     }
 }
 
@@ -701,7 +703,7 @@ onMounted(() => {
                 background-color: var(--wp--preset--color--secondary-brand) !important;
                 color: #fff !important;
                 border-radius: .33rem !important;
-                padding: .667em 1.333em;
+                padding: .667rem 1.333rem;
                 width: 100%;
                 min-height: 80px;
                 display: flex;
