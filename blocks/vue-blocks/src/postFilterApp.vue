@@ -1,5 +1,5 @@
 <template>
-    <div v-if="uniqueTags.length > 1" class="tag-filter-container">
+    <div v-if="uniqueTags.length > 1" id="tag-filter-container" class="tag-filter-container">
         <div class="taxonomy-common_component_category wp-block-post-terms filter-container">
             <div v-for="tag, index in uniqueTags" :key="tag" class="tag-checkbox">
                 <input type="radio" :id="'tag-' + index" :value="tag" v-model="selectedTag" class="tag-input" />
@@ -198,6 +198,12 @@ const getPostCategoryAlt = (post, index) => {
  */
 const clearFilters = () => {
     selectedTag.value = null;
+    
+    // Scroll to the element with id 'tag-filter-container'
+    const tagFilterContainerElement = document.getElementById('tag-filter-container');
+    if (tagFilterContainerElement) {
+        tagFilterContainerElement.scrollIntoView({ behavior: 'smooth' });
+    }
 };
 
 /**
@@ -379,10 +385,10 @@ onMounted(() => {
     display: flex;
 
     .category-icon {
-        max-width: 4rem;
+        max-width: 3rem;
 
         img {
-            max-width: 4rem;
+            max-width: 3rem;
             padding: 0.25rem;
         }
     }
@@ -598,6 +604,11 @@ onMounted(() => {
 :root {
     --scroll-padding: 4rem !important;
 }
+@media (min-width: 782px) {
+    :root {
+        --scroll-padding: 6.5rem !important;
+    }
+}
 
 .vue-card-container {
 
@@ -692,11 +703,16 @@ onMounted(() => {
                 border-radius: .33rem !important;
                 padding: .667em 1.333em;
                 width: 100%;
+                min-height: 80px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
 
                 &:hover,
                 &:focus-visible {
                     outline: 2px solid var(--wp--preset--color--secondary-brand) !important;
                     outline-offset: 2px;
+                    display: flex !important;
                 }
             }
         }
