@@ -694,7 +694,7 @@ onMounted(() => {
 
         .wp-block-button {
 
-            margin: 1rem auto 2rem;
+            margin: 1rem auto 0;
             width: 100%;
 
             .wp-block-button__link {
