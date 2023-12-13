@@ -1,14 +1,14 @@
 <template>
-    <div v-if="uniqueTags.length > 1" id="tag-filter-container" class="tag-filter-container">
+    <div v-if="uniqueTags.categories.length > 0" id="tag-filter-container" class="tag-filter-container">
         <div class="taxonomy-common_component_category wp-block-post-terms filter-container">
-            <div v-for="tag, index in uniqueTags" :key="tag" class="tag-checkbox">
-                <input type="radio" :id="'tag-' + index" :value="tag" v-model="selectedTag" class="tag-input" />
+            <div v-for="(category, index) in uniqueTags.categories" :key="category" class="tag-checkbox">
+                <input type="radio" :id="'tag-' + index" :value="category" v-model="selectedTag" class="tag-input" />
                 <label :for="'tag-' + index" class="tag-label tag" tabindex="0" @click="checkTag(index)"
-                    :data-category-slug="getCategorySlug(tag)" :id="getCategorySlug(tag)"
-                    @keydown.enter.prevent="checkTag(index)" role="button" :aria-label="getTagAriaLabel(tag)">
-                    <img v-if="getCategoryIconUrl(tag)" :src="getCategoryIconUrl(tag)" alt="" class="category-icon" />
-                    {{ tag }} ({{ getTagCount(tag) }})
-                    <!-- Assuming you have a method getTagIconUrl that provides the URL for the category icon -->
+                    :data-category-slug="getCategorySlug(category)" :id="getCategorySlug(category)"
+                    @keydown.enter.prevent="checkTag(index)" role="button" :aria-label="getTagAriaLabel(category)">
+                    <img v-if="getCategoryIconUrl(category)" :src="getCategoryIconUrl(category)" alt=""
+                        class="category-icon" />
+                    {{ category }} ({{ getTagCount(category) }})
                 </label>
             </div>
         </div>
@@ -141,10 +141,16 @@ const fetchData = async (offset = 0) => {
         }
 
         showLoadingMessage.value = false;
+
+        setTimeout(() => {
+            doExternalLinkCheck();
+        }, 50);
+
     } catch (error) {
         console.error('Error fetching data:', error);
         throw error;
     }
+
 };
 
 
@@ -154,7 +160,8 @@ const fetchData = async (offset = 0) => {
  * @param {number} index - The index of the tag in the uniqueTags array.
  */
 const checkTag = (index) => {
-    const tag = uniqueTags.value[index];
+    const tag = uniqueTags.value.categories[index];
+
     if (tag === 'Actions we are taking') return;
     selectedTag.value = selectedTag.value === tag ? null : tag;
 
@@ -198,12 +205,16 @@ const getPostCategoryAlt = (post, index) => {
  */
 const clearFilters = () => {
     selectedTag.value = null;
-    
+
     // Scroll to the element with id 'tag-filter-container'
     const tagFilterContainerElement = document.getElementById('tag-filter-container');
     if (tagFilterContainerElement) {
         tagFilterContainerElement.scrollIntoView({ behavior: 'smooth' });
     }
+
+    setTimeout(() => {
+        doExternalLinkCheck();
+    }, 50);
 };
 
 /**
@@ -228,15 +239,16 @@ const getTagCount = (tag) => {
  * @returns {string|null} - The category icon URL, or null if not found.
  */
 const getCategoryIconUrl = (tag) => {
-    const postWithCategory = filterPosts.value.find((post) => post.item_tag.includes(tag));
+    const index = uniqueTags.value.categories.indexOf(tag);
 
-    if (postWithCategory && postWithCategory.category_image) {
-        const categoryImage = postWithCategory.category_image.find((image) => image);
-        return categoryImage || null;
+    if (index !== -1 && index < uniqueTags.value.images.length) {
+        return uniqueTags.value.images[index];
     }
 
-    return null;
+    return null; // Return null or a default image URL if the image is not found
 };
+
+
 
 const getCategorySlug = (tag) => {
     const postWithCategory = filterPosts.value.find((post) => post.item_tag.includes(tag));
@@ -263,6 +275,92 @@ const sortByTitle = (a, b) => {
     return titleA.localeCompare(titleB);
 };
 
+/* Helper functions */
+
+const doExternalLinkCheck = () => {
+    /**
+     * Set up external icons for links.
+     */
+
+    if ('1' === window.site.externalLinkIcons) {
+        const links = document.querySelectorAll('.vue-card-content a');
+
+        if (links) {
+            links.forEach((link) => {
+
+                link.classList.remove('has-text-align-left');
+
+                const hasExternalClass = link.classList.contains('external');
+
+                if (hasExternalClass) return;
+
+                const href = link.getAttribute('href');
+
+                if (null !== href) {
+                    // Check if the link is an anchor link or a relative link
+                    if (
+                        href.startsWith('#') ||
+                        href.startsWith('/') ||
+                        href.startsWith('./') ||
+                        href.startsWith('../') ||
+                        href.startsWith('?')
+                    ) {
+                        return;
+                    }
+
+                    // Get the current domain
+                    const currentDomain = window.location.hostname;
+
+                    // Extract the domain from the link's href
+                    const linkDomain = href.match(
+                        /^(?:https?:)?(?:\/\/)?([^\/\?]+)/i
+                    )[1];
+
+                    // Check if the domains don't match
+                    if (linkDomain !== currentDomain) {
+
+                        link.classList.add('external');
+
+                        const svg = document.createElementNS(
+                            'http://www.w3.org/2000/svg',
+                            'svg'
+                        );
+                        svg.setAttribute('class', 'external-link-icon');
+                        svg.setAttribute('version', '1.1');
+                        svg.setAttribute('id', 'Layer_1');
+                        svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                        svg.setAttribute(
+                            'xmlns:xlink',
+                            'http://www.w3.org/1999/xlink'
+                        );
+                        svg.setAttribute('x', '0px');
+                        svg.setAttribute('y', '0px');
+                        svg.setAttribute('viewBox', '0 0 18 18');
+                        svg.setAttribute(
+                            'style',
+                            'enable-background:new 0 0 18 18;'
+                        );
+                        svg.setAttribute('xml:space', 'preserve');
+                        svg.innerHTML =
+                            '<path class="st0" d="M9.7,3.9c0-0.1-0.1-0.3-0.2-0.4C9.4,3.4,9.3,3.4,9.2,3.4H1.7c-0.4,0-0.9,0.2-1.2,0.5C0.2,4.2,0,4.6,0,5.1v11.2c0,0.4,0.2,0.9,0.5,1.2C0.8,17.8,1.2,18,1.7,18h11.2c0.4,0,0.9-0.2,1.2-0.5c0.3-0.3,0.5-0.7,0.5-1.2V8.8c0-0.1-0.1-0.3-0.2-0.4 c-0.1-0.1-0.2-0.2-0.4-0.2c-0.1,0-0.3,0.1-0.4,0.2c-0.1,0.1-0.2,0.2-0.2,0.4v7.5c0,0.1-0.1,0.3-0.2,0.4c-0.1,0.1-0.2,0.2-0.4,0.2 H1.7c-0.1,0-0.3-0.1-0.4-0.2c-0.1-0.1-0.2-0.2-0.2-0.4V5.1c0-0.1,0.1-0.3,0.2-0.4c0.1-0.1,0.2-0.2,0.4-0.2h7.5 c0.1,0,0.3-0.1,0.4-0.2C9.7,4.2,9.7,4.1,9.7,3.9z"/><path class="st0" d="M18,0.6c0-0.1-0.1-0.3-0.2-0.4C17.7,0.1,17.6,0,17.4,0h-5.6c-0.1,0-0.3,0.1-0.4,0.2c-0.1,0.1-0.2,0.2-0.2,0.4 s0.1,0.3,0.2,0.4c0.1,0.1,0.2,0.2,0.4,0.2h4.3l-9.2,9.2c-0.1,0.1-0.1,0.1-0.1,0.2c0,0.1,0,0.1,0,0.2s0,0.1,0,0.2c0,0.1,0.1,0.1,0.1,0.2C7,11.1,7,11.2,7.1,11.2c0.1,0,0.1,0,0.2,0c0.1,0,0.1,0,0.2,0s0.1-0.1,0.2-0.1l9.2-9.2v4.3c0,0.1,0.1,0.3,0.2,0.4c0.1,0.1,0.2,0.2,0.4,0.2c0.1,0,0.3-0.1,0.4-0.2C17.9,6.5,18,6.3,18,6.2V0.6z"/>';
+
+                        // const computedStyle = window.getComputedStyle(link);
+                        // const fontSize = computedStyle.fontSize;
+                        const fontSize = '1.25rem';
+
+                        // Set the font size for the SVG
+                        svg.style.maxWidth = fontSize;
+                        svg.style.height = fontSize;
+                        svg.style.width = '100%';
+
+                        link.appendChild(svg);
+                    }
+                }
+            });
+        }
+    }
+};
+
 
 /**
  * Computed property that extracts unique tags from the fetched posts.
@@ -273,17 +371,38 @@ const sortByTitle = (a, b) => {
  * @returns {string[]} An array of unique tags sorted alphabetically.
  */
 const uniqueTags = computed(() => {
-    const categories = new Set();
+    const tagObjects = new Set();
+
     filterPosts.value.forEach((post) => {
         const itemTags = post.item_tag || [];
-        itemTags.forEach((tag) => {
-            if ('Actions we are taking' !== tag) {
-                categories.add(tag);
+        const itemTagImages = post.category_image || [];
+
+        itemTags.forEach((tag, index) => {
+            if (tag !== 'Actions we are taking' && itemTagImages[index] !== '') {
+                tagObjects.add({
+                    category: tag,
+                    image: itemTagImages[index],
+                });
             }
         });
     });
-    return [...categories].sort(); // Sort the categories alphabetically
+
+    // Convert Set to array
+    const sortedTagObjects = Array.from(tagObjects);
+
+    // Sort tagObjects based on the 'category' property
+    sortedTagObjects.sort((a, b) => a.category.localeCompare(b.category));
+
+    // Extract sorted categories and images separately
+    const sortedCategories = [...new Set(sortedTagObjects.map((tagObject) => tagObject.category))];
+    const sortedImages = [...new Set(sortedTagObjects.map((tagObject) => tagObject.image))];
+
+    return {
+        categories: sortedCategories,
+        images: sortedImages,
+    };
 });
+
 
 /**
  * Computed property to get filtered and sorted posts based on the selected tags.
@@ -293,6 +412,7 @@ const uniqueTags = computed(() => {
  * @type {Post[]} An array of post objects that meet the filter criteria.
  */
 const sortedFilteredPosts = computed(() => {
+
     if (!selectedTag.value) {
         return [...filterPosts.value].sort(sortByTitle);
     } else {
@@ -572,7 +692,7 @@ onMounted(() => {
 
         .wp-block-buttons {
             .wp-block-button {
-                .wp-block-button__link {
+                .wp-block-button__link.wp-block-button__link {
                     font-size: 1rem !important;
                 }
             }
@@ -606,6 +726,7 @@ onMounted(() => {
 :root {
     --scroll-padding: 4rem !important;
 }
+
 @media (min-width: 782px) {
     :root {
         --scroll-padding: 6.5rem !important;
@@ -694,7 +815,7 @@ onMounted(() => {
 
         .wp-block-button {
 
-            margin: 1rem auto 0;
+            margin: 1rem auto 2rem;
             width: 100%;
 
             .wp-block-button__link {
@@ -709,6 +830,11 @@ onMounted(() => {
                 display: flex;
                 justify-content: center;
                 align-items: center;
+
+                &:has(svg) {
+                    text-align: left;
+                    justify-content: space-between;
+                }
 
                 &:hover,
                 &:focus-visible {
