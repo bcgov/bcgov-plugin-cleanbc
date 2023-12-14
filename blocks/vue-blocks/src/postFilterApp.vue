@@ -248,8 +248,13 @@ const getCategoryIconUrl = (tag) => {
     return null; // Return null or a default image URL if the image is not found
 };
 
-
-
+/**
+ * Retrieves the category slug associated with a given tag from the filtered posts.
+ * 
+ * @function
+ * @param {string} tag - The tag for which to retrieve the category slug.
+ * @returns {string} The category slug associated with the provided tag, or an empty string if not found.
+ */
 const getCategorySlug = (tag) => {
     const postWithCategory = filterPosts.value.find((post) => post.item_tag.includes(tag));
 
@@ -277,6 +282,15 @@ const sortByTitle = (a, b) => {
 
 /* Helper functions */
 
+
+/**
+ * Performs an external link check and sets up external icons for links if enabled in the
+ * Block Theme settings. This function checks each link within the specified container for 
+ * being an external link. If a link is determined to be external, it adds the 'external' 
+ * class and appends an icon to the link.
+ * 
+ * @function
+ */
 const doExternalLinkCheck = () => {
     /**
      * Set up external icons for links.
@@ -321,6 +335,7 @@ const doExternalLinkCheck = () => {
 
                         link.classList.add('external');
 
+                        const span = document.createElement('span');
                         const svg = document.createElementNS(
                             'http://www.w3.org/2000/svg',
                             'svg'
@@ -344,16 +359,17 @@ const doExternalLinkCheck = () => {
                         svg.innerHTML =
                             '<path class="st0" d="M9.7,3.9c0-0.1-0.1-0.3-0.2-0.4C9.4,3.4,9.3,3.4,9.2,3.4H1.7c-0.4,0-0.9,0.2-1.2,0.5C0.2,4.2,0,4.6,0,5.1v11.2c0,0.4,0.2,0.9,0.5,1.2C0.8,17.8,1.2,18,1.7,18h11.2c0.4,0,0.9-0.2,1.2-0.5c0.3-0.3,0.5-0.7,0.5-1.2V8.8c0-0.1-0.1-0.3-0.2-0.4 c-0.1-0.1-0.2-0.2-0.4-0.2c-0.1,0-0.3,0.1-0.4,0.2c-0.1,0.1-0.2,0.2-0.2,0.4v7.5c0,0.1-0.1,0.3-0.2,0.4c-0.1,0.1-0.2,0.2-0.4,0.2 H1.7c-0.1,0-0.3-0.1-0.4-0.2c-0.1-0.1-0.2-0.2-0.2-0.4V5.1c0-0.1,0.1-0.3,0.2-0.4c0.1-0.1,0.2-0.2,0.4-0.2h7.5 c0.1,0,0.3-0.1,0.4-0.2C9.7,4.2,9.7,4.1,9.7,3.9z"/><path class="st0" d="M18,0.6c0-0.1-0.1-0.3-0.2-0.4C17.7,0.1,17.6,0,17.4,0h-5.6c-0.1,0-0.3,0.1-0.4,0.2c-0.1,0.1-0.2,0.2-0.2,0.4 s0.1,0.3,0.2,0.4c0.1,0.1,0.2,0.2,0.4,0.2h4.3l-9.2,9.2c-0.1,0.1-0.1,0.1-0.1,0.2c0,0.1,0,0.1,0,0.2s0,0.1,0,0.2c0,0.1,0.1,0.1,0.1,0.2C7,11.1,7,11.2,7.1,11.2c0.1,0,0.1,0,0.2,0c0.1,0,0.1,0,0.2,0s0.1-0.1,0.2-0.1l9.2-9.2v4.3c0,0.1,0.1,0.3,0.2,0.4c0.1,0.1,0.2,0.2,0.4,0.2c0.1,0,0.3-0.1,0.4-0.2C17.9,6.5,18,6.3,18,6.2V0.6z"/>';
 
-                        // const computedStyle = window.getComputedStyle(link);
-                        // const fontSize = computedStyle.fontSize;
                         const fontSize = '1.25rem';
 
-                        // Set the font size for the SVG
                         svg.style.maxWidth = fontSize;
                         svg.style.height = fontSize;
                         svg.style.width = '100%';
 
-                        link.appendChild(svg);
+                        span.innerText = link.innerText;
+                        span.appendChild(svg);
+
+                        link.innerHTML = '';
+                        link.appendChild(span);
                     }
                 }
             });
@@ -827,23 +843,27 @@ onMounted(() => {
                 padding: .667rem 1.333rem;
                 width: 100%;
                 min-height: 80px;
-                display: flex;
+                display: inline-flex;
+                text-align: center;
                 justify-content: center;
                 align-items: center;
-
-                &:has(svg) {
-                    text-align: left;
-                    justify-content: space-between;
-                }
 
                 &:hover,
                 &:focus-visible {
                     outline: 2px solid var(--wp--preset--color--secondary-brand) !important;
                     outline-offset: 2px;
-                    display: flex !important;
+                    display: inline-flex !important;
+                }
+
+                span {
+                    display: inline-block;
                 }
             }
         }
     }
+}
+#post-content .vue-card-content a:is(:hover, :focus-visible), 
+.post-content .vue-card-content a:is(:hover, :focus-visible) {
+  display: inline;
 }
 </style>
