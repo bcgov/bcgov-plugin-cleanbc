@@ -2,12 +2,12 @@
   "name": "bcgov-plugin-cleanbc",
   "author": "Nate King",
   "private": true,
-  "version": "1.2.1",
+  "version": "1.2.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build:watch": "vite build --watch",
-    "build": "vite build",
+    "build": "npm ci && vite build",
     "preview": "vite preview",
     "test": "vitest"
   },

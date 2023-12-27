@@ -137,7 +137,7 @@ const fetchData = async (offset = 0) => {
 
         /** Check if there are more pages to fetch, and recursively call fetchData with the next offset */
         if (filterPostsData.length >= perPage) {
-            fetchData(offset + perPage);
+            fetchData(offset + filterPostsData.length);
         }
 
         showLoadingMessage.value = false;
@@ -752,6 +752,7 @@ onMounted(() => {
 .vue-card-container {
 
     .vue-card-content {
+
 
         >div:not(.vue-card-tags) {
 
