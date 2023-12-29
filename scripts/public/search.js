@@ -1,85 +1,120 @@
-import { qs } from '../utils';
-
+import { qs, addEventListener } from '../utils';
 /**
  * General CleanBC DOM manipulation.
  */
-const bcgovBlockThemePlugin = {
-	initFrontendSearch: function () {
-
+const bcgovBlockThemePluginSearch = {
+	initFrontend() {
 		/*
-		* SafarIE iOS requires requestAnimationFrame update.
-		*/
-		requestAnimationFrame(() => {
+		 * SafarIE iOS requires window.requestAnimationFrame update.
+		 */
+		window.requestAnimationFrame( () => {
+			const toggleSearchBtn = qs( '.toggle-search-btn a' );
+			const searchFieldContainer = qs( '#search-field-container' );
 
-			const toggleSearchBtn = qs('.toggle-search-btn a');
-			const searchFieldContainer = qs('#search-field-container');
+			if ( toggleSearchBtn ) {
+				if ( searchFieldContainer ) {
+					const siblingElement =
+						searchFieldContainer.previousElementSibling;
 
-			if (toggleSearchBtn) {
-	
-				if (searchFieldContainer) {
-					const siblingElement = searchFieldContainer.previousElementSibling;
+					const searchInput = qs( 'input', searchFieldContainer );
+					const searchButton = qs( 'button', searchFieldContainer );
 
-					const searchInput = qs('input', searchFieldContainer);
-					const searchButton = qs('button', searchFieldContainer);
-					
-					if (searchFieldContainer && siblingElement) {
-						siblingElement.parentNode.insertBefore(searchFieldContainer, siblingElement);
+					if ( searchFieldContainer && siblingElement ) {
+						siblingElement.parentNode.insertBefore(
+							searchFieldContainer,
+							siblingElement
+						);
 					}
-					toggleSearchBtn.addEventListener('click', function (event) {
-	
-						event.preventDefault();
-	
-						if (searchFieldContainer) {
-	
-							if (searchFieldContainer.classList.contains('hidden')) {
-								searchFieldContainer.classList.remove('hidden');
-								if (searchInput) {
-									searchInput.focus();
+					toggleSearchBtn.addEventListener(
+						'click',
+						function ( event ) {
+							event.preventDefault();
+
+							if ( searchFieldContainer ) {
+								if (
+									searchFieldContainer.classList.contains(
+										'hidden'
+									)
+								) {
+									searchFieldContainer.classList.remove(
+										'hidden'
+									);
+									if ( searchInput ) {
+										searchInput.focus();
+									}
+								} else {
+									searchFieldContainer.classList.add(
+										'hidden'
+									);
 								}
-							} else {
-								searchFieldContainer.classList.add('hidden');
 							}
 						}
-					});
-	
-					toggleSearchBtn.addEventListener('keydown', (event) => {
-						if (event.code === 'Space' || event.code === 'Enter') {
+					);
+
+					toggleSearchBtn.addEventListener( 'keydown', ( event ) => {
+						if (
+							event.code === 'Space' ||
+							event.code === 'Enter'
+						) {
 							event.preventDefault();
 							toggleSearchBtn.click();
 						}
-					});
+					} );
 
-					if (searchFieldContainer) {
+					if ( searchFieldContainer ) {
+						searchInput.addEventListener(
+							'blur',
+							function ( event ) {
+								event.preventDefault();
+								window.requestAnimationFrame( () => {
+									if (
+										searchButton ===
+										event.target.ownerDocument.activeElement
+									)
+										return;
+									if (
+										toggleSearchBtn ===
+										event.target.ownerDocument.activeElement
+									)
+										return;
+									toggleSearchBtn.focus();
+									toggleSearchBtn.click();
+								} );
+							}
+						);
 
-						searchInput.addEventListener('blur', function (event) {
-							event.preventDefault();
-							requestAnimationFrame(() => {
-								if (searchButton === document.activeElement) return;
-								if (toggleSearchBtn === document.activeElement) return;
-								toggleSearchBtn.focus();
-								toggleSearchBtn.click();
-							});
-						});
-		
-						searchButton.addEventListener('blur', function (event) {
-							event.preventDefault();
-							requestAnimationFrame(() => {
-								if (searchInput === document.activeElement) return;
-								if (toggleSearchBtn === document.activeElement) return;
-								toggleSearchBtn.focus();
-								toggleSearchBtn.click();
-							});
-						});
-		
+						searchButton.addEventListener(
+							'blur',
+							function ( event ) {
+								event.preventDefault();
+								window.requestAnimationFrame( () => {
+									if (
+										searchInput ===
+										event.target.ownerDocument.activeElement
+									)
+										return;
+									if (
+										toggleSearchBtn ===
+										event.target.ownerDocument.activeElement
+									)
+										return;
+									toggleSearchBtn.focus();
+									toggleSearchBtn.click();
+								} );
+							}
+						);
 					}
 				}
 			}
-		});
-	}
-}
+		} );
+	},
+};
 
-if ('complete' === document.readyState) {
-	bcgovBlockThemePlugin.initFrontendSearch();
+if ( 'complete' === document.readyState ) {
+	bcgovBlockThemePluginSearch.initFrontend();
 } else {
-	document.addEventListener('DOMContentLoaded', bcgovBlockThemePlugin.initFrontendSearch());
+	addEventListener(
+		'DOMContentLoaded',
+		bcgovBlockThemePluginSearch.initFrontend()
+	);
 }

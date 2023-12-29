@@ -1,18 +1,19 @@
 const bcgovBlockThemePlugin = {
-    initFrontendGeneral: function () {
+	initFrontendGeneral() {
 		/*
-		* SafarIE iOS requires requestAnimationFrame update.
-		*/
-		requestAnimationFrame(() => {
-
+		 * SafarIE iOS requires window.requestAnimationFrame update.
+		 */
+		window.requestAnimationFrame( () => {
 			// console.log('General script loaded');
-
-		});
-    }
+		} );
+	},
 };
 
-if ('complete' === document.readyState) {
+if ( 'complete' === document.readyState ) {
 	bcgovBlockThemePlugin.initFrontendGeneral();
 } else {
-	document.addEventListener('DOMContentLoaded', bcgovBlockThemePlugin.initFrontendGeneral());
+	document.addEventListener(
+		'DOMContentLoaded',
+		bcgovBlockThemePlugin.initFrontendGeneral()
+	);
 }

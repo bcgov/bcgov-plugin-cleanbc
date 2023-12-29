@@ -2,12 +2,18 @@
   "name": "bcgov-plugin-cleanbc",
   "author": "Nate King",
   "private": true,
-  "version": "1.2.2",
+  "version": "1.2.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "build": "npm run lint:js : LINT_SEVERITY=warn && vite build --minify false",
     "build:watch": "vite build --watch",
-    "build": "npm ci && vite build",
+    "build:watch-no-minify": "vite build --watch --minify false",
+    "build:production": "npm ci && npm run lint:js && vite build",
+    "lint:css": "wp-scripts lint-style 'src/**/*.scss' 'styles/public-additional-styles.scss' --allow-empty-input",
+		"fix:css": "wp-scripts lint-style 'src/**/*.scss' 'styles/public-additional-styles.scss' --fix",
+		"lint:js": "wp-scripts lint-js scripts --no-error-on-unmatched-pattern",
+		"fix:js": "wp-scripts lint-js scripts --fix",
     "preview": "vite preview",
     "test": "vitest"
   },
@@ -16,6 +22,9 @@
     "vue-slider-component": "^4.1.0-beta.7"
   },
   "devDependencies": {
+    "@bcgov/wordpress-eslint": "git+https://apps.itsm.gov.bc.ca/bitbucket/scm/wp/bcgov-wordpress-eslint.git#semver:1.x",
+    "@bcgov/wordpress-stylelintrc": "git+https://apps.itsm.gov.bc.ca/bitbucket/scm/wp/bcgov-wordpress-stylelintrc.git#semver:1.x",
+    "@wordpress/scripts": "^26.19.0",
     "@rushstack/eslint-patch": "^1.2.0",
     "@vitejs/plugin-vue": "^4.2.3",
     "@vue/eslint-config-prettier": "^7.1.0",

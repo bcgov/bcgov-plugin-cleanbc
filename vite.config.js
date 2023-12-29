@@ -4,18 +4,17 @@ import vue from '@vitejs/plugin-vue'
 import { fileURLToPath, URL } from 'node:url'
 
 export default defineConfig({
-  plugins: [
-    vue()
-  ],
+  plugins: [ vue() ],
   resolve: {
       alias: {
-        '@': fileURLToPath(new URL('blocks/vue-blocks/src/', import.meta.url))
+        '@': fileURLToPath(new URL('blocks/vue-blocks/src', import.meta.url))
       }
     },
   build: {
     minify: 'terser',
     terserOptions: {
-      keep_fnames: true
+      keep_fnames: true,
+      mangle: false
     },
 
     polyfillModulePreload: false,
@@ -24,7 +23,7 @@ export default defineConfig({
         public: resolve(__dirname, 'public.html'),
         admin: resolve(__dirname, 'admin.html'),
         vuePosts: resolve(__dirname,'blocks/vue-blocks/vue.html')
-      },
+      }
     },
   },
 })
