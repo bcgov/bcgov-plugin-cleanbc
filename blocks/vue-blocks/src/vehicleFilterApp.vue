@@ -184,7 +184,9 @@
 import { ref, computed, onMounted } from 'vue';
 import VueSlider from 'vue-slider-component';
 
-const vehiclesAPI = `${window.pluginCleanbc?.domain}/wp-json/custom/v1/vehicles`;
+const publicDomain = 'https://goelectricbc.goc.bc.ca'
+
+const vehiclesAPI = `${window.site?.domain ? window.site.domain : publicDomain}/wp-json/custom/v1/vehicles`;
 
 const vehicles = ref([]);
 const filterValue = ref('');
@@ -200,9 +202,9 @@ const isElectricRange = ref(false);
 const isFullRange = ref(false);
 const rangeValue = ref([28000, 70000]);
 
-const cleanBCLogo = `${window.pluginCleanbc?.pluginDir}/blocks/vue-blocks/src/assets/go_electric_cleanbc_logo.png`;
-const cleanBCLeaf = `${window.pluginCleanbc?.pluginDir}/blocks/vue-blocks/src/assets/leaf-icon-01.png`;
-const placeholderImg = `${window.pluginCleanbc?.pluginDir}/blocks/vue-blocks/src/assets/image-unavailable.png`;
+const cleanBCLogo = `${window.site?.domain ? window.site.domain : publicDomain}/blocks/vue-blocks/src/assets/go_electric_cleanbc_logo.png`;
+const cleanBCLeaf = `${window.site?.domain ? window.site.domain : publicDomain}/blocks/vue-blocks/src/assets/leaf-icon-01.png`;
+const placeholderImg = `${window.site?.domain ? window.site.domain : publicDomain}/blocks/vue-blocks/src/assets/image-unavailable.png`;
 
 const rangeOptions = {
   dotSize: 24,
@@ -240,6 +242,15 @@ const rangeOptions = {
   labelStyle: undefined,
   labelActiveStyle: undefined,
 };
+
+/**
+ * Watches the `window.site?.domain` variable and invokes `fetchData` when it becomes truthy.
+ */
+ watch(() => window.site?.domain, (newVal, oldVal) => {
+    if (newVal) {
+        fetchData();
+    }
+});
 
 const searchvehicles = computed(() => {
 
@@ -328,7 +339,6 @@ const changeOrder = (val) => {
 
 onMounted(() => {
   getEVArray();
-  console.log('vehicleFilterApp.vue initialised.')
 });
 </script>
 
@@ -402,10 +412,7 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
   @media (max-width: $breakpoint-sm) {
     top: 80vh;
   }
-
-
 }
-
 
 .flex-container {
 
@@ -446,8 +453,6 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
         }
       }
     }
-
-
 
     .content {
 
