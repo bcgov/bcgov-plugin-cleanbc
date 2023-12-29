@@ -457,43 +457,51 @@ const filteredTags = (tags, excludedTags) => {
  * if `window.site?.domain` is truthy.
  */
 onMounted(() => {
-    const appElement = document.getElementById('postFilterApp');
-    cssClass.value = appElement.getAttribute('class');
-    columns.value = parseInt(appElement.getAttribute('data-columns'));
-    filterPostType.value = appElement.getAttribute('data-post-type');
-    filterPostTypeName.value = appElement.getAttribute('data-post-type-label');
-    headingSize.value = appElement.getAttribute('data-heading-size');
-    headingLinkActive.value = appElement.getAttribute('data-heading-link-active');
-    useExcerpt.value = appElement.getAttribute('data-use-excerpt');
 
-    // Fetch data and handle the hash after fetching
-    const handleHash = () => {
-        const hash = window.location.hash.substr(1); // Remove the '#' character
-        if (hash) {
-            // Check if there is a button with data-category-slug matching the hash
-            const matchingButton = document.querySelector(`[data-category-slug="${hash}"]`);
-            if (matchingButton) {
-                // Simulate a click on the matching button
-                matchingButton.click();
+    function handleDOMReady() {
+        const appElement = document.getElementById('postFilterApp');
+        cssClass.value = appElement.getAttribute('class');
+        columns.value = parseInt(appElement.getAttribute('data-columns'));
+        filterPostType.value = appElement.getAttribute('data-post-type');
+        filterPostTypeName.value = appElement.getAttribute('data-post-type-label');
+        headingSize.value = appElement.getAttribute('data-heading-size');
+        headingLinkActive.value = appElement.getAttribute('data-heading-link-active');
+        useExcerpt.value = appElement.getAttribute('data-use-excerpt');
+
+        // Fetch data and handle the hash after fetching
+        const handleHash = () => {
+            const hash = window.location.hash.substr(1); // Remove the '#' character
+            if (hash) {
+                // Check if there is a button with data-category-slug matching the hash
+                const matchingButton = document.querySelector(`[data-category-slug="${hash}"]`);
+                if (matchingButton) {
+                    // Simulate a click on the matching button
+                    matchingButton.click();
+                }
             }
+        };
+
+        if (isDOMReady() && window.site?.domain) {
+            showLoadingMessage.value = true;
+            fetchData().then(() => {
+                handleHash();
+            });
+        } else {
+            document.addEventListener('DOMContentLoaded', () => {
+                if (window.site?.domain) {
+                    fetchData().then(() => {
+                        handleHash();
+                    });
+                }
+            });
         }
-    };
-
-    if (isDOMReady() && window.site?.domain) {
-        fetchData().then(() => {
-            handleHash();
-        });
-    } else {
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.site?.domain) {
-                fetchData().then(() => {
-                    handleHash();
-                });
-            }
-        });
     }
 
-    showLoadingMessage.value = true;
+    if (document.readyState === 'loading') {  // If document is still loading
+        document.addEventListener('DOMContentLoaded', handleDOMReady); // Wait for it to finish
+    } else {  // Otherwise, if document is already loaded
+        handleDOMReady();  // Execute the function immediately
+    }
 });
 </script>
 
@@ -863,8 +871,9 @@ onMounted(() => {
         }
     }
 }
-#post-content .vue-card-content a:is(:hover, :focus-visible), 
+
+#post-content .vue-card-content a:is(:hover, :focus-visible),
 .post-content .vue-card-content a:is(:hover, :focus-visible) {
-  display: inline;
+    display: inline;
 }
 </style>

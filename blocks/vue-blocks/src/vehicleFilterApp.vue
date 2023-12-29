@@ -184,7 +184,7 @@
 import { ref, computed, onMounted } from 'vue';
 import VueSlider from 'vue-slider-component';
 
-const vehiclesAPI = window.pluginCleanbc.domain + '/wp-json/custom/v1/vehicles';
+const vehiclesAPI = `${window.pluginCleanbc?.domain}/wp-json/custom/v1/vehicles`;
 
 const vehicles = ref([]);
 const filterValue = ref('');
@@ -200,9 +200,9 @@ const isElectricRange = ref(false);
 const isFullRange = ref(false);
 const rangeValue = ref([28000, 70000]);
 
-const cleanBCLogo = `${window.pluginCleanbc.pluginDir}/blocks/vue-blocks/src/assets/go_electric_cleanbc_logo.png`;
-const cleanBCLeaf = `${window.pluginCleanbc.pluginDir}/blocks/vue-blocks/src/assets/leaf-icon-01.png`;
-const placeholderImg = `${window.pluginCleanbc.pluginDir}/blocks/vue-blocks/src/assets/image-unavailable.png`;
+const cleanBCLogo = `${window.pluginCleanbc?.pluginDir}/blocks/vue-blocks/src/assets/go_electric_cleanbc_logo.png`;
+const cleanBCLeaf = `${window.pluginCleanbc?.pluginDir}/blocks/vue-blocks/src/assets/leaf-icon-01.png`;
+const placeholderImg = `${window.pluginCleanbc?.pluginDir}/blocks/vue-blocks/src/assets/image-unavailable.png`;
 
 const rangeOptions = {
   dotSize: 24,
@@ -328,6 +328,7 @@ const changeOrder = (val) => {
 
 onMounted(() => {
   getEVArray();
+  console.log('vehicleFilterApp.vue initialised.')
 });
 </script>
 
