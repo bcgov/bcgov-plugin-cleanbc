@@ -181,7 +181,7 @@
 /**
  * Vue component script for the CleanBC Post Filter.
  */
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import VueSlider from 'vue-slider-component';
 
 const publicDomain = 'https://goelectricbc.goc.bc.ca'
