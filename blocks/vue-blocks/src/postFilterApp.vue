@@ -95,6 +95,8 @@ const perPage = 100;
 /** Array of excluded tags/categories */
 const excludedTags = ['Actions we are taking'];
 
+const publicDomain = 'https://cleanbc.goc.bc.ca'
+
 /**
  * Checks if the DOM is fully loaded and interactive. See onMounted.
  */
@@ -120,7 +122,7 @@ watch(() => window.site?.domain, (newVal, oldVal) => {
 const fetchData = async (offset = 0) => {
     try {
 
-        const filterPostUrl = `${window.site?.domain ? window.site.domain : ''}/wp-json/wp/v2/${filterPostType.value}?_embed&per_page=${perPage}&offset=${offset}&_category_image=true`;
+        const filterPostUrl = `${window.site?.domain ? window.site.domain : publicDomain}/wp-json/wp/v2/${filterPostType.value}?_embed&per_page=${perPage}&offset=${offset}&_category_image=true`;
         const filterPostResponse = await fetch(filterPostUrl);
         const filterPostsData = await filterPostResponse.json();
 
