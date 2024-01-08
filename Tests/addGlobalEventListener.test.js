@@ -1,9 +1,9 @@
-import { addGlobalEventListener, createElement } from '../scripts/utils';
+import { addGlobalEventListenerPlugin, createElement } from '../scripts/utils';
 import { expect, describe, beforeEach, it } from 'vitest';
 /**
- * Tests for addGlobalEventListener function found in /src/scripts/public/utils.
+ * Tests for addGlobalEventListenerPlugin function found in /src/scripts/public/utils.
  * 
- * `addGlobalEventListener` is a utility function that adds an event listener to a parent element
+ * `addGlobalEventListenerPlugin` is a utility function that adds an event listener to a parent element
  * and triggers the provided callback if the event target matches the selector.
  *
  * @function
@@ -15,7 +15,7 @@ import { expect, describe, beforeEach, it } from 'vitest';
  * @throws {Error} - If the selector is not a string or an element
  * @throws {Error} - If the callback is not a function
  */
-describe('addGlobalEventListener', () => {
+describe('addGlobalEventListenerPlugin', () => {
   let parent, selector, type, callback, event;
 
   beforeEach(() => {
@@ -31,7 +31,7 @@ describe('addGlobalEventListener', () => {
     const div = createElement('div');
     parent.appendChild(div);
 
-    addGlobalEventListener(type, selector, callback, parent);
+    addGlobalEventListenerPlugin(type, selector, callback, parent);
     div.dispatchEvent(event);
 
     expect(callback).not.toHaveBeenCalled();
@@ -41,7 +41,7 @@ describe('addGlobalEventListener', () => {
     const invalidSelector = 123;
 
     expect(() => {
-      addGlobalEventListener(type, invalidSelector, callback, parent);
+      addGlobalEventListenerPlugin(type, invalidSelector, callback, parent);
     }).toThrowError('Invalid selector: must be CSS selector or an element');
   });
 
@@ -49,7 +49,7 @@ describe('addGlobalEventListener', () => {
     const invalidCallback = 'not a function';
 
     expect(() => {
-      addGlobalEventListener(type, selector, invalidCallback, parent);
+      addGlobalEventListenerPlugin(type, selector, invalidCallback, parent);
     }).toThrowError('Invalid callback provided');
   });
 });

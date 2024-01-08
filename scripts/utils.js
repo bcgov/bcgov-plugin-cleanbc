@@ -5,31 +5,7 @@
  */
 
 /**
- * Adds an event listener to a DOM element if possible.
- *
- * @since 1.2.3
- *
- * @param {EventTarget}    el        - The DOM element to add the event listener to.
- * @param {string}         event     - The event type to listen for.
- * @param {Function}       handler   - The function to execute when the event is triggered.
- * @param {boolean|Object} [options] - An options object that specifies characteristics about the event listener.
- * @return {void}
- */
-export function addEventListener( el, event, handler, options ) {
-	if ( el && typeof el.addEventListener === 'function' ) {
-		// Call the original function
-		el.addEventListener( event, handler, options );
-	} else {
-		/* eslint-disable no-console */
-		console.warn(
-			'el is not a DOM element or does not support addEventListener'
-		);
-		/* eslint-enable no-console */
-	}
-}
-
-/**
- * addGlobalEventListener is a utility function that attaches an event listener to the given parent element and triggers the callback function only if the event target matches the given selector.
+ * addGlobalEventListenerPlugin is a utility function that attaches an event listener to the given parent element and triggers the callback function only if the event target matches the given selector.
  *
  * @param {string}         type              - The type of event to listen for (e.g. 'click', 'pointerevent')
  * @param {string|Element} selector          - The selector to match against the event. Can be a CSS selector string or an Element.
@@ -37,7 +13,7 @@ export function addEventListener( el, event, handler, options ) {
  * @param {Element}        [parent=document] - The parent element to attach the event listener to (defaults to document)
  */
 
-export function addGlobalEventListener(
+export function addGlobalEventListenerPlugin(
 	type,
 	selector,
 	callback,
@@ -263,23 +239,21 @@ function createBreadcrumbSeparator() {
 /**
  * Safely adds an event listener to a target element.
  *
- * @param {EventTarget | object} target    - The target element to which the event listener will be added.
- * @param {string}               type      - A string representing the event type to listen for (e.g., 'click', 'resize').
- * @param {Function | object}    listener  - The event listener function or object.
+ * @param {EventTarget | object} el        - The target element to which the event listener will be added.
+ * @param {string}               event     - A string representing the event type to listen for (e.g., 'click', 'resize').
+ * @param {Function | object}    handler   - The event listener function or object.
  * @param {boolean | object}     [options] - An optional object specifying options for the event listener.
  * @throws {Error} Throws an error if the target is not a valid element or if it doesn't support addEventListener.
  */
-export function addSafeEventListener( target, type, listener, options ) {
-	if (
-		! target ||
-		( typeof target.addEventListener !== 'function' &&
-			typeof target.on !== 'function' )
-	)
-		return;
-
-	if ( typeof target.addEventListener === 'function' ) {
-		target.addEventListener( type, listener, options );
-	} else if ( typeof target.on === 'function' ) {
-		target.on( type, listener );
+export function addSafeEventListenerPlugin( el, event, handler, options ) {
+	if ( el && typeof el.addEventListener === 'function' ) {
+		// Call the original function
+		el.addEventListener( event, handler, options );
+	} else {
+		/* eslint-disable no-console */
+		console.warn(
+			'el is not a valid EventTarget or does not support addEventListener'
+		);
+		/* eslint-enable no-console */
 	}
 }
