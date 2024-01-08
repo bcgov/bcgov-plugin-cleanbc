@@ -203,10 +203,14 @@ const getPostCategoryAlt = (post, index) => {
 };
 
 /**
- * Clears all selected tags and resets the filter.
+ * Clears all selected tags and resets the filter, removes the hash from the URL, 
+ * scrolls smoothly to the categories filter container, and checks for external links.
+ *
+ * @returns {void}
  */
 const clearFilters = () => {
     selectedTag.value = null;
+    history.replaceState(null, null, ' ')
 
     // Scroll to the element with id 'tag-filter-container'
     const tagFilterContainerElement = document.getElementById('tag-filter-container');
@@ -453,56 +457,46 @@ const filteredTags = (tags, excludedTags) => {
 };
 
 /**
- * Executes the provided callback function when the component is mounted and the DOM is is fully loaded/inserted
- * into the DOM. If the DOM is already ready when the component is mounted, it immediately fetches data 
- * if `window.site?.domain` is truthy. Otherwise, it waits for the DOM to be fully loaded before fetching data 
- * if `window.site?.domain` is truthy.
+ * Handles the hash change in the URL.
+ * If there's a button with a data-category-slug attribute matching the hash, simulates a click on it.
+ *
+ * @returns {void}
+ */
+const handleHash = () => {
+    const hash = window.location.hash.substr(1); // Remove the '#' character
+    if (hash) {
+        // Check if there is a button with data-category-slug matching the hash
+        const matchingButton = document.querySelector(`[data-category-slug="${hash}"]`);
+        if (matchingButton) {
+            // Simulate a click on the matching button
+            matchingButton.click();
+        }
+    }
+};
+
+/**
+ * A Vue lifecycle hook that is called after the instance has been mounted.
+ * It retrieves various attributes from the 'postFilterApp' element and assigns them to reactive properties.
+ * It also shows a loading message, fetches data, and then handles the URL hash.
+ *
+ * @returns {void}
  */
 onMounted(() => {
 
-    function handleDOMReady() {
-        const appElement = document.getElementById('postFilterApp');
-        cssClass.value = appElement.getAttribute('class');
-        columns.value = parseInt(appElement.getAttribute('data-columns'));
-        filterPostType.value = appElement.getAttribute('data-post-type');
-        filterPostTypeName.value = appElement.getAttribute('data-post-type-label');
-        headingSize.value = appElement.getAttribute('data-heading-size');
-        headingLinkActive.value = appElement.getAttribute('data-heading-link-active');
-        useExcerpt.value = appElement.getAttribute('data-use-excerpt');
+    const appElement = document.getElementById('postFilterApp');
+    cssClass.value = appElement.getAttribute('class');
+    columns.value = parseInt(appElement.getAttribute('data-columns'));
+    filterPostType.value = appElement.getAttribute('data-post-type');
+    filterPostTypeName.value = appElement.getAttribute('data-post-type-label');
+    headingSize.value = appElement.getAttribute('data-heading-size');
+    headingLinkActive.value = appElement.getAttribute('data-heading-link-active');
+    useExcerpt.value = appElement.getAttribute('data-use-excerpt');
 
-        // Fetch data and handle the hash after fetching
-        const handleHash = () => {
-            const hash = window.location.hash.substr(1); // Remove the '#' character
-            if (hash) {
-                // Check if there is a button with data-category-slug matching the hash
-                const matchingButton = document.querySelector(`[data-category-slug="${hash}"]`);
-                if (matchingButton) {
-                    // Simulate a click on the matching button
-                    matchingButton.click();
-                }
-            }
-        };
-
-        if (isDOMReady() && window.site?.domain) {
-            showLoadingMessage.value = true;
-            fetchData().then(() => {
-                handleHash();
-            });
-        } else {
-            document.addEventListener('DOMContentLoaded', () => {
-                if (window.site?.domain) {
-                    fetchData().then(() => {
-                        handleHash();
-                    });
-                }
-            });
-        }
-    }
-
-    if (document.readyState === 'loading') {  // If document is still loading
-        document.addEventListener('DOMContentLoaded', handleDOMReady); // Wait for it to finish
-    } else {  // Otherwise, if document is already loaded
-        handleDOMReady();  // Execute the function immediately
+    if (window.site?.domain) {
+        showLoadingMessage.value = true;
+        fetchData().then(() => {
+            handleHash();
+        });
     }
 });
 </script>

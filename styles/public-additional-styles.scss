@@ -1,23 +1,22 @@
-@import './variables.scss';
-@import './public/general.scss';
-@import './public/driver-category-query.scss';
-@import './public/bootstrap-legacy.scss';
-@import './public/header-and-navigation.scss';
-
-@import './public/go-electric/mixins.scss';
-@import './public/go-electric/variables.scss';
-@import './public/go-electric/quiz.scss';
-@import './public/go-electric/vehicles.scss';
-@import './public/go-electric/banners.scss';
-@import './public/go-electric/blocks.scss';
-@import './public/go-electric/breadcrumbs.scss';
-@import './public/go-electric/cards.scss';
-@import './public/go-electric/columns.scss';
-@import './public/go-electric/footer.scss';
-@import './public/go-electric/groups.scss';
-@import './public/go-electric/header.scss';
-@import './public/go-electric/patterns.scss';
-@import './public/go-electric/style.scss';
+@import "./variables";
+@import "./public/general";
+@import "./public/driver-category-query";
+@import "./public/bootstrap-legacy";
+@import "./public/header-and-navigation";
+@import "./public/go-electric/mixins";
+@import "./public/go-electric/variables";
+@import "./public/go-electric/quiz";
+@import "./public/go-electric/vehicles";
+@import "./public/go-electric/banners";
+@import "./public/go-electric/blocks";
+@import "./public/go-electric/breadcrumbs";
+@import "./public/go-electric/cards";
+@import "./public/go-electric/columns";
+@import "./public/go-electric/footer";
+@import "./public/go-electric/groups";
+@import "./public/go-electric/header";
+@import "./public/go-electric/patterns";
+@import "./public/go-electric/style";
 
 :root {
 	color-scheme: light dark;
@@ -25,7 +24,7 @@
 	background-color: $mineshaft;
 
 	font-synthesis: none;
-	text-rendering: optimizeLegibility;
+	text-rendering: optimizelegibility;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	-webkit-text-size-adjust: 100%;
