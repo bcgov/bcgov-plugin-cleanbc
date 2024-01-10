@@ -198,20 +198,21 @@ class EnableVueApp {
         foreach ( $vehicles->posts as $vehicle ) {
 
             $posts_data[] = (object) array(
-                'id'                => $vehicle->ID,
-                'make'              => $vehicle->make,
-                'model'             => $vehicle->model,
-                'vehicle_class'     => $vehicle->vehicle_class,
-                'minMsrp'           => (int) $vehicle->minMsrp,
-                'maxMsrp'           => (int) $vehicle->maxMsrp,
-                'rebate_provincial' => (int) $vehicle->rebate_provincial,
-                'rebate_federal'    => (int) $vehicle->rebate_federal,
-                'rangeElectricKm'   => (int) $vehicle->rangeElectricKm,
-                'rangeFullKm'       => (int) $vehicle->rangeFullKm,
-                'type'              => $vehicle->vehicle_type,
-                'url'               => $vehicle->url,
-                'image'             => get_field( 'vehicle_image', $vehicle->ID ),
-                'post_url'          => get_permalink( $vehicle->ID ),
+                'id'                    => $vehicle->ID,
+                'make'                  => $vehicle->make,
+                'model'                 => $vehicle->model,
+                'vehicle_class'         => $vehicle->vehicle_class,
+                'minMsrp'               => (int) $vehicle->minMsrp,
+                'maxMsrp'               => (int) $vehicle->maxMsrp,
+                'rebate_provincial'     => (int) $vehicle->rebate_provincial,
+                'rebate_federal'        => (int) $vehicle->rebate_federal,
+                'rebate_federal_status' => $vehicle->federal_rebate_status[0],
+                'rangeElectricKm'       => (int) $vehicle->rangeElectricKm,
+                'rangeFullKm'           => (int) $vehicle->rangeFullKm,
+                'type'                  => $vehicle->vehicle_type,
+                'url'                   => $vehicle->url,
+                'image'                 => get_field( 'vehicle_image', $vehicle->ID ),
+                'post_url'              => get_permalink( $vehicle->ID ),
             );
         }
         return $posts_data;
