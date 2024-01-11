@@ -163,8 +163,7 @@
               <span v-else class="d-block">No Federal rebate</span>
               <hr class="hr" size="1" />
               <span class="d-block"><a class="external accessibleFocusItem" :href="vehicle.url"
-                :aria-label="'Go to the ' + vehicle.make + ' ' + vehicle.model + ' website.'" :key="index">Visit the <abbr
-                    title="manufacturer">mfr.</abbr>&nbsp;website</a></span>
+                :aria-label="'Go to the ' + vehicle.make + ' ' + vehicle.model + ' website.'" :key="index">Visit manufacturer website</a></span>
             </p>
             <p v-if="vehicle.rebate_federal_status === ''" class="rebate-content">Combined rebates up to ${{ (vehicle.rebate_provincial +
               vehicle.rebate_federal).toLocaleString() }}</p>
@@ -734,12 +733,12 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
             color: $eucalyptus !important;
           }
 
-          &::after {
-            content: $external-link-icon-dark;
-            display: inline-block;
-            width: 1rem;
-            margin-left: 0.5rem;
-          }
+        }
+        &::after {
+          content: $external-link-icon-dark !important;
+          display: inline-block;
+          width: 1rem;
+          margin-left: 0.5rem;
         }
       }
 
