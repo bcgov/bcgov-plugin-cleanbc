@@ -333,6 +333,7 @@
 
 				a {
 					color: $eucalyptus;
+					display: inline-block;
 					font-size: 1.1rem;
 					line-height: 1.3;
 					text-decoration: none;
@@ -402,7 +403,14 @@
 					border: 1px solid $scorpiongrey;
 					width: 20%;
 					margin: 20px 0;
+					
+					&.hr {
+						border: 1px solid $highlightblue;
+						width: 25%;
+						margin: 10px 0;
+					}
 				}
+
 
 				p {
 					color: $scorpiongrey;

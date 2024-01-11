@@ -133,16 +133,18 @@
           <div>
             <div class="ev-img"><img class="img-fluid" :src="vehicle.image ? vehicle.image : placeholderImg"
                 :alt="'photo of a ' + vehicle.make + ' ' + vehicle.model" /></div>
-            <p><span class="highlight">{{ vehicle.make }}</span> <span><strong>| {{ vehicle.type }}</strong></span><br />
+            <p style='margin-bottom: 1rem;'><span class="highlight">{{ vehicle.make }}</span> <span><strong>| {{ vehicle.type }}</strong></span><br />
               <span class="model">{{ vehicle.model }}</span><br />
-              <span v-if="vehicle.maxMsrp === 0" class="msrp">MSRP<sup v-if="index === 0"> *</sup>: ${{
-                vehicle.minMsrp.toLocaleString() }}</span>
-              <span v-else class="msrp">MSRP<sup v-if="index === 0"> *</sup>: ${{ vehicle.minMsrp.toLocaleString()
-              }}–${{ vehicle.maxMsrp.toLocaleString() }}</span>
-              <span class="d-block mt-2 mb-1">Electric Range: {{ vehicle.rangeElectricKm.toLocaleString() }}km</span>
-              <span v-if="vehicle.rangeFullKm !== 0" class="d-block">Full Range: {{ vehicle.rangeFullKm.toLocaleString()
-              }}km</span>
-              <span v-if="vehicle.rangeFullKm === 0" class="d-block">Full Range: {{ vehicle.rangeElectricKm }}km</span>
+              <span v-if="vehicle.maxMsrp === 0" class="msrp"><strong>MSRP<sup v-if="index === 0"> *</sup> ${{
+                vehicle.minMsrp.toLocaleString() }}</strong></span>
+              <span v-else class="msrp"><strong>MSRP<sup v-if="index === 0">*</sup>: ${{ vehicle.minMsrp.toLocaleString()
+              }}–${{ vehicle.maxMsrp.toLocaleString() }}</strong></span>
+              <hr class="hr" size="1" />
+              <span class="d-block"><strong>Range:</strong></span>
+              <span class="d-block mt-2 mb-1">{{ vehicle.rangeElectricKm.toLocaleString() }}km Electric</span>
+              <span v-if="vehicle.rangeFullKm !== 0" class="d-block">{{ vehicle.rangeFullKm.toLocaleString()
+              }}km Full</span>
+              <span v-if="vehicle.rangeFullKm === 0" class="d-block">{{ vehicle.rangeElectricKm }}km Full</span>
               <span v-if="false" class="d-block mt-2 mb-1">Type:
                 <span v-if="vehicle.type === 'BEV'">Battery Electric Vehicle</span>
                 <span v-if="vehicle.type === 'ER-EV'">Extended Range EV</span>
@@ -150,20 +152,23 @@
                 <span v-if="vehicle.type === 'PHEV'">Plug-in Hybrid EV</span>
               </span>
               <span v-if="false" class="d-block">Class: {{ vehicle.vehicle_class }}</span>
-              <span class="d-block mt-2 mb-1" v-if="vehicle.rebate_provincial !== 0">Provincial rebate up to: ${{
-                vehicle.rebate_provincial.toLocaleString() }}</span>
+              <hr class="hr" size="1" />
+              <span class="d-block"><strong>Rebates up to:</strong></span>
+              <span class="d-block mt-2 mb-1" v-if="vehicle.rebate_provincial !== 0">${{
+                vehicle.rebate_provincial.toLocaleString() }} Provincial</span>
               <span v-else class="d-block mt-2 mb-1">No Provincial rebate</span>
-              <span v-if="vehicle.rebate_federal !== 0" class="d-block">Federal rebate up to: ${{
-                vehicle.rebate_federal.toLocaleString() }}</span>
+              <span v-if="vehicle.rebate_federal !== 0 && vehicle.rebate_federal_status === ''" class="d-block">${{
+                vehicle.rebate_federal.toLocaleString() }} Federal</span>
+              <span v-else-if="vehicle.rebate_federal_status === 'pending'" class="d-block">Federal rebate pending</span>
               <span v-else class="d-block">No Federal rebate</span>
-              <hr />
-              <a class="external accessibleFocusItem" :href="vehicle.url"
-                :aria-label="'Go to the ' + vehicle.make + ' ' + vehicle.model + ' website.'" :key="index"><span
-                  class="d-block mt-3 mb-0">Visit the <strong>{{ vehicle.make }} {{ vehicle.model }}</strong> <abbr
-                    title="manufacturer">mfr.</abbr>&nbsp;website</span></a>
+              <hr class="hr" size="1" />
+              <span class="d-block"><a class="external accessibleFocusItem" :href="vehicle.url"
+                :aria-label="'Go to the ' + vehicle.make + ' ' + vehicle.model + ' website.'" :key="index">Visit the <abbr
+                    title="manufacturer">mfr.</abbr>&nbsp;website</a></span>
             </p>
-            <p class="rebate-content">Combined rebates up to ${{ (vehicle.rebate_provincial +
+            <p v-if="vehicle.rebate_federal_status === ''" class="rebate-content">Combined rebates up to ${{ (vehicle.rebate_provincial +
               vehicle.rebate_federal).toLocaleString() }}</p>
+            <p v-else class="rebate-content">Combined rebates up to ${{ (vehicle.rebate_provincial).toLocaleString() }}</p>
           </div>
         </div>
       </template>
@@ -184,7 +189,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import VueSlider from 'vue-slider-component';
 
-const publicDomain = 'https://goelectricbc.goc.bc.ca'
+const publicDomain = 'https://goelectricbc.goc.bc.ca';
 
 const vehiclesAPI = `${window.site?.domain ? window.site.domain : publicDomain}/wp-json/custom/v1/vehicles`;
 
@@ -786,10 +791,10 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
         color: $prussianblue;
       }
 
-      hr {
-        border: 1px solid $scorpiongrey;
+      hr.hr {
+        border: 1px solid $dovegrey;
         width: 20%;
-        margin: 20px 0;
+        margin: 10px 0;
       }
 
       p {
@@ -826,6 +831,7 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
           font-size: 1.5rem;
           font-weight: 700;
           color: $bahamablue;
+          margin: 0;
         }
       }
     }
