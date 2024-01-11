@@ -206,7 +206,7 @@ class EnableVueApp {
                 'maxMsrp'               => (int) $vehicle->maxMsrp,
                 'rebate_provincial'     => (int) $vehicle->rebate_provincial,
                 'rebate_federal'        => (int) $vehicle->rebate_federal,
-                'rebate_federal_status' => $vehicle->federal_rebate_status[0],
+                'rebate_federal_status' => !empty($vehicle->federal_rebate_status) ? $vehicle->federal_rebate_status[0] : 'processed',
                 'rangeElectricKm'       => (int) $vehicle->rangeElectricKm,
                 'rangeFullKm'           => (int) $vehicle->rangeFullKm,
                 'type'                  => $vehicle->vehicle_type,
