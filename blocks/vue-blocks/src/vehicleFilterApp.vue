@@ -206,9 +206,9 @@ const isElectricRange = ref(false);
 const isFullRange = ref(false);
 const rangeValue = ref([28000, 70000]);
 
-const cleanBCLogo = `${window.site?.domain ? window.site.domain : publicDomain}/blocks/vue-blocks/src/assets/go_electric_cleanbc_logo.png`;
-const cleanBCLeaf = `${window.site?.domain ? window.site.domain : publicDomain}/blocks/vue-blocks/src/assets/leaf-icon-01.png`;
-const placeholderImg = `${window.site?.domain ? window.site.domain : publicDomain}/blocks/vue-blocks/src/assets/image-unavailable.png`;
+let cleanBCLogo = ref('');
+let cleanBCLeaf = ref('');
+let placeholderImg = ref('');
 
 const rangeOptions = {
   dotSize: 24,
@@ -343,6 +343,14 @@ const changeOrder = (val) => {
 
 onMounted(() => {
   getEVArray();
+  console.log('onMount', window.pluginCleanbc?.pluginDir);
+
+  setTimeout(() => {
+    console.log('setTimeout', window.pluginCleanbc?.pluginDir);
+    cleanBCLogo = ref(`${window.pluginCleanbc?.pluginDir}/blocks/vue-blocks/src/assets/go_electric_cleanbc_logo.png`);
+    cleanBCLeaf = ref(`${window.pluginCleanbc?.pluginDir}/blocks/vue-blocks/src/assets/leaf-icon-01.png`);
+    placeholderImg = ref(`${window.pluginCleanbc?.pluginDir}/blocks/vue-blocks/src/assets/image-unavailable.png`);
+  }, 0);
 });
 </script>
 
