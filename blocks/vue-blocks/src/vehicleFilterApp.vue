@@ -343,10 +343,7 @@ const changeOrder = (val) => {
 
 onMounted(() => {
   getEVArray();
-  console.log('onMount', window.pluginCleanbc?.pluginDir);
-
   setTimeout(() => {
-    console.log('setTimeout', window.pluginCleanbc?.pluginDir);
     cleanBCLogo = ref(`${window.pluginCleanbc?.pluginDir}/blocks/vue-blocks/src/assets/go_electric_cleanbc_logo.png`);
     cleanBCLeaf = ref(`${window.pluginCleanbc?.pluginDir}/blocks/vue-blocks/src/assets/leaf-icon-01.png`);
     placeholderImg = ref(`${window.pluginCleanbc?.pluginDir}/blocks/vue-blocks/src/assets/image-unavailable.png`);
