@@ -1,5 +1,5 @@
 ## 1.2.4 January 12, 2024
-- Added design related update to Go Electric vehicle filter output. Fixed undefined value on plugin directory variable coming from WordPress. ([CLEANBC-153](https://apps.nrs.gov.bc.ca/int/jira/browse/CLEANBC-153))
+- Added design related update to Go Electric vehicle filter output. Fixed undefined value on plugin directory variable coming from WordPress using computed property. ([CLEANBC-153](https://apps.nrs.gov.bc.ca/int/jira/browse/CLEANBC-153))
 - Fixed php notice for uninitialized string offset in vehicles custom API
 - Added Federal rebate pending option to vehicle fields and API output. Modified the Vue interface to show alternative rebate pending option and combined rebate calculation. 
 - Fixed the "Show External Link Icons" setting inside BCGov Block Theme settings not working with previous plugin update. Updated front end scripts to utilise unique arrow function naming and window.requestAnimationFrame execution – removing previous setTimeout 0 – to modify the DOM and align with the browser's rendering cycle. ([CLEANBC-154](https://apps.nrs.gov.bc.ca/int/jira/browse/CLEANBC-154))

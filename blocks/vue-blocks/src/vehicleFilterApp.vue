@@ -206,6 +206,7 @@ const isElectricRange = ref(false);
 const isFullRange = ref(false);
 const rangeValue = ref([28000, 70000]);
 
+let globalPluginDirFlag = false;
 let cleanBCLogo = ref('');
 let cleanBCLeaf = ref('');
 let placeholderImg = ref('');
@@ -288,6 +289,13 @@ const searchvehicles = computed(() => {
       return true;
     }
 
+    if(undefined !== window.pluginCleanbc && false === globalPluginDirFlag) {
+      globalPluginDirFlag = true;
+      cleanBCLogo = ref(`${window.pluginCleanbc.pluginDir}/blocks/vue-blocks/src/assets/go_electric_cleanbc_logo.png`);
+      cleanBCLeaf = ref(`${window.pluginCleanbc.pluginDir}/blocks/vue-blocks/src/assets/leaf-icon-01.png`);
+      placeholderImg = ref(`${window.pluginCleanbc.pluginDir}/blocks/vue-blocks/src/assets/image-unavailable.png`);
+    }
+
     return (
       vehicle.make.toLowerCase().includes(filterValueLowerCase) ||
       vehicle.model.toLowerCase().includes(filterValueLowerCase) ||
@@ -343,11 +351,6 @@ const changeOrder = (val) => {
 
 onMounted(() => {
   getEVArray();
-  setTimeout(() => {
-    cleanBCLogo = ref(`${window.pluginCleanbc?.pluginDir}/blocks/vue-blocks/src/assets/go_electric_cleanbc_logo.png`);
-    cleanBCLeaf = ref(`${window.pluginCleanbc?.pluginDir}/blocks/vue-blocks/src/assets/leaf-icon-01.png`);
-    placeholderImg = ref(`${window.pluginCleanbc?.pluginDir}/blocks/vue-blocks/src/assets/image-unavailable.png`);
-  }, 0);
 });
 </script>
 
