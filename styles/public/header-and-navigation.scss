@@ -364,6 +364,18 @@ body.cleanbc {
         }
       }
     }
+
+    div.wp-site-blocks  div.wp-block-group.alignfull.cleanbc-subfooter.has-primary-brand-background-color.has-background.is-layout-constrained  div.wp-block-columns  div  nav  ul li a {
+      text-decoration: none !important;
+
+      &:hover {
+        :hover,
+        :focus-visible {
+          background-color: var(--wp--preset--color--secondary-brand) !important;
+          text-decoration: none !important;
+        }
+      }
+    }
   }
 }
 

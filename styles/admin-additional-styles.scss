@@ -2,7 +2,7 @@
 @import './public/go-electric/variables';
 @import './admin/patterns';
 
-* {
+:root {
 	// Shadows from https://getcssscan.com/css-box-shadow-examples
 	// #39
 	--box-shadow: rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.04) 0px 10px 10px -5px;
@@ -28,6 +28,11 @@ html :where(.editor-styles-wrapper) {
 		border: 1px solid gray;
 		padding: 2rem;
 		text-align: center;
+	}
+
+	.is-shadowed {
+		--card-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+		box-shadow: var(--card-shadow);
 	}
 
  }

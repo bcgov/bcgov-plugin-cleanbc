@@ -259,6 +259,13 @@ const rangeOptions = {
 
 const searchvehicles = computed(() => {
 
+  if(undefined !== window.pluginCleanbc && false === globalPluginDirFlag) {
+      globalPluginDirFlag = true;
+      cleanBCLogo = ref(`${window.pluginCleanbc.pluginDir}/blocks/vue-blocks/src/assets/go_electric_cleanbc_logo.png`);
+      cleanBCLeaf = ref(`${window.pluginCleanbc.pluginDir}/blocks/vue-blocks/src/assets/leaf-icon-01.png`);
+      placeholderImg = ref(`${window.pluginCleanbc.pluginDir}/blocks/vue-blocks/src/assets/image-unavailable.png`);
+  }
+
   let result = vehicles.value;
 
   if (!filterValue.value && rangeValue.value[1] === 70000 && rangeValue.value[0] === 28000) {
@@ -287,13 +294,6 @@ const searchvehicles = computed(() => {
     }
     if (minPriceRange > actualVehiclePriceMin && maxPriceRange > actualVehiclePriceMax) {
       return true;
-    }
-
-    if(undefined !== window.pluginCleanbc && false === globalPluginDirFlag) {
-      globalPluginDirFlag = true;
-      cleanBCLogo = ref(`${window.pluginCleanbc.pluginDir}/blocks/vue-blocks/src/assets/go_electric_cleanbc_logo.png`);
-      cleanBCLeaf = ref(`${window.pluginCleanbc.pluginDir}/blocks/vue-blocks/src/assets/leaf-icon-01.png`);
-      placeholderImg = ref(`${window.pluginCleanbc.pluginDir}/blocks/vue-blocks/src/assets/image-unavailable.png`);
     }
 
     return (
