@@ -39,6 +39,10 @@ body:not(body.wp-admin):not(body.editor-styles-wrapper):not(body.error404) {
     overflow-x: hidden;
 }
 
+.custom-cleanbc .hidden {
+	display: none;
+}
+
 
 .banner-content {
 
