@@ -157,7 +157,7 @@
               <span class="d-block mt-2 mb-1" v-if="vehicle.rebate_provincial !== 0">${{
                 vehicle.rebate_provincial.toLocaleString() }} Provincial</span>
               <span v-else class="d-block mt-2 mb-1">No Provincial rebate</span>
-              <span v-if="vehicle.rebate_federal !== 0 && vehicle.rebate_federal_status === ''" class="d-block">${{
+              <span v-if="vehicle.rebate_federal !== 0 && vehicle.rebate_federal_status === 'processed'" class="d-block">${{
                 vehicle.rebate_federal.toLocaleString() }} Federal</span>
               <span v-else-if="vehicle.rebate_federal_status === 'pending'" class="d-block">Federal rebate pending</span>
               <span v-else class="d-block">No Federal rebate</span>
@@ -165,7 +165,7 @@
               <span class="d-block"><a class="external accessibleFocusItem" :href="vehicle.url"
                 :aria-label="'Go to the ' + vehicle.make + ' ' + vehicle.model + ' website.'" :key="index">Visit manufacturer website</a></span>
             </p>
-            <p v-if="vehicle.rebate_federal_status === ''" class="rebate-content">Combined rebates up to ${{ (vehicle.rebate_provincial +
+            <p v-if="vehicle.rebate_federal_status === 'processed'" class="rebate-content">Combined rebates up to ${{ (vehicle.rebate_provincial +
               vehicle.rebate_federal).toLocaleString() }}</p>
             <p v-else class="rebate-content">Combined rebates up to ${{ (vehicle.rebate_provincial).toLocaleString() }}</p>
           </div>
