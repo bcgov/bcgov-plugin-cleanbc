@@ -1,0 +1,83 @@
+a.icon-definition.icon-definition {
+	color: var(--wp--preset--color--secondary-brand);
+	text-decoration-style: dashed;
+	text-decoration-color: var(--wp--preset--color--secondary-brand);
+
+	&::after {
+		border: 1.5px solid var(--wp--preset--color--secondary-brand);
+		border-radius: 50%;
+		content: "?";
+		color: var(--wp--preset--color--secondary-brand);
+		display: inline-flex;
+		justify-content: center;
+		align-items: center;
+		line-height: 1;
+		font-weight: 700;
+		font-style: normal;
+		width: 0.85rem;
+		height: 0.85rem;
+		font-size: 0.66rem;
+		vertical-align: middle;
+		margin-left: 0.25rem;
+		position: relative;
+		top: -0.1rem;
+	}
+}
+
+body:has(#dialog[open]) {
+	overflow: hidden;
+}
+
+#dialog {
+	background-color: var(--wp--preset--color--white);
+	border: 0;
+	box-shadow: var(--box-shadow);
+	color: var(--wp--preset--color--text-color);
+	max-width: 600px;
+
+	&::backdrop {
+		background-color: rgba(0 0 0 / 0.5);
+		backdrop-filter: blur(2px);
+	}
+
+	.dialog-content {
+		h2 {
+			border-bottom: 7px solid var(--wp--preset--color--text-color);
+			display: inline-block;
+			font-size: 1.5rem;
+			padding-inline: 2rem;
+			padding-bottom: 0.5rem;
+			margin-top: 0;
+			margin-bottom: 0;
+			position: relative;
+			left: -2rem;
+			outline: none;
+		}
+	}
+	#close-dialog {
+		position: absolute;
+		top: 1rem;
+		right: 1rem;
+		font-size: 0;
+		background: top;
+		border: thin solid var(--wp--preset--color--transparent);
+		color: var(--wp--preset--color--text-color);
+		padding-inline: 0.5rem;
+		padding-top: 0.25rem;
+		&::after {
+			content: $closeIcon;
+			font-family:Verdana, Geneva, Tahoma, sans-serif;
+			font-size: 1rem;
+			display: inline-block;
+			padding: 0.25rem;
+			width: 1rem;
+		}
+		&:hover,
+		&:focus-visible {
+			border: thin solid var(--wp--preset--color--text-color);
+			border-radius: 0.25rem;
+			outline: none;
+			cursor: pointer;
+		}
+	}
+}

@@ -1,3 +1,6 @@
+## 1.3.0 February 12, 2024
+- Auto-generated dialog for definitions custom post type allows for links that include the path 'definitions' to generate an accessible dialog with the content of the CPT. Modifies the display of the link to include icon. Also added link/dialog handling to the Vue posts filter mechanism. ([CLEANBC-173](https://apps.nrs.gov.bc.ca/int/jira/browse/CLEANBC-173))
+
 ## 1.2.5 January 23, 2024
 - Fixed rebate output to align with API output. ([CLEANBC-153](https://apps.nrs.gov.bc.ca/int/jira/browse/CLEANBC-153))
 
