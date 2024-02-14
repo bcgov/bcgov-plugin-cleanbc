@@ -42,16 +42,25 @@ body:has(#dialog[open]) {
 
 	.dialog-content {
 		h2 {
-			border-bottom: 7px solid var(--wp--preset--color--text-color);
+			border-bottom: 7px solid var(--wp--preset--color--secondary-brand);
+			color: var(--wp--preset--color--secondary-brand);
 			display: inline-block;
 			font-size: 1.5rem;
-			padding-inline: 2rem;
+			padding-top: 0.5rem;
+			padding-bottom: 1rem;
+			padding-inline: 3rem;
 			padding-bottom: 0.5rem;
 			margin-top: 0;
 			margin-bottom: 0;
 			position: relative;
 			left: -2rem;
 			outline: none;
+		}
+		> * {
+			padding-inline: 1rem;
+		}
+		> *:last-child {
+			padding-bottom: 0.5rem;
 		}
 	}
 	#close-dialog {
