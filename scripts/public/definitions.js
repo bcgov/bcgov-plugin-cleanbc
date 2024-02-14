@@ -37,14 +37,18 @@ const bcgovBlockThemePluginDefnitions = () => {
 					'opens definition dialog for: ' + link.text
 				);
 
-				link.addEventListener( 'click', function ( event ) {
+				link.addEventListener( 'click', async function ( event ) {
 					event.preventDefault();
 					const url = this.getAttribute( 'href' );
-					fetch( url )
-						.then( function ( response ) {
-							return response.text();
-						} )
-						.then( function ( html ) {
+					const cachedData = window.sessionStorage.getItem( url );
+
+					if ( cachedData ) {
+						const { title, content } = JSON.parse( cachedData );
+						displayContent( title, content );
+					} else {
+						try {
+							const response = await fetch( url );
+							const html = await response.text();
 							const parser = new window.DOMParser();
 							const doc = parser.parseFromString(
 								html,
@@ -54,20 +58,30 @@ const bcgovBlockThemePluginDefnitions = () => {
 								'h1.wp-block-post-title'
 							).innerText;
 							const content =
-								doc.querySelector( '.entry-content' ).innerHTML; // Adjust this selector based on your WordPress template
-							const dialogContent = document.querySelector(
-								'#dialog .dialog-content'
+								doc.querySelector( '.entry-content' ).innerHTML;
+							const dataToCache = { title, content };
+
+							window.sessionStorage.setItem(
+								url,
+								JSON.stringify( dataToCache )
 							);
-							dialogContent.innerHTML =
-								'<h2 tabindex="0">' + title + '</h2>' + content;
-							showDialog();
-							dialogContent.querySelector( 'h2' ).focus();
-						} )
-						.catch( function ( error ) {
+							displayContent( title, content );
+						} catch ( error ) {
 							// eslint-disable-next-line no-console
 							console.error( 'Error fetching content:', error );
-						} );
+						}
+					}
 				} );
+
+				function displayContent( title, content ) {
+					const dialogContent = document.querySelector(
+						'#dialog .dialog-content'
+					);
+					dialogContent.innerHTML =
+						'<h2 tabindex="0">' + title + '</h2>' + content;
+					showDialog();
+					dialogContent.querySelector( 'h2' ).focus();
+				}
 			} );
 
 			function showDialog() {
