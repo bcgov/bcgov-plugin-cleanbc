@@ -8,7 +8,7 @@ const bcgovBlockThemePluginDefnitions = () => {
 	 * SafarIE iOS requires window.requestAnimationFrame update.
 	 */
 	window.requestAnimationFrame( () => {
-		const links = document.querySelectorAll( 'a' );
+		const links = document.querySelectorAll( 'a:not(#postFilterApp a)' );
 
 		const definitionLinks = Array.from( links ).filter( function ( link ) {
 			return link.href.includes( 'definitions' );
@@ -37,7 +37,20 @@ const bcgovBlockThemePluginDefnitions = () => {
 					'opens definition dialog for: ' + link.text
 				);
 
-				link.addEventListener( 'click', async function ( event ) {
+				// Adding event listeners for both click and keypress events
+				addEventListeners( link );
+			} );
+
+			function addEventListeners( element ) {
+				element.addEventListener( 'click', handleClick );
+				element.addEventListener( 'keypress', handleKeypress );
+			}
+
+			async function handleClick( event ) {
+				if (
+					event.type === 'click' ||
+					( event.type === 'keypress' && event.key === 'Enter' )
+				) {
 					event.preventDefault();
 					const url = this.getAttribute( 'href' );
 					const cachedData = window.sessionStorage.getItem( url );
@@ -67,22 +80,29 @@ const bcgovBlockThemePluginDefnitions = () => {
 							);
 							displayContent( title, content );
 						} catch ( error ) {
-							// eslint-disable-next-line no-console
+							/* eslint-disable no-console */
 							console.error( 'Error fetching content:', error );
+							/* eslint-enable no-console */
 						}
 					}
-				} );
-
-				function displayContent( title, content ) {
-					const dialogContent = document.querySelector(
-						'#dialog .dialog-content'
-					);
-					dialogContent.innerHTML =
-						'<h2 tabindex="0">' + title + '</h2>' + content;
-					showDialog();
-					dialogContent.querySelector( 'h2' ).focus();
 				}
-			} );
+			}
+
+			function handleKeypress( event ) {
+				if ( event.key === 'Enter' || event.keycode === 13 ) {
+					handleClick( event );
+				}
+			}
+
+			function displayContent( title, content ) {
+				const dialogContent = document.querySelector(
+					'#dialog .dialog-content'
+				);
+				dialogContent.innerHTML =
+					'<h2 tabindex="0">' + title + '</h2>' + content;
+				showDialog();
+				dialogContent.querySelector( 'h2' ).focus();
+			}
 
 			function showDialog() {
 				dialog.showModal();
