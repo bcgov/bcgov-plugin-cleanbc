@@ -43,19 +43,19 @@ class Loader {
      * Attempts to load the given class by searching through each of the base directories.
      * The class is only loaded if it uses the specified namespace prefix.
      *
-     * @param string $class The fully qualified class name to load.
+     * @param string $className The fully qualified class name to load.
      */
-    public function load_class( $class ) {
+    public function load_class( $className ) {
         // Namespace prefix.
         $prefix = 'Bcgov\\Plugin\\CleanBC\\';
 
         // Does the class use the namespace prefix?
-        if ( strncmp( $prefix, $class, strlen( $prefix ) ) !== 0 ) {
+        if ( strncmp( $prefix, $className, strlen( $prefix ) ) !== 0 ) {
             return;
         }
 
         // Get the relative class name.
-        $relative_class = substr( $class, strlen( $prefix ) );
+        $relative_class = substr( $className, strlen( $prefix ) );
 
         // Replace namespace separators with directory separators.
         $filename = str_replace( '\\', '/', $relative_class ) . '.php';

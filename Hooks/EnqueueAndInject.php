@@ -9,8 +9,8 @@ namespace Bcgov\Plugin\CleanBC\Hooks;
  *
  * @package Bcgov\Plugin\CleanBC
  */
-class EnqueueAndInject
-{
+class EnqueueAndInject {
+
 
 	/**
 	 * Enqueue scripts and styles for public website.
@@ -20,28 +20,34 @@ class EnqueueAndInject
 	 * @return void
 	 */
 	public function bcgov_plugin_enqueue_scripts(): void {
-		$plugin_dir = plugin_dir_path(__DIR__);
+		$plugin_dir = plugin_dir_path( __DIR__ );
 		$assets_dir = $plugin_dir . 'dist/assets/';
 
-		// Load public CSS and JS files
-		$public_css_files = glob($assets_dir . 'public*.css');
-		$public_js_files = glob($assets_dir . 'public*.js');
+		$plugin_data    = get_plugin_data( $plugin_dir . 'index.php' );
+		$plugin_version = $plugin_data['Version'];
 
-		// Enqueue public CSS files
-		foreach ($public_css_files as $file) {
-			$file_url = plugins_url(str_replace($plugin_dir, '', $file), __DIR__);
-			wp_enqueue_style('custom-public-' . basename($file, '.css'), $file_url);
+		$update_check = get_site_transient( 'update_plugins' );
+		if ( isset( $update_check->response['bcgov-plugin-cleanbc/index.php'] ) ) {
+			$latest_version = $update_check->response['bcgov-plugin-cleanbc/index.php']->new_version;
+		} else {
+			$latest_version = $plugin_version; // Fallback to the installed version.
 		}
 
-		// Enqueue public JS files
-		foreach ($public_js_files as $file) {
-			$file_url = plugins_url(str_replace($plugin_dir, '', $file), __DIR__);
-			wp_enqueue_script('custom-public-' . basename($file, '.js'), $file_url, [], false, true);
+		$public_css_files = glob( $assets_dir . 'public*.css' );
+		$public_js_files  = glob( $assets_dir . 'public*.js' );
+
+		foreach ( $public_css_files as $file ) {
+			$file_url = plugins_url( str_replace( $plugin_dir, '', $file ), __DIR__ );
+			wp_enqueue_style( 'custom-public-' . basename( $file, '.css' ), $file_url, [], $latest_version );
+		}
+
+		foreach ( $public_js_files as $file ) {
+			$file_url = plugins_url( str_replace( $plugin_dir, '', $file ), __DIR__ );
+			wp_enqueue_script( 'custom-public-' . basename( $file, '.js' ), $file_url, [], $latest_version, true );
 		}
 
 		$javascript_variables = $this->bcgov_plugin_set_javascript_variables();
-		wp_localize_script( 'custom-public-' . basename($file, '.js'), 'pluginCleanbc', $javascript_variables );
-
+		wp_localize_script( 'custom-public-' . basename( $file, '.js' ), 'pluginCleanbc', $javascript_variables );
 	}
 
 	/**
@@ -52,39 +58,57 @@ class EnqueueAndInject
 	 * @return void
 	 */
 	public function bcgov_plugin_enqueue_admin_scripts(): void {
-		$plugin_dir = plugin_dir_path(__DIR__);
+		$plugin_dir = plugin_dir_path( __DIR__ );
 		$assets_dir = $plugin_dir . 'dist/assets/';
 
-		$admin_css_files = glob($assets_dir . 'admin*.css');
-		$admin_js_files = glob($assets_dir . 'admin*.js');
+		$plugin_data    = get_plugin_data( $plugin_dir . 'index.php' );
+		$plugin_version = $plugin_data['Version'];
 
-		// Load admin CSS and JS files
-		foreach ($admin_css_files as $file) {
-			$file_url = plugins_url(str_replace($plugin_dir, '', $file), __DIR__);
-			wp_enqueue_style('custom-admin-' . basename($file, '.css'), $file_url);
+		$update_check = get_site_transient( 'update_plugins' );
+		if ( isset( $update_check->response['bcgov-plugin-cleanbc/index.php'] ) ) {
+			$latest_version = $update_check->response['bcgov-plugin-cleanbc/index.php']->new_version;
+		} else {
+			$latest_version = $plugin_version; // Fallback to the installed version.
 		}
 
-		foreach ($admin_js_files as $file) {
-			$file_url = plugins_url(str_replace($plugin_dir, '', $file), __DIR__);
-			wp_enqueue_script('custom-admin-' . basename($file, '.js'), $file_url, [], false, true);
+		$admin_css_files = glob( $assets_dir . 'admin*.css' );
+		$admin_js_files  = glob( $assets_dir . 'admin*.js' );
+
+		foreach ( $admin_css_files as $file ) {
+			$file_url = plugins_url( str_replace( $plugin_dir, '', $file ), __DIR__ );
+			wp_enqueue_style( 'custom-admin-' . basename( $file, '.css' ), $file_url, [], $latest_version );
+		}
+
+		foreach ( $admin_js_files as $file ) {
+			$file_url = plugins_url( str_replace( $plugin_dir, '', $file ), __DIR__ );
+			wp_enqueue_script( 'custom-admin-' . basename( $file, '.js' ), $file_url, [], $latest_version, true );
 		}
 	}
 
 
 	/**
 	 * Load the Override theme.json and update the provided theme.json object.
-	 * 
+	 *
 	 * Retrieves the contents of the 'theme.json' file contains configuration settings for the current theme.
-	 * 
+	 *
+	 * @param object $theme_json The original theme.json object to be filtered.
 	 * @return object The updated theme.json object.
 	 */
-	public function filter_theme_json_theme_plugin($theme_json) {
+	public function filter_theme_json_theme_plugin( $theme_json ) {
 
-		$plugin_theme_json_path = trailingslashit(plugin_dir_path(__FILE__)) . '../theme/theme.json';
+		$plugin_theme_json_path = trailingslashit( plugin_dir_path( __FILE__ ) ) . '../theme/theme.json';
 
-		$plugin_theme_json = json_decode(file_get_contents($plugin_theme_json_path), true);
+		$response = wp_remote_get( $plugin_theme_json_path );
 
-		return $theme_json->update_with($plugin_theme_json);
+		if ( is_wp_error( $response ) ) { return $theme_json; }
+
+		$body = wp_remote_retrieve_body( $response );
+
+		$plugin_theme_json = json_decode( $body, true );
+
+		if ( ! is_array( $plugin_theme_json ) ) { return $theme_json; }
+
+		return $theme_json->update_with( $plugin_theme_json );
 	}
 
 	/**
@@ -98,14 +122,14 @@ class EnqueueAndInject
 		$javascript_variables = [
 			'domain'    => home_url(),
 			'siteName'  => 'cleanbc',
-			'pluginDir' => plugin_dir_url(__DIR__),
+			'pluginDir' => plugin_dir_url( __DIR__ ),
 		];
 
 		return $javascript_variables;
 	}
 
 	/**
-	 * Adds the cleanbc class to the body tag of the current page/post. 
+	 * Adds the cleanbc class to the body tag of the current page/post.
 	 * This is a necessary body class for both CleanBC and Go Electric BC.
 	 *
 	 * @since 1.1.0
@@ -113,11 +137,11 @@ class EnqueueAndInject
 	 * @return array The modified array of classes with the custom class added.
      */
 	public function add_cleanbc_class_to_body( $classes ) {
-		
+
 		$custom_body_class_name = 'cleanbc';
-		
+
 		$classes[] = $custom_body_class_name;
-		
+
 		return $classes;
 	}
 }

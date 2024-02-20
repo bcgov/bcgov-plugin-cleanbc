@@ -149,7 +149,7 @@ export function findParentElementByClass( element, className ) {
 	let current = element.parentNode;
 	while (
 		current !== null &&
-		current.nodeType === document.Node.ELEMENT_NODE &&
+		current.nodeType === window.Node.ELEMENT_NODE &&
 		! current.classList.contains( className )
 	) {
 		current = current.parentNode;
