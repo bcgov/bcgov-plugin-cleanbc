@@ -1,3 +1,6 @@
+## 1.5.0 February 20, 2024
+- Added scaffolding for PQEA filter block. ([CLEANBC-189](https://apps.nrs.gov.bc.ca/int/jira/browse/CLEANBC-189))
+
 ## 1.4.0 February 16, 2024
 - Vite builder and composer/wp-scripts living in harmony – codebase now lints using the code standards eg: `composer production` now works as required. ([CLEANBC-189](https://apps.nrs.gov.bc.ca/int/jira/browse/CLEANBC-189))
 

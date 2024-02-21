@@ -2,6 +2,7 @@ import './assets/shared.css';
 import { createApp } from 'vue';
 import PostFilterApp from './postFilterApp.vue';
 import VehicleFilterApp from './vehicleFilterApp.vue';
+import PQEAFilterApp from './pqeaVueApp.vue';
 
 // Common initialization function for creating and mounting a Vue app
 
@@ -19,7 +20,8 @@ const bcgovBlockThemePluginMain = () => {
 
     const postFilterAppElement = document.querySelector('#postFilterApp');
     const VehicleFilterAppElement = document.querySelector('#vehicleFilterApp');
-    
+    const PQEAFilterAppElement = document.querySelector('#pqeaFilterApp');
+
     /**
      * Initialize a Vue.js application with the given component, selector, and attributes.
      *
@@ -36,11 +38,11 @@ const bcgovBlockThemePluginMain = () => {
         if (window.vueInstance && window.vueInstance.component === appComponent) {
             window.vueInstance.unmount();
         }
-        
+
         // Pass attributes to your Vue app via props or through some other method
         // Depending on your Vue app's structure, you might need to modify this
         appComponent.props = attributes;
-        
+
         // Create and mount the new Vue instance
         window.vueInstance = createApp(appComponent);
         window.vueInstance.mount(selector);
@@ -52,10 +54,15 @@ const bcgovBlockThemePluginMain = () => {
     if (postFilterAppElement) {
         initVueApp(PostFilterApp, postFilterAppElement);
     }
-    
+
     // Initialize Vue app for the 'VehicleFilterApp' component if the corresponding element exists
     if (VehicleFilterAppElement) {
         initVueApp(VehicleFilterApp, VehicleFilterAppElement);
+    }
+
+    // Initialize Vue app for the 'PQEAFilterApp' component if the corresponding element exists
+    if (PQEAFilterAppElement) {
+        initVueApp(PQEAFilterApp, PQEAFilterAppElement);
     }
 
 };
@@ -73,10 +80,10 @@ const bcgovBlockThemePluginMain = () => {
  *
  * @returns {void}
  */
-function addSafeEventListenerPlugin( el, event, handler, options ) {
-    if ( el && typeof el.addEventListener === 'function' ) {
+function addSafeEventListenerPlugin(el, event, handler, options) {
+    if (el && typeof el.addEventListener === 'function') {
         // Call the original function
-        el.addEventListener( event, handler, options );
+        el.addEventListener(event, handler, options);
     } else {
         /* eslint-disable no-console */
         console.warn(
@@ -86,12 +93,12 @@ function addSafeEventListenerPlugin( el, event, handler, options ) {
     }
 }
 
-if ( 'complete' === document.readyState ) {
-	bcgovBlockThemePluginMain();
+if ('complete' === document.readyState) {
+    bcgovBlockThemePluginMain();
 } else {
-	addSafeEventListenerPlugin(
+    addSafeEventListenerPlugin(
         document,
-		'DOMContentLoaded',
-		bcgovBlockThemePluginMain()
-	);
+        'DOMContentLoaded',
+        bcgovBlockThemePluginMain()
+    );
 }

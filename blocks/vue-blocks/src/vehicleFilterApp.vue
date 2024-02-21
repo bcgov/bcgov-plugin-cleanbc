@@ -183,7 +183,7 @@
 
 <script setup>
 /**
- * Vue component script for the CleanBC Post Filter.
+ * Vue component script for the Go Electric BC Vehicle Filter.
  */
 import { ref, computed, onMounted, watch } from 'vue';
 import VueSlider from 'vue-slider-component';

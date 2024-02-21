@@ -43,6 +43,14 @@ class EnableVueApp {
 			$latest_version,
 			true
 		);
+
+		wp_enqueue_script(
+			'cleanbc-plugin/betterhomes-pqea-filter-block',
+			plugin_dir_url( __DIR__ ) . 'blocks/vue-blocks/betterhomes-pqea-vue-block.js',
+			[ 'wp-blocks', 'wp-element', 'wp-editor' ],
+			$latest_version,
+			true
+		);
 	}
 
 	/**
@@ -154,6 +162,48 @@ class EnableVueApp {
 		return '<div id="vehicleFilterApp" class="' . esc_attr( $className ) . '">Loading...</div>';
 	}
 
+
+	/**
+	 * Load VueJS app assets when the block is on the page.
+	 *
+	 * @param array $attributes The block attributes.
+	 * @return string The HTML output for the block.
+	 */
+	public function vuejs_betterhomes_pqea_filter_app_dynamic_block_plugin( $attributes ) {
+
+		$plugin_dir = plugin_dir_path( __DIR__ );
+		$assets_dir = $plugin_dir . 'dist/assets/';
+
+		$plugin_data    = get_plugin_data( $plugin_dir . 'index.php' );
+		$plugin_version = $plugin_data['Version'];
+
+		$update_check = get_site_transient( 'update_plugins' );
+		if ( isset( $update_check->response['index.php'] ) ) {
+			$latest_version = $update_check->response['index.php']->new_version;
+		} else {
+			$latest_version = $plugin_version;
+		}
+
+		$public_css_files = glob( $assets_dir . 'vue*.css' );
+		$public_js_files  = glob( $assets_dir . 'vue*.js' );
+
+		foreach ( $public_css_files as $file ) {
+			$file_url = plugins_url( str_replace( $plugin_dir, '', $file ), __DIR__ );
+			wp_enqueue_style( 'vue-app-' . basename( $file, '.css' ), $file_url, [], $latest_version );
+		}
+
+		foreach ( $public_js_files as $file ) {
+			$file_url = plugins_url( str_replace( $plugin_dir, '', $file ), __DIR__ );
+			wp_enqueue_script( 'vue-app-' . basename( $file, '.js' ), $file_url, [ 'bcgov-block-theme-public' ], $latest_version, true ); // Sets the dependency to Block Theme to enqueue after.
+		}
+
+		// Set up the attributes passed to the Vue frontend, with defaults.
+		$className = isset( $attributes['className'] ) ? $attributes['className'] : '';
+
+		// Add the 'data-columns' attribute to the output div.
+		return '<div id="pqeaFilterApp" class="' . esc_attr( $className ) . '">Loading...</div>';
+	}
+
 	/**
 	 * Initialize the VueJS app blocks.
 	 */
@@ -169,6 +219,13 @@ class EnableVueApp {
 			'cleanbc-plugin/vehicle-filter-block',
 			[
 				'render_callback' => [ $this, 'vuejs_vehicle_filter_app_dynamic_block_plugin' ],
+			]
+		);
+
+		register_block_type(
+			'cleanbc-plugin/betterhomes-pqea-filter-block',
+			[
+				'render_callback' => [ $this, 'vuejs_betterhomes_pqea_filter_app_dynamic_block_plugin' ],
 			]
 		);
 	}
@@ -261,6 +318,31 @@ class EnableVueApp {
 	}
 
 	/**
+	 * Return ACF fields for vehiclepost content type.
+	 *
+	 * @return array
+	 */
+	public function custom_api_pqea_filter_callback() {
+		$args = array(
+			'post_type'      => 'pqeas',
+			'posts_per_page' => -1,
+			'post_status'    => 'publish',
+		);
+
+		$pqeas = new \WP_Query( $args );
+
+		foreach ( $pqeas->posts as $pqea ) {
+
+			$posts_data[] = (object) array(
+				'id'       => $pqea->ID,
+				'url'      => $pqea->url,
+				'post_url' => get_permalink( $pqea->ID ),
+			);
+		}
+		return $posts_data;
+	}
+
+	/**
 	 * Sets up route and callback for custom endpoint.
 	 *
 	 * @return void
@@ -282,6 +364,16 @@ class EnableVueApp {
 			array(
 				'methods'             => 'GET',
 				'callback'            => [ $this, 'custom_api_vehicle_filter_callback' ],
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		register_rest_route(
+			'custom/v1',
+			'/pqeas',
+			array(
+				'methods'             => 'GET',
+				'callback'            => [ $this, 'custom_api_pqea_filter_callback' ],
 				'permission_callback' => '__return_true',
 			)
 		);
