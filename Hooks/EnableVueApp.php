@@ -71,7 +71,7 @@ class EnableVueApp {
 		$public_js_files = glob( $assets_dir . 'vue*.js' );
 
 		foreach ( $public_js_files as $file ) {
-			if ( isset( $attributes['id'] ) && 'vue-app-' . basename( $file, '.js' ) === $attributes['id'] ) {
+			if ( isset( $attributes['id'] ) && 'vue-app-' . basename( $file, '.js' ) . '-js' === $attributes['id'] ) {
 				$attributes['type'] = 'module';
 			}
 		}
