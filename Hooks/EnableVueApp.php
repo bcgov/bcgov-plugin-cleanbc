@@ -318,27 +318,89 @@ class EnableVueApp {
 	}
 
 	/**
-	 * Return ACF fields for vehiclepost content type.
+	 * Custom callback function for the PQEA filter in the API.
 	 *
-	 * @return array
+	 * This function fetches and formats data for PQEAs (Program Qualified Energy Advisors)
+	 * to be used in a custom API endpoint.
+	 *
+	 * @return array An array of formatted data for PQEAs.
 	 */
 	public function custom_api_pqea_filter_callback() {
+		// Set up the arguments for WP_Query.
 		$args = array(
 			'post_type'      => 'pqeas',
 			'posts_per_page' => -1,
 			'post_status'    => 'publish',
 		);
 
+		// Set array of field names to be fetched.
+		$renovation_details_field_names = [
+			'program_qualified',
+			'company_name',
+			'company_website',
+			'company_location',
+			'contact_name',
+			'email',
+			'phone',
+			'service_organization_name',
+			'service_organization_website',
+			'service_organization_name_2',
+			'service_organization_website_2',
+			'additional_service_organizations',
+		];
+
+		// Query PQEAs using WP_Query.
 		$pqeas = new \WP_Query( $args );
 
+		// Fetch associated meta and ACF fields on a per-post basis.
 		foreach ( $pqeas->posts as $pqea ) {
+			// Array for PQEA contact details.
+			$details = [];
 
+			// Get taxonomy terms.
+			$pqea_project_types = get_the_terms( $pqea->ID, 'ea-project-types' );
+			$pqea_locations     = get_the_terms( $pqea->ID, 'ea-locations' );
+			$pqea_services      = get_the_terms( $pqea->ID, 'ea-services' );
+
+			// Fetch ACF fields based on PQEA Project Type.
+			foreach ( $renovation_details_field_names as $field_name ) {
+				if ( 'renovating-a-home' === $pqea_project_types[0]->slug ) {
+					$details[ $field_name ] = get_field( $field_name, $pqea->ID );
+				} else {
+					$details[ $field_name ] = get_field( 'res_new_' . $field_name, $pqea->ID );
+				}
+			}
+
+			// Format Additional Service Organizations repeater, if any.
+			if ( have_rows( 'res_new_additional_service_organizations', $pqea->ID ) ) {
+				// Empty ACF's default response.
+				$details['additional_service_organizations'] = [];
+
+				// Iterate over ACF repeater subfields and add them to $details.
+				while ( have_rows( 'res_new_additional_service_organizations', $pqea->ID ) ) {
+					the_row();
+
+					$details['additional_service_organizations'][] = [
+						get_sub_field( 'name' ),
+						get_sub_field( 'website' ),
+					];
+				}
+			}
+
+			// Setup post data for return at the endpoint.
 			$posts_data[] = (object) array(
-				'id'       => $pqea->ID,
-				'url'      => $pqea->url,
-				'post_url' => get_permalink( $pqea->ID ),
+				'id'         => $pqea->ID,
+				'title'      => get_the_title( $pqea->ID ),
+				'url'        => $pqea->url,
+				'post_url'   => get_permalink( $pqea->ID ),
+				'categories' => $pqea_project_types[0]->name,
+				'locations'  => $pqea_locations,
+				'services'   => $pqea_services,
+				'details'    => $details,
 			);
 		}
+
+		// Return the formatted data.
 		return $posts_data;
 	}
 
