@@ -54,6 +54,34 @@ class EnableVueApp {
 	}
 
 	/**
+	 * Allow for overriding a js script embed tag to embed as a module.
+	 * Used for Vue/Vite to be loaded as a module and not override the global namespace.
+	 * Based on https://stackoverflow.com/questions/76573766/how-to-properly-create-wp-enqueue-and-functions-script-to-run-vite-frontend.
+	 *
+	 * @param string|false $script_handle Optional. The handle of the script. Default is false.
+	 * @return string|false The modified script tag with 'type="module"' attribute, or false if script handle is not provided.
+	 */
+	public function script_type_module( $script_handle = false ): string {
+		// change the script type to module.
+		add_filter(
+			'script_loader_tag',
+			function ( $tag, $handle, $src ) use ( $script_handle ) {
+
+				if ( $script_handle !== $handle ) {
+					return $tag;
+				}
+
+				// return the new script module type tag.
+				return '<script type="module" src="' . esc_url( $src ) . '" id="' . $handle . '-js"></script>'; //phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript
+				// Ignores "Scripts must be registered/enqueued via wp_enqueue_script()" linting error.
+			},
+			10,
+			3
+		);
+		return false;
+	}
+
+	/**
 	 * Load VueJS app assets onto the client.
 	 */
 	public function vuejs_app_plugin() {
@@ -69,6 +97,8 @@ class EnableVueApp {
 					$version  = filemtime( $file );
 					$file_url = plugins_url( str_replace( $plugin_dir, '', $file ), __DIR__ );
 					wp_enqueue_style( 'vue-app-' . basename( $file, '.css' ), $file_url, [], $version );
+
+					$this->script_type_module( 'vue-app-' . basename( $file, '.js' ) );
 				}
 			}
 		}
@@ -153,6 +183,8 @@ class EnableVueApp {
 		foreach ( $public_js_files as $file ) {
 			$file_url = plugins_url( str_replace( $plugin_dir, '', $file ), __DIR__ );
 			wp_enqueue_script( 'vue-app-' . basename( $file, '.js' ), $file_url, [ 'bcgov-block-theme-public' ], $latest_version, true ); // Sets the dependency to Block Theme to enqueue after.
+
+			$this->script_type_module( 'vue-app-' . basename( $file, '.js' ) );
 		}
 
 		// Set up the attributes passed to the Vue frontend, with defaults.
@@ -195,6 +227,8 @@ class EnableVueApp {
 		foreach ( $public_js_files as $file ) {
 			$file_url = plugins_url( str_replace( $plugin_dir, '', $file ), __DIR__ );
 			wp_enqueue_script( 'vue-app-' . basename( $file, '.js' ), $file_url, [ 'bcgov-block-theme-public' ], $latest_version, true ); // Sets the dependency to Block Theme to enqueue after.
+
+			$this->script_type_module( 'vue-app-' . basename( $file, '.js' ) );
 		}
 
 		// Set up the attributes passed to the Vue frontend, with defaults.
