@@ -28,8 +28,6 @@ class EnableVueApp {
 			$latest_version = $plugin_version; // Fallback to the installed version.
 		}
 
-		add_filter( 'wp_script_attributes', [ $this, 'add_script_type_attribute' ], 10, 1 );
-
 		wp_enqueue_script(
 			'cleanbc-plugin/post-filter-block',
 			plugin_dir_url( __DIR__ ) . 'blocks/vue-blocks/post-filter-vue-block.js',
