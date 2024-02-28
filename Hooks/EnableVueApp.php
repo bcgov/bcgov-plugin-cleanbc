@@ -43,6 +43,38 @@ class EnableVueApp {
 			$latest_version,
 			true
 		);
+
+		wp_enqueue_script(
+			'cleanbc-plugin/betterhomes-pqea-filter-block',
+			plugin_dir_url( __DIR__ ) . 'blocks/vue-blocks/betterhomes-pqea-vue-block.js',
+			[ 'wp-blocks', 'wp-element', 'wp-editor' ],
+			$latest_version,
+			true
+		);
+	}
+
+
+
+	/**
+	 * Add/modify the enqueued scripts attributes. From https://stackoverflow.com/a/77863823
+	 *   Specifically change the type to 'module' for the Vue includes. Used for Vue/Vite to be loaded as a module and not override the global namespace.
+	 *
+	 * @param array $attributes The attributes already set when the hook is called.
+	 * @return array $attributes The modified attributes
+	 */
+	public function add_script_type_attribute( $attributes ) {
+		$plugin_dir = plugin_dir_path( __DIR__ );
+		$assets_dir = $plugin_dir . 'dist/assets/';
+
+		$public_js_files = glob( $assets_dir . 'vue*.js' );
+
+		foreach ( $public_js_files as $file ) {
+			if ( isset( $attributes['id'] ) && 'vue-app-' . basename( $file, '.js' ) . '-js' === $attributes['id'] ) {
+				$attributes['type'] = 'module';
+			}
+		}
+
+		return $attributes;
 	}
 
 	/**
@@ -154,6 +186,48 @@ class EnableVueApp {
 		return '<div id="vehicleFilterApp" class="' . esc_attr( $className ) . '">Loading...</div>';
 	}
 
+
+	/**
+	 * Load VueJS app assets when the block is on the page.
+	 *
+	 * @param array $attributes The block attributes.
+	 * @return string The HTML output for the block.
+	 */
+	public function vuejs_betterhomes_pqea_filter_app_dynamic_block_plugin( $attributes ) {
+
+		$plugin_dir = plugin_dir_path( __DIR__ );
+		$assets_dir = $plugin_dir . 'dist/assets/';
+
+		$plugin_data    = get_plugin_data( $plugin_dir . 'index.php' );
+		$plugin_version = $plugin_data['Version'];
+
+		$update_check = get_site_transient( 'update_plugins' );
+		if ( isset( $update_check->response['index.php'] ) ) {
+			$latest_version = $update_check->response['index.php']->new_version;
+		} else {
+			$latest_version = $plugin_version;
+		}
+
+		$public_css_files = glob( $assets_dir . 'vue*.css' );
+		$public_js_files  = glob( $assets_dir . 'vue*.js' );
+
+		foreach ( $public_css_files as $file ) {
+			$file_url = plugins_url( str_replace( $plugin_dir, '', $file ), __DIR__ );
+			wp_enqueue_style( 'vue-app-' . basename( $file, '.css' ), $file_url, [], $latest_version );
+		}
+
+		foreach ( $public_js_files as $file ) {
+			$file_url = plugins_url( str_replace( $plugin_dir, '', $file ), __DIR__ );
+			wp_enqueue_script( 'vue-app-' . basename( $file, '.js' ), $file_url, [ 'bcgov-block-theme-public' ], $latest_version, true ); // Sets the dependency to Block Theme to enqueue after.
+		}
+
+		// Set up the attributes passed to the Vue frontend, with defaults.
+		$className = isset( $attributes['className'] ) ? $attributes['className'] : '';
+
+		// Add the 'data-columns' attribute to the output div.
+		return '<div id="pqeaFilterApp" class="' . esc_attr( $className ) . '">Loading...</div>';
+	}
+
 	/**
 	 * Initialize the VueJS app blocks.
 	 */
@@ -169,6 +243,13 @@ class EnableVueApp {
 			'cleanbc-plugin/vehicle-filter-block',
 			[
 				'render_callback' => [ $this, 'vuejs_vehicle_filter_app_dynamic_block_plugin' ],
+			]
+		);
+
+		register_block_type(
+			'cleanbc-plugin/betterhomes-pqea-filter-block',
+			[
+				'render_callback' => [ $this, 'vuejs_betterhomes_pqea_filter_app_dynamic_block_plugin' ],
 			]
 		);
 	}
@@ -261,6 +342,93 @@ class EnableVueApp {
 	}
 
 	/**
+	 * Custom callback function for the PQEA filter in the API.
+	 *
+	 * This function fetches and formats data for PQEAs (Program Qualified Energy Advisors)
+	 * to be used in a custom API endpoint.
+	 *
+	 * @return array An array of formatted data for PQEAs.
+	 */
+	public function custom_api_pqea_filter_callback() {
+		// Set up the arguments for WP_Query.
+		$args = array(
+			'post_type'      => 'pqeas',
+			'posts_per_page' => -1,
+			'post_status'    => 'publish',
+		);
+
+		// Set array of field names to be fetched.
+		$renovation_details_field_names = [
+			'program_qualified',
+			'company_name',
+			'company_website',
+			'company_location',
+			'contact_name',
+			'email',
+			'phone',
+			'service_organization_name',
+			'service_organization_website',
+			'service_organization_name_2',
+			'service_organization_website_2',
+			'additional_service_organizations',
+		];
+
+		// Query PQEAs using WP_Query.
+		$pqeas = new \WP_Query( $args );
+
+		// Fetch associated meta and ACF fields on a per-post basis.
+		foreach ( $pqeas->posts as $pqea ) {
+			// Array for PQEA contact details.
+			$details = [];
+
+			// Get taxonomy terms.
+			$pqea_project_types = get_the_terms( $pqea->ID, 'ea-project-types' );
+			$pqea_locations     = get_the_terms( $pqea->ID, 'ea-locations' );
+			$pqea_services      = get_the_terms( $pqea->ID, 'ea-services' );
+
+			// Fetch ACF fields based on PQEA Project Type.
+			foreach ( $renovation_details_field_names as $field_name ) {
+				if ( 'renovating-a-home' === $pqea_project_types[0]->slug ) {
+					$details[ $field_name ] = get_field( $field_name, $pqea->ID );
+				} else {
+					$details[ $field_name ] = get_field( 'res_new_' . $field_name, $pqea->ID );
+				}
+			}
+
+			// Format Additional Service Organizations repeater, if any.
+			if ( have_rows( 'res_new_additional_service_organizations', $pqea->ID ) ) {
+				// Empty ACF's default response.
+				$details['additional_service_organizations'] = [];
+
+				// Iterate over ACF repeater subfields and add them to $details.
+				while ( have_rows( 'res_new_additional_service_organizations', $pqea->ID ) ) {
+					the_row();
+
+					$details['additional_service_organizations'][] = [
+						get_sub_field( 'name' ),
+						get_sub_field( 'website' ),
+					];
+				}
+			}
+
+			// Setup post data for return at the endpoint.
+			$posts_data[] = (object) array(
+				'id'         => $pqea->ID,
+				'title'      => get_the_title( $pqea->ID ),
+				'url'        => $pqea->url,
+				'post_url'   => get_permalink( $pqea->ID ),
+				'categories' => $pqea_project_types[0]->name,
+				'locations'  => $pqea_locations,
+				'services'   => $pqea_services,
+				'details'    => $details,
+			);
+		}
+
+		// Return the formatted data.
+		return $posts_data;
+	}
+
+	/**
 	 * Sets up route and callback for custom endpoint.
 	 *
 	 * @return void
@@ -282,6 +450,16 @@ class EnableVueApp {
 			array(
 				'methods'             => 'GET',
 				'callback'            => [ $this, 'custom_api_vehicle_filter_callback' ],
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		register_rest_route(
+			'custom/v1',
+			'/pqeas',
+			array(
+				'methods'             => 'GET',
+				'callback'            => [ $this, 'custom_api_pqea_filter_callback' ],
 				'permission_callback' => '__return_true',
 			)
 		);

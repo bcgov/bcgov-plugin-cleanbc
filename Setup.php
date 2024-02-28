@@ -31,6 +31,7 @@ class Setup {
         add_filter( 'get_the_date', [ $plugin_search, 'bcgov_modify_search_result_date' ], 10, 2 );
         add_filter( 'block_categories_all', [ $plugin_enable_vue_app, 'custom_block_categories' ], 10, 2 );
         add_filter( 'body_class', [ $plugin_enqueue_and_inject, 'add_cleanbc_class_to_body' ] );
+        add_filter( 'wp_script_attributes', [ $plugin_enable_vue_app, 'add_script_type_attribute' ], 10, 2 );
 
         // Actions.
         add_action( 'pre_get_posts', [ $plugin_search, 'bcgov_included_post_types_in_search' ] );
