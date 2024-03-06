@@ -8876,7 +8876,7 @@ const vue_runtime_esmBundler = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Obj
   withModifiers,
   withScopeId
 }, Symbol.toStringTag, { value: "Module" }));
-const postFilterApp_vue_vue_type_style_index_0_scoped_2ae46283_lang = "";
+const postFilterApp_vue_vue_type_style_index_0_scoped_0ae0dddc_lang = "";
 const postFilterApp_vue_vue_type_style_index_1_lang = "";
 const _export_sfc = (sfc, props) => {
   const target = sfc.__vccOpts || sfc;
@@ -8885,47 +8885,47 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const _hoisted_1$2 = {
+const _hoisted_1$3 = {
   key: 0,
   id: "tag-filter-container",
   class: "tag-filter-container"
 };
-const _hoisted_2$2 = { class: "taxonomy-common_component_category wp-block-post-terms filter-container" };
-const _hoisted_3$2 = ["id", "value"];
-const _hoisted_4$2 = ["for", "onClick", "data-category-slug", "id", "onKeydown", "aria-label"];
-const _hoisted_5$2 = ["src"];
-const _hoisted_6$2 = {
+const _hoisted_2$3 = { class: "taxonomy-common_component_category wp-block-post-terms filter-container" };
+const _hoisted_3$3 = ["id", "value"];
+const _hoisted_4$3 = ["for", "onClick", "data-category-slug", "id", "onKeydown", "aria-label"];
+const _hoisted_5$3 = ["src"];
+const _hoisted_6$3 = {
   key: 1,
   id: "action-title"
 };
-const _hoisted_7$2 = { key: 0 };
-const _hoisted_8$2 = { key: 1 };
-const _hoisted_9$2 = { class: "filter-options" };
-const _hoisted_10$2 = ["onKeydown"];
-const _hoisted_11$2 = {
+const _hoisted_7$3 = { key: 0 };
+const _hoisted_8$3 = { key: 1 };
+const _hoisted_9$3 = { class: "filter-options" };
+const _hoisted_10$3 = ["onKeydown"];
+const _hoisted_11$3 = {
   key: 2,
   class: "alignfull wp-block-columns card-container"
 };
-const _hoisted_12$2 = { class: "wp-block-query vue-card-container" };
-const _hoisted_13$2 = { class: "vue-card-content is-layout-constrained wp-block-group common-component-group flex-card has-white-background-color has-background" };
-const _hoisted_14$2 = { class: "category-icon-container" };
-const _hoisted_15$2 = {
+const _hoisted_12$3 = { class: "wp-block-query vue-card-container" };
+const _hoisted_13$3 = { class: "vue-card-content is-layout-constrained wp-block-group common-component-group flex-card has-white-background-color has-background" };
+const _hoisted_14$3 = { class: "category-icon-container" };
+const _hoisted_15$3 = {
   key: 0,
   class: "category-icon"
 };
-const _hoisted_16$2 = ["src", "alt", "title"];
-const _hoisted_17$2 = ["href"];
-const _hoisted_18$2 = { style: { "font-size": "1rem" } };
-const _hoisted_19$2 = ["innerHTML"];
-const _hoisted_20$2 = {
+const _hoisted_16$3 = ["src", "alt", "title"];
+const _hoisted_17$3 = ["href"];
+const _hoisted_18$3 = { style: { "font-size": "1rem" } };
+const _hoisted_19$3 = ["innerHTML"];
+const _hoisted_20$3 = {
   key: 4,
   class: "no-results",
   "aria-live": "polite"
 };
-const _hoisted_21$2 = ["onClick", "onKeydown"];
+const _hoisted_21$3 = ["onClick", "onKeydown"];
 const perPage = 100;
 const publicDomain$1 = "https://cleanbc.goc.bc.ca";
-const _sfc_main$2 = {
+const _sfc_main$3 = {
   __name: "postFilterApp",
   setup(__props) {
     const filterPostType = ref("");
@@ -9223,8 +9223,8 @@ const _sfc_main$2 = {
     });
     return (_ctx, _cache) => {
       return openBlock(), createElementBlock(Fragment, null, [
-        uniqueTags.value.categories.length > 0 ? (openBlock(), createElementBlock("div", _hoisted_1$2, [
-          createBaseVNode("div", _hoisted_2$2, [
+        uniqueTags.value.categories.length > 0 ? (openBlock(), createElementBlock("div", _hoisted_1$3, [
+          createBaseVNode("div", _hoisted_2$3, [
             (openBlock(true), createElementBlock(Fragment, null, renderList(uniqueTags.value.categories, (category, index) => {
               return openBlock(), createElementBlock("div", {
                 key: category,
@@ -9236,7 +9236,7 @@ const _sfc_main$2 = {
                   value: category,
                   "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => selectedTag.value = $event),
                   class: "tag-input"
-                }, null, 8, _hoisted_3$2), [
+                }, null, 8, _hoisted_3$3), [
                   [vModelRadio, selectedTag.value]
                 ]),
                 createBaseVNode("label", {
@@ -9255,26 +9255,26 @@ const _sfc_main$2 = {
                     src: getCategoryIconUrl(category),
                     alt: "",
                     class: "category-icon"
-                  }, null, 8, _hoisted_5$2)) : createCommentVNode("", true),
+                  }, null, 8, _hoisted_5$3)) : createCommentVNode("", true),
                   createTextVNode(" " + toDisplayString(category) + " (" + toDisplayString(getTagCount(category)) + ") ", 1)
-                ], 40, _hoisted_4$2)
+                ], 40, _hoisted_4$3)
               ]);
             }), 128))
           ])
         ])) : createCommentVNode("", true),
-        filterPosts.value.length > 0 ? (openBlock(), createElementBlock("h3", _hoisted_6$2, [
-          sortedFilteredPosts.value.length !== filterPosts.value.length ? (openBlock(), createElementBlock("span", _hoisted_7$2, "Showing actions: " + toDisplayString(selectedTag.value ? selectedTag.value + " " : "") + " (" + toDisplayString(sortedFilteredPosts.value.length) + "/" + toDisplayString(filterPosts.value.length) + ")", 1)) : (openBlock(), createElementBlock("span", _hoisted_8$2, "All actions (" + toDisplayString(sortedFilteredPosts.value.length) + "/" + toDisplayString(filterPosts.value.length) + ")", 1)),
-          createBaseVNode("div", _hoisted_9$2, [
+        filterPosts.value.length > 0 ? (openBlock(), createElementBlock("h3", _hoisted_6$3, [
+          sortedFilteredPosts.value.length !== filterPosts.value.length ? (openBlock(), createElementBlock("span", _hoisted_7$3, "Showing actions: " + toDisplayString(selectedTag.value ? selectedTag.value + " " : "") + " (" + toDisplayString(sortedFilteredPosts.value.length) + "/" + toDisplayString(filterPosts.value.length) + ")", 1)) : (openBlock(), createElementBlock("span", _hoisted_8$3, "All actions (" + toDisplayString(sortedFilteredPosts.value.length) + "/" + toDisplayString(filterPosts.value.length) + ")", 1)),
+          createBaseVNode("div", _hoisted_9$3, [
             sortedFilteredPosts.value.length !== filterPosts.value.length ? (openBlock(), createElementBlock("button", {
               key: 0,
               class: "clear-filters",
               onClick: clearFilters,
               onKeydown: withKeys(withModifiers(clearFilters, ["prevent"]), ["enter"])
-            }, " Reset selection ", 40, _hoisted_10$2)) : createCommentVNode("", true)
+            }, " Reset selection ", 40, _hoisted_10$3)) : createCommentVNode("", true)
           ])
         ])) : createCommentVNode("", true),
-        sortedFilteredPosts.value.length > 0 ? (openBlock(), createElementBlock("div", _hoisted_11$2, [
-          createBaseVNode("div", _hoisted_12$2, [
+        sortedFilteredPosts.value.length > 0 ? (openBlock(), createElementBlock("div", _hoisted_11$3, [
+          createBaseVNode("div", _hoisted_12$3, [
             createBaseVNode("ul", {
               class: normalizeClass(["is-flex-container wp-block-post-template", `columns-${columns.value}`])
             }, [
@@ -9283,16 +9283,16 @@ const _sfc_main$2 = {
                   key: post.id,
                   class: "filter-card common-component"
                 }, [
-                  createBaseVNode("div", _hoisted_13$2, [
-                    createBaseVNode("div", _hoisted_14$2, [
+                  createBaseVNode("div", _hoisted_13$3, [
+                    createBaseVNode("div", _hoisted_14$3, [
                       (openBlock(true), createElementBlock(Fragment, null, renderList(post.category_image, (img, index) => {
                         return openBlock(), createElementBlock(Fragment, { key: img }, [
-                          img ? (openBlock(), createElementBlock("span", _hoisted_15$2, [
+                          img ? (openBlock(), createElementBlock("span", _hoisted_15$3, [
                             createBaseVNode("img", {
                               src: img,
                               alt: getPostCategoryAlt(post, index),
                               title: getPostCategoryAlt(post, index)
-                            }, null, 8, _hoisted_16$2)
+                            }, null, 8, _hoisted_16$3)
                           ])) : createCommentVNode("", true)
                         ], 64);
                       }), 128))
@@ -9306,17 +9306,17 @@ const _sfc_main$2 = {
                         class: "has-text-color has-secondary-brand-color is-style-default wp-block-post-title card-title",
                         innerHTML: post.title.rendered
                       }, null, 8, ["innerHTML"]))
-                    ], 8, _hoisted_17$2)) : (openBlock(), createBlock(resolveDynamicComponent(headingSize.value), {
+                    ], 8, _hoisted_17$3)) : (openBlock(), createBlock(resolveDynamicComponent(headingSize.value), {
                       key: 1,
                       style: { "margin-bottom": "0", "margin-top": "var(--wp--preset--spacing--20)" },
                       class: "has-text-color has-secondary-brand-color is-style-default wp-block-post-title card-title",
                       innerHTML: post.title.rendered
                     }, null, 8, ["innerHTML"])),
-                    createBaseVNode("div", _hoisted_18$2, [
+                    createBaseVNode("div", _hoisted_18$3, [
                       createBaseVNode("span", {
                         class: "value",
                         innerHTML: useExcerpt.value === "excerpt" ? post.excerpt.rendered : post.content.rendered
-                      }, null, 8, _hoisted_19$2)
+                      }, null, 8, _hoisted_19$3)
                     ])
                   ])
                 ]);
@@ -9329,7 +9329,7 @@ const _sfc_main$2 = {
           "aria-live": "polite"
         }, "Retrieving " + toDisplayString(filterPostTypeName.value) + " results.", 513)), [
           [vShow, showLoadingMessage.value]
-        ]) : (openBlock(), createElementBlock("p", _hoisted_20$2, [
+        ]) : (openBlock(), createElementBlock("p", _hoisted_20$3, [
           createTextVNode("Oops, no filterable results for "),
           createBaseVNode("strong", null, toDisplayString(filterPostTypeName.value), 1),
           createTextVNode(" have been found. "),
@@ -9337,14 +9337,14 @@ const _sfc_main$2 = {
             href: "#",
             onClick: withModifiers(clearFilters, ["prevent"]),
             onKeydown: withKeys(withModifiers(clearFilters, ["prevent"]), ["enter"])
-          }, "Try resetting your filters", 40, _hoisted_21$2),
+          }, "Try resetting your filters", 40, _hoisted_21$3),
           createTextVNode(" and refining your selections.")
         ]))
       ], 64);
     };
   }
 };
-const PostFilterApp = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["__scopeId", "data-v-2ae46283"]]);
+const PostFilterApp = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["__scopeId", "data-v-0ae0dddc"]]);
 var commonjsGlobal = typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : {};
 function getDefaultExportFromCjs(x) {
   return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, "default") ? x["default"] : x;
@@ -10507,117 +10507,117 @@ const require$$0 = /* @__PURE__ */ getAugmentedNamespace(vue_runtime_esmBundler)
 })(vueSliderComponent_umd_min);
 var vueSliderComponent_umd_minExports = vueSliderComponent_umd_min.exports;
 const VueSlider = /* @__PURE__ */ getDefaultExportFromCjs(vueSliderComponent_umd_minExports);
-const vehicleFilterApp_vue_vue_type_style_index_0_scoped_65ccab0a_lang = "";
-const _withScopeId$1 = (n) => (pushScopeId("data-v-65ccab0a"), n = n(), popScopeId(), n);
-const _hoisted_1$1 = { class: "mb-2 d-none d-md-block" };
-const _hoisted_2$1 = { key: 0 };
-const _hoisted_3$1 = { key: 1 };
-const _hoisted_4$1 = {
+const vehicleFilterApp_vue_vue_type_style_index_0_scoped_baa26fa3_lang = "";
+const _withScopeId$2 = (n) => (pushScopeId("data-v-baa26fa3"), n = n(), popScopeId(), n);
+const _hoisted_1$2 = { class: "mb-2 d-none d-md-block" };
+const _hoisted_2$2 = { key: 0 };
+const _hoisted_3$2 = { key: 1 };
+const _hoisted_4$2 = {
   key: 0,
   class: "container-fluid flex-container"
 };
-const _hoisted_5$1 = {
+const _hoisted_5$2 = {
   id: "vue-app",
   class: "row scrollable"
 };
-const _hoisted_6$1 = { class: "filter-container filter-container-desktop d-none d-md-block" };
-const _hoisted_7$1 = { class: "filter-flex-container" };
-const _hoisted_8$1 = { class: "flex-group" };
-const _hoisted_9$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("h4", { id: "make-header-mobile" }, "By make or model", -1));
-const _hoisted_10$1 = { class: "mb-2" };
-const _hoisted_11$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("p", { class: "msrp-link text-dark" }, "Or EV Type using initialism eg: BEV, PHEV, etc.", -1));
-const _hoisted_12$1 = { class: "flex-group" };
-const _hoisted_13$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("h4", null, "Price Range", -1));
-const _hoisted_14$1 = { class: "msrp-range" };
-const _hoisted_15$1 = { class: "max-msrp" };
-const _hoisted_16$1 = { class: "msrp-link mt-3" };
-const _hoisted_17$1 = {
+const _hoisted_6$2 = { class: "filter-container filter-container-desktop d-none d-md-block" };
+const _hoisted_7$2 = { class: "filter-flex-container" };
+const _hoisted_8$2 = { class: "flex-group" };
+const _hoisted_9$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("h4", { id: "make-header-mobile" }, "By make or model", -1));
+const _hoisted_10$2 = { class: "mb-2" };
+const _hoisted_11$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("p", { class: "msrp-link text-dark" }, "Or EV Type using initialism eg: BEV, PHEV, etc.", -1));
+const _hoisted_12$2 = { class: "flex-group" };
+const _hoisted_13$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("h4", null, "Price Range", -1));
+const _hoisted_14$2 = { class: "msrp-range" };
+const _hoisted_15$2 = { class: "max-msrp" };
+const _hoisted_16$2 = { class: "msrp-link mt-3" };
+const _hoisted_17$2 = {
   href: "#disclaimer",
   "aria-label": "navigate to the M.S.R.P. disclaimer information below"
 };
-const _hoisted_18$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("sup", null, " *", -1));
-const _hoisted_19$1 = { class: "flex-group" };
-const _hoisted_20$1 = { class: "flex-group-filters" };
-const _hoisted_21$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("h4", { style: { "margin-bottom": "0.25rem" } }, "Sort by", -1));
-const _hoisted_22$1 = {
+const _hoisted_18$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("sup", null, " *", -1));
+const _hoisted_19$2 = { class: "flex-group" };
+const _hoisted_20$2 = { class: "flex-group-filters" };
+const _hoisted_21$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("h4", { style: { "margin-bottom": "0.25rem" } }, "Sort by", -1));
+const _hoisted_22$2 = {
   class: "btn-group-horizontal",
   role: "group"
 };
-const _hoisted_23$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("sup", null, " *", -1));
-const _hoisted_24$1 = {
+const _hoisted_23$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("sup", null, " *", -1));
+const _hoisted_24$2 = {
   class: "btn-group-horizontal",
   role: "group"
 };
-const _hoisted_25$1 = {
+const _hoisted_25$2 = {
   class: "btn-group-horizontal",
   role: "group"
 };
-const _hoisted_26$1 = /* @__PURE__ */ createStaticVNode('<div class="flex-group d-none d-lg-block" data-v-65ccab0a><h4 data-v-65ccab0a>Electric Vehicle Types</h4><p class="type-key" data-v-65ccab0a><span data-v-65ccab0a><strong data-v-65ccab0a>BEV</strong> – Battery Electric Vehicle</span><br data-v-65ccab0a><span data-v-65ccab0a><strong data-v-65ccab0a>ER-EV</strong> – Extended Range EV</span><br data-v-65ccab0a><span data-v-65ccab0a><strong data-v-65ccab0a>FCEV</strong> – Fuel Cell Electric Vehicle</span><br data-v-65ccab0a><span data-v-65ccab0a><strong data-v-65ccab0a>PHEV</strong> – Plug-in Hybrid EV</span></p></div>', 1);
-const _hoisted_27$1 = { class: "type-key d-none d-md-block d-lg-none text-center" };
-const _hoisted_28$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
-const _hoisted_29$1 = { class: "mt-2 d-block" };
-const _hoisted_30$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("strong", null, "BEV", -1));
-const _hoisted_31$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("strong", null, "ER-EV", -1));
-const _hoisted_32$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("strong", null, "FCEV", -1));
-const _hoisted_33$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("strong", null, "PHEV", -1));
-const _hoisted_34$1 = { class: "filter-container filter-container-mobile d-sm-block d-md-none" };
-const _hoisted_35$1 = ["src"];
-const _hoisted_36$1 = { class: "mt-3" };
-const _hoisted_37$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("h4", { id: "make-header" }, "By make or model or type", -1));
-const _hoisted_38$1 = { class: "mb-2" };
-const _hoisted_39$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("p", { class: "msrp-link text-dark" }, "Or EV Type using initialism eg: BEV, PHEV, etc.", -1));
-const _hoisted_40$1 = { class: "filter-flex-container" };
-const _hoisted_41$1 = { class: "flex-group" };
-const _hoisted_42$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("h4", null, "MSRP Range", -1));
-const _hoisted_43$1 = { class: "msrp-range-slider" };
-const _hoisted_44$1 = { class: "msrp-range" };
-const _hoisted_45$1 = { class: "max-msrp" };
-const _hoisted_46$1 = { class: "msrp-link" };
-const _hoisted_47$1 = {
+const _hoisted_26$2 = /* @__PURE__ */ createStaticVNode('<div class="flex-group d-none d-lg-block" data-v-baa26fa3><h4 data-v-baa26fa3>Electric Vehicle Types</h4><p class="type-key" data-v-baa26fa3><span data-v-baa26fa3><strong data-v-baa26fa3>BEV</strong> – Battery Electric Vehicle</span><br data-v-baa26fa3><span data-v-baa26fa3><strong data-v-baa26fa3>ER-EV</strong> – Extended Range EV</span><br data-v-baa26fa3><span data-v-baa26fa3><strong data-v-baa26fa3>FCEV</strong> – Fuel Cell Electric Vehicle</span><br data-v-baa26fa3><span data-v-baa26fa3><strong data-v-baa26fa3>PHEV</strong> – Plug-in Hybrid EV</span></p></div>', 1);
+const _hoisted_27$2 = { class: "type-key d-none d-md-block d-lg-none text-center" };
+const _hoisted_28$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
+const _hoisted_29$2 = { class: "mt-2 d-block" };
+const _hoisted_30$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("strong", null, "BEV", -1));
+const _hoisted_31$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("strong", null, "ER-EV", -1));
+const _hoisted_32$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("strong", null, "FCEV", -1));
+const _hoisted_33$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("strong", null, "PHEV", -1));
+const _hoisted_34$2 = { class: "filter-container filter-container-mobile d-sm-block d-md-none" };
+const _hoisted_35$2 = ["src"];
+const _hoisted_36$2 = { class: "mt-3" };
+const _hoisted_37$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("h4", { id: "make-header" }, "By make or model or type", -1));
+const _hoisted_38$2 = { class: "mb-2" };
+const _hoisted_39$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("p", { class: "msrp-link text-dark" }, "Or EV Type using initialism eg: BEV, PHEV, etc.", -1));
+const _hoisted_40$2 = { class: "filter-flex-container" };
+const _hoisted_41$2 = { class: "flex-group" };
+const _hoisted_42$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("h4", null, "MSRP Range", -1));
+const _hoisted_43$2 = { class: "msrp-range-slider" };
+const _hoisted_44$2 = { class: "msrp-range" };
+const _hoisted_45$2 = { class: "max-msrp" };
+const _hoisted_46$2 = { class: "msrp-link" };
+const _hoisted_47$2 = {
   href: "#disclaimer",
   "aria-label": "navigate to the M.S.R.P. disclaimer information"
 };
-const _hoisted_48$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("sup", null, " *", -1));
-const _hoisted_49$1 = { class: "flex-group" };
-const _hoisted_50$1 = { class: "flex-group-filters" };
-const _hoisted_51$1 = {
+const _hoisted_48$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("sup", null, " *", -1));
+const _hoisted_49$2 = { class: "flex-group" };
+const _hoisted_50$2 = { class: "flex-group-filters" };
+const _hoisted_51$2 = {
   class: "btn-group-horizontal",
   role: "group"
 };
-const _hoisted_52$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("span", { class: "filter-header" }, "Sort by ▸", -1));
-const _hoisted_53$1 = {
+const _hoisted_52$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("span", { class: "filter-header" }, "Sort by ▸", -1));
+const _hoisted_53$2 = {
   class: "btn-group-horizontal",
   role: "group"
 };
-const _hoisted_54$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("span", { class: "filter-header" }, "Value ▸", -1));
-const _hoisted_55$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("sup", null, " *", -1));
-const _hoisted_56$1 = {
+const _hoisted_54$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("span", { class: "filter-header" }, "Value ▸", -1));
+const _hoisted_55$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("sup", null, " *", -1));
+const _hoisted_56$2 = {
   class: "btn-group-horizontal",
   role: "group"
 };
-const _hoisted_57$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("span", { class: "filter-header" }, "Range ▸", -1));
-const _hoisted_58$1 = {
+const _hoisted_57$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("span", { class: "filter-header" }, "Range ▸", -1));
+const _hoisted_58$2 = {
   class: "btn-group-horizontal",
   role: "group"
 };
-const _hoisted_59$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("span", { class: "filter-header" }, "Style ▸", -1));
-const _hoisted_60$1 = { class: "type-key hidden-lg hidden-md" };
-const _hoisted_61$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
-const _hoisted_62$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("strong", null, "BEV", -1));
-const _hoisted_63$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
-const _hoisted_64$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("strong", null, "ER-EV", -1));
-const _hoisted_65$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
-const _hoisted_66$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("strong", null, "FCEV", -1));
-const _hoisted_67$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
-const _hoisted_68$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("strong", null, "PHEV", -1));
-const _hoisted_69 = ["aria-label"];
-const _hoisted_70 = { class: "ev-img" };
-const _hoisted_71 = ["src", "alt"];
-const _hoisted_72 = { style: { "margin-bottom": "1rem" } };
-const _hoisted_73 = { class: "highlight" };
-const _hoisted_74 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
+const _hoisted_59$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("span", { class: "filter-header" }, "Style ▸", -1));
+const _hoisted_60$2 = { class: "type-key hidden-lg hidden-md" };
+const _hoisted_61$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
+const _hoisted_62$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("strong", null, "BEV", -1));
+const _hoisted_63$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
+const _hoisted_64$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("strong", null, "ER-EV", -1));
+const _hoisted_65$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
+const _hoisted_66$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("strong", null, "FCEV", -1));
+const _hoisted_67$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
+const _hoisted_68$2 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("strong", null, "PHEV", -1));
+const _hoisted_69$2 = ["aria-label"];
+const _hoisted_70$1 = { class: "ev-img" };
+const _hoisted_71$1 = ["src", "alt"];
+const _hoisted_72$1 = { style: { "margin-bottom": "1rem" } };
+const _hoisted_73$1 = { class: "highlight" };
+const _hoisted_74$1 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
 const _hoisted_75 = { class: "model" };
-const _hoisted_76 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
+const _hoisted_76 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
 const _hoisted_77 = {
   key: 0,
   class: "msrp"
@@ -10628,11 +10628,11 @@ const _hoisted_79 = {
   class: "msrp"
 };
 const _hoisted_80 = { key: 0 };
-const _hoisted_81 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("hr", {
+const _hoisted_81 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("hr", {
   class: "hr",
   size: "1"
 }, null, -1));
-const _hoisted_82 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("span", { class: "d-block" }, [
+const _hoisted_82 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("span", { class: "d-block" }, [
   /* @__PURE__ */ createBaseVNode("strong", null, "Range:")
 ], -1));
 const _hoisted_83 = { class: "d-block mt-2 mb-1" };
@@ -10644,11 +10644,11 @@ const _hoisted_85 = {
   key: 3,
   class: "d-block"
 };
-const _hoisted_92 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("hr", {
+const _hoisted_92 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("hr", {
   class: "hr",
   size: "1"
 }, null, -1));
-const _hoisted_93 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("span", { class: "d-block" }, [
+const _hoisted_93 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("span", { class: "d-block" }, [
   /* @__PURE__ */ createBaseVNode("strong", null, "Rebates up to:")
 ], -1));
 const _hoisted_94 = {
@@ -10671,7 +10671,7 @@ const _hoisted_98 = {
   key: 10,
   class: "d-block"
 };
-const _hoisted_99 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("hr", {
+const _hoisted_99 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("hr", {
   class: "hr",
   size: "1"
 }, null, -1));
@@ -10691,10 +10691,10 @@ const _hoisted_104 = {
 };
 const _hoisted_105 = { class: "no-content" };
 const _hoisted_106 = ["src"];
-const _hoisted_107 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("h3", { class: "no-content" }, "We're unable to find any Electric Vehicles that match your criteria", -1));
-const _hoisted_108 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("p", { class: "no-content" }, "Your filtering options did not return any results. Please try refining your input or parameters. Common issues include invalid makes or models, or too narrow a price range.", -1));
+const _hoisted_107 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("h3", { class: "no-content" }, "We're unable to find any Electric Vehicles that match your criteria", -1));
+const _hoisted_108 = /* @__PURE__ */ _withScopeId$2(() => /* @__PURE__ */ createBaseVNode("p", { class: "no-content" }, "Your filtering options did not return any results. Please try refining your input or parameters. Common issues include invalid makes or models, or too narrow a price range.", -1));
 const publicDomain = "https://goelectricbc.goc.bc.ca";
-const _sfc_main$1 = {
+const _sfc_main$2 = {
   __name: "vehicleFilterApp",
   setup(__props) {
     var _a;
@@ -10837,17 +10837,17 @@ const _sfc_main$1 = {
     return (_ctx, _cache) => {
       const _component_nobr = resolveComponent("nobr");
       return openBlock(), createElementBlock(Fragment, null, [
-        createBaseVNode("h3", _hoisted_1$1, [
+        createBaseVNode("h3", _hoisted_1$2, [
           createTextVNode("Filter vehicles "),
-          vehicles.value.length !== void 0 ? (openBlock(), createElementBlock("span", _hoisted_2$1, "(" + toDisplayString(searchvehicles.value.length) + " of " + toDisplayString(vehicles.value.length) + ")", 1)) : (openBlock(), createElementBlock("span", _hoisted_3$1, "(no vehicles currently available)"))
+          vehicles.value.length !== void 0 ? (openBlock(), createElementBlock("span", _hoisted_2$2, "(" + toDisplayString(searchvehicles.value.length) + " of " + toDisplayString(vehicles.value.length) + ")", 1)) : (openBlock(), createElementBlock("span", _hoisted_3$2, "(no vehicles currently available)"))
         ]),
-        vehicles.value.length ? (openBlock(), createElementBlock("div", _hoisted_4$1, [
-          createBaseVNode("div", _hoisted_5$1, [
-            createBaseVNode("div", _hoisted_6$1, [
-              createBaseVNode("div", _hoisted_7$1, [
-                createBaseVNode("div", _hoisted_8$1, [
-                  _hoisted_9$1,
-                  createBaseVNode("div", _hoisted_10$1, [
+        vehicles.value.length ? (openBlock(), createElementBlock("div", _hoisted_4$2, [
+          createBaseVNode("div", _hoisted_5$2, [
+            createBaseVNode("div", _hoisted_6$2, [
+              createBaseVNode("div", _hoisted_7$2, [
+                createBaseVNode("div", _hoisted_8$2, [
+                  _hoisted_9$2,
+                  createBaseVNode("div", _hoisted_10$2, [
                     withDirectives(createBaseVNode("input", {
                       type: "text",
                       "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => filterValue.value = $event),
@@ -10858,10 +10858,10 @@ const _sfc_main$1 = {
                       [vModelText, filterValue.value]
                     ])
                   ]),
-                  _hoisted_11$1
+                  _hoisted_11$2
                 ]),
-                createBaseVNode("div", _hoisted_12$1, [
-                  _hoisted_13$1,
+                createBaseVNode("div", _hoisted_12$2, [
+                  _hoisted_13$2,
                   createVNode(unref(VueSlider), mergeProps({
                     ref: "slider",
                     modelValue: rangeValue.value,
@@ -10870,27 +10870,27 @@ const _sfc_main$1 = {
                     tabindex: "0",
                     "aria-label": "This slider allows you to set a minimum and maximum price range – the low end begins at the minimum amount of 28,000 and the high end is set to the maximum amount of 70,000"
                   }), null, 16, ["modelValue"]),
-                  createBaseVNode("p", _hoisted_14$1, [
-                    createBaseVNode("span", _hoisted_15$1, "$" + toDisplayString(rangeValue.value[1] | _ctx.addComma), 1),
+                  createBaseVNode("p", _hoisted_14$2, [
+                    createBaseVNode("span", _hoisted_15$2, "$" + toDisplayString(rangeValue.value[1] | _ctx.addComma), 1),
                     createTextVNode(" $" + toDisplayString(rangeValue.value[0] | _ctx.addComma), 1)
                   ]),
-                  createBaseVNode("p", _hoisted_16$1, [
-                    createBaseVNode("a", _hoisted_17$1, [
+                  createBaseVNode("p", _hoisted_16$2, [
+                    createBaseVNode("a", _hoisted_17$2, [
                       createTextVNode("Price range as shown is based on automaker "),
                       createVNode(_component_nobr, null, {
                         default: withCtx(() => [
                           createTextVNode("MSRP"),
-                          _hoisted_18$1
+                          _hoisted_18$2
                         ]),
                         _: 1
                       })
                     ])
                   ])
                 ]),
-                createBaseVNode("div", _hoisted_19$1, [
-                  createBaseVNode("div", _hoisted_20$1, [
-                    _hoisted_21$1,
-                    createBaseVNode("div", _hoisted_22$1, [
+                createBaseVNode("div", _hoisted_19$2, [
+                  createBaseVNode("div", _hoisted_20$2, [
+                    _hoisted_21$2,
+                    createBaseVNode("div", _hoisted_22$2, [
                       createBaseVNode("button", {
                         type: "button",
                         class: normalizeClass(["btn btn-default btn-33", { active: isMake.value }]),
@@ -10910,10 +10910,10 @@ const _sfc_main$1 = {
                         "aria-label": "sort available vehicles by MSRP"
                       }, [
                         createTextVNode("MSRP"),
-                        _hoisted_23$1
+                        _hoisted_23$2
                       ], 2)
                     ]),
-                    createBaseVNode("div", _hoisted_24$1, [
+                    createBaseVNode("div", _hoisted_24$2, [
                       createBaseVNode("button", {
                         type: "button",
                         class: normalizeClass(["btn btn-default btn-50", { active: isType.value }]),
@@ -10927,7 +10927,7 @@ const _sfc_main$1 = {
                         "aria-label": "sort vehicles by Rebate"
                       }, "Rebate Amt.", 2)
                     ]),
-                    createBaseVNode("div", _hoisted_25$1, [
+                    createBaseVNode("div", _hoisted_25$2, [
                       createBaseVNode("button", {
                         type: "button",
                         class: normalizeClass(["btn btn-default btn-50", { active: isElectricRange.value }]),
@@ -10943,15 +10943,15 @@ const _sfc_main$1 = {
                     ])
                   ])
                 ]),
-                _hoisted_26$1
+                _hoisted_26$2
               ]),
-              createBaseVNode("h4", _hoisted_27$1, [
+              createBaseVNode("h4", _hoisted_27$2, [
                 createTextVNode("Electric Vehicle Types:"),
-                _hoisted_28$1,
-                createBaseVNode("span", _hoisted_29$1, [
+                _hoisted_28$2,
+                createBaseVNode("span", _hoisted_29$2, [
                   createVNode(_component_nobr, null, {
                     default: withCtx(() => [
-                      _hoisted_30$1,
+                      _hoisted_30$2,
                       createTextVNode(" – Battery Electric Vehicle")
                     ]),
                     _: 1
@@ -10959,7 +10959,7 @@ const _sfc_main$1 = {
                   createTextVNode(" | "),
                   createVNode(_component_nobr, null, {
                     default: withCtx(() => [
-                      _hoisted_31$1,
+                      _hoisted_31$2,
                       createTextVNode(" – Extended Range EV")
                     ]),
                     _: 1
@@ -10967,7 +10967,7 @@ const _sfc_main$1 = {
                   createTextVNode(" | "),
                   createVNode(_component_nobr, null, {
                     default: withCtx(() => [
-                      _hoisted_32$1,
+                      _hoisted_32$2,
                       createTextVNode(" – Fuel Cell Electric Vehicle ")
                     ]),
                     _: 1
@@ -10975,7 +10975,7 @@ const _sfc_main$1 = {
                   createTextVNode(" | "),
                   createVNode(_component_nobr, null, {
                     default: withCtx(() => [
-                      _hoisted_33$1,
+                      _hoisted_33$2,
                       createTextVNode(" – Plug-in Hybrid EV")
                     ]),
                     _: 1
@@ -10983,17 +10983,17 @@ const _sfc_main$1 = {
                 ])
               ])
             ]),
-            createBaseVNode("div", _hoisted_34$1, [
+            createBaseVNode("div", _hoisted_34$2, [
               createBaseVNode("p", null, [
                 createBaseVNode("img", {
                   class: "logo-img img-fluid",
                   src: unref(cleanBCLogo),
                   alt: "CleanBC Go electric"
-                }, null, 8, _hoisted_35$1)
+                }, null, 8, _hoisted_35$2)
               ]),
-              createBaseVNode("h3", _hoisted_36$1, "Filter vehicles (" + toDisplayString(searchvehicles.value.length) + " of " + toDisplayString(vehicles.value.length) + ")", 1),
-              _hoisted_37$1,
-              createBaseVNode("p", _hoisted_38$1, [
+              createBaseVNode("h3", _hoisted_36$2, "Filter vehicles (" + toDisplayString(searchvehicles.value.length) + " of " + toDisplayString(vehicles.value.length) + ")", 1),
+              _hoisted_37$2,
+              createBaseVNode("p", _hoisted_38$2, [
                 withDirectives(createBaseVNode("input", {
                   type: "text",
                   "onUpdate:modelValue": _cache[9] || (_cache[9] = ($event) => filterValue.value = $event),
@@ -11004,38 +11004,38 @@ const _sfc_main$1 = {
                   [vModelText, filterValue.value]
                 ])
               ]),
-              _hoisted_39$1,
-              createBaseVNode("div", _hoisted_40$1, [
-                createBaseVNode("div", _hoisted_41$1, [
-                  _hoisted_42$1,
-                  createBaseVNode("div", _hoisted_43$1, [
+              _hoisted_39$2,
+              createBaseVNode("div", _hoisted_40$2, [
+                createBaseVNode("div", _hoisted_41$2, [
+                  _hoisted_42$2,
+                  createBaseVNode("div", _hoisted_43$2, [
                     createVNode(unref(VueSlider), mergeProps({
                       ref: "slider",
                       modelValue: rangeValue.value,
                       "onUpdate:modelValue": _cache[10] || (_cache[10] = ($event) => rangeValue.value = $event)
                     }, rangeOptions), null, 16, ["modelValue"]),
-                    createBaseVNode("p", _hoisted_44$1, [
+                    createBaseVNode("p", _hoisted_44$2, [
                       createTextVNode("$" + toDisplayString(rangeValue.value[0] | _ctx.addComma) + " – ", 1),
-                      createBaseVNode("span", _hoisted_45$1, "$" + toDisplayString(rangeValue.value[1] | _ctx.addComma), 1)
+                      createBaseVNode("span", _hoisted_45$2, "$" + toDisplayString(rangeValue.value[1] | _ctx.addComma), 1)
                     ])
                   ]),
-                  createBaseVNode("p", _hoisted_46$1, [
-                    createBaseVNode("a", _hoisted_47$1, [
+                  createBaseVNode("p", _hoisted_46$2, [
+                    createBaseVNode("a", _hoisted_47$2, [
                       createTextVNode("Price range as shown is based on automaker "),
                       createVNode(_component_nobr, null, {
                         default: withCtx(() => [
                           createTextVNode("MSRP"),
-                          _hoisted_48$1
+                          _hoisted_48$2
                         ]),
                         _: 1
                       })
                     ])
                   ])
                 ]),
-                createBaseVNode("div", _hoisted_49$1, [
-                  createBaseVNode("div", _hoisted_50$1, [
-                    createBaseVNode("div", _hoisted_51$1, [
-                      _hoisted_52$1,
+                createBaseVNode("div", _hoisted_49$2, [
+                  createBaseVNode("div", _hoisted_50$2, [
+                    createBaseVNode("div", _hoisted_51$2, [
+                      _hoisted_52$2,
                       createBaseVNode("button", {
                         type: "button",
                         class: normalizeClass(["btn btn-default", { active: isMake.value }]),
@@ -11049,8 +11049,8 @@ const _sfc_main$1 = {
                         "aria-label": "sort vehicles by Model"
                       }, "Model", 2)
                     ]),
-                    createBaseVNode("div", _hoisted_53$1, [
-                      _hoisted_54$1,
+                    createBaseVNode("div", _hoisted_53$2, [
+                      _hoisted_54$2,
                       createBaseVNode("button", {
                         type: "button",
                         class: normalizeClass(["btn btn-default", { active: isMSRP.value }]),
@@ -11058,7 +11058,7 @@ const _sfc_main$1 = {
                         "aria-label": "sort vehicles by MSRP"
                       }, [
                         createTextVNode("MSRP"),
-                        _hoisted_55$1
+                        _hoisted_55$2
                       ], 2),
                       createBaseVNode("button", {
                         type: "button",
@@ -11067,8 +11067,8 @@ const _sfc_main$1 = {
                         "aria-label": "sort vehicles by Rebate"
                       }, "Rebate Amt.", 2)
                     ]),
-                    createBaseVNode("div", _hoisted_56$1, [
-                      _hoisted_57$1,
+                    createBaseVNode("div", _hoisted_56$2, [
+                      _hoisted_57$2,
                       createBaseVNode("button", {
                         type: "button",
                         class: normalizeClass(["btn btn-default", { active: isElectricRange.value }]),
@@ -11082,8 +11082,8 @@ const _sfc_main$1 = {
                         "aria-label": "sort vehicles by Full Range"
                       }, "Full", 2)
                     ]),
-                    createBaseVNode("div", _hoisted_58$1, [
-                      _hoisted_59$1,
+                    createBaseVNode("div", _hoisted_58$2, [
+                      _hoisted_59$2,
                       createBaseVNode("button", {
                         type: "button",
                         class: normalizeClass(["btn btn-default", { active: isType.value }]),
@@ -11093,45 +11093,45 @@ const _sfc_main$1 = {
                     ])
                   ])
                 ]),
-                createBaseVNode("p", _hoisted_60$1, [
+                createBaseVNode("p", _hoisted_60$2, [
                   createTextVNode("Electric Vehicle Types "),
-                  _hoisted_61$1,
+                  _hoisted_61$2,
                   createBaseVNode("span", null, [
                     createVNode(_component_nobr, null, {
                       default: withCtx(() => [
-                        _hoisted_62$1,
+                        _hoisted_62$2,
                         createTextVNode(" – Battery Electric Vehicle")
                       ]),
                       _: 1
                     }),
                     createTextVNode(),
-                    _hoisted_63$1
+                    _hoisted_63$2
                   ]),
                   createBaseVNode("span", null, [
                     createVNode(_component_nobr, null, {
                       default: withCtx(() => [
-                        _hoisted_64$1,
+                        _hoisted_64$2,
                         createTextVNode(" – Extended Range EV")
                       ]),
                       _: 1
                     }),
-                    _hoisted_65$1
+                    _hoisted_65$2
                   ]),
                   createBaseVNode("span", null, [
                     createVNode(_component_nobr, null, {
                       default: withCtx(() => [
-                        _hoisted_66$1,
+                        _hoisted_66$2,
                         createTextVNode(" – Fuel Cell Electric Vehicle")
                       ]),
                       _: 1
                     }),
                     createTextVNode(),
-                    _hoisted_67$1
+                    _hoisted_67$2
                   ]),
                   createBaseVNode("span", null, [
                     createVNode(_component_nobr, null, {
                       default: withCtx(() => [
-                        _hoisted_68$1,
+                        _hoisted_68$2,
                         createTextVNode(" – Plug-in Hybrid EV")
                       ]),
                       _: 1
@@ -11147,20 +11147,20 @@ const _sfc_main$1 = {
                 "aria-label": "Make: " + vehicle.make + ". Model: " + vehicle.model + ". Price starts at: $" + vehicle.minMsrp + ". Electric Range: " + vehicle.rangeElectricKm + " kilometers. Vehicle rebates up to: $" + (vehicle.rebate_provincial + vehicle.rebate_federal).toLocaleString() + "."
               }, [
                 createBaseVNode("div", null, [
-                  createBaseVNode("div", _hoisted_70, [
+                  createBaseVNode("div", _hoisted_70$1, [
                     createBaseVNode("img", {
                       class: "img-fluid",
                       src: vehicle.image ? vehicle.image : unref(placeholderImg),
                       alt: "photo of a " + vehicle.make + " " + vehicle.model
-                    }, null, 8, _hoisted_71)
+                    }, null, 8, _hoisted_71$1)
                   ]),
-                  createBaseVNode("p", _hoisted_72, [
-                    createBaseVNode("span", _hoisted_73, toDisplayString(vehicle.make), 1),
+                  createBaseVNode("p", _hoisted_72$1, [
+                    createBaseVNode("span", _hoisted_73$1, toDisplayString(vehicle.make), 1),
                     createTextVNode(),
                     createBaseVNode("span", null, [
                       createBaseVNode("strong", null, "| " + toDisplayString(vehicle.type), 1)
                     ]),
-                    _hoisted_74,
+                    _hoisted_74$1,
                     createBaseVNode("span", _hoisted_75, toDisplayString(vehicle.model), 1),
                     _hoisted_76,
                     vehicle.maxMsrp === 0 ? (openBlock(), createElementBlock("span", _hoisted_77, [
@@ -11199,7 +11199,7 @@ const _sfc_main$1 = {
                   ]),
                   vehicle.rebate_federal_status === "processed" ? (openBlock(), createElementBlock("p", _hoisted_102, "Combined rebates up to $" + toDisplayString((vehicle.rebate_provincial + vehicle.rebate_federal).toLocaleString()), 1)) : (openBlock(), createElementBlock("p", _hoisted_103, "Combined rebates up to $" + toDisplayString(vehicle.rebate_provincial.toLocaleString()), 1))
                 ])
-              ], 8, _hoisted_69);
+              ], 8, _hoisted_69$2);
             }), 256)) : createCommentVNode("", true),
             searchvehicles.value.length === 0 ? (openBlock(), createElementBlock("div", _hoisted_104, [
               createBaseVNode("div", _hoisted_105, [
@@ -11214,68 +11214,77 @@ const _sfc_main$1 = {
     };
   }
 };
-const VehicleFilterApp = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-65ccab0a"]]);
-const pqeaVueApp_vue_vue_type_style_index_0_scoped_cf4b6a12_lang = "";
-const _withScopeId = (n) => (pushScopeId("data-v-cf4b6a12"), n = n(), popScopeId(), n);
-const _hoisted_1 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("h2", { class: "sr-only" }, "Energy Advisor Listings", -1));
-const _hoisted_2 = {
-  key: 0,
+const VehicleFilterApp = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["__scopeId", "data-v-baa26fa3"]]);
+const pqeaVueApp_vue_vue_type_style_index_0_scoped_3bd33005_lang = "";
+const _withScopeId$1 = (n) => (pushScopeId("data-v-3bd33005"), n = n(), popScopeId(), n);
+const _hoisted_1$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("h2", { class: "sr-only" }, "Energy Advisor Listings", -1));
+const _hoisted_2$1 = {
   class: "pqeasFilterControls",
   id: "pqeasFilterControls"
 };
-const _hoisted_3 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("label", {
+const _hoisted_3$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("label", {
   for: "categorySelect",
   class: "sr-only"
 }, "Choose between home construction and home renovation", -1));
-const _hoisted_4 = { class: "custom-select" };
-const _hoisted_5 = ["onClick", "onKeyup"];
-const _hoisted_6 = ["value"];
-const _hoisted_7 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("label", {
+const _hoisted_4$1 = { class: "custom-select" };
+const _hoisted_5$1 = ["onClick", "onKeyup"];
+const _hoisted_6$1 = {
+  key: 0,
+  value: "Constructing a home"
+};
+const _hoisted_7$1 = ["value"];
+const _hoisted_8$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("label", {
   for: "locationSelect",
   class: "sr-only"
 }, "Choose a service region", -1));
-const _hoisted_8 = { class: "custom-select" };
-const _hoisted_9 = ["onClick", "onKeyup"];
-const _hoisted_10 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("option", { value: "all" }, "All Locations", -1));
-const _hoisted_11 = ["value"];
-const _hoisted_12 = ["onClick", "onKeydown"];
-const _hoisted_13 = {
+const _hoisted_9$1 = { class: "custom-select" };
+const _hoisted_10$1 = ["onClick", "onKeyup"];
+const _hoisted_11$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("option", { value: "all" }, "All Locations", -1));
+const _hoisted_12$1 = ["value"];
+const _hoisted_13$1 = ["onClick", "onKeydown"];
+const _hoisted_14$1 = { class: "pqeasFilterPagination pqeas-filter__pagination pqeas-filter__pagination--top" };
+const _hoisted_15$1 = ["onClick", "disabled"];
+const _hoisted_16$1 = { class: "pages" };
+const _hoisted_17$1 = { class: "numValue current-page" };
+const _hoisted_18$1 = { class: "numValue total-pages" };
+const _hoisted_19$1 = ["onClick", "disabled"];
+const _hoisted_20$1 = { class: "totals" };
+const _hoisted_21$1 = { class: "results-count" };
+const _hoisted_22$1 = { class: "numValue paginated-pqeas" };
+const _hoisted_23$1 = { class: "numValue filtered-pqeas" };
+const _hoisted_24$1 = { class: "sr-status sr-only" };
+const _hoisted_25$1 = {
+  class: "results-count",
+  role: "status",
+  "aria-live": "polite"
+};
+const _hoisted_26$1 = { class: "numValue paginated-pqeas" };
+const _hoisted_27$1 = { class: "numValue filtered-pqeas" };
+const _hoisted_28$1 = {
+  class: "pages",
+  role: "status",
+  "aria-live": "polite"
+};
+const _hoisted_29$1 = { class: "numValue current-page" };
+const _hoisted_30$1 = { class: "numValue total-pages" };
+const _hoisted_31$1 = {
   key: 0,
-  class: "pqeasFilterPagination pqeas-filter__pagination pqeas-filter__pagination--top"
-};
-const _hoisted_14 = ["onClick", "disabled"];
-const _hoisted_15 = { class: "pages" };
-const _hoisted_16 = { class: "numValue" };
-const _hoisted_17 = { class: "numValue" };
-const _hoisted_18 = ["onClick", "disabled"];
-const _hoisted_19 = {
-  class: "totals",
-  "aria-live": "polite",
-  "aria-atomic": "true",
-  tabindex: "0"
-};
-const _hoisted_20 = { class: "results-count" };
-const _hoisted_21 = { class: "numValue" };
-const _hoisted_22 = { class: "numValue" };
-const _hoisted_23 = { class: "sr-only" };
-const _hoisted_24 = {
-  key: 1,
   class: "no-results loading",
   "aria-live": "polite"
 };
-const _hoisted_25 = {
+const _hoisted_32$1 = {
   id: "pqeasResults",
   class: "pqeasResults table table--striped"
 };
-const _hoisted_26 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("caption", { class: "sr-only" }, "Program Qualified Energy Advisors", -1));
-const _hoisted_27 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("colgroup", null, [
+const _hoisted_33$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("caption", { class: "sr-only" }, "Program Qualified Energy Advisors", -1));
+const _hoisted_34$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("colgroup", null, [
   /* @__PURE__ */ createBaseVNode("col", { class: "col col--1 odd col--pqea__company-and-location" }),
   /* @__PURE__ */ createBaseVNode("col", { class: "col col--2 even col--pqea__contact-name" }),
   /* @__PURE__ */ createBaseVNode("col", { class: "col col--3 odd col--pqea__email-and-phone" }),
   /* @__PURE__ */ createBaseVNode("col", { class: "col col--4 even col--pqea__service-organizations" }),
   /* @__PURE__ */ createBaseVNode("col", { class: "col col--5 odd col--pqea__services" })
 ], -1));
-const _hoisted_28 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("thead", null, [
+const _hoisted_35$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("thead", null, [
   /* @__PURE__ */ createBaseVNode("tr", null, [
     /* @__PURE__ */ createBaseVNode("th", { class: "pqea-heading odd pqea-heading--company-and-location" }, [
       /* @__PURE__ */ createTextVNode("Company Name "),
@@ -11288,105 +11297,94 @@ const _hoisted_28 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBas
     /* @__PURE__ */ createBaseVNode("th", { class: "pqea-heading odd pqea-heading--services" }, "Program Qualified Services")
   ])
 ], -1));
-const _hoisted_29 = {
+const _hoisted_36$1 = {
   key: 0,
   class: "no-results"
 };
-const _hoisted_30 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("td", { colspan: "100%" }, [
+const _hoisted_37$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("td", { colspan: "100%" }, [
   /* @__PURE__ */ createBaseVNode("p", {
     class: "no-results",
     "aria-live": "polite"
   }, "Sorry, no results found.")
 ], -1));
-const _hoisted_31 = [
-  _hoisted_30
+const _hoisted_38$1 = [
+  _hoisted_37$1
 ];
-const _hoisted_32 = {
+const _hoisted_39$1 = {
   key: 1,
-  class: "is-loading no-results"
+  class: "is-loading",
+  "aria-live": "polite"
 };
-const _hoisted_33 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("td", { colspan: "100%" }, [
-  /* @__PURE__ */ createBaseVNode("p", {
-    class: "no-results",
-    "aria-live": "polite"
-  }, "Loading...")
+const _hoisted_40$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("td", { colspan: "100%" }, [
+  /* @__PURE__ */ createBaseVNode("p", { class: "" }, "Loading...")
 ], -1));
-const _hoisted_34 = [
-  _hoisted_33
+const _hoisted_41$1 = [
+  _hoisted_40$1
 ];
-const _hoisted_35 = {
+const _hoisted_42$1 = {
   "data-label": "Company Name and Head Office",
   class: "pqea__company-and-location"
 };
-const _hoisted_36 = ["href", "title"];
-const _hoisted_37 = {
+const _hoisted_43$1 = ["href", "title"];
+const _hoisted_44$1 = {
   key: 1,
   class: "pqea__company"
 };
-const _hoisted_38 = { class: "pqea__location" };
-const _hoisted_39 = {
+const _hoisted_45$1 = { class: "pqea__location" };
+const _hoisted_46$1 = {
   "data-label": "Contact Name",
   class: "pqea__contact-name"
 };
-const _hoisted_40 = {
+const _hoisted_47$1 = {
   "data-label": "Contact Email and Phone",
   class: "pqea__email-and-phone"
 };
-const _hoisted_41 = ["href"];
-const _hoisted_42 = {
+const _hoisted_48$1 = ["href"];
+const _hoisted_49$1 = {
   key: 1,
   class: "pqea__email"
 };
-const _hoisted_43 = ["href"];
-const _hoisted_44 = {
+const _hoisted_50$1 = ["href"];
+const _hoisted_51$1 = {
   key: 3,
   class: "pqea__telephone"
 };
-const _hoisted_45 = {
+const _hoisted_52$1 = {
   "data-label": "Service Organization(s)",
   class: "pqea__service-organizations"
 };
-const _hoisted_46 = { key: 0 };
-const _hoisted_47 = {
+const _hoisted_53$1 = { key: 0 };
+const _hoisted_54$1 = {
   key: 0,
   class: "pqea__service-organization-name"
 };
-const _hoisted_48 = ["href", "title"];
-const _hoisted_49 = { key: 1 };
-const _hoisted_50 = {
+const _hoisted_55$1 = ["href", "title"];
+const _hoisted_56$1 = { key: 1 };
+const _hoisted_57$1 = {
   key: 1,
   class: "pqea__service-organization-name--2"
 };
-const _hoisted_51 = ["href", "title"];
-const _hoisted_52 = { key: 1 };
-const _hoisted_53 = ["href", "title"];
-const _hoisted_54 = { key: 1 };
-const _hoisted_55 = {
+const _hoisted_58$1 = ["href", "title"];
+const _hoisted_59$1 = { key: 1 };
+const _hoisted_60$1 = ["href", "title"];
+const _hoisted_61$1 = { key: 1 };
+const _hoisted_62$1 = {
   "data-label": "Program Qualified Services",
   class: "pqea__services"
 };
-const _hoisted_56 = { key: 0 };
-const _hoisted_57 = { key: 0 };
-const _hoisted_58 = {
-  key: 2,
-  class: "pqeasFilterPagination pqeas-filter__pagination pqeas-filter__pagination--bottom"
-};
-const _hoisted_59 = ["onClick", "disabled"];
-const _hoisted_60 = { class: "pages" };
-const _hoisted_61 = { class: "numValue" };
-const _hoisted_62 = { class: "numValue" };
-const _hoisted_63 = ["onClick", "disabled"];
-const _hoisted_64 = {
-  class: "totals",
-  "aria-live": "polite",
-  "aria-atomic": "true",
-  tabindex: "0"
-};
-const _hoisted_65 = { class: "results-count" };
-const _hoisted_66 = { class: "numValue" };
-const _hoisted_67 = { class: "numValue" };
-const _hoisted_68 = { class: "sr-only" };
-const _sfc_main = {
+const _hoisted_63$1 = { key: 0 };
+const _hoisted_64$1 = { key: 0 };
+const _hoisted_65$1 = { class: "pqeasFilterPagination pqeas-filter__pagination pqeas-filter__pagination--bottom" };
+const _hoisted_66$1 = ["onClick", "disabled"];
+const _hoisted_67$1 = { class: "pages" };
+const _hoisted_68$1 = { class: "numValue current-page" };
+const _hoisted_69$1 = { class: "numValue total-pages" };
+const _hoisted_70 = ["onClick", "disabled"];
+const _hoisted_71 = { class: "totals" };
+const _hoisted_72 = { class: "results-count" };
+const _hoisted_73 = { class: "numValue paginated-pqeas" };
+const _hoisted_74 = { class: "numValue filtered-pqeas" };
+const _sfc_main$1 = {
   __name: "pqeaVueApp",
   setup(__props) {
     var _a;
@@ -11395,12 +11393,20 @@ const _sfc_main = {
     const selectedCategory = ref("Constructing a home");
     const defaultSelectedLocation = ref("all");
     const selectedLocation = ref("all");
-    selectedLocation.value ? selectedLocation.value : null;
     const showLoadingMessage = ref(true);
     const isLoading = ref(false);
     const activeClass = ref("is-active");
+    const updatingClass = ref("is-updating");
     const pageSize = ref(30);
     const currentPage = ref(1);
+    const itemsToClearFromSessionStorage = ref([
+      "pqeasData",
+      "pqeasTimestamp",
+      "pqeasData",
+      "pqeasTimestamp"
+    ]);
+    const oldPaginatedPqeasCount = ref(0);
+    const oldFilteredPqeasCount = ref(0);
     const publicDomain2 = ref("https://betterhomes.gov.bc.ca");
     const pqeasAPI = `${((_a = window.site) == null ? void 0 : _a.domain) ? window.site.domain : publicDomain2}/wp-json/custom/v1/pqeas`;
     const filteredPqeas = computed(() => {
@@ -11409,6 +11415,7 @@ const _sfc_main = {
       if ("all" !== selectedLoc) {
         filteredPqeas2 = filteredPqeas2.filter((pqea) => pqea.locations && pqea.locations.some((location) => location.name === selectedLoc));
       }
+      resetSelectsActiveState();
       return filteredPqeas2;
     });
     const filteredPqeasByCategory = computed(() => {
@@ -11420,6 +11427,17 @@ const _sfc_main = {
         return pqeas.value.filter((pqea) => pqea.categories && pqea.categories.includes(selectedCat));
       }
     });
+    const handleUpdatingAnimationClass = (elementCssPath) => {
+      const elements = document.querySelectorAll(elementCssPath);
+      if (0 < elements.length) {
+        elements.forEach((element) => {
+          element.classList.add(updatingClass.value);
+          setTimeout(() => {
+            element.classList.remove(updatingClass.value);
+          }, 125);
+        });
+      }
+    };
     const totalPages = computed(() => {
       const totalPqeas = filteredPqeas.value.length;
       return totalPqeas > 0 ? Math.ceil(totalPqeas / pageSize.value) : 1;
@@ -11474,10 +11492,19 @@ const _sfc_main = {
       return "all" !== selectedLocation.value ? "servicing " + selectedLocation.value : null;
     });
     const clearFilters = () => {
+      resetSelectsActiveState();
       selectedCategory.value = defaultSelectedCategory.value;
       selectedLocation.value = defaultSelectedLocation.value;
-      history.replaceState(defaultSelectedCategory.value, defaultSelectedLocation.value, " ");
+      history.replaceState(selectedCategory.value, defaultSelectedCategory.value);
+      history.replaceState(selectedLocation.value, defaultSelectedLocation.value);
+      currentPage.value !== 1 ? handleUpdatingAnimationClass(".pqeas-filter__pagination .pages") : null;
       currentPage.value = 1;
+    };
+    const resetSelectsActiveState = () => {
+      let activeSelects = document.querySelectorAll("#pqeaFilterApp .custom-select.is-active");
+      0 < activeSelects.length ? activeSelects.forEach((item) => {
+        item.classList.remove("is-active");
+      }) : null;
     };
     const selectIsActive = (event) => {
       return "click" !== event.type ? event.target.parentNode.classList.remove(activeClass.value) : event.target.parentNode.classList.toggle(activeClass.value);
@@ -11485,8 +11512,8 @@ const _sfc_main = {
     const fetchData2 = async (offset = 0) => {
       try {
         isLoading.value = true;
-        const cachedData = localStorage.getItem("pqeasData");
-        const cachedTimestamp = localStorage.getItem("pqeasTimestamp");
+        const cachedData = sessionStorage.getItem("pqeasData");
+        const cachedTimestamp = sessionStorage.getItem("pqeasTimestamp");
         if (cachedData && cachedTimestamp) {
           const timeElapsed = Date.now() - parseInt(cachedTimestamp);
           const hoursElapsed = timeElapsed / (1e3 * 60 * 60);
@@ -11498,8 +11525,11 @@ const _sfc_main = {
           }
         }
         fetch(pqeasAPI, { cache: "no-store" }).then((r) => r.json()).then((json) => {
-          localStorage.setItem("pqeasData", JSON.stringify(json));
-          localStorage.setItem("pqeasTimestamp", Date.now());
+          setTimeout(itemsToClearFromSessionStorage.value.forEach((item) => {
+            sessionStorage.removeItem(item);
+          }), 1e3);
+          sessionStorage.setItem("pqeasData", JSON.stringify(json));
+          sessionStorage.setItem("pqeasTimestamp", Date.now());
           pqeas.value = json;
           showLoadingMessage.value = false;
           isLoading.value = false;
@@ -11520,8 +11550,31 @@ const _sfc_main = {
         fetchData2();
       }
     });
+    watch(paginatedPqeas, () => {
+      if (oldPaginatedPqeasCount.value !== paginatedPqeas.value.length) {
+        oldPaginatedPqeasCount.value = paginatedPqeas.value.length;
+        handleUpdatingAnimationClass(".pqeas-filter__pagination .paginated-pqeas");
+      }
+    });
+    watch(filteredPqeas, () => {
+      if (oldFilteredPqeasCount.value !== filteredPqeas.value.length) {
+        oldFilteredPqeasCount.value = filteredPqeas.value.length;
+        handleUpdatingAnimationClass(".pqeas-filter__pagination .filtered-pqeas");
+      }
+    });
+    watch(currentPage, () => {
+      handleUpdatingAnimationClass(".pqeas-filter__pagination .current-page");
+    });
+    watch(totalPages, () => {
+      handleUpdatingAnimationClass(".pqeas-filter__pagination .total-pages");
+    });
     watch([selectedCategory, selectedLocation], () => {
       currentPage.value = 1;
+    });
+    window.addEventListener("click", (event) => {
+      if (!event.target.closest(".custom-select.is-active")) {
+        resetSelectsActiveState();
+      }
     });
     onMounted(() => {
       var _a2;
@@ -11533,11 +11586,12 @@ const _sfc_main = {
     });
     return (_ctx, _cache) => {
       return openBlock(), createElementBlock(Fragment, null, [
-        _hoisted_1,
-        !isLoading.value ? (openBlock(), createElementBlock("div", _hoisted_2, [
-          _hoisted_3,
-          createBaseVNode("div", _hoisted_4, [
+        _hoisted_1$1,
+        createBaseVNode("div", _hoisted_2$1, [
+          _hoisted_3$1,
+          createBaseVNode("div", _hoisted_4$1, [
             withDirectives(createBaseVNode("select", {
+              onChange: selectIsActive,
               onClick: withModifiers(selectIsActive, ["prevent"]),
               onTouchend: selectIsActive,
               onKeyup: withKeys(selectIsActive, ["esc"]),
@@ -11548,19 +11602,21 @@ const _sfc_main = {
               required: true,
               "data-active": "false"
             }, [
-              (openBlock(true), createElementBlock(Fragment, null, renderList(categories.value, (category, index) => {
+              isLoading.value ? (openBlock(), createElementBlock("option", _hoisted_6$1, "Constructing a home")) : createCommentVNode("", true),
+              !isLoading.value ? (openBlock(true), createElementBlock(Fragment, { key: 1 }, renderList(categories.value, (category, index) => {
                 return openBlock(), createElementBlock("option", {
                   key: category,
                   value: category
-                }, toDisplayString(category), 9, _hoisted_6);
-              }), 128))
-            ], 40, _hoisted_5), [
+                }, toDisplayString(category), 9, _hoisted_7$1);
+              }), 128)) : createCommentVNode("", true)
+            ], 40, _hoisted_5$1), [
               [vModelSelect, selectedCategory.value]
             ])
           ]),
-          _hoisted_7,
-          createBaseVNode("div", _hoisted_8, [
+          _hoisted_8$1,
+          createBaseVNode("div", _hoisted_9$1, [
             withDirectives(createBaseVNode("select", {
+              onChange: selectIsActive,
               onClick: withModifiers(selectIsActive, ["prevent"]),
               onTouchend: selectIsActive,
               onKeyup: withKeys(selectIsActive, ["esc"]),
@@ -11569,14 +11625,14 @@ const _sfc_main = {
               class: "select select--location",
               "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => selectedLocation.value = $event)
             }, [
-              _hoisted_10,
+              _hoisted_11$1,
               (openBlock(true), createElementBlock(Fragment, null, renderList(locations.value, (location) => {
                 return openBlock(), createElementBlock("option", {
                   key: location,
                   value: location
-                }, toDisplayString(location), 9, _hoisted_11);
+                }, toDisplayString(location), 9, _hoisted_12$1);
               }), 128))
-            ], 40, _hoisted_9), [
+            ], 40, _hoisted_10$1), [
               [vModelSelect, selectedLocation.value]
             ])
           ]),
@@ -11584,103 +11640,118 @@ const _sfc_main = {
             class: "clear-filters",
             onClick: withModifiers(clearFilters, ["prevent"]),
             onTouchend: clearFilters,
-            onKeydown: withKeys(withModifiers(clearFilters, ["prevent"]), ["enter"])
-          }, " Reset selection ", 40, _hoisted_12),
-          !isLoading.value ? (openBlock(), createElementBlock("div", _hoisted_13, [
-            filteredPqeas.value.length > 0 ? (openBlock(), createElementBlock(Fragment, { key: 0 }, [
-              createBaseVNode("button", {
-                class: "prevPage",
-                onClick: withModifiers(prevPage, ["prevent"]),
-                disabled: currentPage.value === 1,
-                tabindex: "0"
-              }, "Previous Page", 8, _hoisted_14),
-              createBaseVNode("span", _hoisted_15, [
-                createTextVNode("Page "),
-                createBaseVNode("span", _hoisted_16, toDisplayString(currentPage.value), 1),
-                createTextVNode(" of "),
-                createBaseVNode("span", _hoisted_17, toDisplayString(totalPages.value), 1)
-              ]),
-              createBaseVNode("button", {
-                class: "nextPage",
-                onClick: withModifiers(nextPage, ["prevent"]),
-                disabled: currentPage.value === totalPages.value,
-                tabindex: "0"
-              }, "Next Page", 8, _hoisted_18)
-            ], 64)) : createCommentVNode("", true),
-            createBaseVNode("div", _hoisted_19, [
+            onKeydown: withKeys(withModifiers(clearFilters, ["prevent"]), ["enter"]),
+            type: "button"
+          }, " Reset selection ", 40, _hoisted_13$1),
+          createBaseVNode("div", _hoisted_14$1, [
+            createBaseVNode("button", {
+              class: "prevPage",
+              onClick: withModifiers(prevPage, ["prevent"]),
+              disabled: currentPage.value === 1,
+              tabindex: "0",
+              type: "button"
+            }, "Previous Page", 8, _hoisted_15$1),
+            createBaseVNode("span", _hoisted_16$1, [
+              createTextVNode("Page "),
+              createBaseVNode("span", _hoisted_17$1, toDisplayString(currentPage.value), 1),
+              createTextVNode(" of "),
+              createBaseVNode("span", _hoisted_18$1, toDisplayString(totalPages.value), 1)
+            ]),
+            createBaseVNode("button", {
+              class: "nextPage",
+              onClick: withModifiers(nextPage, ["prevent"]),
+              disabled: currentPage.value === totalPages.value,
+              tabindex: "0",
+              type: "button"
+            }, "Next Page", 8, _hoisted_19$1),
+            createBaseVNode("span", _hoisted_20$1, [
               createTextVNode(" Showing "),
-              createBaseVNode("span", _hoisted_20, [
-                createBaseVNode("span", _hoisted_21, toDisplayString(paginatedPqeas.value.length), 1),
+              createBaseVNode("span", _hoisted_21$1, [
+                createBaseVNode("span", _hoisted_22$1, toDisplayString(paginatedPqeas.value.length), 1),
                 createTextVNode(" of "),
-                createBaseVNode("span", _hoisted_22, toDisplayString(filteredPqeas.value.length), 1)
+                createBaseVNode("span", _hoisted_23$1, toDisplayString(filteredPqeas.value.length), 1)
               ]),
-              createTextVNode(" Energy Advisors "),
-              createBaseVNode("span", _hoisted_23, toDisplayString(currentTypeFilterMessage.value) + " " + toDisplayString(currentLocationFilterMessage.value), 1)
+              createTextVNode(" Energy Advisors ")
+            ]),
+            createBaseVNode("span", _hoisted_24$1, [
+              createBaseVNode("span", _hoisted_25$1, [
+                createTextVNode("Showing "),
+                createBaseVNode("span", _hoisted_26$1, toDisplayString(paginatedPqeas.value.length), 1),
+                createTextVNode(" of "),
+                createBaseVNode("span", _hoisted_27$1, toDisplayString(filteredPqeas.value.length), 1),
+                createTextVNode(" Energy Advisors " + toDisplayString(currentTypeFilterMessage.value) + " " + toDisplayString(currentLocationFilterMessage.value), 1)
+              ]),
+              createBaseVNode("span", _hoisted_28$1, [
+                createTextVNode("Page "),
+                createBaseVNode("span", _hoisted_29$1, toDisplayString(currentPage.value), 1),
+                createTextVNode(" of "),
+                createBaseVNode("span", _hoisted_30$1, toDisplayString(totalPages.value), 1)
+              ])
             ])
-          ])) : createCommentVNode("", true)
-        ])) : createCommentVNode("", true),
-        isLoading.value ? (openBlock(), createElementBlock("p", _hoisted_24, "Retrieving the BetterHomesBC PQEAs...")) : createCommentVNode("", true),
-        createBaseVNode("table", _hoisted_25, [
-          _hoisted_26,
-          _hoisted_27,
-          _hoisted_28,
+          ])
+        ]),
+        isLoading.value ? (openBlock(), createElementBlock("p", _hoisted_31$1, "Retrieving list of Energy Advisors, please wait...")) : createCommentVNode("", true),
+        createBaseVNode("table", _hoisted_32$1, [
+          _hoisted_33$1,
+          _hoisted_34$1,
+          _hoisted_35$1,
           createBaseVNode("tbody", {
             class: normalizeClass(`page page--${currentPage.value}`)
           }, [
-            filteredPqeas.value.length === 0 && !isLoading.value ? (openBlock(), createElementBlock("tr", _hoisted_29, _hoisted_31)) : createCommentVNode("", true),
-            isLoading.value ? (openBlock(), createElementBlock("tr", _hoisted_32, _hoisted_34)) : createCommentVNode("", true),
+            filteredPqeas.value.length === 0 && !isLoading.value ? (openBlock(), createElementBlock("tr", _hoisted_36$1, _hoisted_38$1)) : createCommentVNode("", true),
+            isLoading.value ? (openBlock(), createElementBlock("tr", _hoisted_39$1, _hoisted_41$1)) : createCommentVNode("", true),
             pqeas.value.length > 0 ? (openBlock(true), createElementBlock(Fragment, { key: 2 }, renderList(paginatedPqeas.value, (pqea, index) => {
               return openBlock(), createElementBlock("tr", {
                 key: index,
                 class: normalizeClass(`pqea result result--${index + 1} ${0 === (index + 1) % 2 ? `even` : `odd`}`),
                 tabindex: "0"
               }, [
-                createBaseVNode("td", _hoisted_35, [
+                createBaseVNode("td", _hoisted_42$1, [
                   pqea.details.company_website ? (openBlock(), createElementBlock("a", {
                     key: 0,
                     class: "pqea__company external",
                     href: pqea.details.company_website,
                     target: "_blank",
                     title: pqea.details.company_name + " website, opens in a new tab/window."
-                  }, toDisplayString(pqea.details.company_name ? pqea.details.company_name : "Website"), 9, _hoisted_36)) : (openBlock(), createElementBlock("span", _hoisted_37, toDisplayString(pqea.details.company_name ? pqea.details.company_name : "No company name provided"), 1)),
-                  createBaseVNode("span", _hoisted_38, toDisplayString(pqea.details.company_location ? pqea.details.company_location : "Not provided"), 1)
+                  }, toDisplayString(pqea.details.company_name ? pqea.details.company_name : "Website"), 9, _hoisted_43$1)) : (openBlock(), createElementBlock("span", _hoisted_44$1, toDisplayString(pqea.details.company_name ? pqea.details.company_name : "No company name provided"), 1)),
+                  createBaseVNode("span", _hoisted_45$1, toDisplayString(pqea.details.company_location ? pqea.details.company_location : "Not provided"), 1)
                 ]),
-                createBaseVNode("td", _hoisted_39, [
+                createBaseVNode("td", _hoisted_46$1, [
                   createBaseVNode("p", null, toDisplayString(pqea.details.contact_name ? pqea.details.contact_name : "Not provided"), 1)
                 ]),
-                createBaseVNode("td", _hoisted_40, [
+                createBaseVNode("td", _hoisted_47$1, [
                   createBaseVNode("address", null, [
                     pqea.details.email ? (openBlock(), createElementBlock("a", {
                       key: 0,
                       class: "pqea__email",
                       href: "mailto:" + pqea.details.email
-                    }, toDisplayString(pqea.details.email), 9, _hoisted_41)) : (openBlock(), createElementBlock("p", _hoisted_42, "No email provided")),
+                    }, toDisplayString(pqea.details.email), 9, _hoisted_48$1)) : (openBlock(), createElementBlock("p", _hoisted_49$1, "No email provided")),
                     pqea.details.phone ? (openBlock(), createElementBlock("a", {
                       key: 2,
                       class: "pqea__telephone",
                       href: "tel:+1" + pqea.details.phone.replace(/-/g, "")
-                    }, toDisplayString(pqea.details.phone), 9, _hoisted_43)) : (openBlock(), createElementBlock("p", _hoisted_44, "No phone number provided"))
+                    }, toDisplayString(pqea.details.phone), 9, _hoisted_50$1)) : (openBlock(), createElementBlock("p", _hoisted_51$1, "No phone number provided"))
                   ])
                 ]),
-                createBaseVNode("td", _hoisted_45, [
-                  pqea.details.service_organization_name || pqea.details.service_organization_name_2 ? (openBlock(), createElementBlock("ul", _hoisted_46, [
-                    pqea.details.service_organization_name ? (openBlock(), createElementBlock("li", _hoisted_47, [
+                createBaseVNode("td", _hoisted_52$1, [
+                  pqea.details.service_organization_name || pqea.details.service_organization_name_2 ? (openBlock(), createElementBlock("ul", _hoisted_53$1, [
+                    pqea.details.service_organization_name ? (openBlock(), createElementBlock("li", _hoisted_54$1, [
                       pqea.details.service_organization_website ? (openBlock(), createElementBlock("a", {
                         key: 0,
                         href: pqea.details.service_organization_website,
                         class: "external",
                         target: "_blank",
                         title: pqea.details.service_organization_name + " website, opens in a new tab/window."
-                      }, toDisplayString(pqea.details.service_organization_name), 9, _hoisted_48)) : (openBlock(), createElementBlock("span", _hoisted_49, toDisplayString(pqea.details.service_organization_name), 1))
+                      }, toDisplayString(pqea.details.service_organization_name), 9, _hoisted_55$1)) : (openBlock(), createElementBlock("span", _hoisted_56$1, toDisplayString(pqea.details.service_organization_name), 1))
                     ])) : createCommentVNode("", true),
-                    pqea.details.service_organization_name_2 ? (openBlock(), createElementBlock("li", _hoisted_50, [
+                    pqea.details.service_organization_name_2 ? (openBlock(), createElementBlock("li", _hoisted_57$1, [
                       pqea.details.service_organization_website_2 ? (openBlock(), createElementBlock("a", {
                         key: 0,
                         href: pqea.details.service_organization_website_2,
                         class: "external",
                         target: "_blank",
                         title: pqea.details.service_organization_name_2 + " website, opens in a new tab/window."
-                      }, toDisplayString(pqea.details.service_organization_name_2), 9, _hoisted_51)) : (openBlock(), createElementBlock("span", _hoisted_52, toDisplayString(pqea.details.service_organization_name_2), 1))
+                      }, toDisplayString(pqea.details.service_organization_name_2), 9, _hoisted_58$1)) : (openBlock(), createElementBlock("span", _hoisted_59$1, toDisplayString(pqea.details.service_organization_name_2), 1))
                     ])) : createCommentVNode("", true),
                     pqea.details.additional_service_organizations ? (openBlock(true), createElementBlock(Fragment, { key: 2 }, renderList(pqea.details.additional_service_organizations, (org, index2) => {
                       return openBlock(), createElementBlock("li", { key: index2 }, [
@@ -11690,19 +11761,19 @@ const _sfc_main = {
                           class: "external",
                           target: "_blank",
                           title: org[0] + " website, opens in a new tab/window."
-                        }, toDisplayString(org[0]), 9, _hoisted_53)) : (openBlock(), createElementBlock("span", _hoisted_54, toDisplayString(org[0]), 1))
+                        }, toDisplayString(org[0]), 9, _hoisted_60$1)) : (openBlock(), createElementBlock("span", _hoisted_61$1, toDisplayString(org[0]), 1))
                       ]);
                     }), 128)) : createCommentVNode("", true)
                   ])) : createCommentVNode("", true)
                 ]),
-                createBaseVNode("td", _hoisted_55, [
-                  pqea.services ? (openBlock(), createElementBlock("p", _hoisted_56, [
+                createBaseVNode("td", _hoisted_62$1, [
+                  pqea.services ? (openBlock(), createElementBlock("p", _hoisted_63$1, [
                     (openBlock(true), createElementBlock(Fragment, null, renderList(pqea.services, (service, services_index) => {
                       return openBlock(), createElementBlock("span", {
                         class: normalizeClass(`pqea__service pqea__service--${service.name.replace(/ /g, "-").toLowerCase()}`)
                       }, [
                         createTextVNode(toDisplayString(service.name), 1),
-                        services_index != Object.keys(pqea.services).length - 1 ? (openBlock(), createElementBlock("span", _hoisted_57, ", ")) : createCommentVNode("", true)
+                        services_index != Object.keys(pqea.services).length - 1 ? (openBlock(), createElementBlock("span", _hoisted_64$1, ", ")) : createCommentVNode("", true)
                       ], 2);
                     }), 256))
                   ])) : createCommentVNode("", true)
@@ -11711,47 +11782,662 @@ const _sfc_main = {
             }), 128)) : createCommentVNode("", true)
           ], 2)
         ]),
-        !isLoading.value ? (openBlock(), createElementBlock("div", _hoisted_58, [
-          filteredPqeas.value.length > 0 ? (openBlock(), createElementBlock(Fragment, { key: 0 }, [
+        createBaseVNode("div", _hoisted_65$1, [
+          createBaseVNode("button", {
+            class: "prevPage",
+            onClick: withModifiers(prevPage, ["prevent"]),
+            disabled: currentPage.value === 1,
+            tabindex: "0",
+            type: "button"
+          }, "Previous Page", 8, _hoisted_66$1),
+          createBaseVNode("span", _hoisted_67$1, [
+            createTextVNode("Page "),
+            createBaseVNode("span", _hoisted_68$1, toDisplayString(currentPage.value), 1),
+            createTextVNode(" of "),
+            createBaseVNode("span", _hoisted_69$1, toDisplayString(totalPages.value), 1)
+          ]),
+          createBaseVNode("button", {
+            class: "nextPage",
+            onClick: withModifiers(nextPage, ["prevent"]),
+            disabled: currentPage.value === totalPages.value,
+            tabindex: "0",
+            type: "button"
+          }, "Next Page", 8, _hoisted_70),
+          createBaseVNode("div", _hoisted_71, [
+            createTextVNode(" Showing "),
+            createBaseVNode("span", _hoisted_72, [
+              createBaseVNode("span", _hoisted_73, toDisplayString(paginatedPqeas.value.length), 1),
+              createTextVNode(" of "),
+              createBaseVNode("span", _hoisted_74, toDisplayString(filteredPqeas.value.length), 1)
+            ]),
+            createTextVNode(" Energy Advisors ")
+          ])
+        ])
+      ], 64);
+    };
+  }
+};
+const PQEAFilterApp = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-3bd33005"]]);
+const contractorVueApp_vue_vue_type_style_index_0_scoped_85a4de20_lang = "";
+const _withScopeId = (n) => (pushScopeId("data-v-85a4de20"), n = n(), popScopeId(), n);
+const _hoisted_1 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("h2", { class: "sr-only" }, "Contractor Listings", -1));
+const _hoisted_2 = {
+  class: "contractorsFilterControls",
+  id: "contractorsFilterControls"
+};
+const _hoisted_3 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("label", {
+  for: "typeSelect",
+  class: "sr-only"
+}, "Choose a type of upgrade", -1));
+const _hoisted_4 = { class: "custom-select" };
+const _hoisted_5 = ["onClick", "onKeyup"];
+const _hoisted_6 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("option", { value: "all" }, "All Upgrade Types", -1));
+const _hoisted_7 = ["value"];
+const _hoisted_8 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("label", {
+  for: "programSelect",
+  class: "sr-only"
+}, "Choose a rebate program", -1));
+const _hoisted_9 = { class: "custom-select" };
+const _hoisted_10 = ["onClick", "onKeyup"];
+const _hoisted_11 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("option", { value: "all" }, "All Programs", -1));
+const _hoisted_12 = ["value"];
+const _hoisted_13 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("label", {
+  for: "locationSelect",
+  class: "sr-only"
+}, "Choose a service region", -1));
+const _hoisted_14 = { class: "custom-select" };
+const _hoisted_15 = ["onClick", "onKeyup"];
+const _hoisted_16 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("option", { value: "all" }, "All Locations", -1));
+const _hoisted_17 = ["value"];
+const _hoisted_18 = ["onClick", "onKeydown"];
+const _hoisted_19 = { class: "contractorsFilterPagination contractors-filter__pagination contractors-filter__pagination--top" };
+const _hoisted_20 = ["onClick", "disabled"];
+const _hoisted_21 = { class: "pages" };
+const _hoisted_22 = { class: "numValue current-page" };
+const _hoisted_23 = { class: "numValue total-pages" };
+const _hoisted_24 = ["onClick", "disabled"];
+const _hoisted_25 = { class: "totals" };
+const _hoisted_26 = { class: "results-count" };
+const _hoisted_27 = { class: "numValue paginated-contractors" };
+const _hoisted_28 = { class: "numValue filtered-contractors" };
+const _hoisted_29 = { class: "sr-status sr-only" };
+const _hoisted_30 = {
+  class: "results-count",
+  role: "status",
+  "aria-live": "polite"
+};
+const _hoisted_31 = { class: "numValue paginated-contractors" };
+const _hoisted_32 = { class: "numValue filtered-contractors" };
+const _hoisted_33 = {
+  class: "pages",
+  role: "status",
+  "aria-live": "polite"
+};
+const _hoisted_34 = { class: "numValue current-page" };
+const _hoisted_35 = { class: "numValue total-pages" };
+const _hoisted_36 = {
+  key: 0,
+  class: "no-results loading",
+  "aria-live": "polite"
+};
+const _hoisted_37 = {
+  id: "contractorsResults",
+  class: "contractorsResults table table--striped"
+};
+const _hoisted_38 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("caption", { class: "sr-only" }, "Registered Contractors", -1));
+const _hoisted_39 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("colgroup", null, [
+  /* @__PURE__ */ createBaseVNode("col", { class: "col col--1 odd col--contractor__company-and-location" }),
+  /* @__PURE__ */ createBaseVNode("col", { class: "col col--2 even col--contractor__head-office" }),
+  /* @__PURE__ */ createBaseVNode("col", { class: "col col--3 odd col--contractor__email-and-phone" }),
+  /* @__PURE__ */ createBaseVNode("col", { class: "col col--4 even col--contractor__upgrade-types" }),
+  /* @__PURE__ */ createBaseVNode("col", { class: "col col--5 odd col--contractor__program-designations" })
+], -1));
+const _hoisted_40 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("thead", null, [
+  /* @__PURE__ */ createBaseVNode("tr", null, [
+    /* @__PURE__ */ createBaseVNode("th", { class: "contractor-heading odd contractor-heading--company-and-location" }, "Company Name"),
+    /* @__PURE__ */ createBaseVNode("th", { class: "contractor-heading even contractor-heading--contact-name" }, "Head Office"),
+    /* @__PURE__ */ createBaseVNode("th", { class: "contractor-heading odd contractor-heading--email-and-phone" }, "Email & Phone"),
+    /* @__PURE__ */ createBaseVNode("th", { class: "contractor-heading even contractor-heading--service-organizations" }, "Upgrade Type(s)"),
+    /* @__PURE__ */ createBaseVNode("th", { class: "contractor-heading odd contractor-heading--services" }, "Rebate Program(s)")
+  ])
+], -1));
+const _hoisted_41 = {
+  key: 0,
+  class: "no-results"
+};
+const _hoisted_42 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("td", { colspan: "100%" }, [
+  /* @__PURE__ */ createBaseVNode("p", {
+    class: "no-results",
+    "aria-live": "polite"
+  }, "Sorry, no results found.")
+], -1));
+const _hoisted_43 = [
+  _hoisted_42
+];
+const _hoisted_44 = {
+  key: 1,
+  class: "is-loading",
+  "aria-live": "polite"
+};
+const _hoisted_45 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("td", { colspan: "100%" }, [
+  /* @__PURE__ */ createBaseVNode("p", { class: "" }, "Loading...")
+], -1));
+const _hoisted_46 = [
+  _hoisted_45
+];
+const _hoisted_47 = {
+  "data-label": "Company Name and Head Office",
+  class: "contractor__company-and-location"
+};
+const _hoisted_48 = ["href", "title"];
+const _hoisted_49 = {
+  key: 1,
+  class: "contractor__company"
+};
+const _hoisted_50 = {
+  "data-label": "Head Office",
+  class: "contractor__head-office"
+};
+const _hoisted_51 = {
+  "data-label": "Contact Email and Phone",
+  class: "contractor__email-and-phone"
+};
+const _hoisted_52 = ["href"];
+const _hoisted_53 = {
+  key: 1,
+  class: "contractor__email"
+};
+const _hoisted_54 = ["href"];
+const _hoisted_55 = {
+  key: 3,
+  class: "contractor__telephone"
+};
+const _hoisted_56 = {
+  "data-label": "Business Type(s)",
+  class: "contractor__upgrade-types"
+};
+const _hoisted_57 = { key: 0 };
+const _hoisted_58 = {
+  "data-label": "Program Designations",
+  class: "contractor__program-designations"
+};
+const _hoisted_59 = { key: 0 };
+const _hoisted_60 = { class: "contractorsFilterPagination contractors-filter__pagination contractors-filter__pagination--bottom" };
+const _hoisted_61 = ["onClick", "disabled"];
+const _hoisted_62 = { class: "pages" };
+const _hoisted_63 = { class: "numValue current-page" };
+const _hoisted_64 = { class: "numValue total-pages" };
+const _hoisted_65 = ["onClick", "disabled"];
+const _hoisted_66 = { class: "totals" };
+const _hoisted_67 = { class: "results-count" };
+const _hoisted_68 = { class: "numValue paginated-contractors" };
+const _hoisted_69 = { class: "numValue filtered-contractors" };
+const _sfc_main = {
+  __name: "contractorVueApp",
+  setup(__props) {
+    var _a;
+    const contractors = ref([]);
+    const defaultSelectedUpgradeType = ref("all");
+    const selectedUpgradeType = ref("all");
+    const defaultSelectedProgram = ref("all");
+    const selectedProgram = ref("all");
+    const defaultSelectedLocation = ref("all");
+    const selectedLocation = ref("all");
+    const showLoadingMessage = ref(true);
+    const isLoading = ref(false);
+    const activeClass = ref("is-active");
+    const updatingClass = ref("is-updating");
+    const pageSize = ref(30);
+    const currentPage = ref(1);
+    const itemsToClearFromSessionStorage = ref([
+      "contractorsData",
+      "contractorsTimestamp",
+      "contractorsData",
+      "contractorsTimestamp"
+    ]);
+    const oldPaginatedContractorsCount = ref(0);
+    const oldFilteredContractorsCount = ref(0);
+    const publicDomain2 = ref("https://betterhomes.gov.bc.ca");
+    const contractorsAPI = `${((_a = window.site) == null ? void 0 : _a.domain) ? window.site.domain : publicDomain2}/wp-json/custom/v1/contractors`;
+    const types = computed(() => {
+      const uniqueTypes = /* @__PURE__ */ new Set();
+      contractors.value.forEach((contractor) => {
+        if (contractor.types) {
+          if (typeof contractor.types === "string") {
+            uniqueTypes.add(contractor.types.name);
+          } else if (Array.isArray(contractor.types)) {
+            contractor.types.forEach((type) => {
+              uniqueTypes.add(type.name);
+            });
+          }
+        }
+      });
+      const sortedTypes = Array.from(uniqueTypes).sort((a, b) => a.localeCompare(b));
+      return [...sortedTypes];
+    });
+    const programs = computed(() => {
+      const uniquePrograms = /* @__PURE__ */ new Set();
+      contractors.value.forEach((contractor) => {
+        if (contractor.program_designations) {
+          if (typeof contractor.program_designations === "string") {
+            uniquePrograms.add(contractor.program_designations.name);
+          } else if (Array.isArray(contractor.program_designations)) {
+            contractor.program_designations.forEach((program) => {
+              uniquePrograms.add(program.name);
+            });
+          }
+        }
+      });
+      const sortedPrograms = Array.from(uniquePrograms).sort((a, b) => a.localeCompare(b));
+      return [...sortedPrograms];
+    });
+    const locations = computed(() => {
+      const uniqueLocations = /* @__PURE__ */ new Set();
+      contractors.value.forEach((contractor) => {
+        if (contractor.locations) {
+          if (typeof contractor.locations === "string") {
+            uniqueLocations.add(contractor.locations.name);
+          } else if (Array.isArray(contractor.locations)) {
+            contractor.locations.forEach((location) => {
+              uniqueLocations.add(location.name);
+            });
+          }
+        }
+      });
+      const sortedLocations = Array.from(uniqueLocations).sort((a, b) => a.localeCompare(b));
+      return [...sortedLocations];
+    });
+    const filteredContractors = computed(() => {
+      const selectedLoc = selectedLocation.value;
+      const selectedProg = selectedProgram.value;
+      let filteredContractors2 = [...filteredContractorsByType.value];
+      if ("all" !== selectedLoc) {
+        filteredContractors2 = filteredContractors2.filter((contractor) => contractor.locations && contractor.locations.some((location) => location.name === selectedLoc));
+      }
+      if ("all" !== selectedProg) {
+        filteredContractors2 = filteredContractors2.filter((contractor) => contractor.program_designations && contractor.program_designations.some((program) => program.name === selectedProg));
+      }
+      return filteredContractors2;
+    });
+    const filteredContractorsByType = computed(() => {
+      const selectedType = selectedUpgradeType.value;
+      currentPage.value = 1;
+      if (selectedType === "all") {
+        return contractors.value;
+      } else {
+        return contractors.value.filter((contractor) => contractor.types && contractor.types.some((type) => type.name === selectedType));
+      }
+    });
+    computed(() => {
+      const selectedProg = selectedProgram.value;
+      currentPage.value = 1;
+      if (selectedProg === "all") {
+        return contractors.value;
+      } else {
+        return contractors.value.filter((contractor) => contractor.program_designations && contractor.program_designations.some((type) => type.name === selectedProg));
+      }
+    });
+    const totalPages = computed(() => {
+      const totalContractors = filteredContractors.value.length;
+      return totalContractors > 0 ? Math.ceil(totalContractors / pageSize.value) : 1;
+    });
+    const paginatedContractors = computed(() => {
+      const start = (currentPage.value - 1) * pageSize.value;
+      const end = start + pageSize.value;
+      return filteredContractors.value.slice(start, end);
+    });
+    const prevPage = () => {
+      return currentPage.value > 1 ? currentPage.value-- : null;
+    };
+    const nextPage = () => {
+      return currentPage.value < totalPages.value ? currentPage.value++ : null;
+    };
+    const currentTypeFilterMessage = computed(() => {
+      return defaultSelectedUpgradeType.value === selectedUpgradeType.value ? " no upgrade type selected." : " specializing in " + selectedUpgradeType.value.toLowerCase() + " upgrades";
+    });
+    const currentLocationFilterMessage = computed(() => {
+      return "all" !== selectedLocation.value ? "servicing " + selectedLocation.value : null;
+    });
+    const clearFilters = () => {
+      resetSelectsActiveState();
+      selectedUpgradeType.value = defaultSelectedUpgradeType.value;
+      selectedLocation.value = defaultSelectedLocation.value;
+      selectedProgram.value = defaultSelectedProgram.value;
+      history.replaceState(selectedUpgradeType.value, defaultSelectedUpgradeType.value);
+      history.replaceState(selectedLocation.value, defaultSelectedLocation.value);
+      history.replaceState(selectedProgram.value, defaultSelectedProgram.value);
+      currentPage.value !== 1 ? handleUpdatingAnimationClass(".contractors-filter__pagination .pages") : null;
+      currentPage.value = 1;
+    };
+    const resetSelectsActiveState = () => {
+      let activeSelects = document.querySelectorAll("#contractorFilterApp .custom-select.is-active");
+      1 <= activeSelects.length ? activeSelects.forEach((item) => {
+        item.classList.remove("is-active");
+      }) : null;
+    };
+    const selectIsActive = (event) => {
+      return "click" !== event.type ? event.target.parentNode.classList.remove(activeClass.value) : event.target.parentNode.classList.toggle(activeClass.value);
+    };
+    const handleUpdatingAnimationClass = (elementCssPath) => {
+      const elements = document.querySelectorAll(elementCssPath);
+      if (0 < elements.length) {
+        elements.forEach((element) => {
+          element.classList.add(updatingClass.value);
+          setTimeout(() => {
+            element.classList.remove(updatingClass.value);
+          }, 125);
+        });
+      }
+    };
+    const fetchData2 = async (offset = 0) => {
+      try {
+        isLoading.value = true;
+        const cachedData = sessionStorage.getItem("contractorsData");
+        const cachedTimestamp = sessionStorage.getItem("contractorsTimestamp");
+        if (cachedData && cachedTimestamp) {
+          const timeElapsed = Date.now() - parseInt(cachedTimestamp);
+          const hoursElapsed = timeElapsed / (1e3 * 60 * 60);
+          if (hoursElapsed < 24) {
+            contractors.value = JSON.parse(cachedData);
+            showLoadingMessage.value = false;
+            isLoading.value = false;
+            return;
+          }
+        }
+        fetch(contractorsAPI, { cache: "no-store" }).then((r) => r.json()).then((json) => {
+          setTimeout(itemsToClearFromSessionStorage.value.forEach((item) => {
+            sessionStorage.removeItem(item);
+          }), 1e3);
+          sessionStorage.setItem("contractorsData", JSON.stringify(json));
+          sessionStorage.setItem("contractorsTimestamp", Date.now());
+          contractors.value = json;
+          showLoadingMessage.value = false;
+          isLoading.value = false;
+        }).catch((error) => {
+          console.error("Error fetching data:", error);
+          throw error;
+        });
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        throw error;
+      }
+    };
+    watch(() => {
+      var _a2;
+      return (_a2 = window.site) == null ? void 0 : _a2.domain;
+    }, (newVal) => {
+      if (newVal) {
+        fetchData2();
+      }
+    });
+    watch(paginatedContractors, () => {
+      if (oldPaginatedContractorsCount.value !== paginatedContractors.value.length) {
+        oldPaginatedContractorsCount.value = paginatedContractors.value.length;
+        handleUpdatingAnimationClass(".contractors-filter__pagination .paginated-contractors");
+      }
+    });
+    watch(filteredContractors, () => {
+      if (oldFilteredContractorsCount.value !== filteredContractors.value.length) {
+        oldFilteredContractorsCount.value = filteredContractors.value.length;
+        handleUpdatingAnimationClass(".contractors-filter__pagination .filtered-contractors");
+      }
+    });
+    watch(currentPage, () => {
+      handleUpdatingAnimationClass(".contractors-filter__pagination .current-page");
+    });
+    watch(totalPages, () => {
+      handleUpdatingAnimationClass(".contractors-filter__pagination .total-pages");
+    });
+    watch(isLoading, (e) => {
+      console.log("isLoading");
+      console.log(e);
+    });
+    watch([selectedUpgradeType, selectedProgram, selectedLocation], () => {
+      currentPage.value = 1;
+    });
+    window.addEventListener("click", (event) => {
+      !event.target.closest(".custom-select.is-active") ? resetSelectsActiveState() : null;
+    });
+    onMounted(() => {
+      var _a2;
+      fetchData2();
+      document.getElementById("contractorFilterApp");
+      showLoadingMessage.value = true;
+      if ((_a2 = window.site) == null ? void 0 : _a2.domain)
+        ;
+    });
+    return (_ctx, _cache) => {
+      return openBlock(), createElementBlock(Fragment, null, [
+        _hoisted_1,
+        createBaseVNode("div", _hoisted_2, [
+          _hoisted_3,
+          createBaseVNode("div", _hoisted_4, [
+            withDirectives(createBaseVNode("select", {
+              onChange: selectIsActive,
+              onClick: withModifiers(selectIsActive, ["prevent"]),
+              onTouchend: selectIsActive,
+              onKeyup: withKeys(selectIsActive, ["esc"]),
+              tabindex: "0",
+              id: "typeSelect",
+              class: "select select--type",
+              "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => selectedUpgradeType.value = $event),
+              required: true,
+              "data-active": "false"
+            }, [
+              _hoisted_6,
+              (openBlock(true), createElementBlock(Fragment, null, renderList(types.value, (type, index) => {
+                return openBlock(), createElementBlock("option", {
+                  key: type,
+                  value: type
+                }, toDisplayString(type), 9, _hoisted_7);
+              }), 128))
+            ], 40, _hoisted_5), [
+              [vModelSelect, selectedUpgradeType.value]
+            ])
+          ]),
+          _hoisted_8,
+          createBaseVNode("div", _hoisted_9, [
+            withDirectives(createBaseVNode("select", {
+              onChange: selectIsActive,
+              onClick: withModifiers(selectIsActive, ["prevent"]),
+              onTouchend: selectIsActive,
+              onKeyup: withKeys(selectIsActive, ["esc"]),
+              tabindex: "0",
+              id: "programSelect",
+              class: "select select--program",
+              "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => selectedProgram.value = $event),
+              required: true,
+              "data-active": "false"
+            }, [
+              _hoisted_11,
+              (openBlock(true), createElementBlock(Fragment, null, renderList(programs.value, (program, index) => {
+                return openBlock(), createElementBlock("option", {
+                  key: program,
+                  value: program
+                }, toDisplayString(program), 9, _hoisted_12);
+              }), 128))
+            ], 40, _hoisted_10), [
+              [vModelSelect, selectedProgram.value]
+            ])
+          ]),
+          _hoisted_13,
+          createBaseVNode("div", _hoisted_14, [
+            withDirectives(createBaseVNode("select", {
+              onChange: selectIsActive,
+              onClick: withModifiers(selectIsActive, ["prevent"]),
+              onTouchend: selectIsActive,
+              onKeyup: withKeys(selectIsActive, ["esc"]),
+              tabindex: "0",
+              id: "locationSelect",
+              class: "select select--location",
+              "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => selectedLocation.value = $event)
+            }, [
+              _hoisted_16,
+              (openBlock(true), createElementBlock(Fragment, null, renderList(locations.value, (location) => {
+                return openBlock(), createElementBlock("option", {
+                  key: location,
+                  value: location
+                }, toDisplayString(location), 9, _hoisted_17);
+              }), 128))
+            ], 40, _hoisted_15), [
+              [vModelSelect, selectedLocation.value]
+            ])
+          ]),
+          createBaseVNode("button", {
+            class: "clear-filters",
+            onClick: withModifiers(clearFilters, ["prevent"]),
+            onTouchend: clearFilters,
+            onKeydown: withKeys(withModifiers(clearFilters, ["prevent"]), ["enter"]),
+            type: "button"
+          }, " Reset selection ", 40, _hoisted_18),
+          createBaseVNode("div", _hoisted_19, [
             createBaseVNode("button", {
               class: "prevPage",
               onClick: withModifiers(prevPage, ["prevent"]),
               disabled: currentPage.value === 1,
-              tabindex: "0"
-            }, "Previous Page", 8, _hoisted_59),
-            createBaseVNode("span", _hoisted_60, [
+              tabindex: "0",
+              type: "button"
+            }, "Previous Page", 8, _hoisted_20),
+            createBaseVNode("span", _hoisted_21, [
               createTextVNode("Page "),
-              createBaseVNode("span", _hoisted_61, toDisplayString(currentPage.value), 1),
+              createBaseVNode("span", _hoisted_22, toDisplayString(currentPage.value), 1),
               createTextVNode(" of "),
-              createBaseVNode("span", _hoisted_62, toDisplayString(totalPages.value), 1)
+              createBaseVNode("span", _hoisted_23, toDisplayString(totalPages.value), 1)
             ]),
             createBaseVNode("button", {
               class: "nextPage",
               onClick: withModifiers(nextPage, ["prevent"]),
               disabled: currentPage.value === totalPages.value,
-              tabindex: "0"
-            }, "Next Page", 8, _hoisted_63)
-          ], 64)) : createCommentVNode("", true),
-          createBaseVNode("div", _hoisted_64, [
-            createTextVNode(" Showing "),
-            createBaseVNode("span", _hoisted_65, [
-              createBaseVNode("span", _hoisted_66, toDisplayString(paginatedPqeas.value.length), 1),
-              createTextVNode(" of "),
-              createBaseVNode("span", _hoisted_67, toDisplayString(filteredPqeas.value.length), 1)
+              tabindex: "0",
+              type: "button"
+            }, "Next Page", 8, _hoisted_24),
+            createBaseVNode("div", _hoisted_25, [
+              createTextVNode(" Showing "),
+              createBaseVNode("span", _hoisted_26, [
+                createBaseVNode("span", _hoisted_27, toDisplayString(paginatedContractors.value.length), 1),
+                createTextVNode(" of "),
+                createBaseVNode("span", _hoisted_28, toDisplayString(filteredContractors.value.length), 1)
+              ]),
+              createTextVNode(" registered contractors ")
             ]),
-            createTextVNode(" Energy Advisors "),
-            createBaseVNode("span", _hoisted_68, toDisplayString(currentTypeFilterMessage.value) + " " + toDisplayString(currentLocationFilterMessage.value), 1)
+            createBaseVNode("span", _hoisted_29, [
+              createBaseVNode("span", _hoisted_30, [
+                createTextVNode("Showing "),
+                createBaseVNode("span", _hoisted_31, toDisplayString(paginatedContractors.value.length), 1),
+                createTextVNode(" of "),
+                createBaseVNode("span", _hoisted_32, toDisplayString(filteredContractors.value.length), 1),
+                createTextVNode(" registered contractors " + toDisplayString(currentTypeFilterMessage.value) + " " + toDisplayString(currentLocationFilterMessage.value), 1)
+              ]),
+              createBaseVNode("span", _hoisted_33, [
+                createTextVNode("Page "),
+                createBaseVNode("span", _hoisted_34, toDisplayString(currentPage.value), 1),
+                createTextVNode(" of "),
+                createBaseVNode("span", _hoisted_35, toDisplayString(totalPages.value), 1)
+              ])
+            ])
           ])
-        ])) : createCommentVNode("", true)
+        ]),
+        isLoading.value ? (openBlock(), createElementBlock("p", _hoisted_36, "Retrieving list of registered contractors, please wait...")) : createCommentVNode("", true),
+        createBaseVNode("table", _hoisted_37, [
+          _hoisted_38,
+          _hoisted_39,
+          _hoisted_40,
+          createBaseVNode("tbody", {
+            class: normalizeClass(`page page--${currentPage.value}`)
+          }, [
+            filteredContractors.value.length === 0 && !isLoading.value ? (openBlock(), createElementBlock("tr", _hoisted_41, _hoisted_43)) : createCommentVNode("", true),
+            isLoading.value ? (openBlock(), createElementBlock("tr", _hoisted_44, _hoisted_46)) : createCommentVNode("", true),
+            contractors.value.length > 0 ? (openBlock(true), createElementBlock(Fragment, { key: 2 }, renderList(paginatedContractors.value, (contractor, index) => {
+              return openBlock(), createElementBlock("tr", {
+                key: index,
+                class: normalizeClass(`contractor result result--${index + 1} ${0 === (index + 1) % 2 ? `even` : `odd`}`),
+                tabindex: "0"
+              }, [
+                createBaseVNode("td", _hoisted_47, [
+                  contractor.company_website ? (openBlock(), createElementBlock("a", {
+                    key: 0,
+                    class: "contractor__company external",
+                    href: contractor.company_website,
+                    target: "_blank",
+                    title: contractor.company_name + " website, opens in a new tab/window."
+                  }, toDisplayString(contractor.company_name ? contractor.company_name : "Website"), 9, _hoisted_48)) : (openBlock(), createElementBlock("span", _hoisted_49, toDisplayString(contractor.company_name ? contractor.company_name : "No company name provided"), 1))
+                ]),
+                createBaseVNode("td", _hoisted_50, [
+                  createBaseVNode("p", null, toDisplayString(contractor.head_office_location ? contractor.head_office_location : "Not provided"), 1)
+                ]),
+                createBaseVNode("td", _hoisted_51, [
+                  createBaseVNode("address", null, [
+                    contractor.email ? (openBlock(), createElementBlock("a", {
+                      key: 0,
+                      class: "contractor__email",
+                      href: "mailto:" + contractor.email
+                    }, toDisplayString(contractor.email), 9, _hoisted_52)) : (openBlock(), createElementBlock("p", _hoisted_53, "No email provided")),
+                    contractor.phone ? (openBlock(), createElementBlock("a", {
+                      key: 2,
+                      class: "contractor__telephone",
+                      href: "tel:+1" + contractor.phone.replace(/-/g, "")
+                    }, toDisplayString(contractor.phone), 9, _hoisted_54)) : (openBlock(), createElementBlock("p", _hoisted_55, "No phone number provided"))
+                  ])
+                ]),
+                createBaseVNode("td", _hoisted_56, [
+                  contractor.types ? (openBlock(), createElementBlock("ul", _hoisted_57, [
+                    (openBlock(true), createElementBlock(Fragment, null, renderList(contractor.types, (type, index2) => {
+                      return openBlock(), createElementBlock("li", null, toDisplayString(type.name), 1);
+                    }), 256))
+                  ])) : createCommentVNode("", true)
+                ]),
+                createBaseVNode("td", _hoisted_58, [
+                  contractor.program_designations ? (openBlock(), createElementBlock("ul", _hoisted_59, [
+                    (openBlock(true), createElementBlock(Fragment, null, renderList(contractor.program_designations, (designation, index2) => {
+                      return openBlock(), createElementBlock("li", null, toDisplayString(designation.name), 1);
+                    }), 256))
+                  ])) : createCommentVNode("", true)
+                ])
+              ], 2);
+            }), 128)) : createCommentVNode("", true)
+          ], 2)
+        ]),
+        createBaseVNode("div", _hoisted_60, [
+          createBaseVNode("button", {
+            class: "prevPage",
+            onClick: withModifiers(prevPage, ["prevent"]),
+            disabled: currentPage.value === 1,
+            tabindex: "0",
+            type: "button"
+          }, "Previous Page", 8, _hoisted_61),
+          createBaseVNode("span", _hoisted_62, [
+            createTextVNode("Page "),
+            createBaseVNode("span", _hoisted_63, toDisplayString(currentPage.value), 1),
+            createTextVNode(" of "),
+            createBaseVNode("span", _hoisted_64, toDisplayString(totalPages.value), 1)
+          ]),
+          createBaseVNode("button", {
+            class: "nextPage",
+            onClick: withModifiers(nextPage, ["prevent"]),
+            disabled: currentPage.value === totalPages.value,
+            tabindex: "0",
+            type: "button"
+          }, "Next Page", 8, _hoisted_65),
+          createBaseVNode("div", _hoisted_66, [
+            createTextVNode(" Showing "),
+            createBaseVNode("span", _hoisted_67, [
+              createBaseVNode("span", _hoisted_68, toDisplayString(paginatedContractors.value.length), 1),
+              createTextVNode(" of "),
+              createBaseVNode("span", _hoisted_69, toDisplayString(filteredContractors.value.length), 1)
+            ]),
+            createTextVNode(" Contractors ")
+          ])
+        ])
       ], 64);
     };
   }
 };
-const PQEAFilterApp = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-cf4b6a12"]]);
+const ContractorFilterApp = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-85a4de20"]]);
 const bcgovBlockThemePluginMain = () => {
   const postFilterAppElement = document.querySelector("#postFilterApp");
   const VehicleFilterAppElement = document.querySelector("#vehicleFilterApp");
   const PQEAFilterAppElement = document.querySelector("#pqeaFilterApp");
+  const ContractorFilterAppElement = document.querySelector("#contractorFilterApp");
   const initVueApp = (appComponent, selector, attributes) => {
     if (window.vueInstance && window.vueInstance.component === appComponent) {
       window.vueInstance.unmount();
@@ -11769,6 +12455,9 @@ const bcgovBlockThemePluginMain = () => {
   }
   if (PQEAFilterAppElement) {
     initVueApp(PQEAFilterApp, PQEAFilterAppElement);
+  }
+  if (ContractorFilterAppElement) {
+    initVueApp(ContractorFilterApp, ContractorFilterAppElement);
   }
 };
 function addSafeEventListenerPlugin(el, event, handler, options) {

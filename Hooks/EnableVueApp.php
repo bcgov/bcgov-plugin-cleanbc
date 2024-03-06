@@ -51,6 +51,14 @@ class EnableVueApp {
 			$latest_version,
 			true
 		);
+
+		wp_enqueue_script(
+			'cleanbc-plugin/betterhomes-contractor-filter-block',
+			plugin_dir_url( __DIR__ ) . 'blocks/vue-blocks/betterhomes-contractor-vue-block.js',
+			[ 'wp-blocks', 'wp-element', 'wp-editor' ],
+			$latest_version,
+			true
+		);
 	}
 
 
@@ -229,6 +237,47 @@ class EnableVueApp {
 	}
 
 	/**
+	 * Load VueJS app assets when the block is on the page.
+	 *
+	 * @param array $attributes The block attributes.
+	 * @return string The HTML output for the block.
+	 */
+	public function vuejs_betterhomes_contractor_filter_app_dynamic_block_plugin( $attributes ) {
+
+		$plugin_dir = plugin_dir_path( __DIR__ );
+		$assets_dir = $plugin_dir . 'dist/assets/';
+
+		$plugin_data    = get_plugin_data( $plugin_dir . 'index.php' );
+		$plugin_version = $plugin_data['Version'];
+
+		$update_check = get_site_transient( 'update_plugins' );
+		if ( isset( $update_check->response['index.php'] ) ) {
+			$latest_version = $update_check->response['index.php']->new_version;
+		} else {
+			$latest_version = $plugin_version;
+		}
+
+		$public_css_files = glob( $assets_dir . 'vue*.css' );
+		$public_js_files  = glob( $assets_dir . 'vue*.js' );
+
+		foreach ( $public_css_files as $file ) {
+			$file_url = plugins_url( str_replace( $plugin_dir, '', $file ), __DIR__ );
+			wp_enqueue_style( 'vue-app-' . basename( $file, '.css' ), $file_url, [], $latest_version );
+		}
+
+		foreach ( $public_js_files as $file ) {
+			$file_url = plugins_url( str_replace( $plugin_dir, '', $file ), __DIR__ );
+			wp_enqueue_script( 'vue-app-' . basename( $file, '.js' ), $file_url, [ 'bcgov-block-theme-public' ], $latest_version, true ); // Sets the dependency to Block Theme to enqueue after.
+		}
+
+		// Set up the attributes passed to the Vue frontend, with defaults.
+		$className = isset( $attributes['className'] ) ? $attributes['className'] : '';
+
+		// Add the 'data-columns' attribute to the output div.
+		return '<div id="contractorFilterApp" class="' . esc_attr( $className ) . '">Loading...</div>';
+	}
+
+	/**
 	 * Initialize the VueJS app blocks.
 	 */
 	public function vuejs_app_block_init_plugin() {
@@ -250,6 +299,13 @@ class EnableVueApp {
 			'cleanbc-plugin/betterhomes-pqea-filter-block',
 			[
 				'render_callback' => [ $this, 'vuejs_betterhomes_pqea_filter_app_dynamic_block_plugin' ],
+			]
+		);
+
+		register_block_type(
+			'cleanbc-plugin/betterhomes-contractor-filter-block',
+			[
+				'render_callback' => [ $this, 'vuejs_betterhomes_contractor_filter_app_dynamic_block_plugin' ],
 			]
 		);
 	}
@@ -429,6 +485,48 @@ class EnableVueApp {
 	}
 
 	/**
+	 * Custom callback function for the Contractor filter in the API.
+	 *
+	 * This function fetches and formats data for Contractors (Program Qualified Energy Advisors)
+	 * to be used in a custom API endpoint.
+	 *
+	 * @return array An array of formatted data for Contractors.
+	 */
+	public function custom_api_contractor_filter_callback() {
+		// Set up the arguments for WP_Query.
+		$args = array(
+			'post_type'      => 'contractors',
+			'posts_per_page' => -1,
+			'post_status'    => 'publish',
+		);
+
+		// Query Contractors using WP_Query.
+		$contractors = new \WP_Query( $args );
+
+		// Fetch associated meta and ACF fields on a per-post basis.
+		foreach ( $contractors->posts as $contractor ) {
+			// Setup post data for return at the endpoint.
+			$posts_data[] = (object) array(
+				'id'         			=> $contractor->ID,
+				'title'      			=> get_the_title( $contractor->ID ),
+				'url'        			=> $contractor->url,
+				'post_url'   			=> get_permalink( $contractor->ID ),
+				'company_name' 			=> get_field('prc_company_name', $contractor->ID),
+				'company_website' 		=> get_field('prc_company_website', $contractor->ID),
+				'head_office_location' 	=> get_field('prc_head_office_location', $contractor->ID),
+				'email' 				=> get_field('prc_email', $contractor->ID),
+				'phone' 				=> get_field('prc_phone', $contractor->ID),
+				'program_designations'	=> get_the_terms($contractor->ID, 'prc-program-designation'),
+				'types'					=> get_the_terms($contractor->ID, 'prc-types'),
+				'locations'				=> get_the_terms($contractor->ID, 'prc-locations'),
+			);
+		}
+
+		// Return the formatted data.
+		return $posts_data;
+	}
+
+	/**
 	 * Sets up route and callback for custom endpoint.
 	 *
 	 * @return void
@@ -460,6 +558,16 @@ class EnableVueApp {
 			array(
 				'methods'             => 'GET',
 				'callback'            => [ $this, 'custom_api_pqea_filter_callback' ],
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		register_rest_route(
+			'custom/v1',
+			'/contractors',
+			array(
+				'methods'             => 'GET',
+				'callback'            => [ $this, 'custom_api_contractor_filter_callback' ],
 				'permission_callback' => '__return_true',
 			)
 		);
