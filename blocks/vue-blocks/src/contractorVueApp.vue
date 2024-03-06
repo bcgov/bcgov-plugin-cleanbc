@@ -267,8 +267,8 @@ const currentPage = ref(1);
 const itemsToClearFromSessionStorage = ref([
     'contractorsData',
     'contractorsTimestamp',
-    'contractorsData',
-    'contractorsTimestamp',
+    'pqeasData',
+    'pqeasTimestamp',
 ]);
 
 const oldPaginatedContractorsCount = ref(0);
@@ -668,7 +668,7 @@ watch([selectedUpgradeType, selectedProgram, selectedLocation], () => {
 
 window.addEventListener("click", (event) => {
     !event.target.closest('.custom-select.is-active') ? resetSelectsActiveState() : null;
-});
+}); 
 
 /**
  * Lifecycle Hooks

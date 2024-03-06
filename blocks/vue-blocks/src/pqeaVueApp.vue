@@ -272,8 +272,8 @@ const pageSize = ref(30); // Default page size
 const currentPage = ref(1);
 
 const itemsToClearFromSessionStorage = ref([
-    'pqeasData',
-    'pqeasTimestamp',
+    'contractorsData',
+    'contractorsTimestamp',
     'pqeasData',
     'pqeasTimestamp',
 ]);

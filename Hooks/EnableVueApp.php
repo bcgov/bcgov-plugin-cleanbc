@@ -507,18 +507,18 @@ class EnableVueApp {
 		foreach ( $contractors->posts as $contractor ) {
 			// Setup post data for return at the endpoint.
 			$posts_data[] = (object) array(
-				'id'         			=> $contractor->ID,
-				'title'      			=> get_the_title( $contractor->ID ),
-				'url'        			=> $contractor->url,
-				'post_url'   			=> get_permalink( $contractor->ID ),
-				'company_name' 			=> get_field('prc_company_name', $contractor->ID),
-				'company_website' 		=> get_field('prc_company_website', $contractor->ID),
-				'head_office_location' 	=> get_field('prc_head_office_location', $contractor->ID),
-				'email' 				=> get_field('prc_email', $contractor->ID),
-				'phone' 				=> get_field('prc_phone', $contractor->ID),
-				'program_designations'	=> get_the_terms($contractor->ID, 'prc-program-designation'),
-				'types'					=> get_the_terms($contractor->ID, 'prc-types'),
-				'locations'				=> get_the_terms($contractor->ID, 'prc-locations'),
+				'id'                   => $contractor->ID,
+				'title'                => get_the_title( $contractor->ID ),
+				'url'                  => $contractor->url,
+				'post_url'             => get_permalink( $contractor->ID ),
+				'company_name'         => get_field( 'prc_company_name', $contractor->ID ),
+				'company_website'      => get_field( 'prc_company_website', $contractor->ID ),
+				'head_office_location' => get_field( 'prc_head_office_location', $contractor->ID ),
+				'email'                => get_field( 'prc_email', $contractor->ID ),
+				'phone'                => get_field( 'prc_phone', $contractor->ID ),
+				'program_designations' => get_the_terms( $contractor->ID, 'prc-program-designation' ),
+				'types'                => get_the_terms( $contractor->ID, 'prc-types' ),
+				'locations'            => get_the_terms( $contractor->ID, 'prc-locations' ),
 			);
 		}
 
