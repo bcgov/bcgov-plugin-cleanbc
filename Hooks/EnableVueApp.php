@@ -113,13 +113,7 @@ class EnableVueApp {
 
 		$plugin_data    = get_plugin_data( $plugin_dir . 'index.php' );
 		$plugin_version = $plugin_data['Version'];
-
-		$update_check = get_site_transient( 'update_plugins' );
-		if ( isset( $update_check->response['bcgov-plugin-cleanbc/index.php'] ) ) {
-			$latest_version = $update_check->response['bcgov-plugin-cleanbc/index.php']->new_version;
-		} else {
-			$latest_version = $plugin_version; // Fallback to the installed version.
-		}
+		$latest_version = $plugin_version; // Fallback to the installed version.
 
 		$public_css_files = glob( $assets_dir . 'vue*.css' );
 		$public_js_files  = glob( $assets_dir . 'vue*.js' );
@@ -160,13 +154,7 @@ class EnableVueApp {
 
 		$plugin_data    = get_plugin_data( $plugin_dir . 'index.php' );
 		$plugin_version = $plugin_data['Version'];
-
-		$update_check = get_site_transient( 'update_plugins' );
-		if ( isset( $update_check->response['index.php'] ) ) {
-			$latest_version = $update_check->response['index.php']->new_version;
-		} else {
-			$latest_version = $plugin_version;
-		}
+		$latest_version = $plugin_version; // Fallback to the installed version.
 
 		$public_css_files = glob( $assets_dir . 'vue*.css' );
 		$public_js_files  = glob( $assets_dir . 'vue*.js' );
@@ -202,13 +190,7 @@ class EnableVueApp {
 
 		$plugin_data    = get_plugin_data( $plugin_dir . 'index.php' );
 		$plugin_version = $plugin_data['Version'];
-
-		$update_check = get_site_transient( 'update_plugins' );
-		if ( isset( $update_check->response['index.php'] ) ) {
-			$latest_version = $update_check->response['index.php']->new_version;
-		} else {
-			$latest_version = $plugin_version;
-		}
+		$latest_version = $plugin_version; // Fallback to the installed version.
 
 		$public_css_files = glob( $assets_dir . 'vue*.css' );
 		$public_js_files  = glob( $assets_dir . 'vue*.js' );
@@ -243,13 +225,7 @@ class EnableVueApp {
 
 		$plugin_data    = get_plugin_data( $plugin_dir . 'index.php' );
 		$plugin_version = $plugin_data['Version'];
-
-		$update_check = get_site_transient( 'update_plugins' );
-		if ( isset( $update_check->response['index.php'] ) ) {
-			$latest_version = $update_check->response['index.php']->new_version;
-		} else {
-			$latest_version = $plugin_version;
-		}
+		$latest_version = $plugin_version; // Fallback to the installed version.
 
 		$public_css_files = glob( $assets_dir . 'vue*.css' );
 		$public_js_files  = glob( $assets_dir . 'vue*.js' );
