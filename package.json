@@ -6,10 +6,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run lint:js : LINT_SEVERITY=warn && vite build --minify false",
+    "build": "npm run lint:js : LINT_SEVERITY=warn && vite build --minify false && wp-scripts build 'scripts/admin.js' --output-path=dist-basic",
     "build:watch": "vite build --watch",
     "build:watch-no-minify": "vite build --watch --minify false",
-    "build:production": "npm ci && npm run lint:js && vite build",
+    "build:production": "npm ci && npm run lint:js && vite build &&  wp-scripts build 'scripts/admin.js' --output-path=dist-basic",
     "lint:css": "wp-scripts lint-style 'src/**/*.scss' 'styles/public-additional-styles.scss' --allow-empty-input",
 		"fix:css": "wp-scripts lint-style 'src/**/*.scss' 'styles/public-additional-styles.scss' --fix",
 		"lint:js": "wp-scripts lint-js scripts --no-error-on-unmatched-pattern",
