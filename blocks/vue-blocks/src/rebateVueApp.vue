@@ -999,8 +999,12 @@ $house-icon-dark: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjIiIGhlaWdodD0i
 
         @media (min-width: $breakpoint-sm) {
             flex-direction: row;
-            align-items: flex-start;
+            // align-items: flex-start;
             justify-content: space-between;
+        }
+
+        .clear-filters {
+            margin-top: calc(1rem/3);
         }
     }
 
@@ -1015,6 +1019,7 @@ $house-icon-dark: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjIiIGhlaWdodD0i
         @media (min-width: $breakpoint-sm) {
             flex-basis: calc((100%/3) - (1rem/3));
             width: auto;
+            justify-content: space-between;
             // margin-right: 0.5rem;
         }
     }
@@ -1149,9 +1154,14 @@ $house-icon-dark: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjIiIGhlaWdodD0i
             display: grid;
             grid-template-columns: 1fr;
             gap: 1rem;
+            flex-basis: 100%;
 
             @media (min-width: $breakpoint-sm) {
                 flex-basis: calc(75% - 0.5rem);
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            @media (min-width: $breakpoint-md) {
                 grid-template-columns: repeat(3, 1fr);
             }
         }

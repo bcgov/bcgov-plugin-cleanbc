@@ -12433,8 +12433,8 @@ const _sfc_main$1 = {
   }
 };
 const ContractorFilterApp = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-a9023e26"]]);
-const rebateVueApp_vue_vue_type_style_index_0_scoped_c16fe0bd_lang = "";
-const _withScopeId = (n) => (pushScopeId("data-v-c16fe0bd"), n = n(), popScopeId(), n);
+const rebateVueApp_vue_vue_type_style_index_0_scoped_fbb92fda_lang = "";
+const _withScopeId = (n) => (pushScopeId("data-v-fbb92fda"), n = n(), popScopeId(), n);
 const _hoisted_1 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("h2", { class: "sr-only" }, "Rebate Listings", -1));
 const _hoisted_2 = {
   class: "rebatesFilterControls",
@@ -13226,7 +13226,7 @@ const _sfc_main = {
     };
   }
 };
-const RebateFilterApp = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-c16fe0bd"]]);
+const RebateFilterApp = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-fbb92fda"]]);
 const bcgovBlockThemePluginMain = () => {
   const postFilterAppElement = document.querySelector("#postFilterApp");
   const VehicleFilterAppElement = document.querySelector("#vehicleFilterApp");
