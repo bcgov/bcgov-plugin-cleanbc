@@ -547,13 +547,13 @@ class EnableVueApp {
 	}
 
 		/**
-	 * Custom callback function for the Rebate filter in the API.
-	 *
-	 * This function fetches and formats data for Rebates (Program Qualified Energy Advisors)
-	 * to be used in a custom API endpoint.
-	 *
-	 * @return array An array of formatted data for Rebates.
-	 */
+         * Custom callback function for the Rebate filter in the API.
+         *
+         * This function fetches and formats data for Rebates (Program Qualified Energy Advisors)
+         * to be used in a custom API endpoint.
+         *
+         * @return array An array of formatted data for Rebates.
+         */
 	public function custom_api_rebate_filter_callback() {
 		// Set up the arguments for WP_Query.
 		$args = array(
@@ -569,17 +569,17 @@ class EnableVueApp {
 		foreach ( $rebates->posts as $rebate ) {
 			// Setup post data for return at the endpoint.
 			$posts_data[] = (object) array(
-				'id'                    => $rebate->ID,
-				'title'                 => get_the_title( $rebate->ID ),
-				'url'                   => $rebate->url,
-				'post_url'              => get_permalink( $rebate->ID ),
-				'rebate_amount'			=> get_field( 'rebate', $rebate->ID ),
-				'short_description'		=> get_field( 'short_description', $rebate->ID ),
-				'types'					=> get_the_terms( $rebate->ID, 'building-types' ),
-				'locations'				=> get_the_terms( $rebate->ID, 'regions' ),
-				'upgrade_types'			=> get_the_terms( $rebate->ID, 'upgrades' ),
-				'primary_heating_sys'	=> get_the_terms( $rebate->ID, 'primary-space-heating' ),
-				'other_offers'			=> get_the_terms( $rebate->ID, 'other-offers' ),
+				'id'                  => $rebate->ID,
+				'title'               => get_the_title( $rebate->ID ),
+				'url'                 => $rebate->url,
+				'post_url'            => get_permalink( $rebate->ID ),
+				'rebate_amount'       => get_field( 'rebate', $rebate->ID ),
+				'short_description'   => get_field( 'short_description', $rebate->ID ),
+				'types'               => get_the_terms( $rebate->ID, 'building-types' ),
+				'locations'           => get_the_terms( $rebate->ID, 'regions' ),
+				'upgrade_types'       => get_the_terms( $rebate->ID, 'upgrades' ),
+				'primary_heating_sys' => get_the_terms( $rebate->ID, 'primary-space-heating' ),
+				'other_offers'        => get_the_terms( $rebate->ID, 'other-offers' ),
 			);
 		}
 

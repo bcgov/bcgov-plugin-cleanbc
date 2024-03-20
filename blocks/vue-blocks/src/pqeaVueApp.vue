@@ -611,6 +611,7 @@ watch(filteredPqeas, () => {
 watch(currentPage, () => {
     handleUpdatingAnimationClass(".pqeas-filter__pagination .current-page");
 });
+
 watch(totalPages, () => {
     handleUpdatingAnimationClass(".pqeas-filter__pagination .total-pages");
 });
