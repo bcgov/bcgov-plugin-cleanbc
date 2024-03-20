@@ -1,4 +1,8 @@
-## 1.5.0 February 27, 2024
+## 1.5.0 March 14, 2024
+- Contractors filter block: API endpoint and VueJS block.
+- Rebates page block to show the content sections.
+- PQEA filter block CSS animations for pagination & results.
+- PQEA filter block accessibility feature refinement.
 - PQEA filter block and output ready for inclusion on beta site. Added script module fix for Vite/Vue. ([CLEANBC-189](https://apps.nrs.gov.bc.ca/int/jira/browse/CLEANBC-189))
 - Added scaffolding for PQEA filter block.
 

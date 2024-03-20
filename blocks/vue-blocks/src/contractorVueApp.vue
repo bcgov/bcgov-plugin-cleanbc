@@ -1,14 +1,23 @@
 <template>
     <!-- Heading for screen readers -->
-    <h2 class="sr-only">Energy Advisor Listings</h2>
+    <h2 class="sr-only">Contractor Listings</h2>
     <!-- Filter Controls -->
-    <div class="pqeasFilterControls" id="pqeasFilterControls">
-        <!-- Category Select -->
-        <label for="categorySelect" class="sr-only">Choose between home construction and home renovation</label>
+    <div class="contractorsFilterControls" id="contractorsFilterControls">
+        <!-- Type Select -->
+        <label for="typeSelect" class="sr-only">Choose a type of upgrade</label>
         <div class="custom-select">
-            <select @change="selectIsActive" @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive" tabindex="0" id="categorySelect" class="select select--category" v-model="selectedCategory" :required="true" data-active="false">
-                <option v-if="isLoading" value="Constructing a home">Constructing a home</option>
-                <option v-if="!isLoading" v-for="(category, index) in categories" :key="category" :value="category">{{ category }}</option>
+            <select @change="selectIsActive" @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive" tabindex="0" id="typeSelect" class="select select--type" v-model="selectedUpgradeType" :required="true" data-active="false">
+                <option value="all">All Upgrade Types</option>
+                <option v-for="(type, index) in types" :key="type" :value="type">{{ type }}</option>
+            </select>
+        </div>
+
+        <!-- Type Select -->
+        <label for="programSelect" class="sr-only">Choose a rebate program</label>
+        <div class="custom-select">
+            <select @change="selectIsActive" @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive" tabindex="0" id="programSelect" class="select select--program" v-model="selectedProgram" :required="true" data-active="false">
+                <option value="all">All Programs</option>
+                <option v-for="(program, index) in programs" :key="program" :value="program">{{ program }}</option>
             </select>
         </div>
 
@@ -30,7 +39,7 @@
         </button>
 
         <!-- Pagination Controls -->
-        <div class="pqeasFilterPagination pqeas-filter__pagination pqeas-filter__pagination--top">
+        <div class="contractorsFilterPagination contractors-filter__pagination contractors-filter__pagination--top">
             <!-- Previous Page Button -->
             <button class="prevPage" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0" type="button">Previous Page</button>
             <!-- Current Page & Totals -->
@@ -39,46 +48,46 @@
             <button class="nextPage" @click.prevent="nextPage" :disabled="currentPage === totalPages" tabindex="0" type="button">Next Page</button>
 
             <!-- Results Information -->
-            <span class="totals">
-                Showing <span class="results-count"><span class="numValue paginated-pqeas">{{paginatedPqeas.length }}</span> of <span class="numValue filtered-pqeas">{{ filteredPqeas.length }}</span></span> Energy Advisors
-            </span>
+            <div class="totals">
+                Showing <span class="results-count"><span class="numValue paginated-contractors">{{paginatedContractors.length }}</span> of <span class="numValue filtered-contractors">{{ filteredContractors.length }}</span></span> registered contractors
+            </div>
 
             <span class="sr-status sr-only">
-                <span class="results-count" role="status" aria-live="polite">Showing <span class="numValue paginated-pqeas">{{paginatedPqeas.length }}</span> of <span class="numValue filtered-pqeas">{{ filteredPqeas.length }}</span> Energy Advisors {{ currentTypeFilterMessage }} {{ currentLocationFilterMessage }}</span>
+                <span class="results-count" role="status" aria-live="polite">Showing <span class="numValue paginated-contractors">{{paginatedContractors.length }}</span> of <span class="numValue filtered-contractors">{{ filteredContractors.length }}</span> registered contractors {{ currentTypeFilterMessage }} {{ currentLocationFilterMessage }}</span>
                 <span class="pages" role="status" aria-live="polite">Page <span class="numValue current-page">{{ currentPage }}</span> of <span class="numValue total-pages">{{ totalPages }}</span></span>
             </span>
         </div>
     </div>
 
     <!-- Loading Message -->
-    <p v-if="isLoading" class="no-results loading" aria-live="polite">Retrieving list of Energy Advisors, please wait...</p>
+    <p v-if="isLoading" class="no-results loading" aria-live="polite">Retrieving list of registered contractors, please wait...</p>
 
-    <!-- PQEAs Results Table -->
-    <table id="pqeasResults" class="pqeasResults table table--striped">
-        <caption class="sr-only">Program Qualified Energy Advisors</caption>
+    <!-- Contractors Results Table -->
+    <table id="contractorsResults" class="contractorsResults table table--striped">
+        <caption class="sr-only">Registered Contractors</caption>
         <!-- Table Columns -->
         <colgroup>
-            <col class="col col--1 odd col--pqea__company-and-location"/>
-            <col class="col col--2 even col--pqea__contact-name"/>
-            <col class="col col--3 odd col--pqea__email-and-phone"/>
-            <col class="col col--4 even col--pqea__service-organizations"/>
-            <col class="col col--5 odd col--pqea__services"/>
+            <col class="col col--1 odd col--contractor__company-and-location"/>
+            <col class="col col--2 even col--contractor__head-office"/>
+            <col class="col col--3 odd col--contractor__email-and-phone"/>
+            <col class="col col--4 even col--contractor__upgrade-types"/>
+            <col class="col col--5 odd col--contractor__program-designations"/>
         </colgroup>
         <!-- Table Header -->
         <thead>
             <tr>
-                <th class="pqea-heading odd pqea-heading--company-and-location">Company Name <br>& Head Office</th>
-                <th class="pqea-heading even pqea-heading--contact-name">Contact Name</th>
-                <th class="pqea-heading odd pqea-heading--email-and-phone">Email & Phone</th>
-                <th class="pqea-heading even pqea-heading--service-organizations">Service Organization(s)</th>
-                <th class="pqea-heading odd pqea-heading--services">Program Qualified Services</th>
+                <th class="contractor-heading odd contractor-heading--company-and-location">Company Name</th>
+                <th class="contractor-heading even contractor-heading--contact-name">Head Office</th>
+                <th class="contractor-heading odd contractor-heading--email-and-phone">Email & Phone</th>
+                <th class="contractor-heading even contractor-heading--service-organizations">Upgrade Type(s)</th>
+                <th class="contractor-heading odd contractor-heading--services">Rebate Program(s)</th>
             </tr>
         </thead>
 
         <!-- Table Body -->
         <tbody :class="`page page--${currentPage}`">
             <!-- No Results Message -->
-            <tr v-if="filteredPqeas.length === 0 && !isLoading" class="no-results">
+            <tr v-if="filteredContractors.length === 0 && !isLoading" class="no-results">
                 <td colspan="100%">
                     <p class="no-results" aria-live="polite">Sorry, no results found.</p>
                 </td>
@@ -92,79 +101,50 @@
             </tr>
 
             <!-- Results Loop -->
-            <template v-if="pqeas.length > 0" v-for="(pqea, index) in paginatedPqeas" :key="index">
-                <tr :class="`pqea result result--${index+1} ${0 === (index+1) % 2 ? `even` : `odd`}`" tabindex="0">
+            <template v-if="contractors.length > 0" v-for="(contractor, index) in paginatedContractors" :key="index">
+                <tr :class="`contractor result result--${index+1} ${0 === (index+1) % 2 ? `even` : `odd`}`" tabindex="0">
                     <!-- Company Name and Head Office -->
-                    <td data-label="Company Name and Head Office" class="pqea__company-and-location">
+                    <td data-label="Company Name and Head Office" class="contractor__company-and-location">
                         <!-- Company Website Link -->
-                        <a v-if="pqea.details.company_website" class="pqea__company external" :href="pqea.details.company_website" target="_blank" :title="pqea.details.company_name + ' website, opens in a new tab/window.'">
-                            {{ pqea.details.company_name ? pqea.details.company_name : 'Website' }}
+                        <a v-if="contractor.company_website" class="contractor__company external" :href="contractor.company_website" target="_blank" :title="contractor.company_name + ' website, opens in a new tab/window.'">
+                            {{ contractor.company_name ? contractor.company_name : 'Website' }}
                         </a>
                         <!-- Company Name if No Website -->
-                        <span v-else class="pqea__company">
-                            {{ pqea.details.company_name ? pqea.details.company_name : 'No company name provided' }}
-                        </span>
-                        <!-- Company Location -->
-                        <span class="pqea__location">
-                            {{ pqea.details.company_location ? pqea.details.company_location : 'Not provided' }}
+                        <span v-else class="contractor__company">
+                            {{ contractor.company_name ? contractor.company_name : 'No company name provided' }}
                         </span>
                     </td>
 
-                    <!-- Contact Name -->
-                    <td data-label="Contact Name" class="pqea__contact-name">
-                        <p>{{ pqea.details.contact_name ? pqea.details.contact_name : 'Not provided' }}</p>
+                    <!-- Company Location -->
+                    <td data-label="Head Office" class="contractor__head-office">
+                        <p>{{ contractor.head_office_location ? contractor.head_office_location : 'Not provided' }}</p>
                     </td>
 
                     <!-- Contact Email and Phone -->
-                    <td data-label="Contact Email and Phone" class="pqea__email-and-phone">
+                    <td data-label="Contact Email and Phone" class="contractor__email-and-phone">
                         <address>
                             <!-- Email Link -->
-                            <a v-if="pqea.details.email" class="pqea__email" :href="'mailto:' + pqea.details.email">{{ pqea.details.email }}</a>
-                            <p class="pqea__email" v-else>No email provided</p>
+                            <a v-if="contractor.email" class="contractor__email" :href="'mailto:' + contractor.email">{{ contractor.email }}</a>
+                            <p class="contractor__email" v-else>No email provided</p>
 
                             <!-- Phone Link -->
-                            <a v-if="pqea.details.phone" class="pqea__telephone" :href="'tel:+1' + pqea.details.phone.replace(/-/g, '')">{{ pqea.details.phone }}</a>
-                            <p class="pqea__telephone" v-else>No phone number provided</p>
+                            <a v-if="contractor.phone" class="contractor__telephone" :href="'tel:+1' + contractor.phone.replace(/-/g, '')">{{ contractor.phone }}</a>
+                            <p class="contractor__telephone" v-else>No phone number provided</p>
                         </address>
                     </td>
 
-                    <!-- Service Organizations -->
-                    <td data-label="Service Organization(s)" class="pqea__service-organizations">
-                        <ul v-if="pqea.details.service_organization_name || pqea.details.service_organization_name_2">
-                            <!-- Service Organization Name 1 -->
-                            <li v-if="pqea.details.service_organization_name" class="pqea__service-organization-name">
-                                <!-- Link if Website Provided -->
-                                <a v-if="pqea.details.service_organization_website" :href="pqea.details.service_organization_website" class="external" target="_blank" :title="pqea.details.service_organization_name + ' website, opens in a new tab/window.'">{{ pqea.details.service_organization_name }}</a>
-                                <!-- Plain Text if No Website -->
-                                <span v-else>{{ pqea.details.service_organization_name }}</span>
-                            </li>
-
-                            <!-- Service Organization Name 2 -->
-                            <li v-if="pqea.details.service_organization_name_2" class="pqea__service-organization-name--2">
-                                <!-- Link if Website Provided -->
-                                <a v-if="pqea.details.service_organization_website_2" :href="pqea.details.service_organization_website_2" class="external" target="_blank" :title="pqea.details.service_organization_name_2 + ' website, opens in a new tab/window.'">{{ pqea.details.service_organization_name_2 }}</a>
-                                <!-- Plain Text if No Website -->
-                                <span v-else>{{ pqea.details.service_organization_name_2 }}</span>
-                            </li>
-
-                            <!-- Additional Service Organizations -->
-                            <li v-if="pqea.details.additional_service_organizations" v-for="(org, index) in pqea.details.additional_service_organizations" :key="index">
-                                <!-- Link if Website Provided -->
-                                <a v-if="org[1]" :href="org[1]" class="external" target="_blank" :title="org[0] + ' website, opens in a new tab/window.'">{{ org[0] }}</a>
-                                <!-- Plain Text if No Website -->
-                                <span v-else>{{ org[0] }}</span>
-                            </li>
+                    <!-- Business Types -->
+                    <td data-label="Business Type(s)" class="contractor__upgrade-types">
+                        <ul v-if="contractor.types">
+                            <li v-for="(type, index) in contractor.types">{{ type.name }}</li>
                         </ul>
                     </td>
 
-                    <!-- Program Qualified Services -->
-                    <td data-label="Program Qualified Services" class="pqea__services">
-                        <p v-if="pqea.services">
-                            <!-- Display Program Qualified Services -->
-                            <span v-for="(service, services_index) in pqea.services" :class="`pqea__service pqea__service--${service.name.replace(/ /g, '-').toLowerCase()}`">
-                                {{ service.name }}<span v-if="services_index != Object.keys(pqea.services).length - 1">,&nbsp;</span>
-                            </span>
-                        </p>
+                    <!-- Program Designations -->
+                    <td data-label="Program Designations" class="contractor__program-designations">
+                        <ul v-if="contractor.program_designations">
+                            <li v-for="(designation, index) in contractor.program_designations">{{ designation.name }}</li>
+                        </ul>
                     </td>
                 </tr>
             </template>
@@ -172,7 +152,7 @@
     </table>
 
     <!-- Pagination Controls (Bottom) -->
-    <div class="pqeasFilterPagination pqeas-filter__pagination pqeas-filter__pagination--bottom">
+    <div class="contractorsFilterPagination contractors-filter__pagination contractors-filter__pagination--bottom">
         <!-- Previous Page Button -->
         <button class="prevPage" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0" type="button">Previous Page</button>
         <!-- Current Page & Totals -->
@@ -182,7 +162,7 @@
 
         <!-- Results Information -->
         <div class="totals">
-            Showing <span class="results-count"><span class="numValue paginated-pqeas">{{paginatedPqeas.length }}</span> of <span class="numValue filtered-pqeas">{{ filteredPqeas.length }}</span></span> Energy Advisors
+            Showing <span class="results-count"><span class="numValue paginated-contractors">{{paginatedContractors.length }}</span> of <span class="numValue filtered-contractors">{{ filteredContractors.length }}</span></span> Contractors
         </div>
     </div>
 </template>
@@ -194,29 +174,42 @@
  * @type {{ ref: Function, onMounted: Function, computed: Function, watch: Function }}
  * @namespace VueCompositionAPI
  */
- import { ref, onMounted, computed, watch } from 'vue';
-
-
-/**
- * Ref for storing an array of PQEAs (Program Qualified Energy Advisors).
- *
- * @type {Ref<Array>} - A reference to an array containing PQEAs.
- */
-const pqeas = ref([]);
+import { ref, onMounted, computed, watch } from 'vue';
 
 /**
- * Ref for the default selected category.
+ * Ref for storing an array of Contractors (Program Qualified Contractors).
  *
- * @type {Ref<String>} - A reference to the default selected category.
+ * @type {Ref<Array>} - A reference to an array containing Contractors.
  */
-const defaultSelectedCategory = ref('Constructing a home');
+const contractors = ref([]);
 
 /**
- * Ref for the currently selected category.
+ * Ref for the default selected type.
  *
- * @type {Ref<String>} - A reference to the currently selected category.
+ * @type {Ref<String>} - A reference to the default selected type.
  */
-const selectedCategory = ref('Constructing a home');
+const defaultSelectedUpgradeType = ref('all');
+
+/**
+ * Ref for the currently selected upgrade type.
+ *
+ * @type {Ref<String>} - A reference to the currently selected upgrade type.
+ */
+const selectedUpgradeType = ref('all');
+
+/**
+ * Ref for the default selected program.
+ *
+ * @type {Ref<String>} - A reference to the default selected program.
+ */
+const defaultSelectedProgram = ref('all');
+
+/**
+ * Ref for the currently selected program.
+ *
+ * @type {Ref<String>} - A reference to the currently selected program.
+ */
+const selectedProgram = ref('all');
 
 /**
  * Ref for the default selected location.
@@ -278,8 +271,8 @@ const itemsToClearFromSessionStorage = ref([
     'pqeasTimestamp',
 ]);
 
-const oldPaginatedPqeasCount = ref(0);
-const oldFilteredPqeasCount = ref(0);
+const oldPaginatedContractorsCount = ref(0);
+const oldFilteredContractorsCount = ref(0);
 
 /**
  * Ref for storing the public domain URL.
@@ -289,83 +282,174 @@ const oldFilteredPqeasCount = ref(0);
 const publicDomain = ref('https://betterhomes.gov.bc.ca');
 
 /**
- * Variable for constructing the API URL for fetching PQEAs.
+ * Variable for constructing the API URL for fetching Contractors.
  *
- * @type {String} - The constructed API URL for fetching PQEAs.
+ * @type {String} - The constructed API URL for fetching Contractors.
  */
-const pqeasAPI = `${window.site?.domain ? window.site.domain : publicDomain}/wp-json/custom/v1/pqeas`;
-
+const contractorsAPI = `${window.site?.domain ? window.site.domain : publicDomain}/wp-json/custom/v1/contractors`;
 
 /**
- * Computed property to handle filtering PQEAs (Program Qualified Energy Advisors) by category and/or location.
+ * Computed property to extract unique EA Project Types (ea-project-types) from Contractors.
+ * Iterates through the Contractors to collect distinct project type names and sorts them alphabetically.
  *
- * Uses the selected location to filter PQEAs based on location and incorporates the results from category filtering.
- *
- * @type {Array} - An array containing the filtered PQEAs based on selected category and/or location.
+ * @type {Array} - An array containing unique EA Project Types sorted alphabetically.
  */
-const filteredPqeas = computed(() => {
+const types = computed(() => {
+    const uniqueTypes = new Set();
+
+    // Iterate through Contractors to collect distinct project type names.
+    contractors.value.forEach(contractor => {
+        if (contractor.types) {
+            if (typeof contractor.types === 'string') {
+                uniqueTypes.add(contractor.types.name);
+            } else if (Array.isArray(contractor.types)) {
+                contractor.types.forEach(type => {
+                    uniqueTypes.add(type.name);
+                });
+            }
+        }
+    });
+
+    // Convert Set to array and sort alphabetically.
+    const sortedTypes = Array.from(uniqueTypes).sort((a, b) => a.localeCompare(b));
+    return [...sortedTypes];
+});
+
+/**
+ * Computed property to extract unique EA Rebate Programs (ea-project-types) from Contractors.
+ * Iterates through the Contractors to collect distinct project type names and sorts them alphabetically.
+ *
+ * @type {Array} - An array containing unique EA Project Types sorted alphabetically.
+ */
+const programs = computed(() => {
+    const uniquePrograms = new Set();
+
+    // Iterate through Contractors to collect distinct project type names.
+    contractors.value.forEach(contractor => {
+        if (contractor.program_designations) {
+            if (typeof contractor.program_designations === 'string') {
+                uniquePrograms.add(contractor.program_designations.name);
+            } else if (Array.isArray(contractor.program_designations)) {
+                contractor.program_designations.forEach(program => {
+                    uniquePrograms.add(program.name);
+                });
+            }
+        }
+    });
+
+    // Convert Set to array and sort alphabetically.
+    const sortedPrograms = Array.from(uniquePrograms).sort((a, b) => a.localeCompare(b));
+    return [...sortedPrograms];
+});
+
+/**
+ * Computed property to extract unique EA Locations (ea-locations) from Contractors.
+ * Iterates through the Contractors to collect distinct location names and sorts them alphabetically.
+ *
+ * @type {Array} - An array containing unique EA Locations sorted alphabetically.
+ */
+const locations = computed(() => {
+    const uniqueLocations = new Set();
+
+    // Iterate through Contractors to collect distinct location names.
+    contractors.value.forEach(contractor => {
+        if (contractor.locations) {
+            if (typeof contractor.locations === 'string') {
+                uniqueLocations.add(contractor.locations.name);
+            } else if (Array.isArray(contractor.locations)) {
+                contractor.locations.forEach(location => {
+                    uniqueLocations.add(location.name);
+                });
+            }
+        }
+    });
+
+    // Convert Set to array and sort alphabetically.
+    const sortedLocations = Array.from(uniqueLocations).sort((a, b) => a.localeCompare(b));
+
+    return [...sortedLocations];
+});
+
+/**
+ * Computed property to handle filtering Contractors (Program Qualified Contractors) by type and/or location.
+ *
+ * Uses the selected location to filter Contractors based on location and incorporates the results from type filtering.
+ *
+ * @type {Array} - An array containing the filtered Contractors based on selected type and/or location.
+ */
+const filteredContractors = computed(() => {
     const selectedLoc = selectedLocation.value;
-    let filteredPqeas = [...filteredPqeasByCategory.value];
+    const selectedProg = selectedProgram.value;
+
+    let filteredContractors = [...filteredContractorsByType.value];
 
     // Filter by location if 'all' is not selected.
     if ('all' !== selectedLoc) {
-        filteredPqeas = filteredPqeas.filter(pqea => pqea.locations && pqea.locations.some(location => location.name === selectedLoc) );
+        filteredContractors = filteredContractors.filter(contractor => contractor.locations && contractor.locations.some(location => location.name === selectedLoc) );
+    }
+    // Filter by rebate program if 'all' is not selected.
+    if ('all' !== selectedProg) {
+        filteredContractors = filteredContractors.filter(contractor => contractor.program_designations && contractor.program_designations.some(program => program.name === selectedProg) );
     }
 
-    // handleUpdatingAnimationClass(".pqeas-filter__pagination .pages");
-    // handleUpdatingAnimationClass(".pqeas-filter__pagination .totals");
-    resetSelectsActiveState();
+    // handleUpdatingAnimationClass(".contractors-filter__pagination .totals");
 
-    return filteredPqeas;
+    return filteredContractors;
 });
 
-// Define a computed property to filter pqeas based on the selected category
-const filteredPqeasByCategory = computed(() => {
-    const selectedCat = selectedCategory.value;
+// Define a computed property to filter contractors based on the selected type
+const filteredContractorsByType = computed(() => {
+    const selectedType = selectedUpgradeType.value;
+
     currentPage.value = 1;
 
-    if (selectedCat === 'all') {
-        return pqeas.value;
+    if (selectedType === 'all') {
+        return contractors.value;
     } else {
-        return pqeas.value.filter(pqea => pqea.categories && pqea.categories.includes(selectedCat));
+        return contractors.value.filter(contractor => contractor.types && contractor.types.some(type => type.name === selectedType) );
     }
+
+    return contractors.value;
 });
 
-const handleUpdatingAnimationClass = (elementCssPath) => {
-    const elements = document.querySelectorAll(elementCssPath);
+// Define a computed property to filter contractors based on the selected rebate program
+const filteredContractorsByProgram = computed(() => {
+    const selectedProg = selectedProgram.value;
 
-    if ( 0 < elements.length ) {
-        elements.forEach((element) => {
-            element.classList.add(updatingClass.value);
-            setTimeout(() => { element.classList.remove(updatingClass.value); }, 125);
-        })
+    currentPage.value = 1;
+
+    if (selectedProg === 'all') {
+        return contractors.value;
+    } else {
+        return contractors.value.filter(contractor => contractor.program_designations && contractor.program_designations.some(type => type.name === selectedProg) );
     }
-}
+
+    return contractors.value;
+});
 
 /**
- * Computed property to calculate the total number of pages for paginated PQEAs (Program Qualified Energy Advisors).
+ * Computed property to calculate the total number of pages for paginated Contractors (Program Qualified Contractors).
  *
- * Uses the length of filtered PQEAs and the page size to determine the total number of pages.
+ * Uses the length of filtered Contractors and the page size to determine the total number of pages.
  *
- * @type {number} - The total number of pages for paginated PQEAs.
+ * @type {number} - The total number of pages for paginated Contractors.
  */
 const totalPages = computed(() => {
-    const totalPqeas = filteredPqeas.value.length;
-    return totalPqeas > 0 ? Math.ceil(totalPqeas / pageSize.value) : 1;
+    const totalContractors = filteredContractors.value.length;
+    return totalContractors > 0 ? Math.ceil(totalContractors / pageSize.value) : 1;
 });
 
-
 /**
- * Computed property to calculate the paginated PQEAs (Program Qualified Energy Advisors).
+ * Computed property to calculate the paginated Contractors (Program Qualified Contractors).
  *
- * Uses the current page and page size to determine the slice of filtered PQEAs to display.
+ * Uses the current page and page size to determine the slice of filtered Contractors to display.
  *
- * @type {Array} - An array containing the paginated PQEAs for the current page.
+ * @type {Array} - An array containing the paginated Contractors for the current page.
  */
-const paginatedPqeas = computed(() => {
+const paginatedContractors = computed(() => {
     const start = (currentPage.value - 1) * pageSize.value;
     const end = start + pageSize.value;
-    return filteredPqeas.value.slice(start, end);
+    return filteredContractors.value.slice(start, end);
 });
 
 /**
@@ -376,10 +460,8 @@ const paginatedPqeas = computed(() => {
  * @returns {number|null} - The updated current page value or null if already on the first page.
  */
 const prevPage = () => {
-    // handleUpdatingAnimationClass(".pqeas-filter__pagination .pages");
     return currentPage.value > 1 ? currentPage.value-- : null;
 };
-
 
 /**
  * Function to navigate to the next page in paginated results.
@@ -389,84 +471,17 @@ const prevPage = () => {
  * @returns {number|null} - The updated current page value or null if already on the last page.
  */
 const nextPage = () => {
-    // handleUpdatingAnimationClass(".pqeas-filter__pagination .pages");
     return currentPage.value < totalPages.value ? currentPage.value++ : null;
 };
 
-
 /**
- * Checks if the DOM (Document Object Model) is fully loaded and interactive.
+ * Computed property for generating a filter results message based on the selected type.
+ * Indicates whether the selected type is the default, and provides a message accordingly.
  *
- * @returns {boolean} - True if the DOM is fully loaded or interactive, otherwise false.
- */
-const isDOMReady = () => {
-    return document.readyState === 'complete' || document.readyState === 'interactive';
-};
-
-
-/**
- * Computed property to extract unique EA Project Types (ea-project-types) from PQEAs.
- * Iterates through the PQEAs to collect distinct project type names and sorts them alphabetically.
- *
- * @type {Array} - An array containing unique EA Project Types sorted alphabetically.
- */
-const categories = computed(() => {
-    const uniqueCategories = new Set();
-
-    // Iterate through PQEAs to collect distinct project type names.
-    pqeas.value.forEach(pqea => {
-        if (pqea.categories) {
-            if (typeof pqea.categories === 'string') {
-                uniqueCategories.add(pqea.categories);
-            } else if (Array.isArray(pqea.categories)) {
-                pqea.categories.forEach(category => {
-                    uniqueCategories.add(category);
-                });
-            }
-        }
-    });
-
-    // Convert Set to array and sort alphabetically.
-    const sortedCategories = Array.from(uniqueCategories).sort((a, b) => a.localeCompare(b));
-    return [...sortedCategories];
-});
-
-
-/**
- * Computed property to extract unique EA Locations (ea-locations) from PQEAs.
- * Iterates through the PQEAs to collect distinct location names and sorts them alphabetically.
- *
- * @type {Array} - An array containing unique EA Locations sorted alphabetically.
- */
-const locations = computed(() => {
-    const uniqueLocations = new Set();
-
-    // Iterate through PQEAs to collect distinct location names.
-    pqeas.value.forEach(pqea => {
-        if (pqea.locations) {
-            if (typeof pqea.locations === 'string') {
-                uniqueLocations.add(pqea.locations.name);
-            } else if (Array.isArray(pqea.locations)) {
-                pqea.locations.forEach(location => {
-                    uniqueLocations.add(location.name);
-                });
-            }
-        }
-    });
-
-    // Convert Set to array and sort alphabetically.
-    const sortedLocations = Array.from(uniqueLocations).sort((a, b) => a.localeCompare(b));
-    return [...sortedLocations];
-});
-
-/**
- * Computed property for generating a filter results message based on the selected category.
- * Indicates whether the selected category is the default, and provides a message accordingly.
- *
- * @type {String} - A string indicating the filter results message based on the selected category.
+ * @type {String} - A string indicating the filter results message based on the selected type.
  */
 const currentTypeFilterMessage = computed(() => {
-    return defaultSelectedCategory.value === selectedCategory.value ? 'specializing in home construction' : 'specializing in home renovation';
+    return defaultSelectedUpgradeType.value === selectedUpgradeType.value ? ' no upgrade type selected.' : ' specializing in ' + selectedUpgradeType.value.toLowerCase() + ' upgrades';
 });
 
 /**
@@ -481,27 +496,29 @@ const currentLocationFilterMessage = computed(() => {
 
 /**
  * Clears all selected locations and types and resets the filter, removes the hash from the URL,
- * scrolls smoothly to the categories filter container, and checks for external links.
+ * scrolls smoothly to the types filter container, and checks for external links.
  *
  * @returns {void}
  */
 const clearFilters = () => {
     resetSelectsActiveState();
 
-    selectedCategory.value = defaultSelectedCategory.value;
+    selectedUpgradeType.value = defaultSelectedUpgradeType.value;
     selectedLocation.value = defaultSelectedLocation.value;
+    selectedProgram.value = defaultSelectedProgram.value;
 
-    history.replaceState(selectedCategory.value, defaultSelectedCategory.value);
+    history.replaceState(selectedUpgradeType.value, defaultSelectedUpgradeType.value);
     history.replaceState(selectedLocation.value, defaultSelectedLocation.value);
+    history.replaceState(selectedProgram.value, defaultSelectedProgram.value);
 
-    currentPage.value !== 1 ? handleUpdatingAnimationClass(".pqeas-filter__pagination .pages") : null;
+    currentPage.value !== 1 ? handleUpdatingAnimationClass(".contractors-filter__pagination .pages") : null;
     currentPage.value = 1;
 };
 
 const resetSelectsActiveState = () => {
-    let activeSelects = document.querySelectorAll('#pqeaFilterApp .custom-select.is-active');
+    let activeSelects = document.querySelectorAll('#contractorFilterApp .custom-select.is-active');
 
-    0 < activeSelects.length ? activeSelects.forEach((item) => { item.classList.remove('is-active') }) : null;
+    1 <= activeSelects.length ? activeSelects.forEach((item) => { item.classList.remove('is-active') }) : null;
 }
 
 /**
@@ -515,8 +532,28 @@ const selectIsActive = (event) => {
     return 'click' !== event.type ? event.target.parentNode.classList.remove(activeClass.value) : event.target.parentNode.classList.toggle(activeClass.value);
 }
 
+const handleUpdatingAnimationClass = (elementCssPath) => {
+    const elements = document.querySelectorAll(elementCssPath);
+
+    if ( 0 < elements.length ) {
+        elements.forEach((element) => {
+            element.classList.add(updatingClass.value);
+            setTimeout(() => { element.classList.remove(updatingClass.value); }, 125);
+        })
+    }
+}
+
 /**
- * Fetches pqea data either from sessionStorage cache (if available and not expired) or from the WordPress API.
+ * Checks if the DOM (Document Object Model) is fully loaded and interactive.
+ *
+ * @returns {boolean} - True if the DOM is fully loaded or interactive, otherwise false.
+ */
+const isDOMReady = () => {
+    return document.readyState === 'complete' || document.readyState === 'interactive';
+};
+
+/**
+ * Fetches contractor data either from sessionStorage cache (if available and not expired) or from the WordPress API.
  * If data is fetched from the API, it is stored in sessionStorage for caching purposes.
  *
  * @param {number} [offset=0] - The offset for paginating results (default is 0).
@@ -529,14 +566,14 @@ const fetchData = async (offset = 0) => {
         isLoading.value = true;
 
         // Check if data exists in sessionStorage and if it's not expired.
-        const cachedData = sessionStorage.getItem('pqeasData');
-        const cachedTimestamp = sessionStorage.getItem('pqeasTimestamp');
+        const cachedData = sessionStorage.getItem('contractorsData');
+        const cachedTimestamp = sessionStorage.getItem('contractorsTimestamp');
         if (cachedData && cachedTimestamp) {
             const timeElapsed = Date.now() - parseInt(cachedTimestamp);
             const hoursElapsed = timeElapsed / (1000 * 60 * 60);
             if (hoursElapsed < 24) {
                 // Data exists in cache and it's not expired.
-                pqeas.value = JSON.parse(cachedData);
+                contractors.value = JSON.parse(cachedData);
                 showLoadingMessage.value = false;
                 // Set loading state to false after data is fetched.
                 isLoading.value = false;
@@ -545,7 +582,7 @@ const fetchData = async (offset = 0) => {
         }
 
         // Fetch data from API
-        fetch(pqeasAPI, { cache: 'no-store' })
+        fetch(contractorsAPI, { cache: 'no-store' })
             .then((r) => r.json())
             .then((json) => {
                 // Purge old data from sessionStorage to make sure we don't
@@ -555,9 +592,9 @@ const fetchData = async (offset = 0) => {
                 }), 1000);
 
                 // Store data in sessionStorage.
-                sessionStorage.setItem('pqeasData', JSON.stringify(json));
-                sessionStorage.setItem('pqeasTimestamp', Date.now());
-                pqeas.value = json;
+                sessionStorage.setItem('contractorsData', JSON.stringify(json));
+                sessionStorage.setItem('contractorsTimestamp', Date.now());
+                contractors.value = json;
                 showLoadingMessage.value = false;
                 // Set loading state to false after data is fetched.
                 isLoading.value = false;
@@ -572,13 +609,10 @@ const fetchData = async (offset = 0) => {
     }
 };
 
-const purgeOldLocalData = (items) => {
-    items.forEach((item) => {
-        sessionStorage.removeItem(item);
-    });
-
-    return;
-}
+/**
+ * Watchers
+ * https://vuejs.org/guide/essentials/watchers.html
+ */
 
 /**
  * Watcher for changes in the window.site?.domain variable.
@@ -593,45 +627,53 @@ watch(() => window.site?.domain, (newVal) => {
     }
 });
 
-watch(paginatedPqeas, () => {
+watch(paginatedContractors, () => {
     // Avoid firing animation when number value is the same.
-    if ( oldPaginatedPqeasCount.value !== paginatedPqeas.value.length ) {
-        oldPaginatedPqeasCount.value = paginatedPqeas.value.length;
-        handleUpdatingAnimationClass(".pqeas-filter__pagination .paginated-pqeas");
+    if ( oldPaginatedContractorsCount.value !== paginatedContractors.value.length ) {
+        oldPaginatedContractorsCount.value = paginatedContractors.value.length;
+        handleUpdatingAnimationClass(".contractors-filter__pagination .paginated-contractors");
     }
 });
-watch(filteredPqeas, () => {
+watch(filteredContractors, () => {
         // Avoid firing animation when number value is the same.
-    if ( oldFilteredPqeasCount.value !== filteredPqeas.value.length ) {
-        oldFilteredPqeasCount.value = filteredPqeas.value.length;
-        handleUpdatingAnimationClass(".pqeas-filter__pagination .filtered-pqeas");
+    if ( oldFilteredContractorsCount.value !== filteredContractors.value.length ) {
+        oldFilteredContractorsCount.value = filteredContractors.value.length;
+        handleUpdatingAnimationClass(".contractors-filter__pagination .filtered-contractors");
     }
 });
 
 watch(currentPage, () => {
-    handleUpdatingAnimationClass(".pqeas-filter__pagination .current-page");
+    handleUpdatingAnimationClass(".contractors-filter__pagination .current-page");
 });
 watch(totalPages, () => {
-    handleUpdatingAnimationClass(".pqeas-filter__pagination .total-pages");
+    handleUpdatingAnimationClass(".contractors-filter__pagination .total-pages");
+});
+watch(isLoading, (e) => {
+    console.log('isLoading');
+    console.log(e);
 });
 
 /**
- * Watcher for changes in selectedCategory and selectedLocation.
+ * Watcher for changes in selectedUpgradeType and selectedLocation.
  * Resets the currentPage to 1 whenever either of the watched properties changes.
  *
  * @param {Array} dependencies - An array of reactive properties to watch.
  * @param {Function} callback - The callback function to execute when any of the watched properties change.
  * @returns {void}
  */
-watch([selectedCategory, selectedLocation], () => {
+watch([selectedUpgradeType, selectedProgram, selectedLocation], () => {
     currentPage.value = 1;
+    // console.log(filteredContractors.value);
 });
 
 window.addEventListener("click", (event) => {
-    if ( !event.target.closest('.custom-select.is-active' || document.querySelectorAll('#pqeaFilterApp .custom-select.is-active').length ) ) {
-        resetSelectsActiveState();
-    }
-});
+    !event.target.closest('.custom-select.is-active') ? resetSelectsActiveState() : null;
+}); 
+
+/**
+ * Lifecycle Hooks
+ * https://vuejs.org/api/composition-api-lifecycle
+ */
 
 /**
  * A Vue lifecycle hook that is called after the instance has been mounted.
@@ -643,7 +685,7 @@ window.addEventListener("click", (event) => {
 onMounted(() => {
     fetchData();
 
-    const appElement = document.getElementById('pqeaFilterApp');
+    const appElement = document.getElementById('contractorFilterApp');
     showLoadingMessage.value = true;
 
     if (window.site?.domain) {
@@ -688,7 +730,7 @@ $default_table_cell_padding_desktop_horz: 1rem;
 // Icons
 $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDI2LjAuMiwgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPgo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IgoJIHZpZXdCb3g9IjAgMCAxOCAxOCIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgMTggMTg7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPHN0eWxlIHR5cGU9InRleHQvY3NzIj4KCS5zdDB7ZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7ZmlsbDojMDAyQTRFO30KPC9zdHlsZT4KPHBhdGggY2xhc3M9InN0MCIgZD0iTTkuNywzLjljMC0wLjEtMC4xLTAuMy0wLjItMC40QzkuNCwzLjQsOS4zLDMuNCw5LjIsMy40SDEuN2MtMC40LDAtMC45LDAuMi0xLjIsMC41QzAuMiw0LjIsMCw0LjYsMCw1LjF2MTEuMgoJYzAsMC40LDAuMiwwLjksMC41LDEuMkMwLjgsMTcuOCwxLjIsMTgsMS43LDE4aDExLjJjMC40LDAsMC45LTAuMiwxLjItMC41YzAuMy0wLjMsMC41LTAuNywwLjUtMS4yVjguOGMwLTAuMS0wLjEtMC4zLTAuMi0wLjQKCWMtMC4xLTAuMS0wLjItMC4yLTAuNC0wLjJjLTAuMSwwLTAuMywwLjEtMC40LDAuMmMtMC4xLDAuMS0wLjIsMC4yLTAuMiwwLjR2Ny41YzAsMC4xLTAuMSwwLjMtMC4yLDAuNGMtMC4xLDAuMS0wLjIsMC4yLTAuNCwwLjIKCUgxLjdjLTAuMSwwLTAuMy0wLjEtMC40LTAuMmMtMC4xLTAuMS0wLjItMC4yLTAuMi0wLjRWNS4xYzAtMC4xLDAuMS0wLjMsMC4yLTAuNGMwLjEtMC4xLDAuMi0wLjIsMC40LTAuMmg3LjUKCWMwLjEsMCwwLjMtMC4xLDAuNC0wLjJDOS43LDQuMiw5LjcsNC4xLDkuNywzLjl6Ii8+CjxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik0xOCwwLjZjMC0wLjEtMC4xLTAuMy0wLjItMC40QzE3LjcsMC4xLDE3LjYsMCwxNy40LDBoLTUuNmMtMC4xLDAtMC4zLDAuMS0wLjQsMC4yYy0wLjEsMC4xLTAuMiwwLjItMC4yLDAuNAoJczAuMSwwLjMsMC4yLDAuNGMwLjEsMC4xLDAuMiwwLjIsMC40LDAuMmg0LjNsLTkuMiw5LjJjLTAuMSwwLjEtMC4xLDAuMS0wLjEsMC4yYzAsMC4xLDAsMC4xLDAsMC4yczAsMC4xLDAsMC4yCgljMCwwLjEsMC4xLDAuMSwwLjEsMC4yQzcsMTEuMSw3LDExLjIsNy4xLDExLjJjMC4xLDAsMC4xLDAsMC4yLDBjMC4xLDAsMC4xLDAsMC4yLDBzMC4xLTAuMSwwLjItMC4xbDkuMi05LjJ2NC4zCgljMCwwLjEsMC4xLDAuMywwLjIsMC40YzAuMSwwLjEsMC4yLDAuMiwwLjQsMC4yYzAuMSwwLDAuMy0wLjEsMC40LTAuMkMxNy45LDYuNSwxOCw2LjMsMTgsNi4yVjAuNnoiLz4KPC9zdmc+Cg==);
 
-#pqeaFilterApp {
+#contractorFilterApp {
     h2 {
         margin-top: 0;
     }
@@ -750,8 +792,8 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
         margin-bottom: 0;
 
         @media (min-width: $breakpoint-sm) {
-            width: auto;
-            margin-right: 0.5rem;
+            // width: auto;
+            // margin-right: 1rem;
         }
         @media (min-width: $breakpoint-md) {
             // margin-bottom: 0;
@@ -762,8 +804,8 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
             content: " ";
             position: absolute;
             right: 1rem;
-            top: 25%;
-            transform: rotateZ(45deg);
+            top: calc(50% - 0.6rem);
+            transform: translateY(-50%) rotate(45deg);
             transform-origin: center;
             border-color: rgba(var(--secondary-brand-rgb), 1);
             border-bottom-style: solid;
@@ -777,7 +819,7 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
 
         &.is-active {
             &::after {
-                transform: rotate(225deg);
+                transform: translateY(-50%) rotate(225deg);
             }
         }
 
@@ -808,6 +850,7 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
                 color: $bahamablue;
             }
         }
+
     }
 
     .external {
@@ -819,11 +862,43 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
         }
     }
 
-    .pqeasFilterControls {
+    .contractorsFilterControls {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        align-content: flex-start;
+        align-items: flex-start;
         margin-bottom: 1rem;
+
+        @media (min-width: $breakpoint-sm) {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .custom-select {
+            flex: 0 0 100%;
+            width: 100%;
+
+            @media (min-width: $breakpoint-sm) {
+                flex: 0 0 calc(50% - 0.25rem);
+            }
+
+            select {
+                width: 100%;
+            }
+        }
+
+        .clear-filters {
+            @media (min-width: $breakpoint-sm) {
+                margin-left: 0.5rem;
+                margin-right: auto;
+            }
+        }
     }
 
-    .pqeas-filter {
+    .contractors-filter {
         &__pagination {
             display: flex;
             flex-direction: column;
@@ -848,8 +923,8 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
 
             .current-page,
             .total-pages,
-            .filtered-pqeas,
-            .paginated-pqeas {
+            .filtered-contractors,
+            .paginated-contractors {
                 display: inline-block;
                 transform: scale(1.0);
                 transition: transform linear $default_transition_duration;
@@ -867,7 +942,8 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
             }
 
             .pages {
-                margin: 0.5rem 0;
+                min-width: 6rem;
+                margin: 0.5rem auto 0.5rem 0;
 
                 @media (min-width: $breakpoint-sm) {
                     margin: 0 1rem;
@@ -876,6 +952,15 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
 
             .totals {
                 margin-top: 1rem;
+                transform: scale(1.0);
+                transition: transform linear $default_transition_duration;
+                transform-origin: center;
+
+                &.is-updating {
+                    transform: scale(1.125);
+                    transition: transform linear $default_transition_duration;
+                    transform-origin: center;
+                }
 
                 @media (min-width: $breakpoint-sm) {
                     margin-top: 0;
@@ -885,7 +970,7 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
         }
     }
 
-    .pqeasResults {
+    .contractorsResults {
         width: 100%;
         table-layout: fixed;
         border-spacing: 0;
@@ -965,11 +1050,13 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
             ul {
                 display: block;
                 margin-top: 0;
-                padding-inline-start: 0;
                 font-size: inherit;
             }
+            ul {
+                padding-inline-start: 1rem;
+            }
             li {
-                list-style-type: none;
+                // list-style-type: none;
                 font-size: inherit;
             }
         }
@@ -984,24 +1071,18 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
                 width: 20%;
                 column-span: 1;
             }
-            &--pqea__company-and-location {
-                @media (min-width: $breakpoint-md) {
-                    width: 25%;
+            &--contractor {
+                &__company-and-location,
+                &__email-and-phone {
+                    @media (min-width: $breakpoint-md) {
+                        width: 25%;
+                    }
                 }
-            }
-            &--pqea__contact-name {
-                @media (min-width: $breakpoint-md) {
-                    width: 15%;
-                }
-            }
-            &--pqea__service-organizations {
-                @media (min-width: $breakpoint-md) {
-                    width: 25%;
-                }
-            }
-            &--pqea__services {
-                @media (min-width: $breakpoint-md) {
-                    width: 15%;
+                &__head-office,
+                &__upgrade-types {
+                    @media (min-width: $breakpoint-md) {
+                        width: 15%;
+                    }
                 }
             }
         }
@@ -1012,7 +1093,7 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
             text-align: center;
         }
     }
-    .pqea {
+    .contractor {
         &__company-and-location,
         &__email-and-phone,
         &__service-organizations {
