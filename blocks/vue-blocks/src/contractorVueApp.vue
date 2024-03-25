@@ -59,9 +59,6 @@
         </div>
     </div>
 
-    <!-- Loading Message -->
-    <p v-if="isLoading" class="no-results loading" aria-live="polite">Retrieving list of registered contractors, please wait...</p>
-
     <!-- Contractors Results Table -->
     <table id="contractorsResults" class="contractorsResults table table--striped">
         <caption class="sr-only">Registered Contractors</caption>
@@ -96,7 +93,7 @@
             <!-- Loading Message -->
             <tr v-if="isLoading" class="is-loading" aria-live="polite">
                 <td colspan="100%">
-                    <p class="">Loading...</p>
+                    <p class="no-results loading">Retrieving list of registered contractors, please wait...</p>
                 </td>
             </tr>
 

@@ -4,8 +4,8 @@
     <!-- Filter Controls -->
     <div class="rebatesFilterControls" id="rebatesFilterControls">
         <!-- Build Type Select -->
-        <div class="control">
-            <label for="typeSelect" class="">Choose a type of upgrade</label>
+        <div class="control build-type">
+            <label for="typeSelect" class="">Are you building or renovating the home?</label>
             <div class="custom-select">
                 <select id="typeSelect"
                     class="select select--type"
@@ -23,7 +23,7 @@
         </div>
 
         <!-- Location Select -->
-        <div class="control">
+        <div class="control location">
             <label for="locationSelect" class="">Choose a service region</label>
             <div class="custom-select">
                 <select id="locationSelect"
@@ -42,7 +42,7 @@
         </div>
 
         <!-- Primary Heating System Select -->
-        <div class="control">
+        <div class="control heating-system">
             <label for="systemSelect" class="">Choose your current, primary heating system</label>
             <div class="custom-select">
                 <select id="systemSelect" class="select select--system"
@@ -59,6 +59,59 @@
             </div>
         </div>
 
+        <div class="control upgrade-types">
+            <!-- Upgrade Type Filter -->
+            <div v-if="upgrades" class="filter filter--upgrade-types accordion">
+                <h2>
+                    <button id="upgradeTypesAccordionTrigger"
+                        class="accordion-trigger"
+                        aria-expanded="false"
+                        aria-controls="upgradeTypesAccordionPanel"
+                        type="button">
+                            <span class="accordion-title">Filter by type of upgrade ({{ 0 === selectedUpgradeTypes.length ? 'all types' : selectedUpgradeTypes.length + ' filter(s)' }} active)</span>
+                            <span class="accordion-icon"></span>
+                    </button>
+                </h2>
+                <div id="upgradeTypesAccordionPanel"
+                    class="filter-container filter__list accordion-panel"
+                    role="region"
+                    aria-labelledby="upgradeTypesAccordionTrigger"
+                    hidden>
+                    <div class="inner">
+                        <div class="help-text">
+                            <p>Click to select the type(s) of upgrade you would like displayed, you may choose more than one.</p>
+                        </div>
+                        <fieldset>
+                            <div :class="`checkbox all ${ selectedUpgradeTypes.length ? '' : isCheckedClass }`">
+                                <input id="upgradeTypeAll"
+                                    class="sr-only"
+                                    type="checkbox"
+                                    name="all"
+                                    value="all"
+                                    :aria-checked="selectedUpgradeTypes.length ? false : true"
+                                    :checked="selectedUpgradeTypes.length ? false : true"
+                                    @click="handleSelectAllCheckboxFilter">
+                                <label for="upgradeTypeAll">All Upgrade Types</label>
+                            </div>
+                            <div v-for="(upgrade, index) in upgrades" :key="index" :class="`checkbox checkbox--${upgrade.toLowerCase().replace(/ /g,'_')}`">
+                                <input :id="upgrade.toLowerCase().replace(/ /g,'_')"
+                                    class="sr-only"
+                                    type="checkbox"
+                                    v-model="selectedUpgradeTypes"
+                                    :name="upgrade"
+                                    :value="upgrade"
+                                    :aria-checked="selectedUpgradeTypes.includes(upgrade) ? true : false"
+                                    :checked="selectedUpgradeTypes.includes(upgrade) ? true : false"
+                                    @click="handleCheckboxFilterStylingClass"
+                                    @touchend="handleCheckboxFilterStylingClass">
+                                <label :for="upgrade.toLowerCase().replace(/ /g,'_')">{{ upgrade }} ({{ getUpgradeTypeTagCount(upgrade) }})</label>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+            </div><!-- end .filter--upgrade-types -->
+        </div> <!-- end .control.upgrade-types -->
+
         <!-- Clear Filters Button -->
         <button class="clear-filters" @click.prevent="clearFilters"
             @touchend="clearFilters"
@@ -68,7 +121,7 @@
         </button>
 
         <!-- Pagination Controls (Top) -->
-        <div class="rebatesFilterPagination rebates-filter__pagination rebates-filter__pagination--top">
+        <div class="rebatesFilterPagination filter__pagination filter__pagination--top">
             <!-- Previous Page Button -->
             <button class="prev-page" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0" type="button">Previous Page</button>
             <!-- Current Page & Totals -->
@@ -91,77 +144,49 @@
     </div>
 
     <div id="rebatesTool" class="rebatesTool">
+        <!-- Loading Message -->
+        <div v-if="isLoading" class="is-loading" aria-live="polite">
+            <div class="inner">
+                <p class="no-results loading">Retrieving list of Rebates, please wait...</p>
+            </div>
+        </div>
+
         <div class="rebatesSidebar" role="complementary">
-            <div v-if="!is_Loading" class="help-text">
-                <p>Click to filter (multi-select).  Items that have ANY selected filter value will be displayed.</p>
-                <p>If no filters are applied, all results will be shown.</p>
-            </div>
-            <!-- Upgrade Type Filter -->
-            <div v-if="!isLoading && upgrades" class="filter filter--upgrade-types">
-                <h2>Upgrade Types</h2>
-                <div class="filter-container filter__list">
-                    <div :class="`checkbox checkbox--all ${isCheckedClass}`">
-                        <input id="upgradeTypeAll"
-                            class="sr-only"
-                            type="checkbox"
-                            name="all"
-                            value="all"
-                            :aria-checked="selectedUpgradeTypes.length ? false : true"
-                            :checked="selectedUpgradeTypes.length ? false : true"
-                            @click="handleSelectAllCheckboxFilter"
-                        >
-                        <label for="upgradeTypeAll">All Upgrade Types</label>
-                    </div>
-                    <div v-for="(upgrade, index) in upgrades" :key="index" :class="`checkbox checkbox--${upgrade.toLowerCase().replace(/ /g,'_')}`">
-                        <input :id="upgrade.toLowerCase().replace(/ /g,'_')"
-                            class="sr-only"
-                            type="checkbox"
-                            v-model="selectedUpgradeTypes"
-                            :name="upgrade"
-                            :value="upgrade"
-                            :aria-checked="selectedUpgradeTypes.includes(upgrade) ? true : false"
-                            :checked="selectedUpgradeTypes.includes(upgrade) ? true : false"
-                            @click="handleCheckboxFilterStylingClass"
-                            @touchend="handleCheckboxFilterStylingClass">
-                        <label :for="upgrade.toLowerCase().replace(/ /g,'_')">{{ upgrade }}</label>
-                    </div>
-                </div>
-            </div>
             <!-- Offers Filter -->
             <div v-if="!isLoading && offers" class="filter filter--other-offers">
-                <h2>Other Offers</h2>
-                <div class="filter-container filter__list">
-                    <div :class="`checkbox checkbox--all ${isCheckedClass}`">
+                <h2>Additional Filters ({{ getOfferTotalTagCount }})</h2>
+                <fieldset class="filter-container filter__list">
+                    <div :class="`radio all ${ 'all' === selectedOtherOffers ? isCheckedClass : '' }`">
                         <input id="offerTypeAll"
                             class="sr-only"
-                            type="checkbox"
+                            type="radio"
                             name="all"
                             value="all"
-                            :aria-checked="selectedOtherOffers.length ? false : true"
-                            :checked="selectedOtherOffers.length ? false : true"
-                            @click="handleSelectAllCheckboxFilter"
-                            @touchend="handleSelectAllCheckboxFilter">
-                        <label for="offerTypeAll">All Offers</label>
+                            :aria-checked="'all' === selectedOtherOffers ? true : false"
+                            :checked="'all' === selectedOtherOffers ? true : false"
+                            @click="handleSelectAllCheckboxFilter">
+                        <label for="offerTypeAll">No additional filters applied</label>
                     </div>
-                    <div v-for="(offer, index) in offers" :key="index" :class="`checkbox checkbox--${offer.toLowerCase().replace(/ /g,'_')}`">
+                    <div v-for="(offer, index) in offers" :key="index" :class="`radio radio--${offer.toLowerCase().replace(/ /g,'_')}`">
                         <input :id="offer.toLowerCase().replace(/ /g,'_')"
                             class="sr-only"
-                            type="checkbox"
+                            type="radio"
                             v-model="selectedOtherOffers"
                             :name="offer"
                             :value="offer"
-                            :aria-checked="selectedOtherOffers.includes(offer) ? true : false"
-                            :checked="selectedOtherOffers.includes(offer) ? true : false"
-                            @click="handleCheckboxFilterStylingClass"
-                            @touchend="handleCheckboxFilterStylingClass">
-                        <label :for="offer.toLowerCase().replace(/ /g,'_')">{{ offer }}</label>
+                            :aria-checked="offer === selectedOtherOffers ? true : false"
+                            :checked="offer === selectedOtherOffers ? true : false"
+                            @click="handleRadioFilterStylingClass"
+                            @touchend="handleRadioFilterStylingClass">
+                        <label :for="offer.toLowerCase().replace(/ /g,'_')">{{ offer }} ({{ getOfferTagCount(offer) }})</label>
                     </div>
-                </div>
+                </fieldset>
             </div>
         </div>
 
         <!-- Rebates Results Grid -->
         <div id="rebatesResults" class="rebatesResults">
+            <h2 v-if="!isLoading">Results ({{ filteredRebates.length }})</h2>
             <div :class="`page page--${currentPage}`">
                 <!-- No Results Message -->
                 <div v-if="filteredRebates.length === 0 && !isLoading" class="no-results">
@@ -169,9 +194,6 @@
                         <p class="no-results" aria-live="polite">Sorry, no results found.</p>
                     </div>
                 </div>
-
-                <!-- Loading Message -->
-                <p v-if="isLoading" class="no-results loading" aria-live="polite">Retrieving list of Rebates, please wait...</p>
 
                 <!-- Results Loop -->
                 <template v-if="rebates.length > 0 && !isLoading" v-for="(rebate, index) in paginatedRebates" :key="index">
@@ -189,7 +211,7 @@
     </div>
 
     <!-- Pagination Controls (Bottom) -->
-    <div class="rebatesFilterPagination rebates-filter__pagination rebates-filter__pagination--bottom">
+    <div class="rebatesFilterPagination filter__pagination filter__pagination--bottom">
         <!-- Previous Page Button -->
         <button class="prev-page" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0" type="button">Previous Page</button>
         <!-- Current Page & Totals -->
@@ -247,6 +269,7 @@ const oldFilteredRebatesCount = ref(0);
 const defaultSelectedBuildType = ref('all');
 const defaultSelectedHeatingSystem = ref('all');
 const defaultSelectedLocation = ref('all');
+const defaultOtherOffers = ref('all');
 
 /**
  * Ref for the currently selected build type (building-types), heating system (primary-space-heating),
@@ -258,13 +281,13 @@ const defaultSelectedLocation = ref('all');
 const selectedBuildType = ref('all');
 const selectedHeatingSystem = ref('all');
 const selectedLocation = ref('all');
+const selectedOtherOffers = ref('all');
 
 /**
  * Refs for the currently selected Offers (other-offer) and Upgrade Types (upgrades) terms.
  *
  * @type {Ref<Array>} - References to arrays for Offers (other-offer) and Upgrade Types (upgrades).
  */
-const selectedOtherOffers = ref([]);
 const selectedUpgradeTypes = ref([]);
 
 /**
@@ -343,68 +366,34 @@ const filteredRebates = computed(() => {
     const selectedUpgrades = selectedUpgradeTypes.value;
     const selectedBuild = selectedBuildType.value;
     const selectedSystem = selectedHeatingSystem.value;
-    const selectedOffers = selectedOtherOffers.value;
+    const selectedOffer = selectedOtherOffers.value;
 
-    // let filteredRebates = [...filteredRebatesByUpgradeType.value];
     let filteredRebates = [...rebates.value];
 
     // Filter by location if 'all' is not selected.
-    if ('all' !== selectedLoc) {
+    if ( 'all' !== selectedLoc ) {
         filteredRebates = filteredRebates.filter( rebate => rebate.locations && rebate.locations.some(location => location.name === selectedLoc) );
     }
-    if ('all' !== selectedBuild) {
+    // Filter by Build Type if 'all' is not selected.
+    if ( 'all' !== selectedBuild ) {
         filteredRebates = filteredRebates.filter( rebate => rebate.types && rebate.types.some(type => type.name === selectedBuild) );
     }
-    if ( selectedUpgrades.length ) {
-        filteredRebates = [...filteredRebatesByUpgradeType.value]
-    }
-    if ('all' !== selectedSystem) {
+    // Filter by Current Primary Heating System if 'all' is not selected.
+    if ( 'all' !== selectedSystem ) {
         filteredRebates = filteredRebates.filter( rebate => rebate.primary_heating_sys && rebate.primary_heating_sys.some(sys => sys.name === selectedSystem) );
     }
-    if ( selectedOffers.length ) {
-        // filteredRebates = filteredRebates.filter( rebate => rebate.other_offers && rebate.other_offers.some(offer => offer.name === selectedOffer) );
-        filteredRebates = [...filteredRebatesByOtherOffers.value];
+    // Filter by Other Offers (multi) if any are selected.
+    if ( 'all' !== selectedOffer ) {
+        filteredRebates = filteredRebates.filter( rebate => rebate.other_offers && rebate.other_offers.some(offer => offer.name === selectedOffer) );
+    }
+    // Filter by Upgrade Types (multi) if any are selected.
+    if ( selectedUpgrades.length ) {
+        filteredRebates = filteredRebates.filter( rebate => rebate.upgrade_types && rebate.upgrade_types.some(type => selectedUpgrades.includes(type.name)) );
     }
 
     resetSelectsActiveState();
 
     return filteredRebates;
-});
-
-// Define a computed property to filter rebates based on the selected category
-const filteredRebatesByUpgradeType = computed(() => {
-    const selectedType = selectedUpgradeTypes.value;
-    currentPage.value = 1;
-
-    if (!selectedType.length) {
-        return rebates.value;
-    } else {
-        return rebates.value.filter(rebate => rebate.upgrade_types && rebate.upgrade_types.some(type => selectedType.includes(type.name)));
-    }
-});
-
-// Define a computed property to filter rebates based on the selected category
-const filteredRebatesByOtherOffers = computed(() => {
-    const selectedOffers = selectedOtherOffers.value;
-    currentPage.value = 1;
-
-    if (!selectedOffers.length) {
-        return rebates.value;
-    } else {
-        return rebates.value.filter(rebate => rebate.other_offers && rebate.other_offers.some(offer => selectedOffers.includes(offer.name)));
-    }
-});
-
-// Define a computed property to filter rebates based on the selected category
-const filteredRebatesByHeatingSystem = computed(() => {
-    const selectedSystem = selectedHeatingSystem.value;
-    currentPage.value = 1;
-
-    if (selectedSystem === 'all') {
-        return rebates.value;
-    } else {
-        return rebates.value.filter(rebate => rebate.primary_heating_sys && rebate.primary_heating_sys.some(sys => sys.name === selectedSystem));
-    }
 });
 
 const handleUpdatingAnimationClass = (elementCssPath) => {
@@ -451,7 +440,7 @@ const paginatedRebates = computed(() => {
  * @returns {number|null} - The updated current page value or null if already on the first page.
  */
 const prevPage = () => {
-    // handleUpdatingAnimationClass(".rebates-filter__pagination .pages");
+    // handleUpdatingAnimationClass(".filter__pagination .pages");
     return currentPage.value > 1 ? currentPage.value-- : null;
 };
 
@@ -463,7 +452,7 @@ const prevPage = () => {
  * @returns {number|null} - The updated current page value or null if already on the last page.
  */
 const nextPage = () => {
-    // handleUpdatingAnimationClass(".rebates-filter__pagination .pages");
+    // handleUpdatingAnimationClass(".filter__pagination .pages");
     return currentPage.value < totalPages.value ? currentPage.value++ : null;
 };
 
@@ -665,34 +654,36 @@ const rebateAmountClasses = (rebate_amount) => {
  * @returns {void}
  */
 const clearFilters = () => {
-    const allActiveFilters = document.querySelectorAll(`.checkbox.${isCheckedClass.value}`);
-    const checkboxFilterAll = document.querySelectorAll(".checkbox--all");
+    const allActiveFilters = document.querySelectorAll(`.${isCheckedClass.value}`);
+    const checkboxFilterAll = document.querySelectorAll(".all");
 
     resetSelectsActiveState();
 
     selectedBuildType.value = defaultSelectedBuildType.value;
     selectedHeatingSystem.value = defaultSelectedHeatingSystem.value;
     selectedLocation.value = defaultSelectedLocation.value;
-    selectedOtherOffers.value = [];
+    selectedOtherOffers.value = defaultOtherOffers.value;
     selectedUpgradeTypes.value = [];
 
     history.replaceState(selectedBuildType.value, defaultSelectedBuildType.value);
     history.replaceState(selectedHeatingSystem.value, defaultSelectedHeatingSystem.value);
     history.replaceState(selectedLocation.value, defaultSelectedLocation.value);
+    history.replaceState(selectedOtherOffers.value, defaultOtherOffers.value);
 
     allActiveFilters.length ? allActiveFilters.forEach((activeFilter) => { activeFilter.classList.remove(isCheckedClass.value) }) : null;
-    checkboxFilterAll.length ? checkboxFilterAll.forEach((checkbox) => { checkbox.classList.add(isCheckedClass.value) }) : null;
+    checkboxFilterAll.checked = true;
+    checkboxFilterAll.forEach((checkbox) => { checkbox.classList.add(isCheckedClass.value) });
 
-    currentPage.value !== 1 ? handleUpdatingAnimationClass(".rebates-filter__pagination .pages") : null;
+    currentPage.value !== 1 ? handleUpdatingAnimationClass(".filter__pagination .pages") : null;
     currentPage.value = 1;
 };
 
 const handleSelectAllCheckboxFilter = (event) => {
     const container = event.target.closest(".filter-container");
-    const checkboxFilterAll = container.querySelector(".checkbox--all");
+    const checkboxFilterAll = container.querySelector(".all");
     const allActiveFilters = container.querySelectorAll(`.${isCheckedClass.value}`);
 
-    event.target.id === "offerTypeAll" ? selectedOtherOffers.value = [] : null;
+    event.target.id === "offerTypeAll" ? selectedOtherOffers.value = 'all' : null;
     event.target.id === "upgradeTypeAll" ? selectedUpgradeTypes.value = [] : null;
 
     allActiveFilters.length ? allActiveFilters.forEach((activeFilter) => { activeFilter.classList.remove(isCheckedClass.value) }) : null;
@@ -700,15 +691,28 @@ const handleSelectAllCheckboxFilter = (event) => {
     !event.target.parentNode.classList.contains(isCheckedClass.value) ? event.target.parentNode.classList.add(isCheckedClass.value) : null;
     checkboxFilterAll.checked = true;
 
-    currentPage.value !== 1 ? handleUpdatingAnimationClass(".rebates-filter__pagination .pages") : null;
+    currentPage.value !== 1 ? handleUpdatingAnimationClass(".filter__pagination .pages") : null;
     currentPage.value = 1;
 }
 
 const handleCheckboxFilterStylingClass = (event) => {
     const container = event.target.closest(".filter-container");
-    const allFiltersInput = container.querySelector(".checkbox--all");
+    const allFiltersInput = container.querySelector(".all");
 
     !event.target.parentNode.classList.contains(isCheckedClass.value) ? event.target.parentNode.classList.add(isCheckedClass.value) : event.target.parentNode.classList.remove(isCheckedClass.value);
+    allFiltersInput.classList.contains(isCheckedClass.value) ? allFiltersInput.classList.remove(isCheckedClass.value) : null;
+}
+
+const handleRadioFilterStylingClass = (event) => {
+    const container = event.target.closest(".filter-container");
+    const allFiltersInput = container.querySelector(".all");
+    const oldActiveRadio = container.querySelector(`.${isCheckedClass.value}`);
+
+    undefined !== oldActiveRadio ? oldActiveRadio.classList.remove(isCheckedClass.value) : null;
+
+    //
+    !event.target.parentNode.classList.contains(isCheckedClass.value) ? event.target.parentNode.classList.add(isCheckedClass.value) : null;
+
     allFiltersInput.classList.contains(isCheckedClass.value) ? allFiltersInput.classList.remove(isCheckedClass.value) : null;
 }
 
@@ -728,6 +732,45 @@ const resetSelectsActiveState = () => {
 const selectIsActive = (event) => {
     return 'click' !== event.type ? event.target.parentNode.classList.remove(activeClass.value) : event.target.parentNode.classList.toggle(activeClass.value);
 }
+
+/**
+ * Calculates and returns the count of posts containing a specific tag.
+ *
+ * Iterates through the `rebates` array and increments the count for each post that includes the specified tag.
+ *
+ * @param {string} tag - The tag for which to calculate the count.
+ * @returns {number} The count of posts containing the specified tag.
+ *
+ * Because the Upgrade Type filter is presented as a multi-select, * run .reduce() against all Rebates, rather than just the current, * filtered sub-set.
+ */
+const getUpgradeTypeTagCount = (tag) => {
+    return rebates.value.reduce(
+        (count, rebate) => count + (JSON.stringify(rebate.upgrade_types).includes(tag) ? 1 : 0),
+        0
+    );
+};
+
+/**
+ * Calculates and returns the count of posts containing a specific tag.
+ *
+ * Iterates through the `filteredRebates` array and increments the count for each post that includes the specified tag.
+ *
+ * @param {string} tag - The tag for which to calculate the count.
+ * @returns {number} The count of posts containing the specified tag.
+ */
+const getOfferTagCount = (tag) => {
+    return rebates.value.reduce(
+        (count, rebate) => count + (JSON.stringify(rebate.other_offers).includes(tag) ? 1 : 0),
+        0
+    );
+};
+
+const getOfferTotalTagCount = computed(() => {
+    return rebates.value.reduce(
+        (count, rebate) => count + (undefined !== rebate.other_offers.length ? rebate.other_offers.length : 0),
+        0
+    );
+});
 
 /**
  * Fetches rebate data either from sessionStorage cache (if available and not expired) or from the WordPress API.
@@ -803,22 +846,37 @@ watch(paginatedRebates, () => {
     // Avoid firing animation when number value is the same.
     if ( oldPaginatedRebatesCount.value !== paginatedRebates.value.length ) {
         oldPaginatedRebatesCount.value = paginatedRebates.value.length;
-        handleUpdatingAnimationClass(".rebates-filter__pagination .paginated-rebates");
+        handleUpdatingAnimationClass(".filter__pagination .paginated-rebates");
     }
 });
 watch(filteredRebates, () => {
         // Avoid firing animation when number value is the same.
     if ( oldFilteredRebatesCount.value !== filteredRebates.value.length ) {
         oldFilteredRebatesCount.value = filteredRebates.value.length;
-        handleUpdatingAnimationClass(".rebates-filter__pagination .filtered-rebates");
+        handleUpdatingAnimationClass(".filter__pagination .filtered-rebates");
     }
 });
 
 watch(currentPage, () => {
-    handleUpdatingAnimationClass(".rebates-filter__pagination .current-page");
+    handleUpdatingAnimationClass(".filter__pagination .current-page");
 });
 watch(totalPages, () => {
-    handleUpdatingAnimationClass(".rebates-filter__pagination .total-pages");
+    handleUpdatingAnimationClass(".filter__pagination .total-pages");
+});
+
+watch(selectedUpgradeTypes, () => {
+  const container = document.querySelector(".filter--other-offers");
+  const radioFilterAll = container.querySelector(".all");
+  const activeOfferFilter = container.querySelector("."  + isCheckedClass.value);
+
+  if ( 'all' !== selectedOtherOffers.value ) {
+    selectedOtherOffers.value = defaultOtherOffers.value;
+    history.replaceState(selectedOtherOffers.value, defaultOtherOffers.value);
+    activeOfferFilter.querySelector('input').checked = false;
+    activeOfferFilter.classList.remove(isCheckedClass.value);
+    radioFilterAll.querySelector('input').checked = true;
+    radioFilterAll.classList.add(isCheckedClass.value);
+  }
 });
 
 /**
@@ -829,7 +887,7 @@ watch(totalPages, () => {
  * @param {Function} callback - The callback function to execute when any of the watched properties change.
  * @returns {void}
  */
-watch([selectedBuildType, selectedLocation, selectedUpgradeTypes, selectedHeatingSystem], () => {
+watch([selectedBuildType, selectedLocation, selectedUpgradeTypes, selectedHeatingSystem, selectedOtherOffers], () => {
     currentPage.value = 1;
 });
 
@@ -854,7 +912,60 @@ onMounted(() => {
 
     if (window.site?.domain) {
     }
+
+    // init accordions
+    const accordions = document.querySelectorAll('.filter--upgrade-types.accordion h2');
+    accordions.forEach((accordionEl) => {
+        new Accordion(accordionEl);
+    });
+
 });
+
+class Accordion {
+  constructor(domNode) {
+    this.rootEl = domNode;
+    this.buttonEl = this.rootEl.querySelector('button[aria-expanded]');
+
+    const controlsId = this.buttonEl.getAttribute('aria-controls');
+    this.contentEl = document.getElementById(controlsId);
+
+    this.open = this.buttonEl.getAttribute('aria-expanded') === 'true';
+
+    // add event listeners
+    this.buttonEl.addEventListener('click', this.onButtonClick.bind(this));
+  }
+
+  onButtonClick() {
+    this.toggle(!this.open);
+  }
+
+  toggle(open) {
+    // don't do anything if the open state doesn't change
+    if (open === this.open) {
+      return;
+    }
+
+    // update the internal state
+    this.open = open;
+
+    // handle DOM updates
+    this.buttonEl.setAttribute('aria-expanded', `${open}`);
+    if (open) {
+      this.contentEl.removeAttribute('hidden');
+    } else {
+      this.contentEl.setAttribute('hidden', '');
+    }
+  }
+
+  // Add public open and close methods for convenience
+  open() {
+    this.toggle(true);
+  }
+
+  close() {
+    this.toggle(false);
+  }
+}
 </script>
 
 <style lang='scss' scoped>
@@ -894,477 +1005,583 @@ $amount-icon-dark: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0
 $house-icon-dark: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjIiIGhlaWdodD0iMjIiIHZpZXdCb3g9IjAgMCAyMiAyMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE4LjQ1MzYgMTEuODA0NVYyMC40Mjc3SDMuNTQ1NTRWMTEuODQyMkwzLjU0NzQ2IDExLjgzN1YxMS44MDQ1QzMuNTQ3NDYgMTEuNTA2MyAzLjMwNTYyIDExLjI2NDUgMy4wMDc0NiAxMS4yNjQ1QzIuNzA5MyAxMS4yNjQ1IDIuNDY3NDYgMTEuNTA2MyAyLjQ2NzQ2IDExLjgwNDVWMjAuOTY3N0MyLjQ2NzQ2IDIxLjI2NzEgMi43MDk2MSAyMS41MDc3IDMuMDA3NDYgMjEuNTA3N0gxOC45OTM2QzE5LjI5MTUgMjEuNTA3NyAxOS41MzM2IDIxLjI2NzEgMTkuNTMzNiAyMC45Njc3VjExLjgwNDVDMTkuNTMzNiAxMS41MDYzIDE5LjI5MTggMTEuMjY0NSAxOC45OTM2IDExLjI2NDVDMTguNjk1NSAxMS4yNjQ1IDE4LjQ1MzYgMTEuNTA2MyAxOC40NTM2IDExLjgwNDVaIiBmaWxsPSJibGFjayIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIwLjM2Ii8+CjxwYXRoIGQ9Ik0xLjE2OTczIDEyLjE5OTdDMS4xNzg2OCAxMi4xOTA2IDEuMTg3MzQgMTIuMTgxMiAxLjE5NTY4IDEyLjE3MTRMMS4xOTcxIDEyLjE2OTlMMTAuODgzMyAxLjYzMDUzTDEwLjg4MzMgMS42MzA1OEwxMC44ODY1IDEuNjI2ODlDMTAuOTE0MiAxLjU5NTA0IDEwLjk1NTEgMS41NzYyMyAxMS4wMDAxIDEuNTc2MjNDMTEuMDQ1MSAxLjU3NjIzIDExLjA4NiAxLjU5NTAzIDExLjExMzcgMS42MjY5TDExLjExMzcgMS42MjY5NEwxMS4xMTcgMS42MzA1M0wyMC43OTk5IDEyLjE2NjRDMjAuODkzOSAxMi4yNzkgMjEuMDI5NyAxMi4zNDg3IDIxLjE3NjIgMTIuMzU5OEwyMS4xNzc5IDEyLjM1OTlDMjEuMzI1NiAxMi4zNjk2IDIxLjQ3MTcgMTIuMzE5NSAyMS41ODE4IDEyLjIxNzlDMjEuNjkyMSAxMi4xMTYxIDIxLjc1MzYgMTEuOTczOSAyMS43NTUgMTEuODI1N0MyMS43NTY0IDExLjY3ODkgMjEuNjk3OCAxMS41Mzc2IDIxLjU5MzUgMTEuNDM1MUwxMS45MTQxIDAuOTAxMjIzQzExLjkxMzggMC45MDA5MTEgMTEuOTEzNSAwLjkwMDU5OSAxMS45MTMyIDAuOTAwMjg3QzExLjY4MDQgMC42NDA0ODkgMTEuMzQ4OCAwLjQ5MjQ4NSAxMC45OTk5IDAuNDkyNDg1QzEwLjY1MSAwLjQ5MjQ4NSAxMC4zMTk1IDAuNjQwNDk3IDEwLjA4NjYgMC45MDAyOTRMMC40MDYzMjUgMTEuNDM1MUMwLjMwMjA1NyAxMS41Mzc2IDAuMjQzNDQ1IDExLjY3ODkgMC4yNDQ4MjkgMTEuODI1N0wwLjQyNDgyMSAxMS44MjRMMC4yNDQ4MjkgMTEuODI1N0MwLjI0NjIyNiAxMS45NzM5IDAuMzA3Nzk2IDEyLjExNjEgMC40MTgwNTQgMTIuMjE3OU0xLjE2OTczIDEyLjE5OTdMMC40MTgwNTQgMTIuMjE3OU0xLjE2OTczIDEyLjE5OTdMMS4xNDM2MSAxMi4yMjgxSDEuMTM5NDVMMS4xNjk3MyAxMi4xOTk3Wk0wLjQxODA1NCAxMi4yMTc5QzAuNDE4MDUgMTIuMjE3OSAwLjQxODA0NyAxMi4yMTc5IDAuNDE4MDQzIDEyLjIxNzlMMC41NDAxMyAxMi4wODU2TDAuNDE4MDU0IDEyLjIxNzlaIiBmaWxsPSJibGFjayIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIwLjM2Ii8+Cjwvc3ZnPg==);
 
 #rebateFilterApp {
-    a {
-        display: inline-block;
-        outline: 2px solid transparent;
-        border-radius: 0;
-        outline-offset: 2px;
+  a {
+    display: inline-block;
+    outline: 2px solid transparent;
+    border-radius: 0;
+    outline-offset: 2px;
+
+    &:hover,
+    &:focus {
+      border-radius: 0;
+      outline-color: $bahamablue;
+    }
+  }
+
+  h2 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+  }
+
+  h3 {
+    margin-bottom: 0;
+  }
+
+  a,
+  button,
+  .button,
+  select,
+  .select,
+  label,
+  input,
+  span,
+  p {
+    font-size: clamp(
+      var(--wp--preset--font-size--normal),
+      1rem + ((1vw - 0.48rem) * 0.481),
+      1.25rem
+    );
+  }
+
+  p {
+    display: block;
+    width: 100%;
+
+    &.no-results {
+      grid-column: span 3;
+      text-align: center;
+    }
+  }
+
+  button,
+  .button,
+  select,
+  .select {
+    min-width: $default_button_min_width;
+    min-height: $default_interactable_min_height;
+    padding: $default_button_padding_vert $default_button_padding_horz;
+    font-weight: bold;
+    border: none;
+    box-shadow: none;
+  }
+
+  .button,
+  button {
+    color: $scorpiongrey;
+    background-color: $vehiclegrey;
+    transition: all $default_transition_timing_fn $default_transition_duration;
+
+    &:not([disabled]) {
+      background-color: $bahamablue;
+      color: $white;
+      outline: $default_outline_offset solid transparent;
+      outline-offset: $default_outline_offset;
+      cursor: pointer;
+
+      &:hover,
+      &:focus {
+        background-color: darken($bahamablue, 7.5%);
+        transition: all $default_transition_timing_fn $default_transition_duration;
+        outline: $default_outline_offset solid darken($bondiblue, 7.5%);
+      }
+    }
+
+    &.clear-filters {
+      margin-bottom: 1rem;
+
+      @media (min-width: $breakpoint-md) {
+        margin-bottom: 0;
+      }
+    }
+
+    // &.next-page {}
+    // &.prev-page {}
+  }
+
+  .accordion {
+    &-icon {
+      display: inline-block;
+      position: relative;
+      width: 1rem;
+      height: 1rem;
+      margin-left: 1rem;
+
+      &::before,
+      &::after {
+        content: "";
+        position: absolute;
+        // z-index: -1;
+        background: $bahamablue;
+        left: 50%;
+        top: 50%;
+        transform: translateX(-50%) translateY(-50%);
+      }
+
+      &::before {
+        width: 0.25rem;
+        height: 100%;
+        transition: background-color $default_transition_timing_fn $default_transition_duration;
+      }
+
+      &::after {
+        height: 0.25rem;
+        width: 100%;
+      }
+    }
+  }
+
+  button {
+    &.accordion-trigger {
+      position: relative;
+      width: 100%;
+
+      &[aria-expanded="true"] {
+        .accordion-icon {
+          &::before {
+            background-color: transparent;
+            transition: background-color $default_transition_timing_fn $default_transition_duration;
+          }
+        }
+      }
+    }
+  }
+
+  .button {
+    padding: 0.5rem 1rem;
+    font-weight: bold;
+    text-decoration: none;
+  }
+
+  .rebatesFilterControls {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-content: flex-start;
+    align-items: stretch;
+    padding: 2rem;
+    margin-bottom: 1rem;
+    background-color: #fff;
+    box-shadow: 0 0.25rem 0.7rem rgba(49, 49, 50, 0.25);
+    border: 0;
+    border-radius: 0.66rem;
+
+    @media (min-width: $breakpoint-sm) {
+      flex-direction: row;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+    }
+
+    .clear-filters {
+      margin-top: calc(1rem / 3);
+    }
+  }
+
+  .control {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-content: flex-start;
+    align-items: stretch;
+    width: 100%;
+
+    @media (min-width: $breakpoint-sm) {
+      flex-basis: calc((100% / 3) - (1rem / 3));
+      width: auto;
+      justify-content: space-between;
+    }
+
+    &.upgrade-types {
+      flex-basis: 100%;
+      margin-top: 0.5rem;
+    }
+  }
+
+  label {
+    margin-bottom: 0.5rem;
+  }
+
+  .custom-select {
+    display: inline-block;
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    // margin-bottom: 1rem;
+    margin-bottom: 0;
+
+    &::after {
+      display: block;
+      content: " ";
+      position: absolute;
+      right: 1rem;
+      top: 40%;
+      transform: rotateZ(45deg);
+      transform-origin: center;
+      border-color: rgba(var(--secondary-brand-rgb), 1);
+      border-bottom-style: solid;
+      border-bottom-width: #{calc(3 / 16)}rem;
+      border-right-style: solid;
+      border-right-width: #{calc(3 / 16)}rem;
+      height: #{calc(7 / 16)}rem;
+      width: #{calc(7 / 16)}rem;
+      pointer-events: none;
+    }
+
+    &.is-active {
+      &::after {
+        transform: rotate(225deg);
+      }
+    }
+
+    .select {
+      display: block;
+      height: 100%;
+      width: 100%;
+      position: relative;
+      margin-bottom: 0.5rem;
+      padding: $default_button_padding_vert 3rem $default_button_padding_vert $default_button_padding_horz;
+      width: 100%;
+      max-width: 100%;
+      text-align: left;
+      line-height: 1.2;
+      background-color: #eceef0;
+      color: $bahamablue;
+      -moz-appearance: none;
+      -webkit-appearance: none;
+      appearance: none;
+      cursor: pointer;
+
+      @media (prefers-color-scheme: dark) {
+        background-color: #eceef0;
+        color: $bahamablue;
+      }
+    }
+  }
+
+  .external {
+    &::after {
+      content: $external-link-icon-dark !important;
+      display: inline-block;
+      width: 1rem;
+      margin-left: 0.5rem;
+    }
+  }
+
+  .filter {
+    &__pagination {
+      display: flex;
+      flex-direction: column;
+      align-content: flex-start;
+      align-items: flex-start;
+      justify-content: flex-start;
+      margin: 0 0 1rem;
+      padding: 0;
+
+      @media (min-width: $breakpoint-sm) {
+        flex-basis: 100%;
+        flex-direction: row;
+        align-items: center;
+      }
+
+      &--top,
+      &--bottom { margin-top: 1rem; }
+
+      &--top { margin-bottom: 0; }
+
+      &--bottom {
+        .clear-filters {
+          margin-top: calc(1rem / 3);
+
+          @media (min-width: $breakpoint-sm) {
+            margin-top: 0;
+            margin-left: 0.5rem;
+          }
+        }
+      }
+    }
+    &--upgrade-types {
+      h2 { margin-bottom: 0; }
+
+      button {
+        color: $bahamablue;
+        background-color: transparent;
 
         &:hover,
         &:focus {
-            border-radius: 0;
-            outline-color: $bahamablue;
+          background-color: transparent;
         }
-    }
+      }
 
-    h2 {
-        margin-top: 0;
-    }
+      label { text-align: center; }
 
-    h3 {
-        margin-bottom: 0;
-    }
-
-    a,
-    button,
-    .button,
-    select,
-    .select,
-    label,
-    input,
-    span,
-    p {
-        font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
-    }
-
-    p {
-        display: block;
-        width: 100%;
-
-        &.no-results {
-            grid-column: span 3;
-            text-align: center;
-        }
-    }
-
-    button,
-    .button,
-    select,
-    .select {
-        min-width: $default_button_min_width;
-        min-height: $default_interactable_min_height;
-        padding: $default_button_padding_vert $default_button_padding_horz;
-        font-weight: bold;
-        border: none;
-        box-shadow: none;
-    }
-
-    .button,
-    button {
-        color: $scorpiongrey;
-        background-color: $vehiclegrey;
-        transition: all $default_transition_timing_fn $default_transition_duration;
-
-        &:not([disabled]) {
-            background-color: $bahamablue;
-            color: $white;
-            outline: $default_outline_offset solid transparent;
-            outline-offset: $default_outline_offset;
-            cursor: pointer;
-
-            &:hover,
-            &:focus {
-                background-color: darken($bahamablue, 7.5%);
-                transition: all $default_transition_timing_fn $default_transition_duration;
-                outline: $default_outline_offset solid darken($bondiblue, 7.5%);
-            }
-        }
-
-        &.clear-filters {
-            margin-bottom: 1rem;
-
-            @media (min-width: $breakpoint-md) {
-                margin-bottom: 0;
-            }
-        }
-
-        // &.next-page {}
-        // &.prev-page {}
-    }
-
-    .button {
-        padding: 0.5rem 1rem;
-        font-weight: bold;
-        text-decoration: none;
-    }
-
-    .rebatesFilterControls {
-        margin-bottom: 1rem;
-        display: flex;
-        flex-direction: column;
-        flex-wrap: wrap;
-        justify-content: flex-start;
-        align-content: flex-start;
-        align-items: stretch;
-
-        @media (min-width: $breakpoint-sm) {
-            flex-direction: row;
-            // align-items: flex-start;
-            justify-content: space-between;
-        }
-
-        .clear-filters {
-            margin-top: calc(1rem/3);
-        }
-    }
-
-    .control {
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-content: flex-start;
-        align-items: stretch;
-        width: 100%;
-
-        @media (min-width: $breakpoint-sm) {
-            flex-basis: calc((100%/3) - (1rem/3));
-            width: auto;
-            justify-content: space-between;
-            // margin-right: 0.5rem;
-        }
-    }
-
-    .custom-select {
-        display: inline-block;
-        position: relative;
-        width: 100%;
-        max-width: 100%;
-        // margin-bottom: 1rem;
-        margin-bottom: 0;
-
-        &::after {
-            display: block;
-            content: " ";
-            position: absolute;
-            right: 1rem;
-            top: 25%;
-            transform: rotateZ(45deg);
-            transform-origin: center;
-            border-color: rgba(var(--secondary-brand-rgb), 1);
-            border-bottom-style: solid;
-            border-bottom-width: #{calc(3/16)}rem;
-            border-right-style: solid;
-            border-right-width: #{calc(3/16)}rem;
-            height: #{calc(7/16)}rem;
-            width: #{calc(7/16)}rem;
-            pointer-events: none;
-        }
-
-        &.is-active {
-            &::after {
-                transform: rotate(225deg);
-            }
-        }
-
-        .select {
-            display: block;
-            height: 100%;
-            width: 100%;
-            position: relative;
-            margin-bottom: 0.5rem;
-            padding: $default_button_padding_vert 3rem $default_button_padding_vert $default_button_padding_horz;
-            width: 100%;
-            max-width: 100%;
-            text-align: left;
-            // font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
-            line-height: 1.2;
-            background-color: #eceef0;
-            color: $bahamablue;
-            -moz-appearance:none;
-            -webkit-appearance:none;
-            appearance:none;
-            cursor: pointer;
-
-            @media (prefers-color-scheme: dark) {
-                background-color: #eceef0;
-                color: $bahamablue;
-            }
-        }
-    }
-
-    .external {
-        &::after {
-            content: $external-link-icon-dark !important;
-            display: inline-block;
-            width: 1rem;
-            margin-left: 0.5rem;
-        }
-    }
-
-    .rebates-filter {
-        &__pagination {
-            display: flex;
-            flex-direction: column;
-            align-content: flex-start;
-            align-items: flex-start;
-            justify-content: flex-start;
-            margin: 0 0 1rem;
-            padding: 0;
-
-            @media (min-width: $breakpoint-sm) {
-                flex-basis: 100%;
-                flex-direction: row;
-                align-items: center;
-            }
-
-            &--top,
-            &--bottom {
-                margin-top: 1rem;
-            }
-
-            &--top {
-                margin-bottom: 0;
-            }
-
-            &--bottom {
-                .clear-filters {
-                    margin-top:  calc(1rem/3);
-
-                    @media (min-width: $breakpoint-sm) {
-                        margin-top: 0;
-                        margin-left: 0.5rem;
-                    }
-                }
-            }
-        }
-    }
-
-    .rebatesTool {
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-content: flex-start;
-        align-items: stretch;
-
-        @media (min-width: $breakpoint-sm) {
-            flex-direction: row;
-            align-items: flex-start;
-        }
-    }
-
-    .rebatesResults {
-        width: 100%;
-
-        .no-results {
-            width: 100%;
-            text-align: center;
-        }
-
-        .page {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1rem;
-            flex-basis: 100%;
-
-            @media (min-width: $breakpoint-sm) {
-                flex-basis: calc(75% - 0.5rem);
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            @media (min-width: $breakpoint-md) {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-    }
-
-    .rebate {
-        display: flex;
-        flex-direction: column;
-        align-content: flex-start;
-        align-items: stretch;
-        justify-content: flex-start;
-        padding: 1rem;
-        box-shadow: rgba(0, 0, 0, 0.1019607843) 0 20px 25px -5px, rgba(0, 0, 0, 0.0392156863) 0 10px 10px -5px;
-        border-radius: 0;
+      .checkbox {
         background-color: $white;
 
-        @media (min-width: $breakpoint-sm) {
-            padding: 2rem;
-        }
-
-        a,
-        p {
-            margin: 0;
-        }
-
-        img {
-            display: block;
-            width: 1.875rem;
-            height: auto;
-            margin-right: 1rem;
-        }
-
-        &__amount,
-        &__short-description {
-            position: relative;
-            display: flex;
-            flex-direction: row;
-            justify-content: flex-start;
-            align-content: flex-start;
-            align-items: flex-start;
-
-            &::before {
-                display: inline-block;
-                line-height: 1;
-                margin-right: 0.5rem;
-            }
-
-            p {
-                // font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
-            }
-        }
-
-        &__amount {
-            margin-bottom: 0.5rem;
-
-            &::before {
-                content: $amount-icon-dark!important;
-
-            }
-        }
-
-        &__short-description {
-            margin-bottom: 1rem;
-
-            &::before {
-                content: $house-icon-dark!important;
-            }
-        }
-
-        &__learn-more {
-            margin-top: auto;
-            text-align: center;
-        }
-
-        &__title {
-            margin-bottom: 1rem;
-
-            h3 {
-                font-size: clamp(var(--wp--preset--font-size--normal), 1.25rem + ((1vw - 0.48rem) * 0.481), 1.5rem);
-                margin-top: 0;
-                color: $bahamablue;
-            }
-
-            a {
-                // color: $bahamablue!important;
-                text-decoration-color: $bahamablue;
-                text-decoration: none;
-            }
-        }
-    }
-
-    .rebatesSidebar {
-        flex: 0 0 100%;
-        width: 100%;
-        padding: 0 1rem 0 0;
-
-        @media (min-width: $breakpoint-sm) {
-            flex-basis: calc(25% - 0.5rem);
-        }
-
-        h2 {
-            margin-bottom: 1rem;
-        }
-
-        .filter {
-            margin-bottom: 1rem;
-
-            @media (min-width: $breakpoint-sm) {
-                margin-bottom: 2rem;
-            }
-        }
-    }
-
-    .current-page,
-    .total-pages,
-    .filtered-rebates,
-    .paginated-rebates {
-        display: inline-block;
-        transform: scale(1.0);
-        transition: transform linear $default_transition_duration;
-        transform-origin: center;
-
-        &.is-updating {
-            transform: scale(1.35);
-            transition: transform linear $default_transition_duration;
-            transform-origin: center;
-        }
-    }
-
-    .pages,
-    .totals {
-        padding: $default_button_padding_vert 0;
-    }
-
-    .pages {
-        margin: 0.5rem 0;
-
-        @media (min-width: $breakpoint-sm) {
-            margin: 0 1rem;
-        }
-    }
-
-    .totals {
-        margin-top: 1rem;
-
-        @media (min-width: $breakpoint-sm) {
-            margin-top: 0;
-            margin-left: 1rem;
-        }
-    }
-
-    .help-text {
-        margin-bottom: 1rem;
-        padding: 1rem;
-        background-color: #ecf1f4;
-
-        p {
-            margin-top: 0;
-            // font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
-
-            &:last-of-type {
-                margin-bottom: 0;
-            }
-        }
-    }
-
-    .checkbox {
-        // padding: 0 0.5rem;
-
         &.is-checked {
-            label {
-                font-weight: bold;
-                background-color: rgba($prussianblue, 0.15);
-            }
+          background-color: $bahamablue;
+          color: $white;
         }
+      }
 
-        input {
-            margin: 0;
-            appearance: none;
+      .filter__list {
+
+        fieldset {
+          display: grid;
+          grid-template-columns: 1fr;
+          margin: 0;
+          padding: 0;
+          border: none;
+
+          @media (min-width: $breakpoint-md) {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1px;
+          }
+          @media (min-width: $breakpoint-lg) {
+            grid-template-columns: repeat(3, 1fr);
+          }
         }
+      }
 
-        label {
-            display: block;
-            width: 100%;
-            height: 100%;
-            margin-bottom: 0.5rem;
-            padding: 0.5rem;
-            cursor: pointer;
-            background-color: rgba($prussianblue, 0);
-            transition: background-color $default_transition_timing_fn $default_transition_duration;
+      .help-text {
+        grid-column: 1 / span 3;
+        margin-bottom: 0;
+        padding-left: 0;
+      }
+    }
+    &--other-offers {
+      fieldset {
+        padding: 0;
+        border: none;
+      }
+    }
+  }
 
-            &:hover,
-            &:focus {
-                background-color: rgba($prussianblue, 0.15);
-                transition: background-color $default_transition_timing_fn $default_transition_duration;
-            }
-        }
+  .rebatesTool {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-content: flex-start;
+    align-items: stretch;
+
+    @media (min-width: $breakpoint-sm) {
+      flex-direction: row;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+  }
+
+  .rebatesResults {
+    flex-basis: 100%;
+
+    @media (min-width: $breakpoint-sm) {
+      flex-basis: calc(70% - 0.5rem);
+      min-height: 60vh;
     }
 
-    .is-loading {
-        text-align: center;
-
-        p { margin-bottom: 0; }
+    .no-results {
+      width: 100%;
+      text-align: center;
     }
+
+    .page {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr;
+      column-gap: 1rem;
+      row-gap: 1rem;
+      padding: 0 0 1rem;
+
+      @media (min-width: $breakpoint-sm) {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      @media (min-width: $breakpoint-md) {
+        grid-template-columns: repeat(3, 1fr);
+        column-gap: 2rem;
+        row-gap: 2rem;
+      }
+    }
+  }
+
+  .rebate {
+    display: flex;
+    flex-direction: column;
+    align-content: flex-start;
+    align-items: stretch;
+    justify-content: flex-start;
+    border-radius: 0;
+
+    a,
+    p { margin: 0; }
+
+    img {
+      display: block;
+      width: 1.875rem;
+      height: auto;
+      margin-right: 1rem;
+    }
+
+    &__amount,
+    &__short-description {
+      position: relative;
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      align-content: flex-start;
+      align-items: flex-start;
+
+      &::before {
+        display: inline-block;
+        line-height: 1;
+        margin-right: 0.5rem;
+      }
+    }
+
+    &__amount {
+      margin-bottom: 0.5rem;
+
+      &::before {
+        content: $amount-icon-dark !important;
+      }
+    }
+
+    &__short-description {
+      margin-bottom: 1rem;
+
+      &::before {
+        content: $house-icon-dark !important;
+      }
+    }
+
+    &__learn-more {
+      margin-top: auto;
+      text-align: center;
+    }
+
+    &__title {
+      margin-bottom: 1rem;
+
+      h3 {
+        font-size: clamp(
+          var(--wp--preset--font-size--normal),
+          1.25rem + ((1vw - 0.48rem) * 0.481),
+          1.5rem
+        );
+        margin-top: 0;
+        color: $bahamablue;
+      }
+
+      a {
+        text-decoration-color: $bahamablue;
+        text-decoration: none;
+      }
+    }
+  }
+
+  .rebatesSidebar {
+    flex: 0 0 100%;
+    width: 100%;
+    padding: 0 1rem 0 0;
+
+    @media (min-width: $breakpoint-sm) {
+      flex-basis: calc(30% - 0.5rem);
+    }
+
+    .filter {
+      margin-bottom: 1rem;
+
+      @media (min-width: $breakpoint-sm) {
+        margin-bottom: 2rem;
+      }
+    }
+  }
+
+  .current-page,
+  .total-pages,
+  .filtered-rebates,
+  .paginated-rebates {
+    display: inline-block;
+    transform: scale(1);
+    transition: transform linear $default_transition_duration;
+    transform-origin: center;
+
+    &.is-updating {
+      transform: scale(1.35);
+      transition: transform linear $default_transition_duration;
+      transform-origin: center;
+    }
+  }
+
+  .pages,
+  .totals {
+    padding: $default_button_padding_vert 0;
+  }
+
+  .pages {
+    margin: 0.5rem 0;
+
+    @media (min-width: $breakpoint-sm) {
+      margin: 0 1rem;
+    }
+  }
+
+  .totals {
+    margin-top: 1rem;
+
+    @media (min-width: $breakpoint-sm) {
+      margin-top: 0;
+      margin-left: 1rem;
+    }
+  }
+
+  .help-text {
+    padding: 1rem;
+
+    p {
+      margin-top: 0;
+
+      &:last-of-type {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  .checkbox,
+  .radio {
+    &.is-checked {
+      label {
+        font-weight: bold;
+        background-color: rgba($prussianblue, 0.15);
+      }
+    }
+
+    input {
+      margin: 0;
+      appearance: none;
+    }
+
+    label {
+      display: block;
+      width: 100%;
+      height: 100%;
+      margin-bottom: 0;
+      padding: 0.5rem;
+      cursor: pointer;
+      background-color: rgba($prussianblue, 0);
+      transition: background-color $default_transition_timing_fn $default_transition_duration;
+
+      &:hover,
+      &:focus {
+        background-color: rgba($prussianblue, 0.15);
+        transition: background-color $default_transition_timing_fn $default_transition_duration;
+      }
+    }
+  }
+
+  .is-loading {
+    flex-basis: 100%;
+    text-align: center;
+
+    p { margin-bottom: 0; }
+  }
 }
 </style>

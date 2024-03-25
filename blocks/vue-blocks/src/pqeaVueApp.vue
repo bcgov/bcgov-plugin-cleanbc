@@ -50,9 +50,6 @@
         </div>
     </div>
 
-    <!-- Loading Message -->
-    <p v-if="isLoading" class="no-results loading" aria-live="polite">Retrieving list of Energy Advisors, please wait...</p>
-
     <!-- PQEAs Results Table -->
     <table id="pqeasResults" class="pqeasResults table table--striped">
         <caption class="sr-only">Program Qualified Energy Advisors</caption>
@@ -87,7 +84,7 @@
             <!-- Loading Message -->
             <tr v-if="isLoading" class="is-loading" aria-live="polite">
                 <td colspan="100%">
-                    <p class="">Loading...</p>
+                    <p class="no-results loading">Retrieving list of Energy Advisors, please wait...</p>
                 </td>
             </tr>
 
