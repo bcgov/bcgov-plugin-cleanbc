@@ -41,11 +41,11 @@
         <!-- Pagination Controls -->
         <div class="contractorsFilterPagination contractors-filter__pagination contractors-filter__pagination--top">
             <!-- Previous Page Button -->
-            <button class="prevPage" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0" type="button">Previous Page</button>
+            <button class="prev-page" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0" type="button">Previous Page</button>
             <!-- Current Page & Totals -->
             <span class="pages">Page <span class="numValue current-page">{{ currentPage }}</span> of <span class="numValue total-pages">{{ totalPages }}</span></span>
             <!-- Next Page Button -->
-            <button class="nextPage" @click.prevent="nextPage" :disabled="currentPage === totalPages" tabindex="0" type="button">Next Page</button>
+            <button class="next-page" @click.prevent="nextPage" :disabled="currentPage === totalPages" tabindex="0" type="button">Next Page</button>
 
             <!-- Results Information -->
             <div class="totals">
@@ -58,9 +58,6 @@
             </span>
         </div>
     </div>
-
-    <!-- Loading Message -->
-    <p v-if="isLoading" class="no-results loading" aria-live="polite">Retrieving list of registered contractors, please wait...</p>
 
     <!-- Contractors Results Table -->
     <table id="contractorsResults" class="contractorsResults table table--striped">
@@ -96,7 +93,7 @@
             <!-- Loading Message -->
             <tr v-if="isLoading" class="is-loading" aria-live="polite">
                 <td colspan="100%">
-                    <p class="">Loading...</p>
+                    <p class="no-results loading">Retrieving list of registered contractors, please wait...</p>
                 </td>
             </tr>
 
@@ -154,11 +151,11 @@
     <!-- Pagination Controls (Bottom) -->
     <div class="contractorsFilterPagination contractors-filter__pagination contractors-filter__pagination--bottom">
         <!-- Previous Page Button -->
-        <button class="prevPage" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0" type="button">Previous Page</button>
+        <button class="prev-page" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0" type="button">Previous Page</button>
         <!-- Current Page & Totals -->
         <span class="pages">Page <span class="numValue current-page">{{ currentPage }}</span> of <span class="numValue total-pages">{{ totalPages }}</span></span>
         <!-- Next Page Button -->
-        <button class="nextPage" @click.prevent="nextPage" :disabled="currentPage === totalPages" tabindex="0" type="button">Next Page</button>
+        <button class="next-page" @click.prevent="nextPage" :disabled="currentPage === totalPages" tabindex="0" type="button">Next Page</button>
 
         <!-- Results Information -->
         <div class="totals">
@@ -265,10 +262,10 @@ const pageSize = ref(30); // Default page size
 const currentPage = ref(1);
 
 const itemsToClearFromSessionStorage = ref([
-    'contractorsData',
-    'contractorsTimestamp',
     'pqeasData',
     'pqeasTimestamp',
+    'rebatesData',
+    'rebatesTimestamp',
 ]);
 
 const oldPaginatedContractorsCount = ref(0);
@@ -668,7 +665,7 @@ watch([selectedUpgradeType, selectedProgram, selectedLocation], () => {
 
 window.addEventListener("click", (event) => {
     !event.target.closest('.custom-select.is-active') ? resetSelectsActiveState() : null;
-}); 
+});
 
 /**
  * Lifecycle Hooks
@@ -735,12 +732,24 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
         margin-top: 0;
     }
 
+    a,
+    button,
+    .button,
+    select,
+    .select,
+    label,
+    input,
+    span,
+    p {
+        font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
+    }
+
     button,
     select {
         min-width: $default_button_min_width;
         min-height: $default_interactable_min_height;
         padding: $default_button_padding_vert $default_button_padding_horz;
-        font-size: 1rem;
+        font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
         font-weight: bold;
         border: none;
         box-shadow: none;
@@ -833,7 +842,7 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
             width: 100%;
             max-width: 100%;
             text-align: left;
-            font-size: 1.125rem;
+            font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
             line-height: 1.2;
             background-color: #eceef0;
             color: $bahamablue;
@@ -997,7 +1006,7 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
         }
 
         th {
-            font-size: 1rem;
+            font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
             text-align: left;
             background-color: $bahamablue;
             color: white;
@@ -1031,7 +1040,7 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
         }
 
         td {
-            font-size: 1rem;
+            font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
             word-wrap: break-word;
 
             &::before {
@@ -1050,14 +1059,14 @@ $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
             ul {
                 display: block;
                 margin-top: 0;
-                font-size: inherit;
+                font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
             }
             ul {
                 padding-inline-start: 1rem;
             }
             li {
                 // list-style-type: none;
-                font-size: inherit;
+                font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
             }
         }
         .col {

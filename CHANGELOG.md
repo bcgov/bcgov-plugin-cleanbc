@@ -1,4 +1,6 @@
-## 1.5.0 March 14, 2024
+## 1.5.0 March 20, 2024
+- Rebates app: improved UX, term counts, updated filtering logic.
+- Rebates: added Vue app for Rebate Search Tool.
 - Contractors filter block: API endpoint and VueJS block.
 - Rebates page block to show the content sections.
 - PQEA filter block CSS animations for pagination & results.
