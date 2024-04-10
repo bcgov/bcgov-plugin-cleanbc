@@ -191,7 +191,12 @@
  * @type {{ ref: Function, onMounted: Function, computed: Function, watch: Function }}
  * @namespace VueCompositionAPI
  */
- import { ref, onMounted, computed, watch } from 'vue';
+ import {
+	ref,
+	onMounted,
+	computed,
+	watch
+} from 'vue';
 
 
 /**
@@ -269,10 +274,10 @@ const pageSize = ref(30); // Default page size
 const currentPage = ref(1);
 
 const itemsToClearFromSessionStorage = ref([
-    'contractorsData',
-    'contractorsTimestamp',
-    'rebatesData',
-    'rebatesTimestamp',
+	'contractorsData',
+	'contractorsTimestamp',
+	'rebatesData',
+	'rebatesTimestamp',
 ]);
 
 const oldPaginatedPqeasCount = ref(0);
@@ -301,42 +306,44 @@ const pqeasAPI = `${window.site?.domain ? window.site.domain : publicDomain}/wp-
  * @type {Array} - An array containing the filtered PQEAs based on selected category and/or location.
  */
 const filteredPqeas = computed(() => {
-    const selectedLoc = selectedLocation.value;
-    let filteredPqeas = [...filteredPqeasByCategory.value];
+	const selectedLoc = selectedLocation.value;
+	let filteredPqeas = [...filteredPqeasByCategory.value];
 
-    // Filter by location if 'all' is not selected.
-    if ('all' !== selectedLoc) {
-        filteredPqeas = filteredPqeas.filter(pqea => pqea.locations && pqea.locations.some(location => location.name === selectedLoc) );
-    }
+	// Filter by location if 'all' is not selected.
+	if ('all' !== selectedLoc) {
+		filteredPqeas = filteredPqeas.filter(pqea => pqea.locations && pqea.locations.some(location => location.name === selectedLoc));
+	}
 
-    // handleUpdatingAnimationClass(".pqeas-filter__pagination .pages");
-    // handleUpdatingAnimationClass(".pqeas-filter__pagination .totals");
-    resetSelectsActiveState();
+	// handleUpdatingAnimationClass(".pqeas-filter__pagination .pages");
+	// handleUpdatingAnimationClass(".pqeas-filter__pagination .totals");
+	resetSelectsActiveState();
 
-    return filteredPqeas;
+	return filteredPqeas;
 });
 
 // Define a computed property to filter pqeas based on the selected category
 const filteredPqeasByCategory = computed(() => {
-    const selectedCat = selectedCategory.value;
-    currentPage.value = 1;
+	const selectedCat = selectedCategory.value;
+	currentPage.value = 1;
 
-    if (selectedCat === 'all') {
-        return pqeas.value;
-    } else {
-        return pqeas.value.filter(pqea => pqea.categories && pqea.categories.includes(selectedCat));
-    }
+	if (selectedCat === 'all') {
+		return pqeas.value;
+	} else {
+		return pqeas.value.filter(pqea => pqea.categories && pqea.categories.includes(selectedCat));
+	}
 });
 
 const handleUpdatingAnimationClass = (elementCssPath) => {
-    const elements = document.querySelectorAll(elementCssPath);
+	const elements = document.querySelectorAll(elementCssPath);
 
-    if ( 0 < elements.length ) {
-        elements.forEach((element) => {
-            element.classList.add(updatingClass.value);
-            setTimeout(() => { element.classList.remove(updatingClass.value); }, 125);
-        })
-    }
+	if (0 < elements.length) {
+		elements.forEach((element) => {
+			element.classList.add(updatingClass.value);
+			setTimeout(() => {
+				element.classList.remove(updatingClass.value);
+			}, 125);
+		})
+	}
 }
 
 /**
@@ -347,8 +354,8 @@ const handleUpdatingAnimationClass = (elementCssPath) => {
  * @type {number} - The total number of pages for paginated PQEAs.
  */
 const totalPages = computed(() => {
-    const totalPqeas = filteredPqeas.value.length;
-    return totalPqeas > 0 ? Math.ceil(totalPqeas / pageSize.value) : 1;
+	const totalPqeas = filteredPqeas.value.length;
+	return totalPqeas > 0 ? Math.ceil(totalPqeas / pageSize.value) : 1;
 });
 
 
@@ -360,9 +367,9 @@ const totalPages = computed(() => {
  * @type {Array} - An array containing the paginated PQEAs for the current page.
  */
 const paginatedPqeas = computed(() => {
-    const start = (currentPage.value - 1) * pageSize.value;
-    const end = start + pageSize.value;
-    return filteredPqeas.value.slice(start, end);
+	const start = (currentPage.value - 1) * pageSize.value;
+	const end = start + pageSize.value;
+	return filteredPqeas.value.slice(start, end);
 });
 
 /**
@@ -373,8 +380,8 @@ const paginatedPqeas = computed(() => {
  * @returns {number|null} - The updated current page value or null if already on the first page.
  */
 const prevPage = () => {
-    // handleUpdatingAnimationClass(".pqeas-filter__pagination .pages");
-    return currentPage.value > 1 ? currentPage.value-- : null;
+	// handleUpdatingAnimationClass(".pqeas-filter__pagination .pages");
+	return currentPage.value > 1 ? currentPage.value-- : null;
 };
 
 
@@ -386,8 +393,8 @@ const prevPage = () => {
  * @returns {number|null} - The updated current page value or null if already on the last page.
  */
 const nextPage = () => {
-    // handleUpdatingAnimationClass(".pqeas-filter__pagination .pages");
-    return currentPage.value < totalPages.value ? currentPage.value++ : null;
+	// handleUpdatingAnimationClass(".pqeas-filter__pagination .pages");
+	return currentPage.value < totalPages.value ? currentPage.value++ : null;
 };
 
 
@@ -397,7 +404,7 @@ const nextPage = () => {
  * @returns {boolean} - True if the DOM is fully loaded or interactive, otherwise false.
  */
 const isDOMReady = () => {
-    return document.readyState === 'complete' || document.readyState === 'interactive';
+	return document.readyState === 'complete' || document.readyState === 'interactive';
 };
 
 
@@ -408,24 +415,24 @@ const isDOMReady = () => {
  * @type {Array} - An array containing unique EA Project Types sorted alphabetically.
  */
 const categories = computed(() => {
-    const uniqueCategories = new Set();
+	const uniqueCategories = new Set();
 
-    // Iterate through PQEAs to collect distinct project type names.
-    pqeas.value.forEach(pqea => {
-        if (pqea.categories) {
-            if (typeof pqea.categories === 'string') {
-                uniqueCategories.add(pqea.categories);
-            } else if (Array.isArray(pqea.categories)) {
-                pqea.categories.forEach(category => {
-                    uniqueCategories.add(category);
-                });
-            }
-        }
-    });
+	// Iterate through PQEAs to collect distinct project type names.
+	pqeas.value.forEach(pqea => {
+		if (pqea.categories) {
+			if (typeof pqea.categories === 'string') {
+				uniqueCategories.add(pqea.categories);
+			} else if (Array.isArray(pqea.categories)) {
+				pqea.categories.forEach(category => {
+					uniqueCategories.add(category);
+				});
+			}
+		}
+	});
 
-    // Convert Set to array and sort alphabetically.
-    const sortedCategories = Array.from(uniqueCategories).sort((a, b) => a.localeCompare(b));
-    return [...sortedCategories];
+	// Convert Set to array and sort alphabetically.
+	const sortedCategories = Array.from(uniqueCategories).sort((a, b) => a.localeCompare(b));
+	return [...sortedCategories];
 });
 
 
@@ -436,24 +443,24 @@ const categories = computed(() => {
  * @type {Array} - An array containing unique EA Locations sorted alphabetically.
  */
 const locations = computed(() => {
-    const uniqueLocations = new Set();
+	const uniqueLocations = new Set();
 
-    // Iterate through PQEAs to collect distinct location names.
-    pqeas.value.forEach(pqea => {
-        if (pqea.locations) {
-            if (typeof pqea.locations === 'string') {
-                uniqueLocations.add(pqea.locations.name);
-            } else if (Array.isArray(pqea.locations)) {
-                pqea.locations.forEach(location => {
-                    uniqueLocations.add(location.name);
-                });
-            }
-        }
-    });
+	// Iterate through PQEAs to collect distinct location names.
+	pqeas.value.forEach(pqea => {
+		if (pqea.locations) {
+			if (typeof pqea.locations === 'string') {
+				uniqueLocations.add(pqea.locations.name);
+			} else if (Array.isArray(pqea.locations)) {
+				pqea.locations.forEach(location => {
+					uniqueLocations.add(location.name);
+				});
+			}
+		}
+	});
 
-    // Convert Set to array and sort alphabetically.
-    const sortedLocations = Array.from(uniqueLocations).sort((a, b) => a.localeCompare(b));
-    return [...sortedLocations];
+	// Convert Set to array and sort alphabetically.
+	const sortedLocations = Array.from(uniqueLocations).sort((a, b) => a.localeCompare(b));
+	return [...sortedLocations];
 });
 
 /**
@@ -463,7 +470,7 @@ const locations = computed(() => {
  * @type {String} - A string indicating the filter results message based on the selected category.
  */
 const currentTypeFilterMessage = computed(() => {
-    return defaultSelectedCategory.value === selectedCategory.value ? 'specializing in home construction' : 'specializing in home renovation';
+	return defaultSelectedCategory.value === selectedCategory.value ? 'specializing in home construction' : 'specializing in home renovation';
 });
 
 /**
@@ -473,7 +480,7 @@ const currentTypeFilterMessage = computed(() => {
  * @type {String|null} - A string indicating the filter results message or null if 'all' is selected.
  */
 const currentLocationFilterMessage = computed(() => {
-    return 'all' !== selectedLocation.value ? 'servicing ' + selectedLocation.value : null;
+	return 'all' !== selectedLocation.value ? 'servicing ' + selectedLocation.value : null;
 });
 
 /**
@@ -483,22 +490,24 @@ const currentLocationFilterMessage = computed(() => {
  * @returns {void}
  */
 const clearFilters = () => {
-    resetSelectsActiveState();
+	resetSelectsActiveState();
 
-    selectedCategory.value = defaultSelectedCategory.value;
-    selectedLocation.value = defaultSelectedLocation.value;
+	selectedCategory.value = defaultSelectedCategory.value;
+	selectedLocation.value = defaultSelectedLocation.value;
 
-    history.replaceState(selectedCategory.value, defaultSelectedCategory.value);
-    history.replaceState(selectedLocation.value, defaultSelectedLocation.value);
+	history.replaceState(selectedCategory.value, defaultSelectedCategory.value);
+	history.replaceState(selectedLocation.value, defaultSelectedLocation.value);
 
-    currentPage.value !== 1 ? handleUpdatingAnimationClass(".pqeas-filter__pagination .pages") : null;
-    currentPage.value = 1;
+	currentPage.value !== 1 ? handleUpdatingAnimationClass(".pqeas-filter__pagination .pages") : null;
+	currentPage.value = 1;
 };
 
 const resetSelectsActiveState = () => {
-    let activeSelects = document.querySelectorAll('#pqeaFilterApp .custom-select.is-active');
+	let activeSelects = document.querySelectorAll('#pqeaFilterApp .custom-select.is-active');
 
-    0 < activeSelects.length ? activeSelects.forEach((item) => { item.classList.remove('is-active') }) : null;
+	0 < activeSelects.length ? activeSelects.forEach((item) => {
+		item.classList.remove('is-active')
+	}) : null;
 }
 
 /**
@@ -509,7 +518,7 @@ const resetSelectsActiveState = () => {
  * @returns {void}
  */
 const selectIsActive = (event) => {
-    return 'click' !== event.type ? event.target.parentNode.classList.remove(activeClass.value) : event.target.parentNode.classList.toggle(activeClass.value);
+	return 'click' !== event.type ? event.target.parentNode.classList.remove(activeClass.value) : event.target.parentNode.classList.toggle(activeClass.value);
 }
 
 /**
@@ -521,60 +530,62 @@ const selectIsActive = (event) => {
  * @throws {Error} - If there is an error fetching the data from the API.
  */
 const fetchData = async (offset = 0) => {
-    try {
-        // Set loading state to true.
-        isLoading.value = true;
+	try {
+		// Set loading state to true.
+		isLoading.value = true;
 
-        // Check if data exists in sessionStorage and if it's not expired.
-        const cachedData = sessionStorage.getItem('pqeasData');
-        const cachedTimestamp = sessionStorage.getItem('pqeasTimestamp');
-        if (cachedData && cachedTimestamp) {
-            const timeElapsed = Date.now() - parseInt(cachedTimestamp);
-            const hoursElapsed = timeElapsed / (1000 * 60 * 60);
-            if (hoursElapsed < 24) {
-                // Data exists in cache and it's not expired.
-                pqeas.value = JSON.parse(cachedData);
-                showLoadingMessage.value = false;
-                // Set loading state to false after data is fetched.
-                isLoading.value = false;
-                return;
-            }
-        }
+		// Check if data exists in sessionStorage and if it's not expired.
+		const cachedData = sessionStorage.getItem('pqeasData');
+		const cachedTimestamp = sessionStorage.getItem('pqeasTimestamp');
+		if (cachedData && cachedTimestamp) {
+			const timeElapsed = Date.now() - parseInt(cachedTimestamp);
+			const hoursElapsed = timeElapsed / (1000 * 60 * 60);
+			if (hoursElapsed < 24) {
+				// Data exists in cache and it's not expired.
+				pqeas.value = JSON.parse(cachedData);
+				showLoadingMessage.value = false;
+				// Set loading state to false after data is fetched.
+				isLoading.value = false;
+				return;
+			}
+		}
 
-        // Fetch data from API
-        fetch(pqeasAPI, { cache: 'no-store' })
-            .then((r) => r.json())
-            .then((json) => {
-                // Purge old data from sessionStorage to make sure we don't
-                // exceed storage limits.
-                setTimeout(itemsToClearFromSessionStorage.value.forEach((item) => {
-                    sessionStorage.removeItem(item);
-                }), 1000);
+		// Fetch data from API
+		fetch(pqeasAPI, {
+				cache: 'no-store'
+			})
+			.then((r) => r.json())
+			.then((json) => {
+				// Purge old data from sessionStorage to make sure we don't
+				// exceed storage limits.
+				setTimeout(itemsToClearFromSessionStorage.value.forEach((item) => {
+					sessionStorage.removeItem(item);
+				}), 1000);
 
-                // Store data in sessionStorage.
-                sessionStorage.setItem('pqeasData', JSON.stringify(json));
-                sessionStorage.setItem('pqeasTimestamp', Date.now());
-                pqeas.value = json;
-                showLoadingMessage.value = false;
-                // Set loading state to false after data is fetched.
-                isLoading.value = false;
-            })
-            .catch((error) => {
-                console.error('Error fetching data:', error);
-                throw error;
-            });
-    } catch (error) {
-        console.error('Error fetching data:', error);
-        throw error;
-    }
+				// Store data in sessionStorage.
+				sessionStorage.setItem('pqeasData', JSON.stringify(json));
+				sessionStorage.setItem('pqeasTimestamp', Date.now());
+				pqeas.value = json;
+				showLoadingMessage.value = false;
+				// Set loading state to false after data is fetched.
+				isLoading.value = false;
+			})
+			.catch((error) => {
+				console.error('Error fetching data:', error);
+				throw error;
+			});
+	} catch (error) {
+		console.error('Error fetching data:', error);
+		throw error;
+	}
 };
 
 const purgeOldLocalData = (items) => {
-    items.forEach((item) => {
-        sessionStorage.removeItem(item);
-    });
+	items.forEach((item) => {
+		sessionStorage.removeItem(item);
+	});
 
-    return;
+	return;
 }
 
 /**
@@ -585,32 +596,32 @@ const purgeOldLocalData = (items) => {
  * @returns {void}
  */
 watch(() => window.site?.domain, (newVal) => {
-    if (newVal) {
-        fetchData();
-    }
+	if (newVal) {
+		fetchData();
+	}
 });
 
 watch(paginatedPqeas, () => {
-    // Avoid firing animation when number value is the same.
-    if ( oldPaginatedPqeasCount.value !== paginatedPqeas.value.length ) {
-        oldPaginatedPqeasCount.value = paginatedPqeas.value.length;
-        handleUpdatingAnimationClass(".pqeas-filter__pagination .paginated-pqeas");
-    }
+	// Avoid firing animation when number value is the same.
+	if (oldPaginatedPqeasCount.value !== paginatedPqeas.value.length) {
+		oldPaginatedPqeasCount.value = paginatedPqeas.value.length;
+		handleUpdatingAnimationClass(".pqeas-filter__pagination .paginated-pqeas");
+	}
 });
 watch(filteredPqeas, () => {
-        // Avoid firing animation when number value is the same.
-    if ( oldFilteredPqeasCount.value !== filteredPqeas.value.length ) {
-        oldFilteredPqeasCount.value = filteredPqeas.value.length;
-        handleUpdatingAnimationClass(".pqeas-filter__pagination .filtered-pqeas");
-    }
+	// Avoid firing animation when number value is the same.
+	if (oldFilteredPqeasCount.value !== filteredPqeas.value.length) {
+		oldFilteredPqeasCount.value = filteredPqeas.value.length;
+		handleUpdatingAnimationClass(".pqeas-filter__pagination .filtered-pqeas");
+	}
 });
 
 watch(currentPage, () => {
-    handleUpdatingAnimationClass(".pqeas-filter__pagination .current-page");
+	handleUpdatingAnimationClass(".pqeas-filter__pagination .current-page");
 });
 
 watch(totalPages, () => {
-    handleUpdatingAnimationClass(".pqeas-filter__pagination .total-pages");
+	handleUpdatingAnimationClass(".pqeas-filter__pagination .total-pages");
 });
 
 /**
@@ -622,13 +633,13 @@ watch(totalPages, () => {
  * @returns {void}
  */
 watch([selectedCategory, selectedLocation], () => {
-    currentPage.value = 1;
+	currentPage.value = 1;
 });
 
 window.addEventListener("click", (event) => {
-    if ( !event.target.closest('.custom-select.is-active' || document.querySelectorAll('#pqeaFilterApp .custom-select.is-active').length ) ) {
-        resetSelectsActiveState();
-    }
+	if (!event.target.closest('.custom-select.is-active' || document.querySelectorAll('#pqeaFilterApp .custom-select.is-active').length)) {
+		resetSelectsActiveState();
+	}
 });
 
 /**
@@ -639,13 +650,12 @@ window.addEventListener("click", (event) => {
  * @returns {void}
  */
 onMounted(() => {
-    fetchData();
+	fetchData();
 
-    const appElement = document.getElementById('pqeaFilterApp');
-    showLoadingMessage.value = true;
+	const appElement = document.getElementById('pqeaFilterApp');
+	showLoadingMessage.value = true;
 
-    if (window.site?.domain) {
-    }
+	if (window.site?.domain) {}
 });
 </script>
 
@@ -676,388 +686,433 @@ $default_transition_duration: 0.125s;
 $default_outline_width: 0.125rem;
 $default_outline_offset: 0.125rem;
 $default_interactable_min_height: 2.5rem;
-$default_button_min_width: 9.75rem;
+$default_button_min_width: 11.625rem;
 $default_button_padding_vert: 0.5rem;
 $default_button_padding_horz: 1rem;
 $default_table_cell_padding_mobile_vert: 1rem;
 $default_table_cell_padding_mobile_horz: 1rem;
 $default_table_cell_padding_desktop_vert: 0.5rem;
 $default_table_cell_padding_desktop_horz: 1rem;
+$default_border_radius: calc(7rem/16);
+
 // Icons
 $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDI2LjAuMiwgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPgo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IgoJIHZpZXdCb3g9IjAgMCAxOCAxOCIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgMTggMTg7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPHN0eWxlIHR5cGU9InRleHQvY3NzIj4KCS5zdDB7ZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7ZmlsbDojMDAyQTRFO30KPC9zdHlsZT4KPHBhdGggY2xhc3M9InN0MCIgZD0iTTkuNywzLjljMC0wLjEtMC4xLTAuMy0wLjItMC40QzkuNCwzLjQsOS4zLDMuNCw5LjIsMy40SDEuN2MtMC40LDAtMC45LDAuMi0xLjIsMC41QzAuMiw0LjIsMCw0LjYsMCw1LjF2MTEuMgoJYzAsMC40LDAuMiwwLjksMC41LDEuMkMwLjgsMTcuOCwxLjIsMTgsMS43LDE4aDExLjJjMC40LDAsMC45LTAuMiwxLjItMC41YzAuMy0wLjMsMC41LTAuNywwLjUtMS4yVjguOGMwLTAuMS0wLjEtMC4zLTAuMi0wLjQKCWMtMC4xLTAuMS0wLjItMC4yLTAuNC0wLjJjLTAuMSwwLTAuMywwLjEtMC40LDAuMmMtMC4xLDAuMS0wLjIsMC4yLTAuMiwwLjR2Ny41YzAsMC4xLTAuMSwwLjMtMC4yLDAuNGMtMC4xLDAuMS0wLjIsMC4yLTAuNCwwLjIKCUgxLjdjLTAuMSwwLTAuMy0wLjEtMC40LTAuMmMtMC4xLTAuMS0wLjItMC4yLTAuMi0wLjRWNS4xYzAtMC4xLDAuMS0wLjMsMC4yLTAuNGMwLjEtMC4xLDAuMi0wLjIsMC40LTAuMmg3LjUKCWMwLjEsMCwwLjMtMC4xLDAuNC0wLjJDOS43LDQuMiw5LjcsNC4xLDkuNywzLjl6Ii8+CjxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik0xOCwwLjZjMC0wLjEtMC4xLTAuMy0wLjItMC40QzE3LjcsMC4xLDE3LjYsMCwxNy40LDBoLTUuNmMtMC4xLDAtMC4zLDAuMS0wLjQsMC4yYy0wLjEsMC4xLTAuMiwwLjItMC4yLDAuNAoJczAuMSwwLjMsMC4yLDAuNGMwLjEsMC4xLDAuMiwwLjIsMC40LDAuMmg0LjNsLTkuMiw5LjJjLTAuMSwwLjEtMC4xLDAuMS0wLjEsMC4yYzAsMC4xLDAsMC4xLDAsMC4yczAsMC4xLDAsMC4yCgljMCwwLjEsMC4xLDAuMSwwLjEsMC4yQzcsMTEuMSw3LDExLjIsNy4xLDExLjJjMC4xLDAsMC4xLDAsMC4yLDBjMC4xLDAsMC4xLDAsMC4yLDBzMC4xLTAuMSwwLjItMC4xbDkuMi05LjJ2NC4zCgljMCwwLjEsMC4xLDAuMywwLjIsMC40YzAuMSwwLjEsMC4yLDAuMiwwLjQsMC4yYzAuMSwwLDAuMy0wLjEsMC40LTAuMkMxNy45LDYuNSwxOCw2LjMsMTgsNi4yVjAuNnoiLz4KPC9zdmc+Cg==);
 
 #pqeaFilterApp {
-    h2 {
-        margin-top: 0;
+  h2 {
+    margin-top: 0;
+  }
+
+  a,
+  button,
+  .button,
+  select,
+  .select,
+  label,
+  input,
+  span,
+  p {
+    font-size: clamp(
+      var(--wp--preset--font-size--normal),
+      1rem + ((1vw - 0.48rem) * 0.481),
+      1.25rem
+    );
+  }
+
+  button,
+  select {
+    min-width: $default_button_min_width;
+    min-height: $default_interactable_min_height;
+    padding: $default_button_padding_vert $default_button_padding_horz;
+    font-size: clamp(
+      var(--wp--preset--font-size--normal),
+      1rem + ((1vw - 0.48rem) * 0.481),
+      1.25rem
+    );
+    font-weight: bold;
+    border: none;
+    border-radius: $default_border_radius;
+    box-shadow: none;
+  }
+
+  button {
+    color: $scorpiongrey;
+    background-color: $vehiclegrey;
+    transition: all $default_transition_timing_fn $default_transition_duration;
+
+    &:not([disabled]) {
+      background-color: $bahamablue;
+      color: $white;
+      outline: $default_outline_offset solid transparent;
+      outline-offset: $default_outline_offset;
+      cursor: pointer;
+
+      &:hover,
+      &:focus {
+        background-color: darken($bahamablue, 7.5%);
+        transition: all $default_transition_timing_fn
+          $default_transition_duration;
+        outline: $default_outline_offset solid darken($bondiblue, 7.5%);
+      }
     }
 
-    a,
-    button,
-    .button,
-    select,
-    .select,
-    label,
-    input,
-    span,
-    p {
-        font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
-    }
+    &.clear-filters {
+      margin-bottom: 1rem;
 
-    button,
-    select {
-        min-width: $default_button_min_width;
-        min-height: $default_interactable_min_height;
-        padding: $default_button_padding_vert $default_button_padding_horz;
-        font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
-        font-weight: bold;
-        border: none;
-        box-shadow: none;
-    }
-
-    button {
-        color: $scorpiongrey;
-        background-color: $vehiclegrey;
-        transition: all $default_transition_timing_fn $default_transition_duration;
-
-        &:not([disabled]) {
-            background-color: $bahamablue;
-            color: $white;
-            outline: $default_outline_offset solid transparent;
-            outline-offset: $default_outline_offset;
-            cursor: pointer;
-
-            &:hover,
-            &:focus {
-                background-color: darken($bahamablue, 7.5%);
-                transition: all $default_transition_timing_fn $default_transition_duration;
-                outline: $default_outline_offset solid darken($bondiblue, 7.5%);
-            }
-        }
-
-        &.clear-filters {
-            margin-bottom: 1rem;
-
-            @media (min-width: $breakpoint-md) {
-                margin-bottom: 0;
-            }
-        }
-    }
-
-    p {
-        display: block;
-        width: 100%;
-        &.no-results {
-            text-align: center;
-        }
-    }
-
-    .custom-select {
-        display: inline-block;
-        position: relative;
-        width: 100%;
-        max-width: 100%;
-        // margin-bottom: 1rem;
+      @media (min-width: $breakpoint-md) {
         margin-bottom: 0;
+      }
+    }
+  }
+
+  p {
+    display: block;
+    width: 100%;
+    &.no-results {
+      text-align: center;
+    }
+  }
+
+  .custom-select {
+    display: inline-block;
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    // margin-bottom: 1rem;
+    margin-bottom: 0;
+
+    @media (min-width: $breakpoint-sm) {
+      width: auto;
+      margin-right: 0.5rem;
+    }
+    @media (min-width: $breakpoint-md) {
+      // margin-bottom: 0;
+    }
+
+    &::after {
+      display: block;
+      content: " ";
+      position: absolute;
+      right: 1rem;
+      top: 25%;
+      transform: rotateZ(45deg);
+      transform-origin: center;
+      border-color: rgba(var(--secondary-brand-rgb), 1);
+      border-bottom-style: solid;
+      border-bottom-width: #{calc(3 / 16)}rem;
+      border-right-style: solid;
+      border-right-width: #{calc(3 / 16)}rem;
+      height: #{calc(7 / 16)}rem;
+      width: #{calc(7 / 16)}rem;
+      pointer-events: none;
+    }
+
+    &.is-active {
+      &::after {
+        transform: rotate(225deg);
+      }
+    }
+
+    .select {
+      display: block;
+      height: 100%;
+      width: 100%;
+      position: relative;
+      margin-bottom: 0.5rem;
+      padding: $default_button_padding_vert 3rem $default_button_padding_vert
+        $default_button_padding_horz;
+      width: 100%;
+      max-width: 100%;
+      text-align: left;
+      font-size: clamp(
+        var(--wp--preset--font-size--normal),
+        1rem + ((1vw - 0.48rem) * 0.481),
+        1.25rem
+      );
+      line-height: 1.2;
+      background-color: #eceef0;
+      color: $bahamablue;
+      -moz-appearance: none;
+      -webkit-appearance: none;
+      appearance: none;
+      cursor: pointer;
+
+      @media (min-width: $breakpoint-sm) {
+        width: auto;
+      }
+      @media (prefers-color-scheme: dark) {
+        background-color: #eceef0;
+        color: $bahamablue;
+      }
+    }
+  }
+
+  .external {
+    &::after {
+      content: $external-link-icon-dark !important;
+      display: inline-block;
+      width: 1rem;
+      margin-left: 0.5rem;
+    }
+  }
+
+  .pqeasFilterControls {
+    margin-bottom: 1rem;
+    padding: 2rem;
+    background-color: #fff;
+    box-shadow: 0 0.25rem 0.7rem rgba(49, 49, 50, 0.25);
+    border: 0;
+    border-radius: 0.66rem;
+
+    @media (min-width: $breakpoint-sm) {
+      margin-bottom: 2rem;
+    }
+  }
+
+  .pqeas-filter {
+    &__pagination {
+      display: flex;
+      flex-direction: column;
+      align-content: flex-start;
+      align-items: flex-start;
+      justify-content: flex-start;
+      margin: 0;
+      padding: 0;
+
+      @media (min-width: $breakpoint-sm) {
+        flex-direction: row;
+        align-items: center;
+      }
+
+      &--top {}
+
+      &--bottom {
+        margin-top: 1rem;
+      }
+
+      .current-page,
+      .total-pages,
+      .filtered-pqeas,
+      .paginated-pqeas {
+        display: inline-block;
+        transform: scale(1);
+        transition: transform linear $default_transition_duration;
+        transform-origin: center;
+        &.is-updating {
+          transform: scale(1.35);
+          transition: transform linear $default_transition_duration;
+          transform-origin: center;
+        }
+      }
+
+      .pages,
+      .totals {
+        padding: $default_button_padding_vert 0;
+      }
+
+      .pages {
+        margin: 0.5rem 0;
 
         @media (min-width: $breakpoint-sm) {
-            width: auto;
-            margin-right: 0.5rem;
+          margin: 0 1rem;
         }
+      }
+
+      .totals {
+        margin-top: 1rem;
+
+        @media (min-width: $breakpoint-sm) {
+          margin-top: 0;
+          margin-left: 1rem;
+        }
+      }
+    }
+  }
+
+  .pqeasResults {
+    width: 100%;
+    table-layout: fixed;
+    border-spacing: 0;
+
+    address {
+      font-style: normal;
+    }
+
+    thead,
+    tbody {
+      width: 100%;
+    }
+
+    th,
+    td {
+      vertical-align: top;
+      padding: $default_table_cell_padding_mobile_vert
+        $default_table_cell_padding_mobile_horz;
+      width: 100%;
+
+      @media (min-width: $breakpoint-sm) {
+        padding: $default_table_cell_padding_desktop_vert
+          $default_table_cell_padding_desktop_horz;
+        width: auto;
+      }
+    }
+
+    th {
+      font-size: clamp(
+        var(--wp--preset--font-size--normal),
+        1rem + ((1vw - 0.48rem) * 0.481),
+        1.25rem
+      );
+      text-align: left;
+      background-color: $bahamablue;
+      color: white;
+
+      @media (max-width: $breakpoint-sm) {
+        border: none;
+        clip: rect(0 0 0 0);
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        padding: 0;
+        position: absolute;
+        width: 1px;
+      }
+
+      &.odd,
+      &.even {
+        background-color: $bahamablue;
+      }
+    }
+
+    td,
+    tr {
+      @media (max-width: $breakpoint-sm) {
+        display: block;
+      }
+    }
+
+    tr {
+      width: 100%;
+    }
+
+    td {
+      font-size: clamp(
+        var(--wp--preset--font-size--normal),
+        1rem + ((1vw - 0.48rem) * 0.481),
+        1.25rem
+      );
+      word-wrap: break-word;
+
+      &::before {
+        content: attr(data-label);
+        font-size: 1.125rem;
+        font-weight: bold;
+        color: $bahamablue;
+
+        @media (min-width: $breakpoint-sm) {
+          content: none;
+        }
+      }
+
+      a,
+      p,
+      ul {
+        display: block;
+        margin-top: 0;
+        padding-inline-start: 0;
+        font-size: clamp(
+          var(--wp--preset--font-size--normal),
+          1rem + ((1vw - 0.48rem) * 0.481),
+          1.25rem
+        );
+      }
+      li {
+        list-style-type: none;
+        font-size: clamp(
+          var(--wp--preset--font-size--normal),
+          1rem + ((1vw - 0.48rem) * 0.481),
+          1.25rem
+        );
+      }
+    }
+    .col {
+      width: 100%;
+      column-span: all;
+
+      @media (max-width: $breakpoint-sm) {
+        display: block;
+      }
+      @media (min-width: $breakpoint-sm) {
+        width: 20%;
+        column-span: 1;
+      }
+      &--pqea__company-and-location {
         @media (min-width: $breakpoint-md) {
-            // margin-bottom: 0;
+          width: 25%;
         }
-
-        &::after {
-            display: block;
-            content: " ";
-            position: absolute;
-            right: 1rem;
-            top: 25%;
-            transform: rotateZ(45deg);
-            transform-origin: center;
-            border-color: rgba(var(--secondary-brand-rgb), 1);
-            border-bottom-style: solid;
-            border-bottom-width: #{calc(3/16)}rem;
-            border-right-style: solid;
-            border-right-width: #{calc(3/16)}rem;
-            height: #{calc(7/16)}rem;
-            width: #{calc(7/16)}rem;
-            pointer-events: none;
+      }
+      &--pqea__contact-name {
+        @media (min-width: $breakpoint-md) {
+          width: 15%;
         }
-
-        &.is-active {
-            &::after {
-                transform: rotate(225deg);
-            }
+      }
+      &--pqea__service-organizations {
+        @media (min-width: $breakpoint-md) {
+          width: 25%;
         }
-
-        .select {
-            display: block;
-            height: 100%;
-            width: 100%;
-            position: relative;
-            margin-bottom: 0.5rem;
-            padding: $default_button_padding_vert 3rem $default_button_padding_vert $default_button_padding_horz;
-            width: 100%;
-            max-width: 100%;
-            text-align: left;
-            font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
-            line-height: 1.2;
-            background-color: #eceef0;
-            color: $bahamablue;
-            -moz-appearance:none;
-            -webkit-appearance:none;
-            appearance:none;
-            cursor: pointer;
-
-            @media (min-width: $breakpoint-sm) {
-                width: auto;
-            }
-            @media (prefers-color-scheme: dark) {
-                background-color: #eceef0;
-                color: $bahamablue;
-            }
+      }
+      &--pqea__services {
+        @media (min-width: $breakpoint-md) {
+          width: 15%;
         }
+      }
+    }
+    .even {
+      background-color: $white;
+    }
+    .odd {
+      background-color: $gallerygray;
+    }
+    .no-results {
+      width: 100%;
+      text-align: center;
+    }
+  }
+  .pqea {
+    &__company-and-location,
+    &__email-and-phone,
+    &__service-organizations {
+      > * {
+        display: block;
+      }
     }
 
-    .external {
-        &::after {
-            content: $external-link-icon-dark !important;
-            display: inline-block;
-            width: 1rem;
-            margin-left: 0.5rem;
-        }
+    &__service {
+      display: inline-block;
+    }
+    &__service-areas,
+    &__service-organizations {
+      ul {
+        margin-top: 0;
+        margin-bottom: 0;
+      }
     }
 
-    .pqeasFilterControls {
-        margin-bottom: 1rem;
+    td {
+      p {
+        &:last-of-type {
+          margin-bottom: 0;
+        }
+      }
     }
+  }
 
-    .pqeas-filter {
-        &__pagination {
-            display: flex;
-            flex-direction: column;
-            align-content: flex-start;
-            align-items: flex-start;
-            justify-content: flex-start;
-            margin: 0 0 1rem;
-            padding: 0;
+  .is-loading {
+    text-align: center;
 
-            @media (min-width: $breakpoint-sm) {
-                flex-direction: row;
-                align-items: center;
-            }
-
-            &--top {
-                margin-bottom: 1rem;
-            }
-
-            &--bottom {
-                margin-top: 1rem;
-            }
-
-            .current-page,
-            .total-pages,
-            .filtered-pqeas,
-            .paginated-pqeas {
-                display: inline-block;
-                transform: scale(1.0);
-                transition: transform linear $default_transition_duration;
-                transform-origin: center;
-                &.is-updating {
-                    transform: scale(1.35);
-                    transition: transform linear $default_transition_duration;
-                    transform-origin: center;
-                }
-            }
-
-            .pages,
-            .totals {
-                padding: $default_button_padding_vert 0;
-            }
-
-            .pages {
-                margin: 0.5rem 0;
-
-                @media (min-width: $breakpoint-sm) {
-                    margin: 0 1rem;
-                }
-            }
-
-            .totals {
-                margin-top: 1rem;
-
-                @media (min-width: $breakpoint-sm) {
-                    margin-top: 0;
-                    margin-left: 1rem;
-                }
-            }
-        }
+    p {
+      margin-bottom: 0;
     }
-
-    .pqeasResults {
-        width: 100%;
-        table-layout: fixed;
-        border-spacing: 0;
-
-        address {
-            font-style: normal;
-        }
-
-        thead,
-        tbody {
-            width: 100%;
-        }
-
-        th,
-        td {
-            vertical-align: top;
-            padding: $default_table_cell_padding_mobile_vert $default_table_cell_padding_mobile_horz;
-            width: 100%;
-
-            @media (min-width: $breakpoint-sm) {
-                padding: $default_table_cell_padding_desktop_vert $default_table_cell_padding_desktop_horz;
-                width: auto;
-            }
-        }
-
-        th {
-            font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
-            text-align: left;
-            background-color: $bahamablue;
-            color: white;
-
-            @media (max-width: $breakpoint-sm) {
-                border: none;
-                clip: rect(0 0 0 0);
-                height: 1px;
-                margin: -1px;
-                overflow: hidden;
-                padding: 0;
-                position: absolute;
-                width: 1px;
-            }
-
-            &.odd,
-            &.even {
-                background-color: $bahamablue;
-            }
-        }
-
-        td,
-        tr {
-            @media (max-width: $breakpoint-sm) {
-                display: block;
-            }
-        }
-
-        tr {
-            width: 100%;
-        }
-
-        td {
-            font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
-            word-wrap: break-word;
-
-            &::before {
-                content: attr(data-label);
-                font-size: 1.125rem;
-                font-weight: bold;
-                color: $bahamablue;
-
-                @media (min-width: $breakpoint-sm) {
-                    content: none;
-                }
-            }
-
-            a,
-            p,
-            ul {
-                display: block;
-                margin-top: 0;
-                padding-inline-start: 0;
-                font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
-
-            }
-            li {
-                list-style-type: none;
-                font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
-            }
-        }
-        .col {
-            width: 100%;
-            column-span: all;
-
-            @media (max-width: $breakpoint-sm) {
-                display: block;
-            }
-            @media (min-width: $breakpoint-sm) {
-                width: 20%;
-                column-span: 1;
-            }
-            &--pqea__company-and-location {
-                @media (min-width: $breakpoint-md) {
-                    width: 25%;
-                }
-            }
-            &--pqea__contact-name {
-                @media (min-width: $breakpoint-md) {
-                    width: 15%;
-                }
-            }
-            &--pqea__service-organizations {
-                @media (min-width: $breakpoint-md) {
-                    width: 25%;
-                }
-            }
-            &--pqea__services {
-                @media (min-width: $breakpoint-md) {
-                    width: 15%;
-                }
-            }
-        }
-        .even { background-color: $white; }
-        .odd { background-color: $gallerygray; }
-        .no-results {
-            width: 100%;
-            text-align: center;
-        }
-    }
-    .pqea {
-        &__company-and-location,
-        &__email-and-phone,
-        &__service-organizations {
-            > * {
-                display: block;
-            }
-        }
-
-        &__service {
-            display: inline-block;
-        }
-        &__service-areas,
-        &__service-organizations {
-            ul {
-                margin-top: 0;
-                margin-bottom: 0;
-            }
-        }
-
-        td {
-            p {
-                &:last-of-type {
-                    margin-bottom: 0;
-                }
-            }
-        }
-    }
-
-    .is-loading {
-        text-align: center;
-
-        p {
-            margin-bottom: 0;
-        }
-    }
+  }
 }
 </style>
