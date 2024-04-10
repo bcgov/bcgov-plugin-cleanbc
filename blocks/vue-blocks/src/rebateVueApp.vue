@@ -90,7 +90,7 @@
                                     value="all"
                                     :aria-checked="selectedUpgradeTypes.length ? false : true"
                                     :checked="selectedUpgradeTypes.length ? false : true"
-                                    @click="handleSelectAllCheckboxFilter">
+                                    @click="handleSelectAllInputFilter">
                                 <label for="upgradeTypeAll">All Upgrade Types</label>
                             </div>
                             <div v-for="(upgrade, index) in upgrades" :key="index" :class="`checkbox checkbox--${upgrade.toLowerCase().replace(/ /g,'_')}`">
@@ -151,7 +151,7 @@
             </div>
         </div>
 
-        <div class="rebatesSidebar" role="complementary">
+        <div id="rebatesSidebar" class="rebatesSidebar" role="complementary">
             <!-- Offers Filter -->
             <div v-if="!isLoading && offers" class="filter filter--other-offers">
                 <h2>Additional Filters ({{ getOfferTotalTagCount }})</h2>
@@ -164,7 +164,7 @@
                             value="all"
                             :aria-checked="'all' === selectedOtherOffers ? true : false"
                             :checked="'all' === selectedOtherOffers ? true : false"
-                            @click="handleSelectAllCheckboxFilter">
+                            @click="handleSelectAllInputFilter">
                         <label for="offerTypeAll">No additional filters applied</label>
                     </div>
                     <div v-for="(offer, index) in offers" :key="index" :class="`radio radio--${offer.toLowerCase().replace(/ /g,'_')}`">
@@ -178,7 +178,7 @@
                             :checked="offer === selectedOtherOffers ? true : false"
                             @click="handleRadioFilterStylingClass"
                             @touchend="handleRadioFilterStylingClass">
-                        <label :for="offer.toLowerCase().replace(/ /g,'_')">{{ offer }} ({{ getOfferTagCount(offer) }})</label>
+                        <label :for="offer.toLowerCase().replace(/ /g,'_')">{{ offer }} ({{ handleOfferTagCount(offer) }})</label>
                     </div>
                 </fieldset>
             </div>
@@ -240,7 +240,12 @@
  * @type {{ ref: Function, onMounted: Function, computed: Function, watch: Function }}
  * @namespace VueCompositionAPI
  */
-import { ref, onMounted, computed, watch } from 'vue';
+ import {
+	ref,
+	onMounted,
+	computed,
+	watch
+} from 'vue';
 
 /**
  * Ref for storing an array of Rebates (incentives).
@@ -334,10 +339,10 @@ const currentPage = ref(1);
  * @type {Ref<Array>} - A reference to an array of sessionStorage keys to empty.
  */
 const itemsToClearFromSessionStorage = ref([
-    'contractorsData',
-    'contractorsTimestamp',
-    'pqeasData',
-    'pqeasTimestamp',
+	'contractorsData',
+	'contractorsTimestamp',
+	'pqeasData',
+	'pqeasTimestamp',
 ]);
 
 /**
@@ -362,49 +367,51 @@ const rebatesAPI = `${window.site?.domain ? window.site.domain : publicDomain}/w
  * @type {Array} - An array containing the filtered Rebates based on selected taxonomy terms.
  */
 const filteredRebates = computed(() => {
-    const selectedLoc = selectedLocation.value;
-    const selectedUpgrades = selectedUpgradeTypes.value;
-    const selectedBuild = selectedBuildType.value;
-    const selectedSystem = selectedHeatingSystem.value;
-    const selectedOffer = selectedOtherOffers.value;
+	const selectedLoc = selectedLocation.value;
+	const selectedUpgrades = selectedUpgradeTypes.value;
+	const selectedBuild = selectedBuildType.value;
+	const selectedSystem = selectedHeatingSystem.value;
+	const selectedOffer = selectedOtherOffers.value;
 
-    let filteredRebates = [...rebates.value];
+	let filteredRebates = [...rebates.value];
 
-    // Filter by location if 'all' is not selected.
-    if ( 'all' !== selectedLoc ) {
-        filteredRebates = filteredRebates.filter( rebate => rebate.locations && rebate.locations.some(location => location.name === selectedLoc) );
-    }
-    // Filter by Build Type if 'all' is not selected.
-    if ( 'all' !== selectedBuild ) {
-        filteredRebates = filteredRebates.filter( rebate => rebate.types && rebate.types.some(type => type.name === selectedBuild) );
-    }
-    // Filter by Current Primary Heating System if 'all' is not selected.
-    if ( 'all' !== selectedSystem ) {
-        filteredRebates = filteredRebates.filter( rebate => rebate.primary_heating_sys && rebate.primary_heating_sys.some(sys => sys.name === selectedSystem) );
-    }
-    // Filter by Other Offers (multi) if any are selected.
-    if ( 'all' !== selectedOffer ) {
-        filteredRebates = filteredRebates.filter( rebate => rebate.other_offers && rebate.other_offers.some(offer => offer.name === selectedOffer) );
-    }
-    // Filter by Upgrade Types (multi) if any are selected.
-    if ( selectedUpgrades.length ) {
-        filteredRebates = filteredRebates.filter( rebate => rebate.upgrade_types && rebate.upgrade_types.some(type => selectedUpgrades.includes(type.name)) );
-    }
+	// Filter by location if 'all' is not selected.
+	if ('all' !== selectedLoc) {
+		filteredRebates = filteredRebates.filter(rebate => rebate.locations && rebate.locations.some(location => location.name === selectedLoc));
+	}
+	// Filter by Build Type if 'all' is not selected.
+	if ('all' !== selectedBuild) {
+		filteredRebates = filteredRebates.filter(rebate => rebate.types && rebate.types.some(type => type.name === selectedBuild));
+	}
+	// Filter by Current Primary Heating System if 'all' is not selected.
+	if ('all' !== selectedSystem) {
+		filteredRebates = filteredRebates.filter(rebate => rebate.primary_heating_sys && rebate.primary_heating_sys.some(sys => sys.name === selectedSystem));
+	}
+	// Filter by Other Offers (multi) if any are selected.
+	if ('all' !== selectedOffer) {
+		filteredRebates = filteredRebates.filter(rebate => rebate.other_offers && rebate.other_offers.some(offer => offer.name === selectedOffer));
+	}
+	// Filter by Upgrade Types (multi) if any are selected.
+	if (selectedUpgrades.length) {
+		filteredRebates = filteredRebates.filter(rebate => rebate.upgrade_types && rebate.upgrade_types.some(type => selectedUpgrades.includes(type.name)));
+	}
 
-    resetSelectsActiveState();
+	resetSelectsActiveState();
 
-    return filteredRebates;
+	return filteredRebates;
 });
 
 const handleUpdatingAnimationClass = (elementCssPath) => {
-    const elements = document.querySelectorAll(elementCssPath);
+	const elements = document.querySelectorAll(elementCssPath);
 
-    if ( 0 < elements.length ) {
-        elements.forEach((element) => {
-            element.classList.add(updatingClass.value);
-            setTimeout(() => { element.classList.remove(updatingClass.value); }, 125);
-        })
-    }
+	if (0 < elements.length) {
+		elements.forEach((element) => {
+			element.classList.add(updatingClass.value);
+			setTimeout(() => {
+				element.classList.remove(updatingClass.value);
+			}, 125);
+		})
+	}
 }
 
 /**
@@ -415,8 +422,8 @@ const handleUpdatingAnimationClass = (elementCssPath) => {
  * @type {number} - The total number of pages for paginated Rebates.
  */
 const totalPages = computed(() => {
-    const totalRebates = filteredRebates.value.length;
-    return totalRebates > 0 ? Math.ceil(totalRebates / pageSize.value) : 1;
+	const totalRebates = filteredRebates.value.length;
+	return totalRebates > 0 ? Math.ceil(totalRebates / pageSize.value) : 1;
 });
 
 /**
@@ -427,9 +434,9 @@ const totalPages = computed(() => {
  * @type {Array} - An array containing the paginated Rebates for the current page.
  */
 const paginatedRebates = computed(() => {
-    const start = (currentPage.value - 1) * pageSize.value;
-    const end = start + pageSize.value;
-    return filteredRebates.value.slice(start, end);
+	const start = (currentPage.value - 1) * pageSize.value;
+	const end = start + pageSize.value;
+	return filteredRebates.value.slice(start, end);
 });
 
 /**
@@ -440,8 +447,8 @@ const paginatedRebates = computed(() => {
  * @returns {number|null} - The updated current page value or null if already on the first page.
  */
 const prevPage = () => {
-    // handleUpdatingAnimationClass(".filter__pagination .pages");
-    return currentPage.value > 1 ? currentPage.value-- : null;
+	// handleUpdatingAnimationClass(".filter__pagination .pages");
+	return currentPage.value > 1 ? currentPage.value-- : null;
 };
 
 /**
@@ -452,8 +459,8 @@ const prevPage = () => {
  * @returns {number|null} - The updated current page value or null if already on the last page.
  */
 const nextPage = () => {
-    // handleUpdatingAnimationClass(".filter__pagination .pages");
-    return currentPage.value < totalPages.value ? currentPage.value++ : null;
+	// handleUpdatingAnimationClass(".filter__pagination .pages");
+	return currentPage.value < totalPages.value ? currentPage.value++ : null;
 };
 
 /**
@@ -463,24 +470,24 @@ const nextPage = () => {
  * @type {Array} - An array containing unique Project Types sorted alphabetically.
  */
 const types = computed(() => {
-    const uniqueTypes = new Set();
+	const uniqueTypes = new Set();
 
-    // Iterate through Contractors to collect distinct project type names.
-    rebates.value.forEach(rebate => {
-        if (rebate.types) {
-            if (typeof rebate.types === 'string') {
-                uniqueTypes.add(rebate.types.name);
-            } else if (Array.isArray(rebate.types)) {
-                rebate.types.forEach(type => {
-                    uniqueTypes.add(type.name);
-                });
-            }
-        }
-    });
+	// Iterate through Contractors to collect distinct project type names.
+	rebates.value.forEach(rebate => {
+		if (rebate.types) {
+			if (typeof rebate.types === 'string') {
+				uniqueTypes.add(rebate.types.name);
+			} else if (Array.isArray(rebate.types)) {
+				rebate.types.forEach(type => {
+					uniqueTypes.add(type.name);
+				});
+			}
+		}
+	});
 
-    // Convert Set to array and sort alphabetically.
-    const sortedTypes = Array.from(uniqueTypes).sort((a, b) => a.localeCompare(b));
-    return [...sortedTypes];
+	// Convert Set to array and sort alphabetically.
+	const sortedTypes = Array.from(uniqueTypes).sort((a, b) => a.localeCompare(b));
+	return [...sortedTypes];
 });
 
 /**
@@ -490,25 +497,25 @@ const types = computed(() => {
  * @type {Array} - An array containing unique Project Types sorted alphabetically.
  */
 const upgrades = computed(() => {
-    const uniqueUpgrades = new Set();
+	const uniqueUpgrades = new Set();
 
-    // Iterate through Rebates to collect distinct project type names.
-    rebates.value.forEach(rebate => {
-        if (rebate.upgrade_types) {
-            if (typeof rebate.upgrade_types === 'string') {
-                uniqueUpgrades.add(rebate.upgrade_types);
-            } else if (Array.isArray(rebate.upgrade_types)) {
-                rebate.upgrade_types.forEach(upgrade => {
-                    uniqueUpgrades.add(upgrade.name);
-                });
-            }
-        }
-    });
+	// Iterate through Rebates to collect distinct project type names.
+	rebates.value.forEach(rebate => {
+		if (rebate.upgrade_types) {
+			if (typeof rebate.upgrade_types === 'string') {
+				uniqueUpgrades.add(rebate.upgrade_types);
+			} else if (Array.isArray(rebate.upgrade_types)) {
+				rebate.upgrade_types.forEach(upgrade => {
+					uniqueUpgrades.add(upgrade.name);
+				});
+			}
+		}
+	});
 
-    // Convert Set to array and sort alphabetically.
-    const sortedUpgrades = Array.from(uniqueUpgrades).sort((a, b) => a.localeCompare(b));
+	// Convert Set to array and sort alphabetically.
+	const sortedUpgrades = Array.from(uniqueUpgrades).sort((a, b) => a.localeCompare(b));
 
-    return [...sortedUpgrades];
+	return [...sortedUpgrades];
 });
 
 /**
@@ -518,25 +525,25 @@ const upgrades = computed(() => {
  * @type {Array} - An array containing unique Project Types sorted alphabetically.
  */
 const offers = computed(() => {
-    const uniqueOffers = new Set();
+	const uniqueOffers = new Set();
 
-    // Iterate through Rebates to collect distinct project type names.
-    rebates.value.forEach(rebate => {
-        if (rebate.other_offers) {
-            if (typeof rebate.other_offers === 'string') {
-                uniqueOffers.add(rebate.other_offers);
-            } else if (Array.isArray(rebate.other_offers)) {
-                rebate.other_offers.forEach(offer => {
-                    uniqueOffers.add(offer.name);
-                });
-            }
-        }
-    });
+	// Iterate through Rebates to collect distinct project type names.
+	rebates.value.forEach(rebate => {
+		if (rebate.other_offers) {
+			if (typeof rebate.other_offers === 'string') {
+				uniqueOffers.add(rebate.other_offers);
+			} else if (Array.isArray(rebate.other_offers)) {
+				rebate.other_offers.forEach(offer => {
+					uniqueOffers.add(offer.name);
+				});
+			}
+		}
+	});
 
-    // Convert Set to array and sort alphabetically.
-    const sortedOffers = Array.from(uniqueOffers).sort((a, b) => a.localeCompare(b));
+	// Convert Set to array and sort alphabetically.
+	const sortedOffers = Array.from(uniqueOffers).sort((a, b) => a.localeCompare(b));
 
-    return [...sortedOffers];
+	return [...sortedOffers];
 });
 
 /**
@@ -546,25 +553,25 @@ const offers = computed(() => {
  * @type {Array} - An array containing unique Project Types sorted alphabetically.
  */
 const systems = computed(() => {
-    const uniqueSystems = new Set();
+	const uniqueSystems = new Set();
 
-    // Iterate through Rebates to collect distinct project type names.
-    rebates.value.forEach(rebate => {
-        if (rebate.primary_heating_sys) {
-            if (typeof rebate.primary_heating_sys === 'string') {
-                uniqueSystems.add(rebate.primary_heating_sys);
-            } else if (Array.isArray(rebate.primary_heating_sys)) {
-                rebate.primary_heating_sys.forEach(upgrade => {
-                    uniqueSystems.add(upgrade.name);
-                });
-            }
-        }
-    });
+	// Iterate through Rebates to collect distinct project type names.
+	rebates.value.forEach(rebate => {
+		if (rebate.primary_heating_sys) {
+			if (typeof rebate.primary_heating_sys === 'string') {
+				uniqueSystems.add(rebate.primary_heating_sys);
+			} else if (Array.isArray(rebate.primary_heating_sys)) {
+				rebate.primary_heating_sys.forEach(upgrade => {
+					uniqueSystems.add(upgrade.name);
+				});
+			}
+		}
+	});
 
-    // Convert Set to array and sort alphabetically.
-    const sortedSystems = Array.from(uniqueSystems).sort((a, b) => a.localeCompare(b));
+	// Convert Set to array and sort alphabetically.
+	const sortedSystems = Array.from(uniqueSystems).sort((a, b) => a.localeCompare(b));
 
-    return [...sortedSystems];
+	return [...sortedSystems];
 });
 
 /**
@@ -574,24 +581,24 @@ const systems = computed(() => {
  * @type {Array} - An array containing unique Locations sorted alphabetically.
  */
 const locations = computed(() => {
-    const uniqueLocations = new Set();
+	const uniqueLocations = new Set();
 
-    // Iterate through Rebates to collect distinct location names.
-    rebates.value.forEach(rebate => {
-        if (rebate.locations) {
-            if (typeof rebate.locations === 'string') {
-                uniqueLocations.add(rebate.locations.name);
-            } else if (Array.isArray(rebate.locations)) {
-                rebate.locations.forEach(location => {
-                    uniqueLocations.add(location.name);
-                });
-            }
-        }
-    });
+	// Iterate through Rebates to collect distinct location names.
+	rebates.value.forEach(rebate => {
+		if (rebate.locations) {
+			if (typeof rebate.locations === 'string') {
+				uniqueLocations.add(rebate.locations.name);
+			} else if (Array.isArray(rebate.locations)) {
+				rebate.locations.forEach(location => {
+					uniqueLocations.add(location.name);
+				});
+			}
+		}
+	});
 
-    // Convert Set to array and sort alphabetically.
-    const sortedLocations = Array.from(uniqueLocations).sort((a, b) => a.localeCompare(b));
-    return [...sortedLocations];
+	// Convert Set to array and sort alphabetically.
+	const sortedLocations = Array.from(uniqueLocations).sort((a, b) => a.localeCompare(b));
+	return [...sortedLocations];
 });
 
 /**
@@ -601,18 +608,18 @@ const locations = computed(() => {
  * @type {String} - A string indicating the filter results message based on the selected category.
  */
 const currentTypeFilterMessage = computed(() => {
-    const message = ref('');
+	const message = ref('');
 
-    if ( selectedUpgradeTypes.value.length ) {
-        message.value = 'Active upgrade type filters: ';
+	if (selectedUpgradeTypes.value.length) {
+		message.value = 'Active upgrade type filters: ';
 
-        selectedUpgradeTypes.value.forEach((type, index) => {
-            message.value += ' ' + type;
-            index < selectedUpgradeTypes.value.length-1 ? message.value += ', and' : null;
-        });
-    }
+		selectedUpgradeTypes.value.forEach((type, index) => {
+			message.value += ' ' + type;
+			index < selectedUpgradeTypes.value.length - 1 ? message.value += ', and' : null;
+		});
+	}
 
-    return message.value;
+	return message.value;
 });
 
 /**
@@ -622,29 +629,29 @@ const currentTypeFilterMessage = computed(() => {
  * @type {String|null} - A string indicating the filter results message or null if 'all' is selected.
  */
 const currentLocationFilterMessage = computed(() => {
-    return 'all' !== selectedLocation.value ? 'servicing ' + selectedLocation.value : null;
+	return 'all' !== selectedLocation.value ? 'servicing ' + selectedLocation.value : null;
 });
 
 
 const rebateAmountClasses = (rebate_amount) => {
-    const default_class = ref('rebate__amount');
-    const contextual_classes = ref('');
+	const default_class = ref('rebate__amount');
+	const contextual_classes = ref('');
 
-    switch (rebate_amount.toLowerCase()) {
-        case 'fully subscribed':
-            contextual_classes.value = 'fully-subscribed';
-            break;
-        case 'free':
-            contextual_classes.value = 'free';
-            break;
-        case 'nearly subscribed':
-            contextual_classes.value = 'nearly-subscribed';
-            break;
-        default:
-            contextual_classes.value = '';
-    }
+	switch (rebate_amount.toLowerCase()) {
+		case 'fully subscribed':
+			contextual_classes.value = 'fully-subscribed';
+			break;
+		case 'free':
+			contextual_classes.value = 'free';
+			break;
+		case 'nearly subscribed':
+			contextual_classes.value = 'nearly-subscribed';
+			break;
+		default:
+			contextual_classes.value = '';
+	}
 
-    return default_class.value + ' ' + contextual_classes.value;
+	return default_class.value + ' ' + contextual_classes.value;
 };
 
 /**
@@ -654,72 +661,77 @@ const rebateAmountClasses = (rebate_amount) => {
  * @returns {void}
  */
 const clearFilters = () => {
-    const allActiveFilters = document.querySelectorAll(`.${isCheckedClass.value}`);
-    const checkboxFilterAll = document.querySelectorAll(".all");
+	const allActiveFilters = document.querySelectorAll(`.${isCheckedClass.value}`);
+	const checkboxFilterAll = document.querySelectorAll(".all");
 
-    resetSelectsActiveState();
+	resetSelectsActiveState();
 
-    selectedBuildType.value = defaultSelectedBuildType.value;
-    selectedHeatingSystem.value = defaultSelectedHeatingSystem.value;
-    selectedLocation.value = defaultSelectedLocation.value;
-    selectedOtherOffers.value = defaultOtherOffers.value;
-    selectedUpgradeTypes.value = [];
+	selectedBuildType.value = defaultSelectedBuildType.value;
+	selectedHeatingSystem.value = defaultSelectedHeatingSystem.value;
+	selectedLocation.value = defaultSelectedLocation.value;
+	selectedOtherOffers.value = defaultOtherOffers.value;
+	selectedUpgradeTypes.value = [];
 
-    history.replaceState(selectedBuildType.value, defaultSelectedBuildType.value);
-    history.replaceState(selectedHeatingSystem.value, defaultSelectedHeatingSystem.value);
-    history.replaceState(selectedLocation.value, defaultSelectedLocation.value);
-    history.replaceState(selectedOtherOffers.value, defaultOtherOffers.value);
+	history.replaceState(selectedBuildType.value, defaultSelectedBuildType.value);
+	history.replaceState(selectedHeatingSystem.value, defaultSelectedHeatingSystem.value);
+	history.replaceState(selectedLocation.value, defaultSelectedLocation.value);
+	history.replaceState(selectedOtherOffers.value, defaultOtherOffers.value);
 
-    allActiveFilters.length ? allActiveFilters.forEach((activeFilter) => { activeFilter.classList.remove(isCheckedClass.value) }) : null;
-    checkboxFilterAll.checked = true;
-    checkboxFilterAll.forEach((checkbox) => { checkbox.classList.add(isCheckedClass.value) });
+	allActiveFilters.length ? allActiveFilters.forEach((activeFilter) => {
+		activeFilter.classList.remove(isCheckedClass.value)
+	}) : null;
+	checkboxFilterAll.checked = true;
+	checkboxFilterAll.forEach((checkbox) => {
+		checkbox.classList.add(isCheckedClass.value)
+	});
 
-    currentPage.value !== 1 ? handleUpdatingAnimationClass(".filter__pagination .pages") : null;
-    currentPage.value = 1;
+	currentPage.value !== 1 ? handleUpdatingAnimationClass(".filter__pagination .pages") : null;
+	currentPage.value = 1;
 };
 
-const handleSelectAllCheckboxFilter = (event) => {
-    const container = event.target.closest(".filter-container");
-    const checkboxFilterAll = container.querySelector(".all");
-    const allActiveFilters = container.querySelectorAll(`.${isCheckedClass.value}`);
+const handleSelectAllInputFilter = (event) => {
+	const container = event.target.closest(".filter-container");
+	const checkboxFilterAll = container.querySelector(".all");
+	const allActiveFilters = container.querySelectorAll(`.${isCheckedClass.value}`);
 
-    event.target.id === "offerTypeAll" ? selectedOtherOffers.value = 'all' : null;
-    event.target.id === "upgradeTypeAll" ? selectedUpgradeTypes.value = [] : null;
+	event.target.id === "offerTypeAll" ? selectedOtherOffers.value = 'all' : null;
+	event.target.id === "upgradeTypeAll" ? selectedUpgradeTypes.value = [] : null;
 
-    allActiveFilters.length ? allActiveFilters.forEach((activeFilter) => { activeFilter.classList.remove(isCheckedClass.value) }) : null;
+	allActiveFilters.length ? allActiveFilters.forEach((activeFilter) => {
+		activeFilter.classList.remove(isCheckedClass.value)
+	}) : null;
 
-    !event.target.parentNode.classList.contains(isCheckedClass.value) ? event.target.parentNode.classList.add(isCheckedClass.value) : null;
-    checkboxFilterAll.checked = true;
+	!event.target.parentNode.classList.contains(isCheckedClass.value) ? event.target.parentNode.classList.add(isCheckedClass.value) : null;
+	checkboxFilterAll.checked = true;
 
-    currentPage.value !== 1 ? handleUpdatingAnimationClass(".filter__pagination .pages") : null;
-    currentPage.value = 1;
+	currentPage.value !== 1 ? handleUpdatingAnimationClass(".filter__pagination .pages") : null;
+	currentPage.value = 1;
 }
 
 const handleCheckboxFilterStylingClass = (event) => {
-    const container = event.target.closest(".filter-container");
-    const allFiltersInput = container.querySelector(".all");
+	const container = event.target.closest(".filter-container");
+	const allFiltersInput = container.querySelector(".all");
 
-    !event.target.parentNode.classList.contains(isCheckedClass.value) ? event.target.parentNode.classList.add(isCheckedClass.value) : event.target.parentNode.classList.remove(isCheckedClass.value);
-    allFiltersInput.classList.contains(isCheckedClass.value) ? allFiltersInput.classList.remove(isCheckedClass.value) : null;
+	!event.target.parentNode.classList.contains(isCheckedClass.value) ? event.target.parentNode.classList.add(isCheckedClass.value) : event.target.parentNode.classList.remove(isCheckedClass.value);
+	allFiltersInput.classList.contains(isCheckedClass.value) ? allFiltersInput.classList.remove(isCheckedClass.value) : null;
 }
 
 const handleRadioFilterStylingClass = (event) => {
-    const container = event.target.closest(".filter-container");
-    const allFiltersInput = container.querySelector(".all");
-    const oldActiveRadio = container.querySelector(`.${isCheckedClass.value}`);
+	const container = event.target.closest(".filter-container");
+	const allFiltersInput = container.querySelector(".all");
+	const oldActiveRadio = container.querySelector(`.${isCheckedClass.value}`);
 
-    undefined !== oldActiveRadio ? oldActiveRadio.classList.remove(isCheckedClass.value) : null;
-
-    //
-    !event.target.parentNode.classList.contains(isCheckedClass.value) ? event.target.parentNode.classList.add(isCheckedClass.value) : null;
-
-    allFiltersInput.classList.contains(isCheckedClass.value) ? allFiltersInput.classList.remove(isCheckedClass.value) : null;
+	undefined !== oldActiveRadio ? oldActiveRadio.classList.remove(isCheckedClass.value) : null;
+	!event.target.parentNode.classList.contains(isCheckedClass.value) ? event.target.parentNode.classList.add(isCheckedClass.value) : null;
+	allFiltersInput.classList.contains(isCheckedClass.value) ? allFiltersInput.classList.remove(isCheckedClass.value) : null;
 }
 
 const resetSelectsActiveState = () => {
-    let activeSelects = document.querySelectorAll('#rebateFilterApp .custom-select.is-active');
+	let activeSelects = document.querySelectorAll('#rebateFilterApp .custom-select.is-active');
 
-    0 < activeSelects.length ? activeSelects.forEach((item) => { item.classList.remove('is-active') }) : null;
+	0 < activeSelects.length ? activeSelects.forEach((item) => {
+		item.classList.remove('is-active')
+	}) : null;
 }
 
 /**
@@ -730,7 +742,7 @@ const resetSelectsActiveState = () => {
  * @returns {void}
  */
 const selectIsActive = (event) => {
-    return 'click' !== event.type ? event.target.parentNode.classList.remove(activeClass.value) : event.target.parentNode.classList.toggle(activeClass.value);
+	return 'click' !== event.type ? event.target.parentNode.classList.remove(activeClass.value) : event.target.parentNode.classList.toggle(activeClass.value);
 }
 
 /**
@@ -744,10 +756,10 @@ const selectIsActive = (event) => {
  * Because the Upgrade Type filter is presented as a multi-select, * run .reduce() against all Rebates, rather than just the current, * filtered sub-set.
  */
 const getUpgradeTypeTagCount = (tag) => {
-    return rebates.value.reduce(
-        (count, rebate) => count + (JSON.stringify(rebate.upgrade_types).includes(tag) ? 1 : 0),
-        0
-    );
+	return rebates.value.reduce(
+		(count, rebate) => count + (JSON.stringify(rebate.upgrade_types).includes(tag) ? 1 : 0),
+		0
+	);
 };
 
 /**
@@ -758,18 +770,32 @@ const getUpgradeTypeTagCount = (tag) => {
  * @param {string} tag - The tag for which to calculate the count.
  * @returns {number} The count of posts containing the specified tag.
  */
-const getOfferTagCount = (tag) => {
-    return rebates.value.reduce(
-        (count, rebate) => count + (JSON.stringify(rebate.other_offers).includes(tag) ? 1 : 0),
-        0
-    );
+const handleOfferTagCount = (tag) => {
+  const container = document.querySelector("#rebatesSidebar .filter-container");
+
+  let count = filteredRebates.value.reduce(
+		(count, rebate) => count + (JSON.stringify(rebate.other_offers).includes(tag) ? 1 : 0),
+		0
+	);
+
+  if ( 0 === count ) {
+    container.querySelector(".radio input[value=\""+tag+"\"]").disabled = true;
+    container.querySelector(".radio input[value=\""+tag+"\"]").parentNode.classList.add("is-disabled");
+  } else {
+    if ( container && container.querySelector(".radio input[value=\""+tag+"\"]") ) {
+      container.querySelector(".radio input[value=\""+tag+"\"]").disabled = false;
+      container.querySelector(".radio input[value=\""+tag+"\"]").parentNode.classList.remove("is-disabled");
+    }
+  }
+
+	return count;
 };
 
 const getOfferTotalTagCount = computed(() => {
-    return rebates.value.reduce(
-        (count, rebate) => count + (undefined !== rebate.other_offers.length ? rebate.other_offers.length : 0),
-        0
-    );
+  return filteredRebates.value.reduce(
+		(count, rebate) => count + (undefined !== rebate.other_offers.length ? rebate.other_offers.length : 0),
+		0
+	);
 });
 
 /**
@@ -781,52 +807,54 @@ const getOfferTotalTagCount = computed(() => {
  * @throws {Error} - If there is an error fetching the data from the API.
  */
 const fetchData = async (offset = 0) => {
-    try {
-        // Set loading state to true.
-        isLoading.value = true;
+	try {
+		// Set loading state to true.
+		isLoading.value = true;
 
-        // Check if data exists in sessionStorage and if it's not expired.
-        const cachedData = sessionStorage.getItem('rebatesData');
-        const cachedTimestamp = sessionStorage.getItem('rebatesTimestamp');
-        if (cachedData && cachedTimestamp) {
-            const timeElapsed = Date.now() - parseInt(cachedTimestamp);
-            const hoursElapsed = timeElapsed / (1000 * 60 * 60);
-            if (hoursElapsed < 24) {
-                // Data exists in cache and it's not expired.
-                rebates.value = JSON.parse(cachedData);
-                showLoadingMessage.value = false;
-                // Set loading state to false after data is fetched.
-                isLoading.value = false;
-                return;
-            }
-        }
+		// Check if data exists in sessionStorage and if it's not expired.
+		const cachedData = sessionStorage.getItem('rebatesData');
+		const cachedTimestamp = sessionStorage.getItem('rebatesTimestamp');
+		if (cachedData && cachedTimestamp) {
+			const timeElapsed = Date.now() - parseInt(cachedTimestamp);
+			const hoursElapsed = timeElapsed / (1000 * 60 * 60);
+			if (hoursElapsed < 24) {
+				// Data exists in cache and it's not expired.
+				rebates.value = JSON.parse(cachedData);
+				showLoadingMessage.value = false;
+				// Set loading state to false after data is fetched.
+				isLoading.value = false;
+				return;
+			}
+		}
 
-        // Fetch data from API
-        fetch(rebatesAPI, { cache: 'no-store' })
-            .then((r) => r.json())
-            .then((json) => {
-                // Purge old data from sessionStorage to make sure we don't
-                // exceed storage limits.
-                setTimeout(itemsToClearFromSessionStorage.value.forEach((item) => {
-                    sessionStorage.removeItem(item);
-                }), 1000);
+		// Fetch data from API
+		fetch(rebatesAPI, {
+				cache: 'no-store'
+			})
+			.then((r) => r.json())
+			.then((json) => {
+				// Purge old data from sessionStorage to make sure we don't
+				// exceed storage limits.
+				setTimeout(itemsToClearFromSessionStorage.value.forEach((item) => {
+					sessionStorage.removeItem(item);
+				}), 1000);
 
-                // Store data in sessionStorage.
-                sessionStorage.setItem('rebatesData', JSON.stringify(json));
-                sessionStorage.setItem('rebatesTimestamp', Date.now());
-                rebates.value = json;
-                showLoadingMessage.value = false;
-                // Set loading state to false after data is fetched.
-                isLoading.value = false;
-            })
-            .catch((error) => {
-                console.error('Error fetching data:', error);
-                throw error;
-            });
-    } catch (error) {
-        console.error('Error fetching data:', error);
-        throw error;
-    }
+				// Store data in sessionStorage.
+				sessionStorage.setItem('rebatesData', JSON.stringify(json));
+				sessionStorage.setItem('rebatesTimestamp', Date.now());
+				rebates.value = json;
+				showLoadingMessage.value = false;
+				// Set loading state to false after data is fetched.
+				isLoading.value = false;
+			})
+			.catch((error) => {
+				console.error('Error fetching data:', error);
+				throw error;
+			});
+	} catch (error) {
+		console.error('Error fetching data:', error);
+		throw error;
+	}
 };
 
 /**
@@ -837,46 +865,46 @@ const fetchData = async (offset = 0) => {
  * @returns {void}
  */
 watch(() => window.site?.domain, (newVal) => {
-    if (newVal) {
-        fetchData();
-    }
+	if (newVal) {
+		fetchData();
+	}
 });
 
 watch(paginatedRebates, () => {
-    // Avoid firing animation when number value is the same.
-    if ( oldPaginatedRebatesCount.value !== paginatedRebates.value.length ) {
-        oldPaginatedRebatesCount.value = paginatedRebates.value.length;
-        handleUpdatingAnimationClass(".filter__pagination .paginated-rebates");
-    }
+	// Avoid firing animation when number value is the same.
+	if (oldPaginatedRebatesCount.value !== paginatedRebates.value.length) {
+		oldPaginatedRebatesCount.value = paginatedRebates.value.length;
+		handleUpdatingAnimationClass(".filter__pagination .paginated-rebates");
+	}
 });
 watch(filteredRebates, () => {
-        // Avoid firing animation when number value is the same.
-    if ( oldFilteredRebatesCount.value !== filteredRebates.value.length ) {
-        oldFilteredRebatesCount.value = filteredRebates.value.length;
-        handleUpdatingAnimationClass(".filter__pagination .filtered-rebates");
-    }
+	// Avoid firing animation when number value is the same.
+	if (oldFilteredRebatesCount.value !== filteredRebates.value.length) {
+		oldFilteredRebatesCount.value = filteredRebates.value.length;
+		handleUpdatingAnimationClass(".filter__pagination .filtered-rebates");
+	}
 });
 
 watch(currentPage, () => {
-    handleUpdatingAnimationClass(".filter__pagination .current-page");
+	handleUpdatingAnimationClass(".filter__pagination .current-page");
 });
 watch(totalPages, () => {
-    handleUpdatingAnimationClass(".filter__pagination .total-pages");
+	handleUpdatingAnimationClass(".filter__pagination .total-pages");
 });
 
 watch(selectedUpgradeTypes, () => {
-  const container = document.querySelector(".filter--other-offers");
-  const radioFilterAll = container.querySelector(".all");
-  const activeOfferFilter = container.querySelector("."  + isCheckedClass.value);
+	const container = document.querySelector(".filter--other-offers");
+	const radioFilterAll = container.querySelector(".all");
+	const activeOfferFilter = container.querySelector("." + isCheckedClass.value);
 
-  if ( 'all' !== selectedOtherOffers.value ) {
-    selectedOtherOffers.value = defaultOtherOffers.value;
-    history.replaceState(selectedOtherOffers.value, defaultOtherOffers.value);
-    activeOfferFilter.querySelector('input').checked = false;
-    activeOfferFilter.classList.remove(isCheckedClass.value);
-    radioFilterAll.querySelector('input').checked = true;
-    radioFilterAll.classList.add(isCheckedClass.value);
-  }
+	if ('all' !== selectedOtherOffers.value) {
+		selectedOtherOffers.value = defaultOtherOffers.value;
+		history.replaceState(selectedOtherOffers.value, defaultOtherOffers.value);
+		activeOfferFilter.querySelector('input').checked = false;
+		activeOfferFilter.classList.remove(isCheckedClass.value);
+		radioFilterAll.querySelector('input').checked = true;
+		radioFilterAll.classList.add(isCheckedClass.value);
+	}
 });
 
 /**
@@ -888,13 +916,13 @@ watch(selectedUpgradeTypes, () => {
  * @returns {void}
  */
 watch([selectedBuildType, selectedLocation, selectedUpgradeTypes, selectedHeatingSystem, selectedOtherOffers], () => {
-    currentPage.value = 1;
+	currentPage.value = 1;
 });
 
 window.addEventListener("click", (event) => {
-    if ( !event.target.closest('.custom-select.is-active' || document.querySelectorAll('#rebateFilterApp .custom-select.is-active').length ) ) {
-        resetSelectsActiveState();
-    }
+	if (!event.target.closest('.custom-select.is-active' || document.querySelectorAll('#rebateFilterApp .custom-select.is-active').length)) {
+		resetSelectsActiveState();
+	}
 });
 
 /**
@@ -905,66 +933,65 @@ window.addEventListener("click", (event) => {
  * @returns {void}
  */
 onMounted(() => {
-    fetchData();
+	fetchData();
 
-    const appElement = document.getElementById('rebateFilterApp');
-    showLoadingMessage.value = true;
+	const appElement = document.getElementById('rebateFilterApp');
+	showLoadingMessage.value = true;
 
-    if (window.site?.domain) {
-    }
+	if (window.site?.domain) {}
 
-    // init accordions
-    const accordions = document.querySelectorAll('.filter--upgrade-types.accordion h2');
-    accordions.forEach((accordionEl) => {
-        new Accordion(accordionEl);
-    });
+	// init accordions
+	const accordions = document.querySelectorAll('.filter--upgrade-types.accordion h2');
+	accordions.forEach((accordionEl) => {
+		new Accordion(accordionEl);
+	});
 
 });
 
 class Accordion {
-  constructor(domNode) {
-    this.rootEl = domNode;
-    this.buttonEl = this.rootEl.querySelector('button[aria-expanded]');
+	constructor(domNode) {
+		this.rootEl = domNode;
+		this.buttonEl = this.rootEl.querySelector('button[aria-expanded]');
 
-    const controlsId = this.buttonEl.getAttribute('aria-controls');
-    this.contentEl = document.getElementById(controlsId);
+		const controlsId = this.buttonEl.getAttribute('aria-controls');
+		this.contentEl = document.getElementById(controlsId);
 
-    this.open = this.buttonEl.getAttribute('aria-expanded') === 'true';
+		this.open = this.buttonEl.getAttribute('aria-expanded') === 'true';
 
-    // add event listeners
-    this.buttonEl.addEventListener('click', this.onButtonClick.bind(this));
-  }
+		// add event listeners
+		this.buttonEl.addEventListener('click', this.onButtonClick.bind(this));
+	}
 
-  onButtonClick() {
-    this.toggle(!this.open);
-  }
+	onButtonClick() {
+		this.toggle(!this.open);
+	}
 
-  toggle(open) {
-    // don't do anything if the open state doesn't change
-    if (open === this.open) {
-      return;
-    }
+	toggle(open) {
+		// don't do anything if the open state doesn't change
+		if (open === this.open) {
+			return;
+		}
 
-    // update the internal state
-    this.open = open;
+		// update the internal state
+		this.open = open;
 
-    // handle DOM updates
-    this.buttonEl.setAttribute('aria-expanded', `${open}`);
-    if (open) {
-      this.contentEl.removeAttribute('hidden');
-    } else {
-      this.contentEl.setAttribute('hidden', '');
-    }
-  }
+		// handle DOM updates
+		this.buttonEl.setAttribute('aria-expanded', `${open}`);
+		if (open) {
+			this.contentEl.removeAttribute('hidden');
+		} else {
+			this.contentEl.setAttribute('hidden', '');
+		}
+	}
 
-  // Add public open and close methods for convenience
-  open() {
-    this.toggle(true);
-  }
+	// Add public open and close methods for convenience
+	open() {
+		this.toggle(true);
+	}
 
-  close() {
-    this.toggle(false);
-  }
+	close() {
+		this.toggle(false);
+	}
 }
 </script>
 
@@ -995,9 +1022,10 @@ $default_transition_duration: 0.125s;
 $default_outline_width: 0.125rem;
 $default_outline_offset: 0.125rem;
 $default_interactable_min_height: 2.5rem;
-$default_button_min_width: 9.75rem;
+$default_button_min_width: 11.625rem;
 $default_button_padding_vert: 0.5rem;
 $default_button_padding_horz: 1rem;
+$default_border_radius: calc(7rem/16);
 
 // Icons
 $external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDI2LjAuMiwgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPgo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IgoJIHZpZXdCb3g9IjAgMCAxOCAxOCIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgMTggMTg7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPHN0eWxlIHR5cGU9InRleHQvY3NzIj4KCS5zdDB7ZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7ZmlsbDojMDAyQTRFO30KPC9zdHlsZT4KPHBhdGggY2xhc3M9InN0MCIgZD0iTTkuNywzLjljMC0wLjEtMC4xLTAuMy0wLjItMC40QzkuNCwzLjQsOS4zLDMuNCw5LjIsMy40SDEuN2MtMC40LDAtMC45LDAuMi0xLjIsMC41QzAuMiw0LjIsMCw0LjYsMCw1LjF2MTEuMgoJYzAsMC40LDAuMiwwLjksMC41LDEuMkMwLjgsMTcuOCwxLjIsMTgsMS43LDE4aDExLjJjMC40LDAsMC45LTAuMiwxLjItMC41YzAuMy0wLjMsMC41LTAuNywwLjUtMS4yVjguOGMwLTAuMS0wLjEtMC4zLTAuMi0wLjQKCWMtMC4xLTAuMS0wLjItMC4yLTAuNC0wLjJjLTAuMSwwLTAuMywwLjEtMC40LDAuMmMtMC4xLDAuMS0wLjIsMC4yLTAuMiwwLjR2Ny41YzAsMC4xLTAuMSwwLjMtMC4yLDAuNGMtMC4xLDAuMS0wLjIsMC4yLTAuNCwwLjIKCUgxLjdjLTAuMSwwLTAuMy0wLjEtMC40LTAuMmMtMC4xLTAuMS0wLjItMC4yLTAuMi0wLjRWNS4xYzAtMC4xLDAuMS0wLjMsMC4yLTAuNGMwLjEtMC4xLDAuMi0wLjIsMC40LTAuMmg3LjUKCWMwLjEsMCwwLjMtMC4xLDAuNC0wLjJDOS43LDQuMiw5LjcsNC4xLDkuNywzLjl6Ii8+CjxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik0xOCwwLjZjMC0wLjEtMC4xLTAuMy0wLjItMC40QzE3LjcsMC4xLDE3LjYsMCwxNy40LDBoLTUuNmMtMC4xLDAtMC4zLDAuMS0wLjQsMC4yYy0wLjEsMC4xLTAuMiwwLjItMC4yLDAuNAoJczAuMSwwLjMsMC4yLDAuNGMwLjEsMC4xLDAuMiwwLjIsMC40LDAuMmg0LjNsLTkuMiw5LjJjLTAuMSwwLjEtMC4xLDAuMS0wLjEsMC4yYzAsMC4xLDAsMC4xLDAsMC4yczAsMC4xLDAsMC4yCgljMCwwLjEsMC4xLDAuMSwwLjEsMC4yQzcsMTEuMSw3LDExLjIsNy4xLDExLjJjMC4xLDAsMC4xLDAsMC4yLDBjMC4xLDAsMC4xLDAsMC4yLDBzMC4xLTAuMSwwLjItMC4xbDkuMi05LjJ2NC4zCgljMCwwLjEsMC4xLDAuMywwLjIsMC40YzAuMSwwLjEsMC4yLDAuMiwwLjQsMC4yYzAuMSwwLDAuMy0wLjEsMC40LTAuMkMxNy45LDYuNSwxOCw2LjMsMTgsNi4yVjAuNnoiLz4KPC9zdmc+Cg==);
@@ -1060,6 +1088,7 @@ $house-icon-dark: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjIiIGhlaWdodD0i
     min-width: $default_button_min_width;
     min-height: $default_interactable_min_height;
     padding: $default_button_padding_vert $default_button_padding_horz;
+    border-radius: $default_border_radius;
     font-weight: bold;
     border: none;
     box-shadow: none;
@@ -1164,7 +1193,8 @@ $house-icon-dark: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjIiIGhlaWdodD0i
     background-color: #fff;
     box-shadow: 0 0.25rem 0.7rem rgba(49, 49, 50, 0.25);
     border: 0;
-    border-radius: 0.66rem;
+    // border-radius: 0.66rem;
+    border-radius: $default_border_radius;
 
     @media (min-width: $breakpoint-sm) {
       flex-direction: row;
@@ -1362,6 +1392,7 @@ $house-icon-dark: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjIiIGhlaWdodD0i
     justify-content: flex-start;
     align-content: flex-start;
     align-items: stretch;
+    position: relative;
 
     @media (min-width: $breakpoint-sm) {
       flex-direction: row;
@@ -1484,6 +1515,9 @@ $house-icon-dark: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjIiIGhlaWdodD0i
 
     @media (min-width: $breakpoint-sm) {
       flex-basis: calc(30% - 0.5rem);
+      position: sticky;
+      top: 4rem;
+      // top: 8.25rem;
     }
 
     .filter {
@@ -1551,6 +1585,20 @@ $house-icon-dark: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjIiIGhlaWdodD0i
       label {
         font-weight: bold;
         background-color: rgba($prussianblue, 0.15);
+        border-left-color: $prussianblue;
+      }
+    }
+
+    &.is-disabled {
+      opacity: 0.5;
+
+      label {
+        &:hover,
+        &:focus {
+          background-color: rgba($prussianblue, 0);
+          border-left: 0.25rem solid transparent;
+          transition: background-color $default_transition_timing_fn $default_transition_duration;
+        }
       }
     }
 
@@ -1567,12 +1615,14 @@ $house-icon-dark: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjIiIGhlaWdodD0i
       padding: 0.5rem;
       cursor: pointer;
       background-color: rgba($prussianblue, 0);
-      transition: background-color $default_transition_timing_fn $default_transition_duration;
+      border-left: 0.25rem solid transparent;
+      transition: all $default_transition_timing_fn $default_transition_duration;
 
       &:hover,
       &:focus {
         background-color: rgba($prussianblue, 0.15);
-        transition: background-color $default_transition_timing_fn $default_transition_duration;
+        border-left-color: $prussianblue;
+        transition: all $default_transition_timing_fn $default_transition_duration;
       }
     }
   }
