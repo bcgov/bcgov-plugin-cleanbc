@@ -6,10 +6,36 @@
  *
  * @package Bcgov\Plugin\BasicBlocks
  */
-?>
+require WP_PLUGIN_DIR . '/bcgov-plugin-cleanbc/templates/config/template-vars.php';
 
-<?php if ( $is_gb_editor ) { ?>
-	<p>*In Editor*</p>
-<?php } ?>
+/**
+ * ACF Fields
+ */
+$rebate_amount_section = get_field( 'rebate_amount_section', $post->ID );
+$content_blocks        = $rebate_amount_section['content_blocks'];
 
- <p>TODO: Rebates Page - rebate_amount Content</p>
+if ( $is_gb_editor ) : ?>
+	<h2>Rebate Amount</h2>
+	<p><b>Note to editors:</b> This content can be found in the <b>Rebate Amount</b> tab of the <b>Template Rebate</b> section in the post itself.</p>
+<?php elseif ( $content_blocks ) : ?>
+	<section id="rebate-amount" class="block block--rebate-amount rebate-amount-block">
+		<div class="inner">
+			<h2>Rebate Amount</h2>
+			<div class="content-blocks">
+				<div class="inner">
+					<?php
+                    foreach ( $content_blocks as $key => $content_block ) :
+						$content_block_classes   = [
+							'content-block ',
+						];
+						$content_block_layout    = $content_block['acf_fc_layout'];
+						$content_block_classes[] = $content_block_layout . ' ';
+
+						include WP_PLUGIN_DIR . '/bcgov-plugin-cleanbc/templates/blocks/partials/content-blocks.php';
+					endforeach;
+                    ?>
+				</div>
+			</div>
+		</div>
+	</section>
+<?php endif; ?>

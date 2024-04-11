@@ -1,4 +1,6 @@
-## 1.5.0 March 20, 2024
+## 1.5.0 April 11, 2024
+- Rebates block partials.
+- Accessibility improvements for Rebates app filters.
 - PQEAs, Rebates, and Contractors Vue apps, fixed sessionStorage purge, style clean-up and reorg.
 - Rebates app: updated filtering logic and display for Offers and Types.
 - Rebates app: improved UX, term counts, updated filtering logic.
