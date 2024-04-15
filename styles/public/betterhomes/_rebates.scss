@@ -11,6 +11,12 @@
     color: $prussianblue;
   }
 
+  h1 {
+    margin-bottom: 1rem;
+
+    @media (min-width: $breakpoint-md) { margin-bottom: 2rem; }
+  }
+
   h2 {
     padding-bottom: 0.5rem;
     font-size: clamp(
@@ -83,6 +89,18 @@
     border-spacing: 0;
     // background-color: rgba($bahamablue, 7.5%);
     background-color: $white;
+
+    &.block_rebate_table {
+      tr {
+        &.odd {
+          td {
+            &.even {
+              background-color: rgba($dovegrey, 10%);
+            }
+          }
+        }
+      }
+    }
 
     &.block_ready_to_apply_table {
       thead {}
@@ -286,7 +304,29 @@
   // .rebate-amount-block {}
   // .deadlines-block {}
   // .howtoapply-block {}
-  // .whotocontact-block {}
+  .whotocontact-block {
+    .block_text_block {
+      h3 {
+        &:last-of-type {
+          margin-top: 1rem;
+
+          @media (min-width: $breakpoint-md) {
+            margin-top: 2rem;
+          }
+        }
+      }
+
+      + .content-block {
+        &.block_contact_list {
+          margin-top: 0.5rem;
+
+          @media (min-width: $breakpoint-md) {
+            margin-top: 1rem;
+          }
+        }
+      }
+    }
+  }
   // .program-updates-block {}
 
   .faqs-block {
@@ -427,6 +467,7 @@
       margin-bottom: 0.5rem;
       background-repeat: no-repeat;
       background-position: center;
+      border: none;
 
       @media (min-width: $breakpoint-md) {
         margin-right: 0.5rem;
@@ -554,6 +595,12 @@
           background-image: $site_icon;
         }
       }
+    }
+  }
+
+  .wp-block-columns {
+    @media (min-width: $breakpoint-md) {
+      gap: 2rem;
     }
   }
 }

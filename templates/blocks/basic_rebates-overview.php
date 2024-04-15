@@ -7,12 +7,12 @@
  * @package Bcgov\Plugin\BasicBlocks
  */
 
- require WP_PLUGIN_DIR . '/bcgov-plugin-cleanbc/templates/config/template-vars.php';
+require WP_PLUGIN_DIR . '/bcgov-plugin-cleanbc/templates/config/template-vars.php';
 
 /**
  * ACF Fields
  */
-$overview_section       = get_field( 'overview_section', $post->ID );
+$overview_section       = get_field( 'overview_section' );
 $block_overview_details = $overview_section['block_overview_details'];
 $content_blocks         = $overview_section['content_blocks'];
 

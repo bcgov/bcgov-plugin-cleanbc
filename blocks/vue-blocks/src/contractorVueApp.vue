@@ -656,10 +656,6 @@ watch(currentPage, () => {
 watch(totalPages, () => {
 	handleUpdatingAnimationClass(".contractors-filter__pagination .total-pages");
 });
-watch(isLoading, (e) => {
-	console.log('isLoading');
-	console.log(e);
-});
 
 /**
  * Watcher for changes in selectedUpgradeType and selectedLocation.
@@ -671,7 +667,6 @@ watch(isLoading, (e) => {
  */
 watch([selectedUpgradeType, selectedProgram, selectedLocation], () => {
 	currentPage.value = 1;
-	// console.log(filteredContractors.value);
 });
 
 window.addEventListener("click", (event) => {

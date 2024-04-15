@@ -6,12 +6,13 @@
  *
  * @package Bcgov\Plugin\BasicBlocks
  */
+
 require WP_PLUGIN_DIR . '/bcgov-plugin-cleanbc/templates/config/template-vars.php';
 
 /**
  * ACF Fields
  */
-$who_to_contact_section = get_field( 'who_to_contact_section', $post->ID );
+$who_to_contact_section = get_field( 'who_to_contact_section' );
 $content_blocks         = $who_to_contact_section['content_blocks'];
 
 if ( $is_gb_editor ) : ?>

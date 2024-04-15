@@ -6,12 +6,13 @@
  *
  * @package Bcgov\Plugin\BasicBlocks
  */
+
 require WP_PLUGIN_DIR . '/bcgov-plugin-cleanbc/templates/config/template-vars.php';
 
 /**
  * ACF Fields
  */
-$rebate_amount_section = get_field( 'rebate_amount_section', $post->ID );
+$rebate_amount_section = get_field( 'rebate_amount_section' );
 $content_blocks        = $rebate_amount_section['content_blocks'];
 
 if ( $is_gb_editor ) : ?>

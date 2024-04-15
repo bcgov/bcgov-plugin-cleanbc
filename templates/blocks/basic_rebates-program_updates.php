@@ -7,12 +7,12 @@
  * @package Bcgov\Plugin\BasicBlocks
  */
 
- require WP_PLUGIN_DIR . '/bcgov-plugin-cleanbc/templates/config/template-vars.php';
+require WP_PLUGIN_DIR . '/bcgov-plugin-cleanbc/templates/config/template-vars.php';
 
 /**
  * ACF Fields
  */
-$program_updates_section = get_field( 'program_updates_section', $post->ID );
+$program_updates_section = get_field( 'program_updates_section' );
 $content_blocks          = $program_updates_section['content_blocks'];
 
 if ( $is_gb_editor ) : ?>

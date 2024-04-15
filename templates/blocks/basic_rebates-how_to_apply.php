@@ -7,11 +7,12 @@
  * @package Bcgov\Plugin\BasicBlocks
  */
 
- require WP_PLUGIN_DIR . '/bcgov-plugin-cleanbc/templates/config/template-vars.php';
+require WP_PLUGIN_DIR . '/bcgov-plugin-cleanbc/templates/config/template-vars.php';
+
 /**
  * ACF Fields
  */
-$howtoapply_section = get_field( 'how_to_apply_section', $post->ID );
+$howtoapply_section = get_field( 'how_to_apply_section' );
 $content_blocks     = $howtoapply_section['content_blocks'];
 
 if ( $is_gb_editor ) : ?>

@@ -11,7 +11,7 @@ require WP_PLUGIN_DIR . '/bcgov-plugin-cleanbc/templates/config/template-vars.ph
 /**
  * ACF Fields
  */
-$eligibility_requirements_section = get_field( 'eligibility_requirements_section', $post->ID );
+$eligibility_requirements_section = get_field( 'eligibility_requirements_section' );
 $content_blocks                   = $eligibility_requirements_section['content_blocks'];
 
 if ( $is_gb_editor ) : ?>

@@ -17,7 +17,7 @@
                             <span><button data-target="#collapse-container-' . $container_hash . '" class="collapse-collapse-all">Collapse all</button></span>
                         </div>';
 
-            // Items loop.
+                // Items loop.
 			foreach ( $accordion_items as $item_key => $item ) {
 				$heading     = $item['accordion_heading'];
 				$body_blocks = $item['accordion_body'];
@@ -26,20 +26,20 @@
 
 				// Open collapse item.
 				$block_markup .= '<!-- wp:bcgov-block-theme/collapse-item {"title":"' . $heading . '","itemId":"collapse-item-' . $item_id . '","headingId":"heading-' . $item_key . '"} -->
-                    <div class="wp-block-bcgov-block-theme-collapse-item" id="' . $item_id . '">';
+                        <div class="wp-block-bcgov-block-theme-collapse-item" id="' . $item_id . '">';
 
 				// Add item heading.
 				$block_markup .= '<div class="collapse-header" id="heading-' . $item_hash . '">
-                        <h3>
-                        <button data-toggle="collapse" data-target="#collapse-item-' . $item_hash . '" aria-expanded="false" aria-controls="collapse-item-' . $item_hash . '" class="collapsed">
-                            <span class="collapse-title">' . $heading . '</span>
-                        </button>
-                        </h3>
-                    </div>';
+                            <h3>
+                            <button data-toggle="collapse" data-target="#collapse-item-' . $item_hash . '" aria-expanded="false" aria-controls="collapse-item-' . $item_hash . '" class="collapsed">
+                                <span class="collapse-title">' . $heading . '</span>
+                            </button>
+                            </h3>
+                        </div>';
 
 				// Open item body.
 				$block_markup .= '<div class="collapse collapse-container hide" id="collapse-item-' . $item_hash . '">
-                    <div class="collapse-body">';
+                        <div class="collapse-body">';
 
 				// Add item blocks.
 				foreach ( $body_blocks as $body_block ) {

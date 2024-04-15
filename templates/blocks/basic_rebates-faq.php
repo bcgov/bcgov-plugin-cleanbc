@@ -12,7 +12,7 @@ require WP_PLUGIN_DIR . '/bcgov-plugin-cleanbc/templates/config/template-vars.ph
 /**
  * ACF Fields
  */
-$faq_section = get_field( 'faqs_and_more_section', $post->ID );
+$faq_section = get_field( 'faqs_and_more_section' );
 
 if ( $is_gb_editor ) : ?>
 	<h2>FAQs and More</h2>

@@ -11,7 +11,7 @@ require WP_PLUGIN_DIR . '/bcgov-plugin-cleanbc/templates/config/template-vars.ph
 /**
  * ACF Fields
  */
-$deadlines_section = get_field( 'deadlines_section', $post->ID );
+$deadlines_section = get_field( 'deadlines_section' );
 $content_blocks    = $deadlines_section['content_blocks'];
 
 if ( $is_gb_editor ) : ?>
