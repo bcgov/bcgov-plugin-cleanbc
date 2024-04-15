@@ -692,7 +692,7 @@ const clearFilters = () => {
 const handleSelectAllInputFilter = (event) => {
 	const container = event.target.closest(".filter-container");
 	const checkboxFilterAll = container.querySelector(".all");
-	const allActiveFilters = container.querySelectorAll(`.${isCheckedClass.value}`);
+	const allActiveFilters = container ? container.querySelectorAll(`.${isCheckedClass.value}`) : null;
 
 	event.target.id === "offerTypeAll" ? selectedOtherOffers.value = 'all' : null;
 	event.target.id === "upgradeTypeAll" ? selectedUpgradeTypes.value = [] : null;
@@ -772,14 +772,13 @@ const getUpgradeTypeTagCount = (tag) => {
  */
 const handleOfferTagCount = (tag) => {
   const container = document.querySelector("#rebatesSidebar .filter-container");
-  const radioInput = container.querySelector(".radio input[value=\""+tag+"\"]");
+  const radioInput = container ? container.querySelector(".radio input[value=\""+tag+"\"]") : null;
 
   let count = filteredRebates.value.reduce(
 		(count, rebate) => count + (JSON.stringify(rebate.other_offers).includes(tag) ? 1 : 0),
 		0
 	);
 
-  // @TODO - Add aria-disabled
   if ( 0 === count ) {
     radioInput.disabled = true;
     radioInput.setAttribute('aria-disabled', true);
