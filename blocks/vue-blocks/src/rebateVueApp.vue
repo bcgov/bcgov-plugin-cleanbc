@@ -163,6 +163,7 @@
                             name="all"
                             value="all"
                             :aria-checked="'all' === selectedOtherOffers ? true : false"
+                            aria-disabled="false"
                             :checked="'all' === selectedOtherOffers ? true : false"
                             @click="handleSelectAllInputFilter">
                         <label for="offerTypeAll">No additional filters applied</label>
@@ -175,6 +176,7 @@
                             :name="offer"
                             :value="offer"
                             :aria-checked="offer === selectedOtherOffers ? true : false"
+                            aria-disabled="false"
                             :checked="offer === selectedOtherOffers ? true : false"
                             @click="handleRadioFilterStylingClass"
                             @touchend="handleRadioFilterStylingClass">
@@ -447,7 +449,6 @@ const paginatedRebates = computed(() => {
  * @returns {number|null} - The updated current page value or null if already on the first page.
  */
 const prevPage = () => {
-	// handleUpdatingAnimationClass(".filter__pagination .pages");
 	return currentPage.value > 1 ? currentPage.value-- : null;
 };
 
@@ -459,7 +460,6 @@ const prevPage = () => {
  * @returns {number|null} - The updated current page value or null if already on the last page.
  */
 const nextPage = () => {
-	// handleUpdatingAnimationClass(".filter__pagination .pages");
 	return currentPage.value < totalPages.value ? currentPage.value++ : null;
 };
 
@@ -692,7 +692,7 @@ const clearFilters = () => {
 const handleSelectAllInputFilter = (event) => {
 	const container = event.target.closest(".filter-container");
 	const checkboxFilterAll = container.querySelector(".all");
-	const allActiveFilters = container.querySelectorAll(`.${isCheckedClass.value}`);
+	const allActiveFilters = container ? container.querySelectorAll(`.${isCheckedClass.value}`) : null;
 
 	event.target.id === "offerTypeAll" ? selectedOtherOffers.value = 'all' : null;
 	event.target.id === "upgradeTypeAll" ? selectedUpgradeTypes.value = [] : null;
@@ -772,6 +772,7 @@ const getUpgradeTypeTagCount = (tag) => {
  */
 const handleOfferTagCount = (tag) => {
   const container = document.querySelector("#rebatesSidebar .filter-container");
+  const radioInput = container ? container.querySelector(".radio input[value=\""+tag+"\"]") : null;
 
   let count = filteredRebates.value.reduce(
 		(count, rebate) => count + (JSON.stringify(rebate.other_offers).includes(tag) ? 1 : 0),
@@ -779,12 +780,14 @@ const handleOfferTagCount = (tag) => {
 	);
 
   if ( 0 === count ) {
-    container.querySelector(".radio input[value=\""+tag+"\"]").disabled = true;
-    container.querySelector(".radio input[value=\""+tag+"\"]").parentNode.classList.add("is-disabled");
+    radioInput.disabled = true;
+    radioInput.setAttribute('aria-disabled', true);
+    radioInput.parentNode.classList.add("is-disabled");
   } else {
-    if ( container && container.querySelector(".radio input[value=\""+tag+"\"]") ) {
-      container.querySelector(".radio input[value=\""+tag+"\"]").disabled = false;
-      container.querySelector(".radio input[value=\""+tag+"\"]").parentNode.classList.remove("is-disabled");
+    if ( container && radioInput ) {
+      radioInput.disabled = false;
+      radioInput.setAttribute('aria-disabled', false);
+      radioInput.parentNode.classList.remove("is-disabled");
     }
   }
 
@@ -1593,6 +1596,8 @@ $house-icon-dark: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjIiIGhlaWdodD0i
       opacity: 0.5;
 
       label {
+        cursor: default;
+
         &:hover,
         &:focus {
           background-color: rgba($prussianblue, 0);
