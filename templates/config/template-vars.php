@@ -1,25 +1,25 @@
 <?php
-    $default_attribs = array(
-        'id'                   => array(),
-        'class'                => array(),
-        'title'                => array(),
-        'style'                => array(),
-        'href'                 => array(),
+    $default_attribs = [
+        'id'                   => [],
+        'class'                => [],
+        'title'                => [],
+        'style'                => [],
+        'href'                 => [],
         'target'               => [
             '_blank',
         ],
-        'colspan'              => array(),
-        'rowspan'              => array(),
-        'aria-checked'         => array(),
-        'aria-controls'        => array(),
-        'aria-disabled'        => array(),
-        'aria-expanded'        => array(),
-        'aria-hidden'          => array(),
-        'aria-label'           => array(),
-        'aria-selected'        => array(),
-        'data-open-first-item' => array(),
-        'data-target'          => array(),
-    );
+        'colspan'              => [],
+        'rowspan'              => [],
+        'aria-checked'         => [],
+        'aria-controls'        => [],
+        'aria-disabled'        => [],
+        'aria-expanded'        => [],
+        'aria-hidden'          => [],
+        'aria-label'           => [],
+        'aria-selected'        => [],
+        'data-open-first-item' => [],
+        'data-target'          => [],
+    ];
 
     $allowed_html = [
         'h2'     => $default_attribs,
