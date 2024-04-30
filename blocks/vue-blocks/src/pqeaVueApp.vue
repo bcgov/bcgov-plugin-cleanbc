@@ -1,36 +1,42 @@
 <template>
+  <div class="inner">
     <!-- Heading for screen readers -->
     <h2 class="sr-only">Energy Advisor Listings</h2>
     <!-- Filter Controls -->
-    <div class="pqeasFilterControls" id="pqeasFilterControls">
+    <div id="pqeasFilterControls" class="pqeasFilterControls filter-container">
         <!-- Category Select -->
-        <label for="categorySelect" class="sr-only">Choose between home construction and home renovation</label>
-        <div class="custom-select">
-            <select @change="selectIsActive" @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive" tabindex="0" id="categorySelect" class="select select--category" v-model="selectedCategory" :required="true" data-active="false">
-                <option v-if="isLoading" value="Constructing a home">Constructing a home</option>
-                <option v-if="!isLoading" v-for="(category, index) in categories" :key="category" :value="category">{{ category }}</option>
-            </select>
+        <div class="control category-select">
+          <label for="categorySelect" class="">Choose between home construction and home renovation</label>
+          <div class="custom-select">
+              <select @change="selectIsActive" @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive" tabindex="0" id="categorySelect" class="select select--category" v-model="selectedCategory" :required="true" data-active="false">
+                  <option v-if="isLoading" value="Constructing a home">Constructing a home</option>
+                  <option v-if="!isLoading" v-for="(category, index) in categories" :key="category" :value="category">{{ category }}</option>
+              </select>
+          </div>
         </div>
 
         <!-- Location Select -->
-        <label for="locationSelect" class="sr-only">Choose a service region</label>
-        <div class="custom-select">
-            <select @change="selectIsActive" @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive" tabindex="0" id="locationSelect" class="select select--location" v-model="selectedLocation">
-                <option value="all">All Locations</option>
-                <option v-for="location in locations" :key="location" :value="location">{{ location }}</option>
-            </select>
+        <div class="control location-select">
+          <label for="locationSelect" class="">Choose a service region</label>
+          <div class="custom-select">
+              <select @change="selectIsActive" @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive" tabindex="0" id="locationSelect" class="select select--location" v-model="selectedLocation">
+                  <option value="all">All Locations</option>
+                  <option v-for="location in locations" :key="location" :value="location">{{ location }}</option>
+              </select>
+          </div>
         </div>
 
         <!-- Clear Filters Button -->
-        <button class="clear-filters" @click.prevent="clearFilters"
-            @touchend="clearFilters"
-            @keydown.enter.prevent="clearFilters"
-            type="button">
-            Reset selection
-        </button>
-
+        <div class="control reset-filters">
+          <button class="clear-filters" @click.prevent="clearFilters"
+              @touchend="clearFilters"
+              @keydown.enter.prevent="clearFilters"
+              type="button">
+              Reset selection
+          </button>
+        </div>
         <!-- Pagination Controls -->
-        <div class="pqeasFilterPagination pqeas-filter__pagination pqeas-filter__pagination--top">
+        <div class="pqeasFilterPagination control pagination pagination--top">
             <!-- Previous Page Button -->
             <button class="prev-page" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0" type="button">Previous Page</button>
             <!-- Current Page & Totals -->
@@ -51,7 +57,8 @@
     </div>
 
     <!-- PQEAs Results Table -->
-    <table id="pqeasResults" class="pqeasResults table table--striped">
+    <h2>Results ({{ filteredPqeas.length }})</h2>
+    <table id="pqeasResults" class="pqeasResults results table table--striped">
         <caption class="sr-only">Program Qualified Energy Advisors</caption>
         <!-- Table Columns -->
         <colgroup>
@@ -82,9 +89,9 @@
             </tr>
 
             <!-- Loading Message -->
-            <tr v-if="isLoading" class="is-loading" aria-live="polite">
+            <tr v-if="isLoading" class="is-loading">
                 <td colspan="100%">
-                    <p class="no-results loading">Retrieving list of Energy Advisors, please wait...</p>
+                    <p class="no-results loading" aria-live="polite">Retrieving a list of Energy Advisors, please wait...</p>
                 </td>
             </tr>
 
@@ -167,29 +174,19 @@
             </template>
         </tbody>
     </table>
-
-    <!-- Pagination Controls (Bottom) -->
-    <div class="pqeasFilterPagination pqeas-filter__pagination pqeas-filter__pagination--bottom">
-        <!-- Previous Page Button -->
-        <button class="prev-page" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0" type="button">Previous Page</button>
-        <!-- Current Page & Totals -->
-        <span class="pages">Page <span class="numValue current-page">{{ currentPage }}</span> of <span class="numValue total-pages">{{ totalPages }}</span></span>
-        <!-- Next Page Button -->
-        <button class="next-page" @click.prevent="nextPage" :disabled="currentPage === totalPages" tabindex="0" type="button">Next Page</button>
-
-        <!-- Results Information -->
-        <div class="totals">
-            Showing <span class="results-count"><span class="numValue paginated-pqeas">{{paginatedPqeas.length }}</span> of <span class="numValue filtered-pqeas">{{ filteredPqeas.length }}</span></span> Energy Advisors
-        </div>
-    </div>
+  </div>
 </template>
 
 <script setup>
 /**
- * Vue Composition API imports for reactive data and lifecycle hooks.
+ * Imports Vue Composition API functions for reactive data and lifecycle hooks.
  *
- * @type {{ ref: Function, onMounted: Function, computed: Function, watch: Function }}
  * @namespace VueCompositionAPI
+ * @type {Object}
+ * @property {Function} ref - Creates a reactive reference for data.
+ * @property {Function} onMounted - Lifecycle hook called after component is mounted.
+ * @property {Function} computed - Creates a computed property based on reactive dependencies.
+ * @property {Function} watch - Watches for changes on reactive data and executes a callback.
  */
  import {
 	ref,
@@ -200,42 +197,31 @@
 
 
 /**
- * Ref for storing an array of PQEAs (Program Qualified Energy Advisors).
+ * Ref for storing an array of Program Qualified Energy Advisors (PQEAs).
  *
- * @type {Ref<Array>} - A reference to an array containing PQEAs.
+ * @type {Ref<Array>} - Reference to an array containing PQEAs.
  */
 const pqeas = ref([]);
 
 /**
- * Ref for the default selected category.
+ * Ref for the default and currently selected category.
  *
- * @type {Ref<String>} - A reference to the default selected category.
+ * @type {Ref<String>} - Reference to the selected category.
  */
 const defaultSelectedCategory = ref('Constructing a home');
-
-/**
- * Ref for the currently selected category.
- *
- * @type {Ref<String>} - A reference to the currently selected category.
- */
 const selectedCategory = ref('Constructing a home');
 
 /**
- * Ref for the default selected location.
+ * Ref for controlling the visibility of loading messages.
  *
- * @type {Ref<String>} - A reference to the default selected location.
+ * @type {Ref<Boolean>} - Reference to a boolean indicating loading state.
  */
 const defaultSelectedLocation = ref('all');
-
-/**
- * Ref for the currently selected location.
- *
- * @type {Ref<String>} - A reference to the currently selected location.
- */
 const selectedLocation = ref('all');
 
 /**
  * Ref for controlling the visibility of loading messages.
+ * Default: true.
  *
  * @type {Ref<Boolean>} - A reference to a boolean indicating whether to show loading messages.
  */
@@ -244,66 +230,68 @@ const showLoadingMessage = ref(true);
 /**
  * Ref for controlling the loading state.
  *
- * @type {Ref<Boolean>} - A reference to a boolean indicating whether data is currently being loaded.
+ * @type {Ref<Boolean>} - Reference to a boolean indicating if data is being loaded.
  */
 const isLoading = ref(false);
 
 /**
- * Ref for storing the CSS class name for an active state.
+ * Ref for storing CSS class names for active and updating states.
  *
- * @type {Ref<String>} - A reference to the CSS class name for an active state.
+ * @type {Ref<String>} - Reference to CSS class names.
  */
 const activeClass = ref('is-active');
-
 const updatingClass = ref('is-updating');
 
 // Pagination related data
 
 /**
- * Ref for storing the default page size for paginated results.
+ * Ref for the default page size and current page number.
  *
- * @type {Ref<Number>} - A reference to the default page size.
+ * @type {Ref<Number>} - Reference to default page size and current page number.
  */
 const pageSize = ref(30); // Default page size
-
-/**
- * Ref for storing the current page number for paginated results.
- *
- * @type {Ref<Number>} - A reference to the current page number.
- */
 const currentPage = ref(1);
 
+/**
+ * Ref array of sessionStorage keys to clear.
+ *
+ * @type {Ref<Array<String>>} - Reference to sessionStorage keys to clear.
+ */
 const itemsToClearFromSessionStorage = ref([
 	'contractorsData',
 	'contractorsTimestamp',
+    'faqsData',
+	'faqsTimestamp',
 	'rebatesData',
 	'rebatesTimestamp',
 ]);
 
+/**
+ * Ref for storing the previous number of pages of results.
+ *
+ * @type {Ref<Number>} - A reference to the current page number.
+ */
 const oldPaginatedPqeasCount = ref(0);
 const oldFilteredPqeasCount = ref(0);
 
 /**
  * Ref for storing the public domain URL.
  *
- * @type {Ref<String>} - A reference to the public domain URL.
+ * @type {Ref<String>} - Reference to the public domain URL.
  */
 const publicDomain = ref('https://betterhomes.gov.bc.ca');
 
 /**
- * Variable for constructing the API URL for fetching PQEAs.
+ * API URL for fetching Program Qualified Energy Advisors (PQEAs).
  *
  * @type {String} - The constructed API URL for fetching PQEAs.
  */
 const pqeasAPI = `${window.site?.domain ? window.site.domain : publicDomain}/wp-json/custom/v1/pqeas`;
 
-
 /**
- * Computed property to handle filtering PQEAs (Program Qualified Energy Advisors) by category and/or location.
+ * Computed property to filter Program Qualified Energy Advisors (PQEAs) by category and/or location.
  *
- * Uses the selected location to filter PQEAs based on location and incorporates the results from category filtering.
- *
- * @type {Array} - An array containing the filtered PQEAs based on selected category and/or location.
+ * @type {Computed<Array>} - Filtered array of PQEAs based on selected category and/or location.
  */
 const filteredPqeas = computed(() => {
 	const selectedLoc = selectedLocation.value;
@@ -314,14 +302,21 @@ const filteredPqeas = computed(() => {
 		filteredPqeas = filteredPqeas.filter(pqea => pqea.locations && pqea.locations.some(location => location.name === selectedLoc));
 	}
 
-	// handleUpdatingAnimationClass(".pqeas-filter__pagination .pages");
-	// handleUpdatingAnimationClass(".pqeas-filter__pagination .totals");
 	resetSelectsActiveState();
 
 	return filteredPqeas;
 });
 
-// Define a computed property to filter pqeas based on the selected category
+/**
+ * Computed property to filter Program Qualified Energy Advisors (PQEAs) by category.
+ *
+ * This computed property filters the list of PQEAs based on the selected category (`selectedCategory`).
+ * If the selected category is 'all', it returns all PQEAs (`pqeas.value`).
+ * Otherwise, it filters PQEAs that belong to the selected category.
+ * The resulting array contains PQEAs that match the selected category criteria.
+ *
+ * @type {Array} - An array containing the filtered PQEAs based on selected category.
+ */
 const filteredPqeasByCategory = computed(() => {
 	const selectedCat = selectedCategory.value;
 	currentPage.value = 1;
@@ -333,6 +328,16 @@ const filteredPqeasByCategory = computed(() => {
 	}
 });
 
+/**
+ * Function to add and remove CSS class for updating animation on specified elements.
+ *
+ * This function adds an updating animation class (`updatingClass.value`) to the elements
+ * matched by the given CSS selector (`elementCssPath`). After a short delay (125ms),
+ * the updating animation class is removed from the elements.
+ *
+ * @param {string} elementCssPath - The CSS selector string to query elements.
+ * @returns {void}
+ */
 const handleUpdatingAnimationClass = (elementCssPath) => {
 	const elements = document.querySelectorAll(elementCssPath);
 
@@ -358,7 +363,6 @@ const totalPages = computed(() => {
 	return totalPqeas > 0 ? Math.ceil(totalPqeas / pageSize.value) : 1;
 });
 
-
 /**
  * Computed property to calculate the paginated PQEAs (Program Qualified Energy Advisors).
  *
@@ -380,10 +384,8 @@ const paginatedPqeas = computed(() => {
  * @returns {number|null} - The updated current page value or null if already on the first page.
  */
 const prevPage = () => {
-	// handleUpdatingAnimationClass(".pqeas-filter__pagination .pages");
 	return currentPage.value > 1 ? currentPage.value-- : null;
 };
-
 
 /**
  * Function to navigate to the next page in paginated results.
@@ -393,10 +395,8 @@ const prevPage = () => {
  * @returns {number|null} - The updated current page value or null if already on the last page.
  */
 const nextPage = () => {
-	// handleUpdatingAnimationClass(".pqeas-filter__pagination .pages");
 	return currentPage.value < totalPages.value ? currentPage.value++ : null;
 };
-
 
 /**
  * Checks if the DOM (Document Object Model) is fully loaded and interactive.
@@ -406,7 +406,6 @@ const nextPage = () => {
 const isDOMReady = () => {
 	return document.readyState === 'complete' || document.readyState === 'interactive';
 };
-
 
 /**
  * Computed property to extract unique EA Project Types (ea-project-types) from PQEAs.
@@ -434,7 +433,6 @@ const categories = computed(() => {
 	const sortedCategories = Array.from(uniqueCategories).sort((a, b) => a.localeCompare(b));
 	return [...sortedCategories];
 });
-
 
 /**
  * Computed property to extract unique EA Locations (ea-locations) from PQEAs.
@@ -498,10 +496,18 @@ const clearFilters = () => {
 	history.replaceState(selectedCategory.value, defaultSelectedCategory.value);
 	history.replaceState(selectedLocation.value, defaultSelectedLocation.value);
 
-	currentPage.value !== 1 ? handleUpdatingAnimationClass(".pqeas-filter__pagination .pages") : null;
+	currentPage.value !== 1 ? handleUpdatingAnimationClass(".control.pagination .pages") : null;
 	currentPage.value = 1;
 };
 
+/**
+ * Function to reset the active state of custom-select elements within the #pqeaFilterApp container.
+ *
+ * This function removes the 'is-active' class from all custom-select elements that have the 'is-active' class
+ * within the #pqeaFilterApp container. This is typically used to deactivate select dropdowns after an action.
+ *
+ * @returns {void}
+ */
 const resetSelectsActiveState = () => {
 	let activeSelects = document.querySelectorAll('#pqeaFilterApp .custom-select.is-active');
 
@@ -580,14 +586,6 @@ const fetchData = async (offset = 0) => {
 	}
 };
 
-const purgeOldLocalData = (items) => {
-	items.forEach((item) => {
-		sessionStorage.removeItem(item);
-	});
-
-	return;
-}
-
 /**
  * Watcher for changes in the window.site?.domain variable.
  * Invokes the fetchData() function when the window.site?.domain becomes truthy.
@@ -601,27 +599,70 @@ watch(() => window.site?.domain, (newVal) => {
 	}
 });
 
+/**
+ * Watcher to trigger an animation when the length of paginatedPqeas changes.
+ *
+ * This watcher monitors changes in the length of the paginatedPqeas array (`paginatedPqeas.value.length`).
+ * When the length changes (indicating a change in paginated data), it triggers an animation by adding and removing
+ * a CSS class to the specified elements using the `handleUpdatingAnimationClass` function.
+ *
+ * @param {Function} callback - The callback function to execute when the watched property changes.
+ * @returns {void}
+ */
 watch(paginatedPqeas, () => {
 	// Avoid firing animation when number value is the same.
 	if (oldPaginatedPqeasCount.value !== paginatedPqeas.value.length) {
 		oldPaginatedPqeasCount.value = paginatedPqeas.value.length;
-		handleUpdatingAnimationClass(".pqeas-filter__pagination .paginated-pqeas");
+		handleUpdatingAnimationClass(".control.pagination .paginated-pqeas");
 	}
 });
+
+/**
+ * Watcher to trigger an animation when the length of filteredPqeas changes.
+ *
+ * This watcher monitors changes in the length of the filteredPqeas array (`filteredPqeas.value.length`).
+ * When the length changes (indicating a change in filtered data), it triggers an animation by adding and removing
+ * a CSS class to the specified elements using the `handleUpdatingAnimationClass` function.
+ *
+ * @param {Function} callback - The callback function to execute when the watched property changes.
+ * @returns {void}
+ */
 watch(filteredPqeas, () => {
 	// Avoid firing animation when number value is the same.
 	if (oldFilteredPqeasCount.value !== filteredPqeas.value.length) {
 		oldFilteredPqeasCount.value = filteredPqeas.value.length;
-		handleUpdatingAnimationClass(".pqeas-filter__pagination .filtered-pqeas");
+		handleUpdatingAnimationClass(".control.pagination .filtered-pqeas");
 	}
 });
 
-watch(currentPage, () => {
-	handleUpdatingAnimationClass(".pqeas-filter__pagination .current-page");
+/**
+ * Watcher to trigger an animation when the currentPage value changes.
+ *
+ * This watcher monitors changes in the `currentPage` value (`currentPage.value`).
+ * When the `currentPage` value changes (indicating a page navigation), it triggers an animation
+ * by adding and removing a CSS class to the specified elements using the `handleUpdatingAnimationClass` function.
+ *
+ * @param {Function} callback - The callback function to execute when the watched property changes.
+ * @returns {void}
+ */
+ watch(currentPage, () => {
+    // Trigger an animation by applying the updating animation class to specified elements.
+    handleUpdatingAnimationClass(".control.pagination .current-page");
 });
 
-watch(totalPages, () => {
-	handleUpdatingAnimationClass(".pqeas-filter__pagination .total-pages");
+/**
+ * Watcher to trigger an animation when the totalPages value changes.
+ *
+ * This watcher monitors changes in the `totalPages` value (`totalPages.value`).
+ * When the `totalPages` value changes (indicating a change in total pagination pages), it triggers an animation
+ * by adding and removing a CSS class to the specified elements using the `handleUpdatingAnimationClass` function.
+ *
+ * @param {Function} callback - The callback function to execute when the watched property changes.
+ * @returns {void}
+ */
+ watch(totalPages, () => {
+    // Trigger an animation by applying the updating animation class to specified elements.
+    handleUpdatingAnimationClass(".control.pagination .total-pages");
 });
 
 /**
@@ -636,10 +677,27 @@ watch([selectedCategory, selectedLocation], () => {
 	currentPage.value = 1;
 });
 
-window.addEventListener("click", (event) => {
-	if (!event.target.closest('.custom-select.is-active' || document.querySelectorAll('#pqeaFilterApp .custom-select.is-active').length)) {
-		resetSelectsActiveState();
-	}
+/**
+ * Event listener to handle clicks outside active custom-select dropdowns.
+ *
+ * This event listener is attached to the window object to detect click events.
+ * When a click event occurs anywhere on the page, it checks if the clicked element
+ * is not inside an active custom-select dropdown (`'.custom-select.is-active'`).
+ * If the click is outside any active custom-select dropdown, it deactivates all
+ * active custom-select dropdowns by calling the `resetSelectsActiveState` function.
+ *
+ * @param {Event} event - The click event object triggered by the user.
+ * @returns {void}
+ */
+ window.addEventListener("click", (event) => {
+    // Check if the clicked element is not inside an active custom-select dropdown.
+    if (!event.target.closest('.custom-select.is-active')) {
+        // Check if there are any other active custom-select dropdowns inside #pqeaFilterApp.
+        if (document.querySelectorAll('#pqeaFilterApp .custom-select.is-active').length === 0) {
+            // Deactivate all active custom-select dropdowns.
+            resetSelectsActiveState();
+        }
+    }
 });
 
 /**
@@ -660,459 +718,6 @@ onMounted(() => {
 </script>
 
 <style lang='scss' scoped>
-// Breakpoints
-$breakpoint-xxs: 0;
-$breakpoint-xs: 479px;
-$breakpoint-sm: 767px;
-$breakpoint-md: 991px;
-$breakpoint-md-lg: 1024px;
-$breakpoint-lg: 1199px;
-// Colours
-$mineshaft: #333;
-$scorpiongrey: #484747;
-$dovegrey: #656565;
-$gallerygray: #edebeb;
-$vehiclegrey: #ccc;
-$prussianblue: #002a4e;
-$bahamablue: #005d99;
-$bondiblue: #007e9e;
-$eucalyptus: #1d8045;
-$porcelain: #dcdcdc;
-$white: #fff;
-$snow: $white;
-// Other style defaults.
-$default_transition_timing_fn: ease-in-out;
-$default_transition_duration: 0.125s;
-$default_outline_width: 0.125rem;
-$default_outline_offset: 0.125rem;
-$default_interactable_min_height: 2.5rem;
-$default_button_min_width: 11.625rem;
-$default_button_padding_vert: 0.5rem;
-$default_button_padding_horz: 1rem;
-$default_table_cell_padding_mobile_vert: 1rem;
-$default_table_cell_padding_mobile_horz: 1rem;
-$default_table_cell_padding_desktop_vert: 0.5rem;
-$default_table_cell_padding_desktop_horz: 1rem;
-$default_border_radius: calc(7rem/16);
-
-// Icons
-$external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDI2LjAuMiwgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPgo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IgoJIHZpZXdCb3g9IjAgMCAxOCAxOCIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgMTggMTg7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPHN0eWxlIHR5cGU9InRleHQvY3NzIj4KCS5zdDB7ZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7ZmlsbDojMDAyQTRFO30KPC9zdHlsZT4KPHBhdGggY2xhc3M9InN0MCIgZD0iTTkuNywzLjljMC0wLjEtMC4xLTAuMy0wLjItMC40QzkuNCwzLjQsOS4zLDMuNCw5LjIsMy40SDEuN2MtMC40LDAtMC45LDAuMi0xLjIsMC41QzAuMiw0LjIsMCw0LjYsMCw1LjF2MTEuMgoJYzAsMC40LDAuMiwwLjksMC41LDEuMkMwLjgsMTcuOCwxLjIsMTgsMS43LDE4aDExLjJjMC40LDAsMC45LTAuMiwxLjItMC41YzAuMy0wLjMsMC41LTAuNywwLjUtMS4yVjguOGMwLTAuMS0wLjEtMC4zLTAuMi0wLjQKCWMtMC4xLTAuMS0wLjItMC4yLTAuNC0wLjJjLTAuMSwwLTAuMywwLjEtMC40LDAuMmMtMC4xLDAuMS0wLjIsMC4yLTAuMiwwLjR2Ny41YzAsMC4xLTAuMSwwLjMtMC4yLDAuNGMtMC4xLDAuMS0wLjIsMC4yLTAuNCwwLjIKCUgxLjdjLTAuMSwwLTAuMy0wLjEtMC40LTAuMmMtMC4xLTAuMS0wLjItMC4yLTAuMi0wLjRWNS4xYzAtMC4xLDAuMS0wLjMsMC4yLTAuNGMwLjEtMC4xLDAuMi0wLjIsMC40LTAuMmg3LjUKCWMwLjEsMCwwLjMtMC4xLDAuNC0wLjJDOS43LDQuMiw5LjcsNC4xLDkuNywzLjl6Ii8+CjxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik0xOCwwLjZjMC0wLjEtMC4xLTAuMy0wLjItMC40QzE3LjcsMC4xLDE3LjYsMCwxNy40LDBoLTUuNmMtMC4xLDAtMC4zLDAuMS0wLjQsMC4yYy0wLjEsMC4xLTAuMiwwLjItMC4yLDAuNAoJczAuMSwwLjMsMC4yLDAuNGMwLjEsMC4xLDAuMiwwLjIsMC40LDAuMmg0LjNsLTkuMiw5LjJjLTAuMSwwLjEtMC4xLDAuMS0wLjEsMC4yYzAsMC4xLDAsMC4xLDAsMC4yczAsMC4xLDAsMC4yCgljMCwwLjEsMC4xLDAuMSwwLjEsMC4yQzcsMTEuMSw3LDExLjIsNy4xLDExLjJjMC4xLDAsMC4xLDAsMC4yLDBjMC4xLDAsMC4xLDAsMC4yLDBzMC4xLTAuMSwwLjItMC4xbDkuMi05LjJ2NC4zCgljMCwwLjEsMC4xLDAuMywwLjIsMC40YzAuMSwwLjEsMC4yLDAuMiwwLjQsMC4yYzAuMSwwLDAuMy0wLjEsMC40LTAuMkMxNy45LDYuNSwxOCw2LjMsMTgsNi4yVjAuNnoiLz4KPC9zdmc+Cg==);
-
-#pqeaFilterApp {
-  h2 {
-    margin-top: 0;
-  }
-
-  a,
-  button,
-  .button,
-  select,
-  .select,
-  label,
-  input,
-  span,
-  p {
-    font-size: clamp(
-      var(--wp--preset--font-size--normal),
-      1rem + ((1vw - 0.48rem) * 0.481),
-      1.25rem
-    );
-  }
-
-  button,
-  select {
-    min-width: $default_button_min_width;
-    min-height: $default_interactable_min_height;
-    padding: $default_button_padding_vert $default_button_padding_horz;
-    font-size: clamp(
-      var(--wp--preset--font-size--normal),
-      1rem + ((1vw - 0.48rem) * 0.481),
-      1.25rem
-    );
-    font-weight: bold;
-    border: none;
-    border-radius: $default_border_radius;
-    box-shadow: none;
-  }
-
-  button {
-    color: $scorpiongrey;
-    background-color: $vehiclegrey;
-    transition: all $default_transition_timing_fn $default_transition_duration;
-
-    &:not([disabled]) {
-      background-color: $bahamablue;
-      color: $white;
-      outline: $default_outline_offset solid transparent;
-      outline-offset: $default_outline_offset;
-      cursor: pointer;
-
-      &:hover,
-      &:focus {
-        background-color: darken($bahamablue, 7.5%);
-        transition: all $default_transition_timing_fn
-          $default_transition_duration;
-        outline: $default_outline_offset solid darken($bondiblue, 7.5%);
-      }
-    }
-
-    &.clear-filters {
-      margin-bottom: 1rem;
-
-      @media (min-width: $breakpoint-md) {
-        margin-bottom: 0;
-      }
-    }
-  }
-
-  p {
-    display: block;
-    width: 100%;
-    &.no-results {
-      text-align: center;
-    }
-  }
-
-  .custom-select {
-    display: inline-block;
-    position: relative;
-    width: 100%;
-    max-width: 100%;
-    // margin-bottom: 1rem;
-    margin-bottom: 0;
-
-    @media (min-width: $breakpoint-sm) {
-      width: auto;
-      margin-right: 0.5rem;
-    }
-    @media (min-width: $breakpoint-md) {
-      // margin-bottom: 0;
-    }
-
-    &::after {
-      display: block;
-      content: " ";
-      position: absolute;
-      right: 1rem;
-      top: 25%;
-      transform: rotateZ(45deg);
-      transform-origin: center;
-      border-color: rgba(var(--secondary-brand-rgb), 1);
-      border-bottom-style: solid;
-      border-bottom-width: #{calc(3 / 16)}rem;
-      border-right-style: solid;
-      border-right-width: #{calc(3 / 16)}rem;
-      height: #{calc(7 / 16)}rem;
-      width: #{calc(7 / 16)}rem;
-      pointer-events: none;
-    }
-
-    &.is-active {
-      &::after {
-        transform: rotate(225deg);
-      }
-    }
-
-    .select {
-      display: block;
-      height: 100%;
-      width: 100%;
-      position: relative;
-      margin-bottom: 0.5rem;
-      padding: $default_button_padding_vert 3rem $default_button_padding_vert
-        $default_button_padding_horz;
-      width: 100%;
-      max-width: 100%;
-      text-align: left;
-      font-size: clamp(
-        var(--wp--preset--font-size--normal),
-        1rem + ((1vw - 0.48rem) * 0.481),
-        1.25rem
-      );
-      line-height: 1.2;
-      background-color: #eceef0;
-      color: $bahamablue;
-      -moz-appearance: none;
-      -webkit-appearance: none;
-      appearance: none;
-      cursor: pointer;
-
-      @media (min-width: $breakpoint-sm) {
-        width: auto;
-      }
-      @media (prefers-color-scheme: dark) {
-        background-color: #eceef0;
-        color: $bahamablue;
-      }
-    }
-  }
-
-  .external {
-    &::after {
-      content: $external-link-icon-dark !important;
-      display: inline-block;
-      width: 1rem;
-      margin-left: 0.5rem;
-    }
-  }
-
-  .pqeasFilterControls {
-    margin-bottom: 1rem;
-    padding: 2rem;
-    background-color: #fff;
-    box-shadow: 0 0.25rem 0.7rem rgba(49, 49, 50, 0.25);
-    border: 0;
-    border-radius: 0.66rem;
-
-    @media (min-width: $breakpoint-sm) {
-      margin-bottom: 2rem;
-    }
-  }
-
-  .pqeas-filter {
-    &__pagination {
-      display: flex;
-      flex-direction: column;
-      align-content: flex-start;
-      align-items: flex-start;
-      justify-content: flex-start;
-      margin: 0;
-      padding: 0;
-
-      @media (min-width: $breakpoint-sm) {
-        flex-direction: row;
-        align-items: center;
-      }
-
-      &--top {}
-
-      &--bottom {
-        margin-top: 1rem;
-      }
-
-      .current-page,
-      .total-pages,
-      .filtered-pqeas,
-      .paginated-pqeas {
-        display: inline-block;
-        transform: scale(1);
-        transition: transform linear $default_transition_duration;
-        transform-origin: center;
-        &.is-updating {
-          transform: scale(1.35);
-          transition: transform linear $default_transition_duration;
-          transform-origin: center;
-        }
-      }
-
-      .pages,
-      .totals {
-        padding: $default_button_padding_vert 0;
-      }
-
-      .pages {
-        margin: 0.5rem 0;
-
-        @media (min-width: $breakpoint-sm) {
-          margin: 0 1rem;
-        }
-      }
-
-      .totals {
-        margin-top: 1rem;
-
-        @media (min-width: $breakpoint-sm) {
-          margin-top: 0;
-          margin-left: 1rem;
-        }
-      }
-    }
-  }
-
-  .pqeasResults {
-    width: 100%;
-    table-layout: fixed;
-    border-spacing: 0;
-
-    address {
-      font-style: normal;
-    }
-
-    thead,
-    tbody {
-      width: 100%;
-    }
-
-    th,
-    td {
-      vertical-align: top;
-      padding: $default_table_cell_padding_mobile_vert
-        $default_table_cell_padding_mobile_horz;
-      width: 100%;
-
-      @media (min-width: $breakpoint-sm) {
-        padding: $default_table_cell_padding_desktop_vert
-          $default_table_cell_padding_desktop_horz;
-        width: auto;
-      }
-    }
-
-    th {
-      font-size: clamp(
-        var(--wp--preset--font-size--normal),
-        1rem + ((1vw - 0.48rem) * 0.481),
-        1.25rem
-      );
-      text-align: left;
-      background-color: $bahamablue;
-      color: white;
-
-      @media (max-width: $breakpoint-sm) {
-        border: none;
-        clip: rect(0 0 0 0);
-        height: 1px;
-        margin: -1px;
-        overflow: hidden;
-        padding: 0;
-        position: absolute;
-        width: 1px;
-      }
-
-      &.odd,
-      &.even {
-        background-color: $bahamablue;
-      }
-    }
-
-    td,
-    tr {
-      @media (max-width: $breakpoint-sm) {
-        display: block;
-      }
-    }
-
-    tr {
-      width: 100%;
-    }
-
-    td {
-      font-size: clamp(
-        var(--wp--preset--font-size--normal),
-        1rem + ((1vw - 0.48rem) * 0.481),
-        1.25rem
-      );
-      word-wrap: break-word;
-
-      &::before {
-        content: attr(data-label);
-        font-size: 1.125rem;
-        font-weight: bold;
-        color: $bahamablue;
-
-        @media (min-width: $breakpoint-sm) {
-          content: none;
-        }
-      }
-
-      a,
-      p,
-      ul {
-        display: block;
-        margin-top: 0;
-        padding-inline-start: 0;
-        font-size: clamp(
-          var(--wp--preset--font-size--normal),
-          1rem + ((1vw - 0.48rem) * 0.481),
-          1.25rem
-        );
-      }
-      li {
-        list-style-type: none;
-        font-size: clamp(
-          var(--wp--preset--font-size--normal),
-          1rem + ((1vw - 0.48rem) * 0.481),
-          1.25rem
-        );
-      }
-    }
-    .col {
-      width: 100%;
-      column-span: all;
-
-      @media (max-width: $breakpoint-sm) {
-        display: block;
-      }
-      @media (min-width: $breakpoint-sm) {
-        width: 20%;
-        column-span: 1;
-      }
-      &--pqea__company-and-location {
-        @media (min-width: $breakpoint-md) {
-          width: 25%;
-        }
-      }
-      &--pqea__contact-name {
-        @media (min-width: $breakpoint-md) {
-          width: 15%;
-        }
-      }
-      &--pqea__service-organizations {
-        @media (min-width: $breakpoint-md) {
-          width: 25%;
-        }
-      }
-      &--pqea__services {
-        @media (min-width: $breakpoint-md) {
-          width: 15%;
-        }
-      }
-    }
-    .even {
-      background-color: $white;
-    }
-    .odd {
-      background-color: $gallerygray;
-    }
-    .no-results {
-      width: 100%;
-      text-align: center;
-    }
-  }
-  .pqea {
-    &__company-and-location,
-    &__email-and-phone,
-    &__service-organizations {
-      > * {
-        display: block;
-      }
-    }
-
-    &__service {
-      display: inline-block;
-    }
-    &__service-areas,
-    &__service-organizations {
-      ul {
-        margin-top: 0;
-        margin-bottom: 0;
-      }
-    }
-
-    td {
-      p {
-        &:last-of-type {
-          margin-bottom: 0;
-        }
-      }
-    }
-  }
-
-  .is-loading {
-    text-align: center;
-
-    p {
-      margin-bottom: 0;
-    }
-  }
-}
+// See bcgov-plugin-cleanbc/styles/public/betterhomes/_vue-apps.scss
+#pqeaFilterApp {}
 </style>
