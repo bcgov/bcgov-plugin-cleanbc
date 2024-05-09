@@ -1,19 +1,35 @@
+/**
+ * Master SCSS file for all 4 Vue 3 app's deployed as part of plugin
+ * v1.5.
+ *
+ * All styles are namespaced via their app ID, see
+ * bcgov-plugin-cleanbc/blocks/vue.html. File begins with generalized styles.
+ * Then proceeds to the two primary layouts: grid/column with sidebar on
+ * desktop, and full-width table-based layouts.
+ *
+ * Several components implement app-specific mixins from
+ * bcgov-plugin-cleanbc/styles/betterhomes/_mixins.scss and variables from
+ * bcgov-plugin-cleanbc/styles/betterhomes/_variables.scss.
+ */
+
 // All Layouts
 #contractorFilterApp,
 #faqFilterApp,
 #pqeaFilterApp,
 #rebateFilterApp {
+
   // Accomodation for browsers < 2018.
   &.noNavigator {
     .copy-link {
       display: none;
     }
+
     .visible-link {
       display: inline-block;
     }
   }
 
-  > .inner {
+  >.inner {
     width: 100%;
     display: flex;
     flex-direction: row;
@@ -28,8 +44,7 @@
   }
 
   .control,
-  .custom-select {
-  }
+  .custom-select {}
 
   .results {
     flex: 0 0 auto;
@@ -40,53 +55,9 @@
     }
   }
 
-  .sidebar {
-    flex: 0 0 auto;
-    width: 100%;
-    padding: 0;
-
-    @media (min-width: $breakpoint-md) {
-      flex-basis: 30%;
-      width: 30%;
-      position: sticky;
-      top: 4rem;
-      padding: 0 1rem 0 0;
-    }
-
-    + .results {
-      &:not(.table) {
-        @media (min-width: $breakpoint-md) {
-          flex-basis: 70%;
-          width: 70%;
-        }
-      }
-    }
-
-    .filter {
-      margin-bottom: 1rem;
-
-      @media (min-width: $breakpoint-sm) {
-        margin-bottom: 2rem;
-      }
-
-      &__item {
-        margin-bottom: 0.0625rem;
-
-        &:last-of-type {
-          margin-bottom: 0;
-        }
-      }
-
-      &__list {
-        margin: 0;
-        padding: 0;
-        border: none;
-      }
-    }
-
-    .filter-container {
-      background-color: transparent;
-      box-shadow: none;
+  .counter {
+    &__value {
+      font-size: inherit;
     }
   }
 
@@ -114,15 +85,24 @@
     // &.text-search,
     // &.type-select {}
 
-    &.reset-filters {
+    &.reset-filters,
+    &.close-accordions {
       display: flex;
       flex-direction: column;
-      justify-content: flex-end;
+      justify-content: flex-start;
       align-items: center;
       align-content: flex-start;
 
       @media (min-width: $breakpoint-sm) {
+        flex-basis: auto;
         align-items: flex-start;
+      }
+    }
+
+    &.close-accordions {
+      @media (min-width: $breakpoint-sm) {
+        // margin-left: 1rem;
+        margin-right: auto;
       }
     }
 
@@ -136,14 +116,30 @@
       padding: 0;
       text-align: center;
 
-      @media (min-width: $breakpoint-sm) {
+      @media (min-width: $breakpoint-md) {
         flex-direction: row;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         flex-basis: 100%;
       }
 
       &--top {
         margin-bottom: 0;
+      }
+    }
+
+    &.other-offers {
+      &--mobile {
+        @media (min-width: $breakpoint-md) {
+          display: none;
+        }
+
+        h2 {
+          margin-bottom: 0;
+        }
+      }
+
+      label {
+        color: $shark;
       }
     }
 
@@ -165,13 +161,16 @@
       }
     }
 
-    &.type-select {
-    }
+    &.type-select {}
 
     label {
       display: inline-block;
       margin-bottom: 0.5rem;
       text-align: center;
+      font-size: clamp(var(--wp--preset--font-size--normal),
+          1rem + ((1vw - 0.48rem) * 0.481),
+          1rem);
+      color: $bahamablue;
 
       @media (min-width: $breakpoint-sm) {
         text-align: left;
@@ -181,7 +180,7 @@
     button {
       width: 100%;
 
-      @media (min-width: $breakpoint-sm) {
+      @media (min-width: $breakpoint-md) {
         width: auto;
         min-width: $default_button_min_width;
       }
@@ -209,8 +208,7 @@
       &::before {
         width: 0.25rem;
         height: 100%;
-        transition: background-color $default_transition_timing_fn
-          $default_transition_duration;
+        transition: background-color $default_transition_timing_fn $default_transition_duration;
       }
 
       &::after {
@@ -257,8 +255,7 @@
       width: 100%;
       position: relative;
       margin-bottom: 0.5rem;
-      padding: $default_button_padding_vert 3rem $default_button_padding_vert
-        $default_button_padding_horz;
+      padding: $default_button_padding_vert 3rem $default_button_padding_vert $default_button_padding_horz;
       width: 100%;
       max-width: 100%;
       text-align: left;
@@ -315,7 +312,16 @@
       }
 
       label {
-        text-align: center;
+        text-wrap: balance;
+        align-content: center;
+        font-size: clamp(var(--wp--preset--font-size--normal),
+            1rem + ((1vw - 0.48rem) * 0.481),
+            1.25rem);
+        color: $shark;
+
+        @media (min-width: $breakpoint-md) {
+          text-align: center;
+        }
       }
 
       .checkbox {
@@ -323,7 +329,11 @@
 
         &.is-checked {
           background-color: $bahamablue;
-          color: $white;
+
+          label {
+            color: $white;
+            text-wrap: balance;
+          }
         }
       }
 
@@ -333,18 +343,14 @@
         border: none;
 
         fieldset {
-          display: grid;
-          grid-template-columns: 1fr;
+          @include grid1-2-3;
+          row-gap: 0.25rem;
           margin: 0;
           padding: 0;
           border: none;
 
           @media (min-width: $breakpoint-md) {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1px;
-          }
-          @media (min-width: $breakpoint-lg) {
-            grid-template-columns: repeat(3, 1fr);
+            gap: 0.25rem;
           }
         }
       }
@@ -353,9 +359,15 @@
         grid-column: 1 / span 3;
         margin-bottom: 0;
         padding-left: 0;
+        text-align: center;
       }
     }
+
     &--other-offers {
+      .inner {
+        padding-top: 1rem;
+      }
+
       fieldset {
         padding: 0;
         border: none;
@@ -387,6 +399,16 @@
     }
   }
 
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  li {
+    line-height: 1.5;
+  }
+
   a,
   button,
   .button,
@@ -396,11 +418,9 @@
   input,
   span,
   p {
-    font-size: clamp(
-      var(--wp--preset--font-size--normal),
-      1rem + ((1vw - 0.48rem) * 0.481),
-      1.25rem
-    );
+    font-size: clamp(var(--wp--preset--font-size--normal),
+        1rem + ((1vw - 0.48rem) * 0.481),
+        1.25rem);
   }
 
   button,
@@ -410,11 +430,9 @@
     min-width: $default_button_min_width;
     min-height: $default_interactable_min_height;
     padding: $default_button_padding_vert $default_button_padding_horz;
-    font-size: clamp(
-      var(--wp--preset--font-size--normal),
-      1rem + ((1vw - 0.48rem) * 0.481),
-      1.25rem
-    );
+    font-size: clamp(var(--wp--preset--font-size--normal),
+        1rem + ((1vw - 0.48rem) * 0.481),
+        1.25rem);
     font-weight: bold;
     border: none;
     box-shadow: none;
@@ -470,8 +488,7 @@
         .accordion-icon {
           &::before {
             background-color: transparent;
-            transition: background-color $default_transition_timing_fn
-              $default_transition_duration;
+            transition: background-color $default_transition_timing_fn $default_transition_duration;
           }
         }
       }
@@ -480,6 +497,13 @@
 
   .checkbox,
   .radio {
+    input:focus {
+      +label {
+        outline: 0.125rem solid $bahamablue;
+        outline-offset: 0.125rem;
+      }
+    }
+
     &.is-checked {
       label {
         font-weight: bold;
@@ -498,8 +522,19 @@
         &:focus {
           background-color: rgba($prussianblue, 0);
           border-left: 0.25rem solid transparent;
-          transition: background-color $default_transition_timing_fn
-            $default_transition_duration;
+          transition: background-color $default_transition_timing_fn $default_transition_duration;
+        }
+      }
+    }
+
+    &:not(.is-disabled) {
+      label {
+
+        &:hover,
+        &:focus {
+          background-color: rgba($prussianblue, 0.15);
+          border-left-color: $prussianblue;
+          transition: all $default_transition_timing_fn $default_transition_duration;
         }
       }
     }
@@ -514,25 +549,37 @@
       width: 100%;
       height: 100%;
       margin-bottom: 0;
-      padding: 0.5rem;
+      padding: 0.5rem 1rem;
       cursor: pointer;
       background-color: rgba($prussianblue, 0);
       border-left: 0.25rem solid transparent;
       transition: all $default_transition_timing_fn $default_transition_duration;
-
-      &:hover,
-      &:focus {
-        background-color: rgba($prussianblue, 0.15);
-        border-left-color: $prussianblue;
-        transition: all $default_transition_timing_fn
-          $default_transition_duration;
-      }
     }
   }
 
   .external {
+
+    &:where([href^="tel"]),
+    &:where([href^="mailto"]) {
+
+      svg,
+      &::after {
+        display: none;
+        content: none;
+      }
+    }
+
+    &.external-app-link {
+      svg {
+        display: none;
+        content: none;
+      }
+    }
+  }
+
+  .external-app-link {
     &::after {
-      content: $external_link_icon_dark !important;
+      content: $external_link_icon_dark;
       display: inline-block;
       width: 1rem;
       margin-left: 0.5rem;
@@ -553,6 +600,7 @@
     }
   }
 
+  .counter__value,
   .current-page,
   .total-pages,
   .filtered-rebates,
@@ -619,6 +667,7 @@
   }
 
   button {
+    text-wrap: balance;
     color: $scorpiongrey;
     background-color: $vehiclegrey;
     transition: all $default_transition_timing_fn $default_transition_duration;
@@ -633,14 +682,12 @@
       &:hover,
       &:focus {
         background-color: darken($bahamablue, 7.5%);
-        transition: all $default_transition_timing_fn
-          $default_transition_duration;
+        transition: all $default_transition_timing_fn $default_transition_duration;
         outline: $default_outline_offset solid darken($bondiblue, 7.5%);
       }
     }
 
-    &.clear-filters {
-    }
+    &.clear-filters {}
   }
 
   a {
@@ -678,6 +725,120 @@
     width: 100%;
     text-align: center;
   }
+
+  .sidebar {
+    flex: 0 0 auto;
+    width: 100%;
+    padding: 0;
+
+    @media (max-width: $breakpoint-md) {
+      display: none;
+    }
+
+    @media (min-width: $breakpoint-md) {
+      flex-basis: 25%;
+      width: 25%;
+      position: sticky;
+      top: 4rem;
+      padding: 0 1rem 0 0;
+    }
+
+    +.results {
+      &:not(.table) {
+        @media (min-width: $breakpoint-md) {
+          flex-basis: 75%;
+          width: 75%;
+        }
+      }
+    }
+
+    .filter {
+      margin-bottom: 1rem;
+
+      @media (min-width: $breakpoint-sm) {
+        margin-bottom: 2rem;
+      }
+
+      &__item {
+        margin-bottom: 0.0625rem;
+
+        &:last-of-type {
+          margin-bottom: 0;
+        }
+      }
+
+      &__list {
+        margin: 0;
+        padding: 0;
+        border: none;
+      }
+    }
+
+    .filter-container {
+      background-color: transparent;
+      box-shadow: none;
+    }
+
+    label {
+      // Same padding as .filter-container minus label
+      // border of 0.25rem.
+      padding-left: 1.75rem;
+      text-wrap: balance;
+    }
+  }
+
+  .results {
+    .controls {
+      &--accordions {
+        display: inline-flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-content: flex-start;
+        align-items: flex-start;
+        width: auto;
+        margin-bottom: 1rem;
+        background-color: $gallerygray;
+        border-top: 1px solid $gallerygray;
+        border-bottom: 1px solid $gallerygray;
+
+        button {
+          min-width: unset;
+          font-size: clamp(var(--wp--preset--font-size--normal),
+              1rem + ((1vw - 0.48rem) * 0.481),
+              1rem);
+          background-color: transparent;
+          color: $bahamablue;
+          border-radius: 0;
+        }
+
+        .control {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          flex-basis: auto;
+          width: auto;
+          margin-bottom: 0;
+          background-color: transparent;
+
+          &:first-of-type {
+            &::after {
+              display: inline-block;
+              content: "|";
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .button {
+    &.external {
+      svg {
+        display: none;
+        content: none;
+      }
+    }
+  }
 }
 
 // Table Layouts
@@ -696,28 +857,52 @@
 
   .contractor,
   .pqea {
+
     &__company-and-location,
     &__email-and-phone,
     &__service-organizations {
-      > * {
+      >* {
         display: block;
       }
+
       a {
+
         &:hover,
         &:focus {
           display: block;
         }
       }
     }
+
     &__service {
       display: inline-block;
     }
+
     &__service-areas,
     &__service-organizations {
       ul {
         margin-top: 0;
         margin-bottom: 0;
       }
+    }
+
+    &__email-and-phone,
+    &__program-designations,
+    &__service-organizations,
+    &__upgrade-types {
+
+      a,
+      li {
+        margin-bottom: 0.5rem;
+
+        &:last-of-type {
+          margin-bottom: 0;
+        }
+      }
+    }
+
+    &__company {
+      margin-bottom: 0.5rem;
     }
   }
 
@@ -737,6 +922,7 @@
       &.even {
         background-color: $white;
       }
+
       &.odd {
         background-color: $gallerygray;
       }
@@ -746,33 +932,38 @@
   th,
   td {
     vertical-align: top;
-    padding: calc($default_table_cell_padding_mobile_vert/2)
-      $default_table_cell_padding_mobile_horz;
+    padding: calc($default_table_cell_padding_mobile_vert/2) $default_table_cell_padding_mobile_horz;
     width: 100%;
 
     &:first-of-type {
       padding-top: calc($default_table_cell_padding_mobile_vert * 2);
     }
+
     &:last-of-type {
       padding-bottom: calc($default_table_cell_padding_mobile_vert * 2);
     }
 
     @media (min-width: $breakpoint-sm) {
-      padding: $default_table_cell_padding_desktop_vert
-        $default_table_cell_padding_desktop_horz;
+      padding: $default_table_cell_padding_desktop_vert $default_table_cell_padding_desktop_horz;
 
       &:first-of-type,
       &:last-of-type {
-        padding: $default_table_cell_padding_desktop_vert
-          $default_table_cell_padding_desktop_horz;
+        padding: $default_table_cell_padding_desktop_vert $default_table_cell_padding_desktop_horz;
       }
     }
   }
 
   td,
   tr {
+    text-wrap: balance;
+
     @media (max-width: $breakpoint-sm) {
       display: block;
+    }
+
+    a,
+    li {
+      text-wrap: balance;
     }
   }
 
@@ -785,11 +976,9 @@
   }
 
   th {
-    font-size: clamp(
-      var(--wp--preset--font-size--normal),
-      1rem + ((1vw - 0.48rem) * 0.481),
-      1.25rem
-    );
+    font-size: clamp(var(--wp--preset--font-size--normal),
+        1rem + ((1vw - 0.48rem) * 0.481),
+        1.25rem);
     text-align: left;
     background-color: $bahamablue;
     color: white;
@@ -816,11 +1005,9 @@
   }
 
   td {
-    font-size: clamp(
-      var(--wp--preset--font-size--normal),
-      1rem + ((1vw - 0.48rem) * 0.481),
-      1.25rem
-    );
+    font-size: clamp(var(--wp--preset--font-size--normal),
+        1rem + ((1vw - 0.48rem) * 0.481),
+        1.25rem);
     word-wrap: break-word;
 
     &::before {
@@ -841,11 +1028,9 @@
     ul {
       display: block;
       margin-top: 0;
-      font-size: clamp(
-        var(--wp--preset--font-size--normal),
-        1rem + ((1vw - 0.48rem) * 0.481),
-        1.25rem
-      );
+      font-size: clamp(var(--wp--preset--font-size--normal),
+          1rem + ((1vw - 0.48rem) * 0.481),
+          1.25rem);
     }
 
     ul {
@@ -853,11 +1038,9 @@
     }
 
     li {
-      font-size: clamp(
-        var(--wp--preset--font-size--normal),
-        1rem + ((1vw - 0.48rem) * 0.481),
-        1.25rem
-      );
+      font-size: clamp(var(--wp--preset--font-size--normal),
+          1rem + ((1vw - 0.48rem) * 0.481),
+          1.25rem);
     }
   }
 
@@ -868,17 +1051,21 @@
     @media (max-width: $breakpoint-sm) {
       display: block;
     }
+
     @media (min-width: $breakpoint-sm) {
       width: 20%;
       column-span: 1;
     }
+
     &--contractor {
+
       &__company-and-location,
       &__email-and-phone {
         @media (min-width: $breakpoint-md) {
           width: 25%;
         }
       }
+
       &__head-office,
       &__upgrade-types {
         @media (min-width: $breakpoint-md) {
@@ -922,6 +1109,15 @@
 }
 
 #faqFilterApp {
+  a {
+    // &.external {
+    //   &::after {
+    //     display: none;
+    //     content: none;
+    //   }
+    // }
+  }
+
   button {
     &.accordion-trigger {
       position: relative;
@@ -932,8 +1128,7 @@
         .accordion-icon {
           &::before {
             background-color: transparent;
-            transition: background-color $default_transition_timing_fn
-              $default_transition_duration;
+            transition: background-color $default_transition_timing_fn $default_transition_duration;
           }
         }
       }
@@ -970,8 +1165,7 @@
       &::before {
         width: 0.25rem;
         height: 100%;
-        transition: background-color $default_transition_timing_fn
-          $default_transition_duration;
+        transition: background-color $default_transition_timing_fn $default_transition_duration;
       }
 
       &::after {
@@ -979,12 +1173,30 @@
         width: 100%;
       }
     }
+
+    &-title,
+    &-trigger {
+      text-wrap: unset;
+    }
   }
 
   .button {
     padding: 0.5rem 1rem;
     font-weight: bold;
     text-decoration: none;
+  }
+
+  .filter {
+    &--types {
+      .accordion-icon {
+        margin-left: 1rem;
+
+        &::before,
+        &::after {
+          background-color: $white;
+        }
+      }
+    }
   }
 
   .inner {
@@ -1010,6 +1222,28 @@
     }
   }
 
+  .sidebar {
+    @media (max-width: $breakpoint-md) {
+      display: none;
+    }
+  }
+
+  .faqsFilterControls {
+    .additional-filters--mobile {
+      h2 {
+        margin-bottom: 0;
+      }
+
+      @media (min-width: $breakpoint-md) {
+        display: none;
+      }
+
+      fieldset {
+        border: none;
+      }
+    }
+  }
+
   .faq {
     min-width: 100%;
     display: flex;
@@ -1019,27 +1253,94 @@
     justify-content: flex-start;
     padding: 0;
     background-color: rgba($prussianblue, 0.05);
-    border-bottom-left-radius: $default_border_radius;
-    border-bottom-right-radius: $default_border_radius;
+    border-radius: $default_border_radius;
 
-    &.isOpen {
+    .accordion {
+      &-title {
+        color: $bahamablue;
+      }
+
+      &-trigger {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        font-family: BCSans, "Noto Sans", Verdana, Arial, sans-serif;
+        background-color: rgba(var(--primary-brand-rgb), 0.05);
+        border: 0.125rem solid rgba(var(--primary-brand-rgb), 0.05);
+
+        &:not([disabled]) {
+          .accordion-title {
+            color: $bahamablue;
+            transition: all $default_transition_timing_fn $default_transition_duration;
+          }
+
+          .accordion-icon {
+
+            &::before,
+            &::after {
+              background: $bahamablue;
+              transition: all $default_transition_timing_fn $default_transition_duration;
+            }
+          }
+
+          &:hover,
+          &:focus {
+            .accordion-title {
+              color: $white;
+              transition: all $default_transition_timing_fn $default_transition_duration;
+            }
+
+            .accordion-icon {
+
+              &::before,
+              &::after {
+                background: $white;
+                transition: all $default_transition_timing_fn $default_transition_duration;
+              }
+            }
+          }
+        }
+      }
+
+      &-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+
+        &::before,
+        &::after {
+          background: $bahamablue;
+        }
+      }
+
+      &-panel {
+        >.inner {
+          padding: 2rem;
+          background-color: rgba($gallerygray, 0.05);
+
+          @media (min-width: $breakpoint-md) {
+            flex-wrap: wrap;
+          }
+        }
+      }
+    }
+
+    &:not([disabled]).isOpen {
       .accordion-trigger {
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
+      }
+
+      .accordion-icon {
+        &::before {
+          background: transparent !important;
+        }
       }
     }
 
     a,
     p {
       margin: 0;
-    }
-
-    p {
-      margin: 0 0 1rem;
-
-      &:last-of-type {
-        margin-bottom: 0;
-      }
     }
 
     img {
@@ -1050,7 +1351,7 @@
     }
 
     &__body,
-    &__permalink {
+    &__permalinks {
       flex: 0 0 auto;
       width: 100%;
 
@@ -1065,24 +1366,31 @@
     }
 
     &__terms {
-      @include grid1-2;
+      @include grid1-2-3;
       row-gap: 1rem;
       width: 100%;
-      margin-bottom: 1rem;
+      margin-bottom: 0.5rem;
       padding: 1rem;
       background-color: $white;
 
       @media (min-width: $breakpoint-md) {
-        margin-bottom: 2rem;
+        row-gap: 1rem;
+        margin-bottom: 1rem;
         padding: 1rem 2rem;
       }
 
-      .faq__building-types,
-      .faq__faq-types {
-        p {
-          margin-bottom: 0.5rem;
-          font-weight: bold;
-        }
+      @media (min-width: $breakpoint-lg) {
+        row-gap: 0;
+      }
+
+      p {
+        display: inline-block;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+      }
+
+      li {
+        list-style-type: none;
       }
     }
 
@@ -1090,11 +1398,9 @@
       margin-bottom: 1rem;
 
       h3 {
-        font-size: clamp(
-          var(--wp--preset--font-size--normal),
-          1.25rem + ((1vw - 0.48rem) * 0.481),
-          1.5rem
-        );
+        font-size: clamp(var(--wp--preset--font-size--normal),
+            1.25rem + ((1vw - 0.48rem) * 0.481),
+            1.5rem);
         margin-top: 0;
         color: $bahamablue;
       }
@@ -1106,12 +1412,13 @@
     }
 
     &__body {
-      margin-bottom: 1rem;
-      padding: 0;
+      margin: 0 0 0.5rem;
+      padding: 0.5rem 0;
       overflow: auto;
 
       @media (min-width: $breakpoint-md) {
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
+        padding: 1rem 0;
       }
 
       table {
@@ -1124,6 +1431,7 @@
         max-width: 100% !important;
         margin-top: 0;
         margin-block-start: 0;
+        line-height: 1.6;
 
         &:last-of-type {
           margin-bottom: 0;
@@ -1141,13 +1449,27 @@
       }
     }
 
-    &__permalink {
+    &__permalinks {
+      position: relative;
       display: flex;
       flex-direction: row;
       flex-wrap: nowrap;
       justify-content: flex-start;
       align-content: flex-start;
       align-items: center;
+      width: auto;
+
+      @media (min-width: $breakpoint-md) {
+        justify-content: flex-end;
+      }
+
+      .inner {
+        width: 100%;
+      }
+    }
+
+    &__link {
+      position: relative;
     }
 
     &__building-types,
@@ -1168,12 +1490,30 @@
 
       ul {
         margin: 0;
-        padding: 0 0 0 1rem;
+        padding: 0;
       }
     }
 
-    &__building-types {
+    &__close {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      width: 100%;
+
+      button:not([disabled]) {
+        background-color: transparent;
+      }
+
+      span {
+        color: $bahamablue;
+        font-size: clamp(var(--wp--preset--font-size--normal),
+            1rem + ((1vw - 0.48rem) * 0.481),
+            1rem);
+        font-weight: normal;
+      }
     }
+
+    // &__building-types {}
 
     h3 {
       margin: 0;
@@ -1183,42 +1523,18 @@
       }
     }
 
-    .accordion {
-      &-title {
-      }
-      &-trigger {
-        font-family: BCSans, "Noto Sans", Verdana, Arial, sans-serif;
-      }
-      &-icon {
-        position: absolute;
-        left: 1rem;
-        top: 50%;
-        transform: translateY(-50%);
-
-        &::before,
-        &::after {
-          background: $white;
-        }
-      }
-      &-panel {
-        > .inner {
-          padding: 2rem;
-
-          @media (min-width: $breakpoint-md) {
-            flex-wrap: wrap;
-          }
-        }
-      }
-    }
-
     .copy-link,
     .visible-link {
       display: inline-flex;
+      position: relative;
       flex-direction: row;
       flex-wrap: nowrap;
       align-content: flex-start;
       align-items: center;
       justify-content: flex-start;
+      // padding: 0.5rem;
+      padding: 0;
+      width: auto;
 
       &::before {
         display: block;
@@ -1234,37 +1550,63 @@
     }
 
     .copy-link {
+      &.external {
+        svg {
+          display: none;
+        }
+      }
     }
+
     .visible-link {
       display: none;
     }
   }
 
   .copy-message {
-    position: relative;
-    margin-left: 1rem;
+    min-width: 20rem;
+    position: absolute;
+    left: calc(100% + 2rem);
+    top: 50%;
+    transform: translateY(-50%);
     padding: 0.5rem;
-    background-color: $white;
+    background-color: $bahamablue;
+    color: $white;
     box-shadow: 0 0.25rem 0.7rem rgba(49, 49, 50, 0.25);
     border-radius: 0.25rem;
+    text-align: center;
+
+    @media (min-width: $breakpoint-lg) {
+      top: unset;
+      left: 50%;
+      bottom: -3rem;
+      transform: translateX(-50%);
+    }
 
     &::before {
       content: "";
       display: block;
       position: absolute;
-      left: -1rem;
       top: 50%;
+      left: -1rem;
       transform: translateY(-50%);
       width: 0;
       height: 0;
       border-top: 0.5rem solid transparent;
-      border-right: 1rem solid $white;
       border-bottom: 0.5rem solid transparent;
+      border-right: 1rem solid $bahamablue;
+
+      @media (min-width: $breakpoint-lg) {
+        top: -1rem;
+        left: 50%;
+        transform: translateX(-50%);
+        border-right: 0.5rem solid transparent;
+        border-left: 0.5rem solid transparent;
+        border-bottom: 1rem solid $bahamablue;
+      }
     }
   }
 
-  .visible-link {
-  }
+  .visible-link {}
 }
 
 #pqeaFilterApp {}
@@ -1272,18 +1614,19 @@
 #rebateFilterApp {
   .results {
     .page {
+      @include grid1-2-3;
       width: 100%;
-      display: grid;
-      grid-template-columns: 1fr;
       column-gap: 1rem;
       row-gap: 2rem;
 
       @media (min-width: $breakpoint-sm) {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      @media (min-width: $breakpoint-md) {
-        grid-template-columns: repeat(3, 1fr);
+        align-items: stretch;
         column-gap: 2rem;
+        row-gap: 3.5rem;
+      }
+      @media (min-width: $breakpoint-lg) {
+        column-gap: 3rem;
+        row-gap: 5rem;
       }
     }
   }
@@ -1295,6 +1638,10 @@
     align-items: stretch;
     justify-content: flex-start;
     border-radius: 0;
+
+    h3 {
+      text-wrap: balance;
+    }
 
     a,
     p {
@@ -1341,19 +1688,22 @@
     }
 
     &__learn-more {
+      width: 100%;
       margin-top: auto;
       text-align: center;
+
+      .button {
+        width: 100%;
+      }
     }
 
     &__title {
       margin-bottom: 1rem;
 
       h3 {
-        font-size: clamp(
-          var(--wp--preset--font-size--normal),
-          1.25rem + ((1vw - 0.48rem) * 0.481),
-          1.5rem
-        );
+        font-size: clamp(var(--wp--preset--font-size--normal),
+            1.25rem + ((1vw - 0.48rem) * 0.481),
+            1.5rem);
         margin-top: 0;
         color: $bahamablue;
       }
@@ -1371,6 +1721,7 @@
       width: auto;
       justify-content: space-between;
     }
+
     @media (min-width: $breakpoint-lg) {
       flex-basis: calc((100% / 3) - 1rem);
     }
@@ -1378,18 +1729,17 @@
 
   .accordion {
     &-icon {
+
       &::before,
       &::after {
         background: $white;
       }
 
       &::before {
-        transition: background-color $default_transition_timing_fn
-          $default_transition_duration;
+        transition: background-color $default_transition_timing_fn $default_transition_duration;
       }
 
-      &::after {
-      }
+      &::after {}
     }
   }
 

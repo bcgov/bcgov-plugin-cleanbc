@@ -2,15 +2,17 @@
   <div class="inner">
     <!-- Heading for screen readers -->
     <h2 class="sr-only">Frequently Asked Questions Listings</h2>
+    <!-- Skip to results link -->
+    <a href="#faqsResults" class="sr-only skip-to-results">Skip to results</a>
     <!-- Filter Controls -->
     <div id="faqsFilterControls" class="faqsFilterControls filter-container">
-        <!-- Text Search Input -->
+        <!-- Primary Filter: Text Search Input -->
         <div class="control text-search">
           <label for="textSearch" class="">Type to filter results</label>
           <input type="text" id="textSearch" class="input input--text" v-model="textSearch" name="textSearch" placeholder="Search FAQs..."/>
         </div>
 
-        <!-- Category Select -->
+        <!-- Primary Filter: Category Select -->
         <div class="control category-select">
           <label for="categorySelect" class="">Choose a category</label>
           <div class="custom-select">
@@ -18,6 +20,63 @@
                   <option value="all">All Categories</option>
                   <option v-if="!isLoading" v-for="(category, index) in categories" :key="category" :value="category">{{ category }}</option>
               </select>
+          </div>
+        </div>
+
+        <!-- Secondary Filter: Additional filters accordion for mobile. -->
+        <div class="control additional-filters additional-filters--mobile accordion">
+          <!-- Filters -->
+          <div class="filter filter--types">
+            <h2>
+              <button id="additionalFiltersAccordionTrigger"
+                class="accordion-trigger"
+                aria-expanded="false"
+                aria-controls="additionalFiltersAccordionPanel"
+                type="button">
+                <span class="accordion-title">Additional filters</span>
+                <span class="accordion-icon"></span>
+              </button>
+            </h2>
+            <div id="additionalFiltersAccordionPanel"
+              class="filter filter__list accordion-panel"
+              role="region"
+              aria-labelledby="additionalFiltersAccordionTrigger"
+              hidden>
+              <div class="inner">
+                <fieldset class="filter__list" v-if="!isLoading && faqs">
+                  <div :class="`filter__item radio radio--all all ${ 'all' === selectedAdditionalFilter ? isCheckedClass : '' }`">
+                    <input id="typeAll--mobile"
+                        data-filter-value="all"
+                        class="sr-only"
+                        type="radio"
+                        name="all"
+                        value="all"
+                        :aria-checked="'all' === selectedAdditionalFilter ? true : false"
+                        aria-disabled="false"
+                        :checked="'all' === selectedAdditionalFilter ? true : false"
+                        @click="handleSelectAllInputFilter">
+                    <label for="typeAll--mobile">Show All <span class="sr-only">Results: </span> ({{ handleFilterPostCount('all') }})</label>
+                  </div>
+                  <!-- Note regarding .replace() implementations: we run .replace() twice to improve selector name quality.  The first .replace() call can result in multiple -- instances within the class's dynamic name. -->
+                  <div v-for="(filter, index) in additional_filters" :key="index" :class="`filter__item radio radio--${filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')}`">
+                    <input :id="filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-') + '--mobile'"
+                        :data-filter-value="filter.toLowerCase().replace(/ /g, '_')"
+                        class="sr-only"
+                        type="radio"
+                        v-model="selectedAdditionalFilter"
+                        :name="filter"
+                        :value="filter"
+                        :aria-checked="filter === selectedAdditionalFilter ? true : false"
+                        :aria-disabled="0 === handleFilterPostCount(filter) ? true : false"
+                        :disabled="0 === handleFilterPostCount(filter) ? true : false"
+                        :checked="filter === selectedAdditionalFilter ? true : false"
+                        @click="handleRadioFilterStylingClass"
+                        @touchend="handleRadioFilterStylingClass">
+                    <label :for="filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-') + '--mobile'">{{ filter }} <span class="sr-only">Number of results: </span>({{ handleFilterPostCount(filter) }})</label>
+                  </div>
+                </fieldset>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -56,12 +115,14 @@
     <div id="faqsTool" class="faqsTool">
       <!-- FAQs Sidebar -->
       <div id="faqsSidebar" class="faqsSidebar sidebar" role="complementary">
-        <!-- Filters -->
+        <!-- Secondary Filter: Additional Filters -->
         <div class="filter filter--types">
           <h2>Additional filters</h2>
           <fieldset class="filter__list" v-if="!isLoading && faqs">
+            <!-- All Filter -->
             <div :class="`filter__item radio radio--all all ${ 'all' === selectedAdditionalFilter ? isCheckedClass : '' }`">
               <input id="typeAll"
+                  data-filter-value="all"
                   class="sr-only"
                   type="radio"
                   name="all"
@@ -72,29 +133,56 @@
                   @click="handleSelectAllInputFilter">
               <label for="typeAll">Show All <span class="sr-only">Results: </span> ({{ handleFilterPostCount('all') }})</label>
             </div>
-            <div v-for="(filter, index) in additional_filters" :key="index" :class="`filter__item radio radio--${filter.toLowerCase().replace(/ /g,'_')}`">
-              <input :id="filter.toLowerCase().replace(/ /g,'_')"
+            <!-- Filter element loop -->
+            <div v-for="(filter, index) in additional_filters" :key="index" :class="`filter__item radio radio--${filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')}`">
+              <input :id="filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')"
+                  :data-filter-value="filter.toLowerCase().replace(/ /g, '_')"
                   class="sr-only"
                   type="radio"
                   v-model="selectedAdditionalFilter"
                   :name="filter"
                   :value="filter"
                   :aria-checked="filter === selectedAdditionalFilter ? true : false"
-                  aria-disabled="false"
+                  :aria-disabled="0 === handleFilterPostCount(filter) ? true : false"
+                  :disabled="0 === handleFilterPostCount(filter) ? true : false"
                   :checked="filter === selectedAdditionalFilter ? true : false"
                   @click="handleRadioFilterStylingClass"
                   @touchend="handleRadioFilterStylingClass">
-              <label :for="filter.toLowerCase().replace(/ /g,'_')">{{ filter }} <span class="sr-only">Number of results: </span>({{ handleFilterPostCount(filter) }})</label>
+              <label :for="filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')">{{ filter }} <span class="sr-only">Number of results: </span>({{ handleFilterPostCount(filter) }})</label>
             </div>
           </fieldset>
         </div>
       </div>
       <!-- FAQs Results -->
       <div id="faqsResults" class="faqsResults results">
-        <h2>Results ({{ filteredFaqs.length }})</h2>
+        <h2 class="results__title">Results (<span class="counter__value">{{ filteredFaqs.length }}</span>)</h2>
+
+        <div v-if="!isLoading" class="controls controls--accordions">
+          <!-- Close All Accordions Button -->
+          <div class="control expand-accordions">
+            <button class="expand-accordions" @click.prevent="openAllAccordions"
+                @touchend="openAllAccordions"
+                @keydown.enter.prevent="openAllAccordions"
+                type="button">
+                Expand all
+            </button>
+          </div>
+
+          <!-- Close All Accordions Button -->
+          <div class="control close-accordions">
+            <button class="close-accordions" @click.prevent="closeAllAccordions"
+                @touchend="closeAllAccordions"
+                @keydown.enter.prevent="closeAllAccordions"
+                type="button">
+                Collapse all
+            </button>
+          </div>
+        </div>
+
+        <!-- Page of Results -->
         <div :class="`page page--${currentPage}`">
           <!-- Loading Message -->
-          <div v-if="isLoading" class="is-loading" aria-live="polite">
+          <div v-if="isLoading" class="is-loading" role="status" aria-live="polite">
               <div class="inner">
                   <p class="no-results loading">Retrieving a list of FAQs, please wait...</p>
               </div>
@@ -102,12 +190,12 @@
           <!-- No Results Message -->
           <div v-if="filteredFaqs.length === 0 && !isLoading" class="no-results">
             <div>
-              <p class="no-results" aria-live="polite">Sorry, no results found.</p>
+              <p class="no-results" role="status" aria-live="polite">Sorry, no results found.</p>
             </div>
           </div>
           <!-- Results Loop -->
           <template v-if="faqs.length > 0 && !isLoading" v-for="(faq, index) in paginatedFaqs" :key="index">
-              <article :class="`faq accordion result result--${index+1} ${0 === (index+1) % 2 ? `even` : `odd`}`" tabindex="0" :data-keywords="faq.keywords">
+              <article :class="`faq accordion result result--${index+1} ${0 === (index+1) % 2 ? `even` : `odd`}`" :data-keywords="faq.keywords">
                   <h3>
                     <button :id="`faqAccordionTrigger--${faq.id}`"
                       class="accordion-trigger"
@@ -124,34 +212,50 @@
                     :aria-labelledby="`faqAccordionTrigger--${faq.id}`"
                     hidden>
                     <div class="inner">
-                      <div class="faq__terms">
+                      <div v-if="faq.building_types.length || faq.categories.length" class="faq__terms">
                         <div v-if="faq.building_types.length" class="faq__building-types">
                           <p>If you're:</p>
                           <ul>
                             <li v-for="building_type in faq.building_types">{{ building_type.name }}</li>
                           </ul>
                         </div>
-                        <div v-if="faq.faq_types.length" class="faq__faq-types">
-                          <p>{{ 1 < faq.faq_types.length ? 'Categories:' : 'Category:'  }}</p>
+                        <div v-if="faq.categories.length" class="faq__faq-types">
+                          <p>{{ 1 < faq.categories.length ? 'Categories:' : 'Category:'  }}</p>
                           <ul>
-                            <li v-for="faq_type in faq.faq_types">{{ faq_type.name }}</li>
+                            <li v-for="faq_category in faq.categories">{{ faq_category.name }}</li>
                           </ul>
+                        </div>
+                        <div class="faq__permalinks">
+                          <div class="inner">
+                            <div class="faq__link">
+                              <a :href="faq.post_url"
+                                class="copy-link"
+                                @click.stop.prevent="addFaqLinkToClipboard"
+                                @touchend.stop.prevent="addFaqLinkToClipboard">
+                                Copy FAQ link
+                              </a>
+                              <span class="copy-message isFadedOut" role="status" aria-live="polite"></span>
+                            </div>
+                            <div class="faq__link">
+                              <a :href="faq.post_url"
+                                class="visible-link"
+                                target="_blank">
+                                Open this FAQ in a new tab/window.
+                              </a>
+                            </div>
+                          </div>
                         </div>
                       </div>
                       <div class="faq__body" v-html="faq.body"></div>
-                      <div class="faq__permalink">
-                        <a :href="faq.post_url"
-                          class="copy-link"
-                          @click.stop.prevent="addFaqLinkToClipboard"
-                          @touchend.stop.prevent="addFaqLinkToClipboard">
-                          Copy the link to this FAQ
-                        </a>
-                        <span class="copy-message isFadedOut">Copied to clipboard!</span>
-                        <a :href="faq.post_url"
-                          class="visible-link"
-                          target="_blank">
-                          Open this FAQ in a new tab/window.
-                        </a>
+                      <div class="faq__close">
+                        <button :id="`faqAccordionTrigger--${faq.id}`"
+                          class=""
+                          @click.stop.prevent="collapseThisFaq"
+                          @touchend.stop.prevent="collapseThisFaq"
+                          :aria-controls="`faqAccordionPanel--${faq.id}`"
+                          type="button">
+                          <span class="accordion-title">Collapse this FAQ</span>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -253,6 +357,8 @@ const currentPage = ref(1);
 const itemsToClearFromSessionStorage = ref([
 	'contractorsData',
 	'contractorsTimestamp',
+  'pqeasData',
+	'pqeasTimestamp',
 	'rebatesData',
 	'rebatesTimestamp',
 ]);
@@ -298,11 +404,7 @@ const filteredFaqs = computed(() => {
 		});
 	}
 
-
-
 	if ('all' !== selectedAdditional) {
-		// console.log(selectedAdditional);
-		// console.log(filteredFaqs.filter(faq => faq.additional_filters && faq.additional_filters.some(filter => filter.name === selectedAdditional)));
 		filteredFaqs = filteredFaqs.filter(faq => faq.additional_filters && faq.additional_filters.some(filter => filter.name === selectedAdditional));
 	}
 
@@ -316,7 +418,6 @@ const filteredFaqsByCategory = computed(() => {
 	const selectedCat = selectedCategory.value;
 	currentPage.value = 1;
 
-	// console.log(selectedAdditionalFilter.value);
 	history.replaceState(selectedAdditionalFilter.value, defaultSelectedAdditionalFilter.value);
 
 	if (selectedCat === 'all') {
@@ -411,6 +512,15 @@ const categories = computed(() => {
 				});
 			}
 		}
+    if (faq.product_categories) {
+      if (typeof faq.product_categories === 'string') {
+				uniqueCategories.add(faq.product_categories);
+			} else if (Array.isArray(faq.product_categories)) {
+				faq.product_categories.forEach(category => {
+					uniqueCategories.add(category.name);
+				});
+			}
+    }
 	});
 
 	// Convert Set to array and sort alphabetically.
@@ -479,7 +589,7 @@ const currentTypeFilterMessage = computed(() => {
  */
 const clearFilters = () => {
 	const allActiveFilters = document.querySelectorAll(`.${isCheckedClass.value}`);
-	const filterAll = document.querySelectorAll(".all");
+	const filterAll = document.querySelectorAll('.all');
 
 	resetSelectsActiveState();
 
@@ -498,7 +608,7 @@ const clearFilters = () => {
 	handleResetAppState();
   closeAllAccordions();
 
-	currentPage.value !== 1 ? handleUpdatingAnimationClass(".control.pagination .pages") : null;
+	currentPage.value !== 1 ? handleUpdatingAnimationClass('.control.pagination .pages') : null;
 	currentPage.value = 1;
 };
 
@@ -534,16 +644,16 @@ const clearFilters = () => {
  */
  const handleSelectAllInputFilter = (event) => {
     // Find the container element containing the filter list.
-    const container = event.target.closest(".filter__list");
+    const container = event.target.closest('.filter__list');
 
     // Find the "All" filter element within the container.
-    const filterAll = container.querySelector(".all");
+    const filterAll = container.querySelector('.all');
 
     // Find all active filters with the isCheckedClass value within the container.
     const allActiveFilters = container ? container.querySelectorAll(`.${isCheckedClass.value}`) : null;
 
     // Update selectedAdditionalFilter value to 'all' if the event target ID matches.
-    if (event.target.id === "typeAll") {
+    if ( event.target.id === "typeAll" || event.target.id === "typeAll--mobile" ) {
         selectedAdditionalFilter.value = 'all';
     }
 
@@ -564,7 +674,7 @@ const clearFilters = () => {
 
     // Reset the current pagination page to 1 and trigger a UI animation if necessary.
     if (currentPage.value !== 1) {
-        handleUpdatingAnimationClass(".control.pagination .pages");
+        handleUpdatingAnimationClass('.control.pagination .pages');
     }
     currentPage.value = 1;
 };
@@ -579,29 +689,24 @@ const clearFilters = () => {
  * @param {Event} event - The event triggered by clicking a radio filter.
  * @returns {void}
  */
- const handleRadioFilterStylingClass = (event) => {
-    // Find the container element containing the radio filter list.
-    const container = event.target.closest(".filter__list");
+const handleRadioFilterStylingClass = (event) => {
+    const filterContainers = document.querySelectorAll('.filter--types');
 
-    // Find the "All" filter input element within the container.
-    const allFiltersInput = container.querySelector(".all");
+    if ( filterContainers.length ) {
+      filterContainers.forEach((filterContainer) => {
+        const allFilterRadio = filterContainer ? filterContainer.querySelector('.all') : null;
+        const prevActiveRadio = filterContainer ? filterContainer.querySelector(`.${isCheckedClass.value}`) : null;
+        const actionedFilter = filterContainer ? filterContainer.querySelector('input[data-filter-value="' + event.target.dataset.filterValue + '"]') : null;
 
-    // Find the previously active radio filter within the container.
-    const oldActiveRadio = container.querySelector(`.${isCheckedClass.value}`);
+        // Adjust the state of the "Select All" radio based on active radio filters.
+        allFilterRadio ? prevActiveRadio.classList.remove(isCheckedClass.value) : null;
 
-    // Remove isCheckedClass from the previously active radio filter if it exists.
-    if (oldActiveRadio !== undefined) {
-        oldActiveRadio.classList.remove(isCheckedClass.value);
-    }
+        // Remove active state from the old active radio filter if present.
+        prevActiveRadio ? prevActiveRadio.classList.remove(isCheckedClass.value) : null;
 
-    // Add isCheckedClass to the parent node of the clicked radio filter if it's not already added.
-    if (!event.target.parentNode.classList.contains(isCheckedClass.value)) {
-        event.target.parentNode.classList.add(isCheckedClass.value);
-    }
-
-    // Remove isCheckedClass from the "All" filter input if it's currently added.
-    if (allFiltersInput.classList.contains(isCheckedClass.value)) {
-        allFiltersInput.classList.remove(isCheckedClass.value);
+        // Toggle the active state of the clicked radio filter.
+        actionedFilter ? actionedFilter.parentNode.classList.add(isCheckedClass.value) : null;
+      });
     }
 };
 
@@ -649,12 +754,10 @@ const selectIsActive = (event) => {
  * @returns {number} The count of FAQ posts that match the filter and search criteria.
  */
  const handleFilterPostCount = (thisFilter) => {
-    // Select the container element that holds the filter list in the FAQ sidebar.
-    const container = document.querySelector("#faqsSidebar .filter__list");
-    // Find the radio input element corresponding to the specified filter.
-    const radioInput = container ? container.querySelector(".radio input[value=\"" + thisFilter + "\"]") : null;
+    const app = document.querySelector('#faqFilterApp');
     // Get the lowercase trimmed search value.
     const searchValue = textSearch.value.toLowerCase().trim();
+    const filterContainers = app ? app.querySelectorAll('.filter--types') : null;
 
     // Create a copy of filtered FAQs by category to perform additional filtering.
     let altFilteredFaqs = [...filteredFaqsByCategory.value];
@@ -681,18 +784,29 @@ const selectIsActive = (event) => {
     // Update the count based on the filtered FAQs.
     count = altFilteredFaqs.length;
 
-    // Disable the radio input and update DOM if no FAQ posts match the criteria.
-    if (0 === count && radioInput) {
-        radioInput.disabled = true;
-        radioInput.setAttribute('aria-disabled', true);
-        radioInput.parentNode.classList.add("is-disabled");
-    } else {
-        // Enable the radio input and update DOM if matching FAQ posts are found.
-        if (container && radioInput) {
-            radioInput.disabled = false;
-            radioInput.setAttribute('aria-disabled', false);
-            radioInput.parentNode.classList.remove("is-disabled");
+    if ( filterContainers.length ) {
+      filterContainers.forEach((filterContainer) => {
+        // Find the radio input element corresponding to the specified filter.
+        const radioInput = filterContainer ? filterContainer.querySelector('.radio input[value=\"' + thisFilter + '\"]') : null;
+
+        // Disable the radio input and update DOM if no FAQ posts match the criteria.
+        if ( radioInput ) {
+          if ( 0 === count ) {
+            // Manage helper CSS classes.
+            radioInput.parentNode.classList.remove(isCheckedClass.value);
+            radioInput.parentNode.classList.add('is-disabled');
+
+            // If this item is currently selected, reset the additional filters.
+            if ( selectedAdditionalFilter.value === radioInput.name ) {
+              // Single-select input, so just reset filter configuration.
+              selectedAdditionalFilter.value = defaultSelectedAdditionalFilter.value;
+            }
+          } else {
+            // Remove CSS helper class.
+            radioInput.parentNode.classList.remove('is-disabled');
+          }
         }
+      });
     }
 
     // Return the count of FAQ posts that match the filter and search criteria.
@@ -782,7 +896,7 @@ watch(() => window.site?.domain, (newVal) => {
         // Update the 'oldPaginatedFaqsCount' with the new length of 'paginatedFaqs'.
         oldPaginatedFaqsCount.value = paginatedFaqs.value.length;
         // Trigger animation by adding/removing CSS classes to elements matching the specified CSS selector.
-        handleUpdatingAnimationClass(".control.pagination .paginated-faqs");
+        handleUpdatingAnimationClass('.control.pagination .paginated-faqs');
     }
 });
 
@@ -796,7 +910,8 @@ watch(filteredFaqs, () => {
         // Update the 'oldFilteredFaqsCount' with the new length of 'filteredFaqs'.
         oldFilteredFaqsCount.value = filteredFaqs.value.length;
         // Trigger animation by adding/removing CSS classes to elements matching the specified CSS selector.
-        handleUpdatingAnimationClass(".control.pagination .filtered-faqs");
+        handleUpdatingAnimationClass('.control.pagination .filtered-faqs');
+        handleUpdatingAnimationClass('.counter__value');
     }
 
   closeAllAccordions();
@@ -808,7 +923,7 @@ watch(filteredFaqs, () => {
  */
  watch(currentPage, () => {
     // Trigger animation for the 'current-page' element when 'currentPage' changes.
-    handleUpdatingAnimationClass(".control.pagination .current-page");
+    handleUpdatingAnimationClass('.control.pagination .current-page');
 });
 
 /**
@@ -817,7 +932,7 @@ watch(filteredFaqs, () => {
  */
 watch(totalPages, () => {
     // Trigger animation for the 'total-pages' element when 'totalPages' changes.
-    handleUpdatingAnimationClass(".control.pagination .total-pages");
+    handleUpdatingAnimationClass('.control.pagination .total-pages');
 });
 
 /**
@@ -828,24 +943,7 @@ watch(totalPages, () => {
  * @param {Function} callback - The callback function to execute when any of the watched properties change.
  * @returns {void}
  */
-watch([selectedCategory], () => {
-	const appSidebar = document.querySelector("#faqsSidebar");
-	let activeAdditionalFilters = appSidebar.querySelector(".radio.is-checked:not(.all)");
-	let showAllFilter = appSidebar.querySelector(".all");
-
-	if (showAllFilter && activeAdditionalFilters) {
-		activeAdditionalFilters.classList.remove(isCheckedClass.value);
-		activeAdditionalFilters.querySelector("input").setAttribute('aria-checked', false);
-		activeAdditionalFilters.querySelector("input").setAttribute('checked', false);
-		showAllFilter.classList.add(isCheckedClass.value);
-		showAllFilter.querySelector("input").setAttribute('aria-checked', true);
-		showAllFilter.querySelector("input").setAttribute('checked', true);
-		selectedAdditionalFilter.value = defaultSelectedAdditionalFilter.value;
-		history.replaceState(selectedAdditionalFilter.value, defaultSelectedAdditionalFilter.value);
-	}
-
-	// console.log(activeAdditionalFilters);
-
+watch([selectedCategory, textSearch], () => {
 	currentPage.value = 1;
 });
 
@@ -855,7 +953,7 @@ watch([selectedCategory], () => {
  * If no custom-select dropdown within the 'faqFilterApp' context is active, it resets all active custom-select elements.
  * @param {Event} event - The click event triggered on the window.
  */
- window.addEventListener("click", (event) => {
+ window.addEventListener('click', (event) => {
     // Check if the clicked element is not within an active custom-select dropdown in the 'faqFilterApp' context.
     if (!event.target.closest('.custom-select.is-active' || document.querySelectorAll('#faqFilterApp .custom-select.is-active').length)) {
         // Reset all active custom-select elements.
@@ -880,20 +978,41 @@ watch([selectedCategory], () => {
  * @param {Event} event - The event object triggered by the click action.
  */
  function addFaqLinkToClipboard(event) {
+    handleLinkCopiedMessageContent(event);
+
     // Add to clipboard via Navigator API.
     if (navigator.clipboard) {
-        const permalinkWrapper = event.target.closest(".faq__permalink");
-        const copyMessage = permalinkWrapper.querySelector(".copy-message");
-
         // Copy FAQ link to clipboard
         navigator.clipboard.writeText(event.target.href);
-
-        // Show copy message and fade out after a delay
-        copyMessage.classList.remove("isFadedOut");
-        setTimeout(() => {
-            copyMessage.classList.add("isFadedOut");
-        }, 1000);
     }
+}
+
+/**
+ * Injects messageToUser into ARIA live region node.
+ *
+ * @param {Event} event - The event object triggered by the click action.
+ */
+function handleLinkCopiedMessageContent(event) {
+  const item = event.target.closest('.faq');
+  const messageToUser = ref('Link to FAQ copied to clipboard!');
+  const messageArea = item ? item.querySelector('.copy-message') : null;
+
+  console.log(messageArea)
+
+  if ( messageArea && messageArea.classList.contains('isFadedOut') ) {
+    // Inject message to user, triggering ARIA live region.
+    messageArea.innerText = messageToUser.value;
+
+    // Show copy message and fade out after a delay.
+    messageArea.classList.remove('isFadedOut');
+    // Wait before re-adding the opacity class.
+    setTimeout(() => { messageArea.classList.add('isFadedOut'); }, 1000);
+    // Check again, in case of double-click.
+    setTimeout(() => { if ( messageArea.classList.contains('isFadedOut') ) {
+      messageArea.innerText = '';
+    } }, 1600);
+
+  }
 }
 
 /**
@@ -912,7 +1031,7 @@ onMounted(() => {
 	if (window.site?.domain) {}
 
 	if (undefined === navigator) {
-		appElement.classList.add("noNavigator");
+		appElement.classList.add('noNavigator');
 	}
 });
 
@@ -922,9 +1041,11 @@ onMounted(() => {
  onUpdated(() => {
     // Select all FAQ accordions
     const accordions = document.querySelectorAll('.faq.accordion h3');
+    const mobileAccordions = document.querySelectorAll('.additional-filters--mobile h2');
 
     // Initialize accordions if found
     accordions.length ? initAccordions(accordions) : null;
+    mobileAccordions.length ? initAccordions(mobileAccordions) : null;
 });
 
 /**
@@ -998,13 +1119,33 @@ onMounted(() => {
     }
 }
 
-function closeAllAccordions() {
-  const openAccordions = document.querySelectorAll(".accordion.isOpen");
+function openAllAccordions() {
+  const closedAccordions = document.querySelectorAll('.accordion:not(.isOpen)');
 
-  openAccordions.forEach((accordionEl) => {
-    let theAccordion = new Accordion(accordionEl);
-    theAccordion.close();
+  closedAccordions.forEach((closedAccordion) => {
+    let accordion = new Accordion(closedAccordion);
+    accordion.toggle(false);
+    accordion.toggle(true);
+    accordion.rootEl.classList.add('isOpen');
   });
+}
+
+function closeAllAccordions() {
+  const openAccordions = document.querySelectorAll('.faq.accordion.isOpen');
+
+  openAccordions.forEach((openAccordion) => {
+    let accordion = new Accordion(openAccordion);
+    accordion.rootEl.classList.remove('isOpen');
+    accordion.toggle(false);
+  });
+}
+
+function collapseThisFaq(event) {
+  const faq = event.target.closest('.accordion');
+  const accordion = new Accordion(faq);
+
+  accordion.rootEl.classList.remove('isOpen');
+  accordion.close();
 }
 </script>
 

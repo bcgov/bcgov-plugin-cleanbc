@@ -1,4 +1,4 @@
-## 1.5.0 April 29, 2024
+## 1.5.0 May 9, 2024
 - FAQs app functionality.
 - Refactored styles to /styles/betterhomes/_vue-apps.scss.
 - Code clean up and improved documentation.

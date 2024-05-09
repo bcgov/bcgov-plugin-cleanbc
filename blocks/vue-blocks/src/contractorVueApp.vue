@@ -2,6 +2,8 @@
   <div class="inner">
     <!-- Heading for screen readers -->
     <h2 class="sr-only">Contractor Listings</h2>
+    <!-- Skip to results link -->
+    <a href="#contractorsResults" class="sr-only skip-to-results">Skip to results</a>
     <!-- Filter Controls -->
     <div id="contractorsFilterControls" class="contractorsFilterControls filter-container">
         <!-- Type Select -->
@@ -70,15 +72,16 @@
                 Showing <span class="results-count"><span class="numValue paginated-contractors">{{paginatedContractors.length }}</span> of <span class="numValue filtered-contractors">{{ filteredContractors.length }}</span></span> registered contractors
             </div>
 
+            <!-- ARIA live regions -->
             <span class="sr-status sr-only">
-                <span class="results-count" role="status" aria-live="polite">Showing <span class="numValue paginated-contractors">{{paginatedContractors.length }}</span> of <span class="numValue filtered-contractors">{{ filteredContractors.length }}</span> registered contractors {{ currentTypeFilterMessage }} {{ currentLocationFilterMessage }}.</span>
+                <span class="results-count" role="status" aria-live="polite">Showing <span class="numValue paginated-contractors">{{ paginatedContractors.length }}</span> of <span class="numValue filtered-contractors">{{ filteredContractors.length }}</span> registered contractors {{ currentTypeFilterMessage }} {{ currentLocationFilterMessage }}.</span>
                 <span class="pages" role="status" aria-live="polite">Page <span class="numValue current-page">{{ currentPage }}</span> of <span class="numValue total-pages">{{ totalPages }}</span></span>
             </span>
         </div>
     </div>
 
     <!-- Contractors Results Table -->
-    <h2>Results ({{ filteredContractors.length }})</h2>
+    <h2 class="results__title">Results (<span class="counter__value">{{ filteredContractors.length }}</span>)</h2>
     <table id="contractorsResults" class="contractorsResults results table table--striped">
         <caption class="sr-only">Registered Contractors</caption>
         <!-- Table Columns -->
@@ -105,12 +108,12 @@
             <!-- No Results Message -->
             <tr v-if="filteredContractors.length === 0 && !isLoading" class="no-results">
                 <td colspan="100%">
-                    <p class="no-results" aria-live="polite">Sorry, no results found.</p>
+                    <p class="no-results" role="status" aria-live="polite">Sorry, no results found.</p>
                 </td>
             </tr>
 
             <!-- Loading Message -->
-            <tr v-if="isLoading" class="is-loading" aria-live="polite">
+            <tr v-if="isLoading" class="is-loading" role="status" aria-live="polite">
                 <td colspan="100%">
                     <p class="no-results loading">Retrieving a list of registered contractors, please wait...</p>
                 </td>
@@ -122,7 +125,7 @@
                     <!-- Company Name and Head Office -->
                     <td data-label="Company Name and Head Office" class="contractor__company-and-location">
                         <!-- Company Website Link -->
-                        <a v-if="contractor.company_website" class="contractor__company external" :href="contractor.company_website" target="_blank" :title="contractor.company_name + ' website, opens in a new tab/window.'">
+                        <a v-if="contractor.company_website" class="contractor__company external-app-link" :href="contractor.company_website" target="_blank" :aria-label="contractor.company_name + ' website, opens in a new tab/window.'">
                             {{ contractor.company_name ? contractor.company_name : 'Website' }}
                         </a>
                         <!-- Company Name if No Website -->
@@ -539,7 +542,7 @@ const clearFilters = () => {
 	history.replaceState(selectedLocation.value, defaultSelectedLocation.value);
 	history.replaceState(selectedProgram.value, defaultSelectedProgram.value);
 
-	currentPage.value !== 1 ? handleUpdatingAnimationClass(".control.pagination .pages") : null;
+	currentPage.value !== 1 ? handleUpdatingAnimationClass('.control.pagination .pages') : null;
 	currentPage.value = 1;
 };
 
@@ -707,7 +710,7 @@ watch(() => window.site?.domain, (newVal) => {
         oldPaginatedContractorsCount.value = paginatedContractors.value.length;
 
         // Trigger an animation by applying the updating animation class to specified elements.
-        handleUpdatingAnimationClass(".control.pagination .paginated-contractors");
+        handleUpdatingAnimationClass('.control.pagination .paginated-contractors');
     }
 });
 
@@ -728,7 +731,8 @@ watch(() => window.site?.domain, (newVal) => {
         oldFilteredContractorsCount.value = filteredContractors.value.length;
 
         // Trigger an animation by applying the updating animation class to specified elements.
-        handleUpdatingAnimationClass(".control.pagination .filtered-contractors");
+        handleUpdatingAnimationClass('.control.pagination .filtered-contractors');
+        handleUpdatingAnimationClass('.counter__value');
     }
 });
 
@@ -744,7 +748,7 @@ watch(() => window.site?.domain, (newVal) => {
  */
  watch(currentPage, () => {
     // Trigger an animation by applying the updating animation class to specified elements.
-    handleUpdatingAnimationClass(".control.pagination .current-page");
+    handleUpdatingAnimationClass('.control.pagination .current-page');
 });
 
 /**
@@ -759,7 +763,7 @@ watch(() => window.site?.domain, (newVal) => {
  */
  watch(totalPages, () => {
     // Trigger an animation by applying the updating animation class to specified elements.
-    handleUpdatingAnimationClass(".control.pagination .total-pages");
+    handleUpdatingAnimationClass('.control.pagination .total-pages');
 });
 
 /**
@@ -777,14 +781,14 @@ watch([selectedUpgradeType, selectedProgram, selectedLocation], () => {
 /**
  * Event listener for handling custom-select deactivation on click outside.
  *
- * This event listener is triggered on a click event anywhere in the window (`window.addEventListener("click")`).
+ * This event listener is triggered on a click event anywhere in the window (`window.addEventListener('click')`).
  * It checks if the click target is not within an active custom-select dropdown (`!event.target.closest('.custom-select.is-active')`).
  * If the click is outside of any active custom-select dropdown, it calls the `resetSelectsActiveState()` function to deactivate them.
  *
  * @param {Event} event - The click event object.
  * @returns {void}
  */
- window.addEventListener("click", (event) => {
+ window.addEventListener('click', (event) => {
     // Check if the click target is not within an active custom-select dropdown.
     if (!event.target.closest('.custom-select.is-active')) {
         // Call the resetSelectsActiveState function to deactivate active custom-select dropdowns.
@@ -792,7 +796,7 @@ watch([selectedUpgradeType, selectedProgram, selectedLocation], () => {
     }
 });
 
-window.addEventListener("click", (event) => {
+window.addEventListener('click', (event) => {
 	!event.target.closest('.custom-select.is-active') ? resetSelectsActiveState() : null;
 });
 

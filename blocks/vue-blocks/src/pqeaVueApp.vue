@@ -2,6 +2,8 @@
   <div class="inner">
     <!-- Heading for screen readers -->
     <h2 class="sr-only">Energy Advisor Listings</h2>
+    <!-- Skip to results link -->
+    <a href="#pqeasResults" class="sr-only skip-to-results">Skip to results</a>
     <!-- Filter Controls -->
     <div id="pqeasFilterControls" class="pqeasFilterControls filter-container">
         <!-- Category Select -->
@@ -50,14 +52,14 @@
             </span>
 
             <span class="sr-status sr-only">
-                <span class="results-count" role="status" aria-live="polite">Showing <span class="numValue paginated-pqeas">{{paginatedPqeas.length }}</span> of <span class="numValue filtered-pqeas">{{ filteredPqeas.length }}</span> Energy Advisors {{ currentTypeFilterMessage }} {{ currentLocationFilterMessage }}</span>
+                <span class="results-count" role="status" aria-live="polite">Showing <span class="numValue paginated-pqeas">{{ paginatedPqeas.length }}</span> of <span class="numValue filtered-pqeas">{{ filteredPqeas.length }}</span> Energy Advisors {{ currentTypeFilterMessage }} {{ currentLocationFilterMessage }}</span>
                 <span class="pages" role="status" aria-live="polite">Page <span class="numValue current-page">{{ currentPage }}</span> of <span class="numValue total-pages">{{ totalPages }}</span></span>
             </span>
         </div>
     </div>
 
     <!-- PQEAs Results Table -->
-    <h2>Results ({{ filteredPqeas.length }})</h2>
+    <h2 class="results__title">Results (<span class="counter__value">{{ filteredPqeas.length }}</span>)</h2>
     <table id="pqeasResults" class="pqeasResults results table table--striped">
         <caption class="sr-only">Program Qualified Energy Advisors</caption>
         <!-- Table Columns -->
@@ -84,14 +86,14 @@
             <!-- No Results Message -->
             <tr v-if="filteredPqeas.length === 0 && !isLoading" class="no-results">
                 <td colspan="100%">
-                    <p class="no-results" aria-live="polite">Sorry, no results found.</p>
+                    <p class="no-results" role="status" aria-live="polite">Sorry, no results found.</p>
                 </td>
             </tr>
 
             <!-- Loading Message -->
             <tr v-if="isLoading" class="is-loading">
                 <td colspan="100%">
-                    <p class="no-results loading" aria-live="polite">Retrieving a list of Energy Advisors, please wait...</p>
+                    <p class="no-results loading" role="status" aria-live="polite">Retrieving a list of Energy Advisors, please wait...</p>
                 </td>
             </tr>
 
@@ -101,7 +103,7 @@
                     <!-- Company Name and Head Office -->
                     <td data-label="Company Name and Head Office" class="pqea__company-and-location">
                         <!-- Company Website Link -->
-                        <a v-if="pqea.details.company_website" class="pqea__company external" :href="pqea.details.company_website" target="_blank" :title="pqea.details.company_name + ' website, opens in a new tab/window.'">
+                        <a v-if="pqea.details.company_website" class="pqea__company external" :href="pqea.details.company_website" target="_blank" :aria-label="pqea.details.company_name + ' website, opens in a new tab/window.'">
                             {{ pqea.details.company_name ? pqea.details.company_name : 'Website' }}
                         </a>
                         <!-- Company Name if No Website -->
@@ -138,7 +140,7 @@
                             <!-- Service Organization Name 1 -->
                             <li v-if="pqea.details.service_organization_name" class="pqea__service-organization-name">
                                 <!-- Link if Website Provided -->
-                                <a v-if="pqea.details.service_organization_website" :href="pqea.details.service_organization_website" class="external" target="_blank" :title="pqea.details.service_organization_name + ' website, opens in a new tab/window.'">{{ pqea.details.service_organization_name }}</a>
+                                <a v-if="pqea.details.service_organization_website" :href="pqea.details.service_organization_website" class="external-app-link" target="_blank" :aria-label="pqea.details.service_organization_name + ' website, opens in a new tab/window.'">{{ pqea.details.service_organization_name }}</a>
                                 <!-- Plain Text if No Website -->
                                 <span v-else>{{ pqea.details.service_organization_name }}</span>
                             </li>
@@ -146,7 +148,7 @@
                             <!-- Service Organization Name 2 -->
                             <li v-if="pqea.details.service_organization_name_2" class="pqea__service-organization-name--2">
                                 <!-- Link if Website Provided -->
-                                <a v-if="pqea.details.service_organization_website_2" :href="pqea.details.service_organization_website_2" class="external" target="_blank" :title="pqea.details.service_organization_name_2 + ' website, opens in a new tab/window.'">{{ pqea.details.service_organization_name_2 }}</a>
+                                <a v-if="pqea.details.service_organization_website_2" :href="pqea.details.service_organization_website_2" class="external-app-link" target="_blank" :aria-label="pqea.details.service_organization_name_2 + ' website, opens in a new tab/window.'">{{ pqea.details.service_organization_name_2 }}</a>
                                 <!-- Plain Text if No Website -->
                                 <span v-else>{{ pqea.details.service_organization_name_2 }}</span>
                             </li>
@@ -154,7 +156,7 @@
                             <!-- Additional Service Organizations -->
                             <li v-if="pqea.details.additional_service_organizations" v-for="(org, index) in pqea.details.additional_service_organizations" :key="index">
                                 <!-- Link if Website Provided -->
-                                <a v-if="org[1]" :href="org[1]" class="external" target="_blank" :title="org[0] + ' website, opens in a new tab/window.'">{{ org[0] }}</a>
+                                <a v-if="org[1]" :href="org[1]" class="external-app-link" target="_blank" :aria-label="org[0] + ' website, opens in a new tab/window.'">{{ org[0] }}</a>
                                 <!-- Plain Text if No Website -->
                                 <span v-else>{{ org[0] }}</span>
                             </li>
@@ -496,7 +498,7 @@ const clearFilters = () => {
 	history.replaceState(selectedCategory.value, defaultSelectedCategory.value);
 	history.replaceState(selectedLocation.value, defaultSelectedLocation.value);
 
-	currentPage.value !== 1 ? handleUpdatingAnimationClass(".control.pagination .pages") : null;
+	currentPage.value !== 1 ? handleUpdatingAnimationClass('.control.pagination .pages') : null;
 	currentPage.value = 1;
 };
 
@@ -613,7 +615,7 @@ watch(paginatedPqeas, () => {
 	// Avoid firing animation when number value is the same.
 	if (oldPaginatedPqeasCount.value !== paginatedPqeas.value.length) {
 		oldPaginatedPqeasCount.value = paginatedPqeas.value.length;
-		handleUpdatingAnimationClass(".control.pagination .paginated-pqeas");
+		handleUpdatingAnimationClass('.control.pagination .paginated-pqeas');
 	}
 });
 
@@ -631,7 +633,8 @@ watch(filteredPqeas, () => {
 	// Avoid firing animation when number value is the same.
 	if (oldFilteredPqeasCount.value !== filteredPqeas.value.length) {
 		oldFilteredPqeasCount.value = filteredPqeas.value.length;
-		handleUpdatingAnimationClass(".control.pagination .filtered-pqeas");
+		handleUpdatingAnimationClass('.control.pagination .filtered-pqeas');
+        handleUpdatingAnimationClass('.counter__value');
 	}
 });
 
@@ -647,7 +650,7 @@ watch(filteredPqeas, () => {
  */
  watch(currentPage, () => {
     // Trigger an animation by applying the updating animation class to specified elements.
-    handleUpdatingAnimationClass(".control.pagination .current-page");
+    handleUpdatingAnimationClass('.control.pagination .current-page');
 });
 
 /**
@@ -662,7 +665,7 @@ watch(filteredPqeas, () => {
  */
  watch(totalPages, () => {
     // Trigger an animation by applying the updating animation class to specified elements.
-    handleUpdatingAnimationClass(".control.pagination .total-pages");
+    handleUpdatingAnimationClass('.control.pagination .total-pages');
 });
 
 /**
@@ -689,7 +692,7 @@ watch([selectedCategory, selectedLocation], () => {
  * @param {Event} event - The click event object triggered by the user.
  * @returns {void}
  */
- window.addEventListener("click", (event) => {
+ window.addEventListener('click', (event) => {
     // Check if the clicked element is not inside an active custom-select dropdown.
     if (!event.target.closest('.custom-select.is-active')) {
         // Check if there are any other active custom-select dropdowns inside #pqeaFilterApp.

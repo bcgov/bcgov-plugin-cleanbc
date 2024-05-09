@@ -29,10 +29,9 @@
   max-width: 100%;
   align-items: start;
 
-  @media (min-width: $breakpoint-md) {
-    gap: 1rem;
-    row-gap: 0;
+  @media (min-width: $breakpoint-sm) {
     grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
   }
   @media (min-width: $breakpoint-lg) {
     grid-template-columns: repeat(3, 1fr);

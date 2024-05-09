@@ -648,7 +648,7 @@ class EnableVueApp {
 	public function custom_api_faq_filter_callback() {
 		// Set up the arguments for WP_Query.
 		$args = array(
-			'post_type'      => 'faqs',
+			'post_type'      => [ 'faqs', 'products' ],
 			'posts_per_page' => -1,
 			'post_status'    => 'publish',
 		);
@@ -661,6 +661,7 @@ class EnableVueApp {
 			// Get taxonomy terms.
 			$faq_building_types           = get_the_terms( $faq->ID, 'building-types' );
 			$faq_categories               = get_the_terms( $faq->ID, 'faqs_categories' );
+			$product_categories           = get_the_terms( $faq->ID, 'product_categories' );
 			$faq_types                    = get_the_terms( $faq->ID, 'faq_type' );
 			$additional_filter_taxonomies = [];
 
@@ -691,6 +692,10 @@ class EnableVueApp {
 			is_array( $faq_building_types ) ? $additional_filter_taxonomies = array_merge( $additional_filter_taxonomies, $faq_building_types ) : null;
 			is_array( $faq_types ) ? $additional_filter_taxonomies          = array_merge( $additional_filter_taxonomies, $faq_types ) : null;
 
+			$all_categories                                   = [];
+			is_array( $faq_categories ) ? $all_categories     = array_merge( $all_categories, $faq_categories ) : null;
+			is_array( $product_categories ) ? $all_categories = array_merge( $all_categories, $product_categories ) : null;
+
 			// Setup post data for return at the endpoint.
 			$posts_data[] = (object) array(
 				'id'                 => $faq->ID,
@@ -700,7 +705,7 @@ class EnableVueApp {
 				'building_types'     => $faq_building_types,
 				'faq_types'          => $faq_types,
 				'additional_filters' => $additional_filter_taxonomies,
-				'categories'         => $faq_categories,
+				'categories'         => $all_categories,
 				'body'               => $faq->post_content,
 				'keywords'           => $faq_content_keywords_unique,
 			);

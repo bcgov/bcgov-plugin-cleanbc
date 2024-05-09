@@ -2,6 +2,8 @@
   <div class="inner">
     <!-- Heading for screen readers -->
     <h2 class="sr-only">Rebate Listings</h2>
+    <!-- Skip to results link -->
+    <a href="#rebatesResults" class="sr-only skip-to-results">Skip to results</a>
     <!-- Filter Controls -->
     <div id="rebatesFilterControls" class="rebatesFilterControls filter-container">
         <!-- Build Type Select -->
@@ -23,7 +25,7 @@
             </div>
         </div>
 
-        <!-- Location Select -->
+        <!-- Primary Filter: Location Select -->
         <div class="control location-select">
             <label for="locationSelect" class="">Choose a service region</label>
             <div class="custom-select">
@@ -42,9 +44,9 @@
             </div>
         </div>
 
-        <!-- Primary Heating System Select -->
+        <!-- Primary Filter: Primary Heating System Select -->
         <div class="control heating-system-select">
-            <label for="systemSelect" class="">Choose your current, primary heating system</label>
+            <label for="systemSelect" class="">Choose your current primary heating system</label>
             <div class="custom-select">
                 <select id="systemSelect" class="select select--system"
                     @change="selectIsActive"
@@ -60,6 +62,7 @@
             </div>
         </div>
 
+        <!-- Primary Filter: Upgrade Types Filter -->
         <div class="control upgrade-types">
             <!-- Upgrade Type Filter -->
             <div v-if="upgrades" class="filter filter--upgrade-types accordion">
@@ -69,12 +72,12 @@
                         aria-expanded="false"
                         aria-controls="upgradeTypesAccordionPanel"
                         type="button">
-                            <span class="accordion-title">Filter by type of upgrade ({{ 0 === selectedUpgradeTypes.length ? 'all types' : selectedUpgradeTypes.length + ' filter(s)' }} active)</span>
+                            <span class="accordion-title" v-html="'Filter by type of upgrade ' + upgradeTypesAccordionTitle(selectedUpgradeTypes)"></span>
                             <span class="accordion-icon"></span>
                     </button>
                 </h2>
                 <div id="upgradeTypesAccordionPanel"
-                    class="filter__list accordion-panel"
+                    class="filter filter__list accordion-panel"
                     role="region"
                     aria-labelledby="upgradeTypesAccordionTrigger"
                     hidden>
@@ -83,7 +86,7 @@
                             <p>Click to select the type(s) of upgrade you would like displayed, you may choose more than one.</p>
                         </div>
                         <fieldset>
-                            <div :class="`checkbox all ${ selectedUpgradeTypes.length ? '' : isCheckedClass }`">
+                            <div :class="`filter__item checkbox all ${ selectedUpgradeTypes.length ? '' : isCheckedClass }`">
                                 <input id="upgradeTypeAll"
                                     class="sr-only"
                                     type="checkbox"
@@ -94,8 +97,9 @@
                                     @click="handleSelectAllInputFilter">
                                 <label for="upgradeTypeAll">All Upgrade Types</label>
                             </div>
-                            <div v-for="(upgrade, index) in upgrades" :key="index" :class="`checkbox checkbox--${upgrade.toLowerCase().replace(/ /g,'_')}`">
-                                <input :id="upgrade.toLowerCase().replace(/ /g,'_')"
+                            <!-- Note regarding .replace() implementations: we run .replace() twice to improve selector name quality.  The first .replace() call can result in multiple -- instances within the class's dynamic name. -->
+                            <div v-for="(upgrade, index) in upgrades" :key="index" :class="`filter__item checkbox checkbox--${upgrade.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g,'-')} ${handleTermCountDisabledClass(upgrade)}`">
+                                <input :id="upgrade.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')"
                                     class="sr-only"
                                     type="checkbox"
                                     v-model="selectedUpgradeTypes"
@@ -103,15 +107,71 @@
                                     :value="upgrade"
                                     :aria-checked="selectedUpgradeTypes.includes(upgrade) ? true : false"
                                     :checked="selectedUpgradeTypes.includes(upgrade) ? true : false"
+                                    :aria-disabled="0 === getUpgradeTypeTagCount(upgrade) ? true : false"
+                                    :disabled="0 === getUpgradeTypeTagCount(upgrade) ? true : false"
                                     @click="handleCheckboxFilterStylingClass"
                                     @touchend="handleCheckboxFilterStylingClass">
-                                <label :for="upgrade.toLowerCase().replace(/ /g,'_')">{{ upgrade }} ({{ getUpgradeTypeTagCount(upgrade) }})</label>
+                                <label :for="upgrade.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')">{{ upgrade }} ({{ getUpgradeTypeTagCount(upgrade) }})</label>
                             </div>
                         </fieldset>
                     </div>
                 </div>
             </div><!-- end .filter--upgrade-types -->
         </div> <!-- end .control.upgrade-types -->
+
+        <!-- Secondary Filter: Offers Filter -->
+        <div class="control other-offers other-offers--mobile">
+            <div class="filter filter--other-offers accordion">
+                <h2>
+                    <button id="otherOffersAccordionTrigger"
+                        class="accordion-trigger"
+                        aria-expanded="false"
+                        aria-controls="otherOffersAccordionPanel"
+                        type="button">
+                        <span class="accordion-title">Additional filters</span>
+                        <span class="accordion-icon"></span>
+                    </button>
+                </h2>
+                <div id="otherOffersAccordionPanel"
+                    class="filter filter__list accordion-panel"
+                    role="region"
+                    aria-labelledby="otherOffersAccordionTrigger"
+                    hidden>
+                    <div class="inner">
+                        <fieldset class="filter__list" v-if="!isLoading && offers">
+                            <div :class="`filter__item radio all ${ 'all' === selectedOtherOffers ? isCheckedClass : '' }`">
+                                <input id="offerTypeAll--mobile"
+                                    class="sr-only"
+                                    type="radio"
+                                    name="all"
+                                    value="all"
+                                    :aria-checked="'all' === selectedOtherOffers ? true : false"
+                                    aria-disabled="false"
+                                    :checked="'all' === selectedOtherOffers ? true : false"
+                                    @click="handleSelectAllInputFilter">
+                                <label for="offerTypeAll--mobile">No additional filters applied</label>
+                            </div>
+                            <div v-for="(offer, index) in offers" :key="index" :class="`filter__item radio radio--${offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')}`">
+                                <input :id="offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-') + '--mobile'"
+                                    :data-filter-value="offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')"
+                                    class="sr-only"
+                                    type="radio"
+                                    v-model="selectedOtherOffers"
+                                    :name="offer"
+                                    :value="offer"
+                                    :aria-checked="offer === selectedOtherOffers ? true : false"
+                                    :aria-disabled="0 === handleOfferTagCount(offer) ? true : false"
+                                    :disabled="0 === handleOfferTagCount(offer) ? true : false"
+                                    :checked="offer === selectedOtherOffers ? true : false"
+                                    @click="handleRadioFilterStylingClass"
+                                    @touchend="handleRadioFilterStylingClass">
+                                <label :for="offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-') + '--mobile'">{{ offer }} ({{ handleOfferTagCount(offer) }})</label>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Clear Filters Button -->
         <div class="control reset-filters">
@@ -139,7 +199,7 @@
 
             <span class="sr-status sr-only">
                 <span class="results-count" role="status" aria-live="polite">
-                    Showing <span class="numValue paginated-rebates">{{paginatedRebates.length }}</span> of <span class="numValue filtered-rebates">{{ filteredRebates.length }}</span> Rebates {{ currentTypeFilterMessage }} {{ currentLocationFilterMessage }}
+                    Showing <span class="numValue paginated-rebates">{{paginatedRebates.length }}</span> of <span class="numValue filtered-rebates">{{ filteredRebates.length }}</span> rebates {{ currentBuildTypeFilterMessage }} {{ currentLocationFilterMessage }} {{ currentHeatingSystemFilterMessage }}
                 </span>
                 <span class="pages" role="status" aria-live="polite">Page <span class="numValue current-page">{{ currentPage }}</span> of <span class="numValue total-pages">{{ totalPages }}</span></span>
             </span>
@@ -147,13 +207,15 @@
     </div>
 
     <div id="rebatesTool" class="rebatesTool">
+        <!-- Sidebar -->
         <div id="rebatesSidebar" class="rebatesSidebar sidebar" role="complementary">
-            <!-- Offers Filter -->
+            <!-- Secondary Filter: Offers -->
             <div class="filter filter--other-offers">
-                <h2>Additional Filters ({{ getOfferTotalTagCount }})</h2>
+                <h2>Additional filters ({{ getOfferTotalTagCount }})</h2>
                 <fieldset class="filter__list" v-if="!isLoading && offers">
                     <div :class="`filter__item radio all ${ 'all' === selectedOtherOffers ? isCheckedClass : '' }`">
                         <input id="offerTypeAll"
+                            data-filter-value="all"
                             class="sr-only"
                             type="radio"
                             name="all"
@@ -164,19 +226,21 @@
                             @click="handleSelectAllInputFilter">
                         <label for="offerTypeAll">No additional filters applied</label>
                     </div>
-                    <div v-for="(offer, index) in offers" :key="index" :class="`filter__item radio radio--${offer.toLowerCase().replace(/ /g,'_')}`">
-                        <input :id="offer.toLowerCase().replace(/ /g,'_')"
+                    <div v-for="(offer, index) in offers" :key="index" :class="`filter__item radio radio--${offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')}`">
+                        <input :id="offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')"
+                            :data-filter-value="offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')"
                             class="sr-only"
                             type="radio"
                             v-model="selectedOtherOffers"
                             :name="offer"
                             :value="offer"
                             :aria-checked="offer === selectedOtherOffers ? true : false"
-                            aria-disabled="false"
+                            :aria-disabled="0 === handleOfferTagCount(offer) ? true : false"
+                            :disabled="0 === handleOfferTagCount(offer) ? true : false"
                             :checked="offer === selectedOtherOffers ? true : false"
                             @click="handleRadioFilterStylingClass"
                             @touchend="handleRadioFilterStylingClass">
-                        <label :for="offer.toLowerCase().replace(/ /g,'_')">{{ offer }} ({{ handleOfferTagCount(offer) }})</label>
+                        <label :for="offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')">{{ offer }} ({{ handleOfferTagCount(offer) }})</label>
                     </div>
                 </fieldset>
             </div>
@@ -184,10 +248,10 @@
 
         <!-- Rebates Results Grid -->
         <div id="rebatesResults" class="rebatesResults results">
-            <h2>Results ({{ filteredRebates.length }})</h2>
+            <h2 class="results__title">Results (<span class="counter__value">{{ filteredRebates.length }}</span>)</h2>
             <div :class="`page page--${currentPage}`">
                 <!-- Loading Message -->
-                <div v-if="isLoading" class="is-loading" aria-live="polite">
+                <div v-if="isLoading" class="is-loading" role="status" aria-live="polite">
                         <div class="inner">
                                 <p class="no-results loading">Retrieving a list of Rebates, please wait...</p>
                         </div>
@@ -196,18 +260,18 @@
                 <!-- No Results Message -->
                 <div v-if="filteredRebates.length === 0 && !isLoading" class="no-results">
                     <div>
-                        <p class="no-results" aria-live="polite">Sorry, no results found.</p>
+                        <p class="no-results" role="status" aria-live="polite">Sorry, no results found.</p>
                     </div>
                 </div>
 
                 <!-- Results Loop -->
                 <template v-if="rebates.length > 0 && !isLoading" v-for="(rebate, index) in paginatedRebates" :key="index">
-                    <article :class="`rebate result result--${index+1} ${0 === (index+1) % 2 ? `even` : `odd`}`" tabindex="0">
+                    <article :class="`rebate result result--${index+1} ${0 === (index+1) % 2 ? `even` : `odd`}`">
                         <div class="rebate__title"><h3 v-html="rebate.title"></h3></div>
                         <div :class=rebateAmountClasses(rebate.rebate_amount)><p>{{ rebate.rebate_amount }}</p></div>
                         <div class="rebate__short-description"><p v-html="rebate.short_description"></p></div>
                         <div class="rebate__learn-more">
-                            <a :href="rebate.post_url" class="button" :title="rebate.title + ' learn more'">Learn more</a>
+                            <a :href="rebate.post_url" class="button" :aria-label="rebate.title + ' view rebate details'">View rebate details</a>
                         </div>
                     </article>
                 </template>
@@ -615,19 +679,8 @@ const locations = computed(() => {
  *
  * @type {String} - A string indicating the filter results message based on the selected category.
  */
-const currentTypeFilterMessage = computed(() => {
-	const message = ref('');
-
-	if (selectedUpgradeTypes.value.length) {
-		message.value = ', active upgrade type filters: ';
-
-		selectedUpgradeTypes.value.forEach((type, index) => {
-			message.value += ' ' + type;
-			index < selectedUpgradeTypes.value.length - 1 ? message.value += ', and' : null;
-		});
-	}
-
-	return message.value;
+const currentBuildTypeFilterMessage = computed(() => {
+    return 'all' !== selectedBuildType.value ? ' for ' + selectedBuildType.value.toLowerCase() : null;
 });
 
 /**
@@ -637,7 +690,11 @@ const currentTypeFilterMessage = computed(() => {
  * @type {String|null} - A string indicating the filter results message or null if 'all' is selected.
  */
 const currentLocationFilterMessage = computed(() => {
-	return 'all' !== selectedLocation.value ? 'available for residents of ' + selectedLocation.value : null;
+	return 'all' !== selectedLocation.value ? ' available to residents of ' + selectedLocation.value : null;
+});
+
+const currentHeatingSystemFilterMessage = computed(() => {
+	return 'all' !== selectedHeatingSystem.value ? ' for ' + selectedHeatingSystem.value + ' heating systems ': null;
 });
 
 /**
@@ -732,7 +789,7 @@ const clearFilters = () => {
     const allActiveFilters = container ? container.querySelectorAll(`.${isCheckedClass.value}`) : null;
 
     // Handle specific actions based on the selected input filter ID.
-    if (event.target.id === "offerTypeAll") {
+    if (event.target.id === "offerTypeAll" || event.target.id === "offerTypeAll--mobile" ) {
         // Update the selectedOtherOffers value when offer type "Select All" is selected.
         selectedOtherOffers.value = 'all';
     } else if (event.target.id === "upgradeTypeAll") {
@@ -741,24 +798,14 @@ const clearFilters = () => {
     }
 
     // Remove active state from all other filters.
-    if (allActiveFilters && allActiveFilters.length > 0) {
+    if ( allActiveFilters ) {
         allActiveFilters.forEach((activeFilter) => {
             activeFilter.classList.remove(isCheckedClass.value);
         });
     }
 
-    // Toggle the active state of the clicked filter.
-    if (!event.target.parentNode.classList.contains(isCheckedClass.value)) {
-        event.target.parentNode.classList.add(isCheckedClass.value);
-    }
-
-    // Check the "Select All" checkbox.
-    if (checkboxFilterAll) {
-        checkboxFilterAll.checked = true;
-    }
-
     // Reset pagination if current page is not 1.
-    if (currentPage.value !== 1) {
+    if ( currentPage.value !== 1 ) {
         handleUpdatingAnimationClass(".control.pagination .pages");
         currentPage.value = 1;
     }
@@ -802,27 +849,42 @@ const clearFilters = () => {
  * @param {Event} event - The event object representing the radio filter interaction.
  * @returns {void}
  */
- const handleRadioFilterStylingClass = (event) => {
-    // Find the closest filter list container element.
-    const container = event.target.closest(".filter__list");
+const handleRadioFilterStylingClass = (event) => {
+    // Find all instances of this filter on the page.
+    const filterContainers = document.querySelectorAll('.filter--other-offers');
 
-    // Retrieve the "Select All" checkbox and old active radio filter within the container.
-    const allFiltersInput = container ? container.querySelector(".all") : null;
-    const oldActiveRadio = container ? container.querySelector(`.${isCheckedClass.value}`) : null;
+    if ( filterContainers.length ) {
+        filterContainers.forEach((filterContainer) => {
+            // Retrieve the "Select All" radio and old active radio filter within the container.
+            const allFilterRadio = filterContainer ? filterContainer.querySelector('.all') : null;
+            const prevActiveRadio = filterContainer ? filterContainer.querySelector(`.${isCheckedClass.value}`) : null;
 
-    // Remove active state from the old active radio filter if present.
-    if (oldActiveRadio !== undefined && oldActiveRadio !== null) {
-        oldActiveRadio.classList.remove(isCheckedClass.value);
+            // Retrieve the user-actioned radio and old active radio filter within the container.
+            const actionedFilterInput = filterContainer ? filterContainer.querySelector('input[data-filter-value="' + event.target.dataset.filterValue + '"]') : null;
+
+            // Adjust the state of the "Select All" radio based on active radio filters.
+            allFilterRadio ? prevActiveRadio.classList.remove(isCheckedClass.value) : null;
+
+            // Remove active state from the old active radio filter if present.
+            prevActiveRadio ? prevActiveRadio.classList.remove(isCheckedClass.value) : null;
+
+            // Toggle the active state of the clicked radio filter.
+            actionedFilterInput ? actionedFilterInput.parentNode.classList.add(isCheckedClass.value) : null;
+        });
     }
+}
 
-    // Toggle the active state of the clicked radio filter.
-    if (!event.target.parentNode.classList.contains(isCheckedClass.value)) {
-        event.target.parentNode.classList.add(isCheckedClass.value);
-    }
-
-    // Adjust the state of the "Select All" checkbox based on active radio filters.
-    if (allFiltersInput && allFiltersInput.classList.contains(isCheckedClass.value)) {
-        allFiltersInput.classList.remove(isCheckedClass.value);
+/**
+ * If the count associated with the results for a given term is equal to zero
+ * return an is-disabled CSS class.
+ *
+ * @param {string} upgrade
+ */
+function handleTermCountDisabledClass(upgrade) {
+    if ( 0 !== getUpgradeTypeTagCount(upgrade) ) {
+        return '';
+    } else {
+        return 'is-disabled';
     }
 };
 
@@ -855,12 +917,12 @@ const clearFilters = () => {
  */
 const selectIsActive = (event) => {
 	return 'click' !== event.type ? event.target.parentNode.classList.remove(activeClass.value) : event.target.parentNode.classList.toggle(activeClass.value);
-}
+};
 
 /**
  * Calculates and returns the count of posts containing a specific tag.
  *
- * Iterates through the `rebates` array and increments the count for each post that includes the specified tag.
+ * Iterates through the `filteredRebates` array and increments the count for each post that includes the specified tag.
  *
  * @param {string} tag - The tag for which to calculate the count.
  * @returns {number} The count of posts containing the specified tag.
@@ -868,10 +930,70 @@ const selectIsActive = (event) => {
  * Because the Upgrade Type filter is presented as a multi-select, * run .reduce() against all Rebates, rather than just the current, * filtered sub-set.
  */
 const getUpgradeTypeTagCount = (tag) => {
-	return rebates.value.reduce(
+    const app = document.querySelector('#rebateFilterApp');
+    const filterContainers = app ? app.querySelectorAll('.filter--upgrade-types') : null;
+    const selectedLoc = selectedLocation.value;
+	const selectedBuild = selectedBuildType.value;
+	const selectedSystem = selectedHeatingSystem.value;
+
+    let count = 0;
+
+    // filteredRebates is the result of all filters.  For this count, we
+    // want to use the results filtered by the primary filters only.
+    let primaryFilteredRebates = [...rebates.value];
+
+    // Filter by location if 'all' is not selected.
+    if ('all' !== selectedLoc) {
+        primaryFilteredRebates = primaryFilteredRebates.filter(rebate => rebate.locations && rebate.locations.some(location => location.name === selectedLoc));
+    }
+    // Filter by Build Type if 'all' is not selected.
+    if ('all' !== selectedBuild) {
+        primaryFilteredRebates = primaryFilteredRebates.filter(rebate => rebate.types && rebate.types.some(type => type.name === selectedBuild));
+    }
+    // Filter by Current Primary Heating System if 'all' is not selected.
+    if ('all' !== selectedSystem) {
+        primaryFilteredRebates = primaryFilteredRebates.filter(rebate => rebate.primary_heating_sys && rebate.primary_heating_sys.some(sys => sys.name === selectedSystem));
+    }
+
+    // Because we cannot pass the taxonomy term array into .reduce(), we
+    // flatten the array into a string with JSON.stringify() and run
+    // .includes() against the outcome.  If our string is found, increment
+    // count by 1.  Otherwise increment by zero.
+    count = primaryFilteredRebates.reduce(
 		(count, rebate) => count + (JSON.stringify(rebate.upgrade_types).includes(tag) ? 1 : 0),
 		0
 	);
+
+    // Failsafe against this code being run when the DOM is not fully loaded.
+    if ( filterContainers.length ) {
+        filterContainers.forEach((filterContainer) => {
+            // Find the radio input element corresponding to the specified filter.
+            const radioInput = filterContainer ? filterContainer.querySelector('.filter__item input[value=\"' + tag + '\"]') : null;
+
+            if ( radioInput ) {
+                if ( 0 === count ) {
+                    // Manage helper CSS classes.
+                    radioInput.parentNode.classList.remove(isCheckedClass.value);
+                    radioInput.parentNode.classList.add('is-disabled');
+
+                    // If the given filter has zero results (because another filter has changed)
+                    // remove it from the current search criteria.
+                    selectedUpgradeTypes.value.forEach((upgrade) => {
+                        if ( radioInput.name === upgrade ) {
+                            // Remove empty term from search query if secondary filter count
+                            // is zero as a result of primary filter configuration.
+                            selectedUpgradeTypes.value = selectedUpgradeTypes.value.filter(upgrade => upgrade !== radioInput.name);
+                        }
+                    });
+                } else {
+                    // Remove CSS helper class.
+                    radioInput.parentNode.classList.remove('is-disabled');
+                }
+            }
+        });
+    }
+
+    return count;
 };
 
 /**
@@ -883,25 +1005,39 @@ const getUpgradeTypeTagCount = (tag) => {
  * @returns {number} The count of posts containing the specified tag.
  */
 const handleOfferTagCount = (tag) => {
-	const container = document.querySelector("#rebatesSidebar .filter__list");
-	const radioInput = container ? container.querySelector(".radio input[value=\"" + tag + "\"]") : null;
+    const app = document.querySelector('#rebateFilterApp');
+    const filterContainers = app ? app.querySelectorAll('.filter--other-offers') : null;
 
-	let count = filteredRebates.value.reduce(
+	let altFilteredRebates = [...filteredRebates.value];
+    let count = altFilteredRebates.length;
+
+    count = altFilteredRebates.reduce(
 		(count, rebate) => count + (JSON.stringify(rebate.other_offers).includes(tag) ? 1 : 0),
 		0
 	);
 
-	if (0 === count) {
-		radioInput.disabled = true;
-		radioInput.setAttribute('aria-disabled', true);
-		radioInput.parentNode.classList.add("is-disabled");
-	} else {
-		if (container && radioInput) {
-			radioInput.disabled = false;
-			radioInput.setAttribute('aria-disabled', false);
-			radioInput.parentNode.classList.remove("is-disabled");
-		}
-	}
+    if ( filterContainers.length ) {
+        filterContainers.forEach((filterContainer) => {
+            // Find the radio input element corresponding to the specified filter.
+            const radioInput = filterContainer ? filterContainer.querySelector('.filter__item input[value=\"' + tag + '\"]') : null;
+            const radioInputAll = filterContainer ? filterContainer.querySelector('.all input') : null;
+
+            if ( radioInput ) {
+                if ( 0 === count ) {
+                    // Manage helper CSS classes.
+                    radioInput.parentNode.classList.remove(isCheckedClass.value);
+                    radioInput.parentNode.classList.add('is-disabled');
+
+                    if ( selectedOtherOffers.value === radioInput.name ) {
+                        selectedOtherOffers.value = defaultOtherOffers.value;
+                        history.replaceState(selectedOtherOffers.value, defaultOtherOffers.value);
+                    }
+                } else {
+                    radioInput.parentNode.classList.remove('is-disabled');
+                }
+            }
+        });
+    }
 
 	return count;
 };
@@ -981,6 +1117,26 @@ const fetchData = async (offset = 0) => {
 };
 
 /**
+ * Manages the accordion title, updating the title when one or more filters
+ * are active.
+ *
+ * @param {array} selectedUpgradeTypes
+ */
+const upgradeTypesAccordionTitle = (selectedUpgradeTypes) => {
+    let title = '';
+
+    if ( 0 === selectedUpgradeTypes.length ) {
+        title += ' (All types active)';
+    } else {
+        title += '(' + selectedUpgradeTypes.length.toString();
+        title += 1 === selectedUpgradeTypes.length ? ' filter ' : ' filters ';
+        title += 'active)';
+    }
+
+    return title;
+};
+
+/**
  * Watcher for changes in the window.site?.domain variable.
  * Invokes the fetchData() function when the window.site?.domain becomes truthy.
  *
@@ -1001,14 +1157,14 @@ watch(() => window.site?.domain, (newVal) => {
  *
  * @returns {void}
  */
- watch(paginatedRebates, () => {
+watch(paginatedRebates, () => {
     // Check if the number of paginated rebates has changed.
     if (oldPaginatedRebatesCount.value !== paginatedRebates.value.length) {
         // Update the old count of paginated rebates.
         oldPaginatedRebatesCount.value = paginatedRebates.value.length;
-        
+
         // Trigger the updating animation class for paginated rebates.
-        handleUpdatingAnimationClass(".control.pagination .paginated-rebates");
+        handleUpdatingAnimationClass('.control.pagination .paginated-rebates');
     }
 });
 
@@ -1017,9 +1173,10 @@ watch(filteredRebates, () => {
     if (oldFilteredRebatesCount.value !== filteredRebates.value.length) {
         // Update the old count of filtered rebates.
         oldFilteredRebatesCount.value = filteredRebates.value.length;
-        
+
         // Trigger the updating animation class for filtered rebates.
-        handleUpdatingAnimationClass(".control.pagination .filtered-rebates");
+        handleUpdatingAnimationClass('.control.pagination .filtered-rebates');
+        handleUpdatingAnimationClass('.counter__value');
     }
 });
 
@@ -1051,26 +1208,33 @@ watch(totalPages, () => {
  */
  watch(selectedUpgradeTypes, () => {
     // Find the container for other offers filters.
-    const container = document.querySelector(".filter--other-offers");
+    const filterContainers = document.querySelectorAll('.filter--other-offers');
 
-    // Find elements within the container.
-    const radioFilterAll = container.querySelector(".all");
-    const activeOfferFilter = container.querySelector("." + isCheckedClass.value);
+    if ( filterContainers.length && 'all' !== selectedOtherOffers.value ) {
+        filterContainers.forEach((filterContainer) => {
+            // Retrieve the "Select All" radio and old active radio filter within the container.
+            const allFilterRadio = filterContainer ? filterContainer.querySelector('.all') : null;
+            const prevActiveRadio = filterContainer ? filterContainer.querySelector(`.${isCheckedClass.value}`) : null;
 
-    // Check if 'all' is not selected in selectedOtherOffers.
-    if ('all' !== selectedOtherOffers.value) {
-        // Reset selectedOtherOffers to default value and update history state.
-        selectedOtherOffers.value = defaultOtherOffers.value;
-        history.replaceState(selectedOtherOffers.value, defaultOtherOffers.value);
+            // Remove active state from the old active radio filter if present.
+            prevActiveRadio ? prevActiveRadio.classList.remove(isCheckedClass.value) : null;
 
-        // Uncheck and remove the checked class from the active offer filter.
-        activeOfferFilter.querySelector('input').checked = false;
-        activeOfferFilter.classList.remove(isCheckedClass.value);
+            // Adjust the state of the "Select All" radio based on active radio filters.
+            allFilterRadio ? allFilterRadio.classList.add(isCheckedClass.value) : null;
 
-        // Check and add the checked class to the 'all' filter.
-        radioFilterAll.querySelector('input').checked = true;
-        radioFilterAll.classList.add(isCheckedClass.value);
+            // Reset the other offers filter because filter selections may
+            // cause it to be empty.
+            selectedOtherOffers.value = defaultOtherOffers.value;
+            history.replaceState(selectedOtherOffers.value, defaultOtherOffers.value);
+        })
     }
+});
+
+watch([selectedBuildType, selectedLocation, selectedHeatingSystem], () => {
+    const app = document.querySelector('#rebateFilterApp');
+    const upgradeTypesFilter = app ? app.querySelector('.filter--upgrade-types') : null;
+    const additionalOffersFilter = app ? app.querySelectorAll('.filter--other-offers') : null;
+    const activeUpgradeTypesFilters = upgradeTypesFilter ? upgradeTypesFilter.querySelectorAll(`.${isCheckedClass.value}:not(.all)`) : null;
 });
 
 /**
@@ -1095,7 +1259,7 @@ watch([selectedBuildType, selectedLocation, selectedUpgradeTypes, selectedHeatin
  * @param {Event} event - The click event object.
  * @returns {void}
  */
- window.addEventListener("click", (event) => {
+window.addEventListener("click", (event) => {
     // Check if the clicked target is not within an active custom select dropdown.
     if (!event.target.closest('.custom-select.is-active') || !document.querySelectorAll('#rebateFilterApp .custom-select.is-active').length) {
         // Reset all active custom select dropdowns.
@@ -1119,10 +1283,11 @@ onMounted(() => {
 	if (window.site?.domain) {}
 
 	// init accordions
-	const accordions = document.querySelectorAll('.filter--upgrade-types.accordion h2');
+	const accordions = document.querySelectorAll('.filter.accordion h2');
 	accordions.forEach((accordionEl) => {
 		new Accordion(accordionEl);
 	});
+
 
 });
 

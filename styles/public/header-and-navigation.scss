@@ -18,13 +18,9 @@ header {
   }
 }
 
-.toggle-search-btn {
-  a {
-    font-size: 0 !important;
-    height: 2rem;
-    width: 2rem;
-
-    &::before {
+body:not(.alpha-v3) {
+  .toggle-search-btn {
+    a::before {
       content: $searchIcon;
       display: block;
       width: 100%;
@@ -32,6 +28,14 @@ header {
       position: relative;
       top: 4px;
     }
+  }
+}
+
+.toggle-search-btn {
+  a {
+    font-size: 0 !important;
+    height: 2rem;
+    width: 2rem;
   }
 }
 
