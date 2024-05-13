@@ -9,7 +9,12 @@
         <!-- Primary Filter: Text Search Input -->
         <div class="control text-search">
           <label for="textSearch" class="">Type to filter results</label>
-          <input type="text" id="textSearch" class="input input--text" v-model="textSearch" name="textSearch" placeholder="Search FAQs..."/>
+          <input id="textSearch"
+            type="text"
+            class="input input--text"
+            v-model="textSearch"
+            name="textSearch"
+            placeholder="Search FAQs..."/>
         </div>
 
         <!-- Primary Filter: Category Select -->
@@ -49,7 +54,7 @@
                         data-filter-value="all"
                         class="sr-only"
                         type="radio"
-                        name="all"
+                        name="additionalFiltersMobile"
                         value="all"
                         :aria-checked="'all' === selectedAdditionalFilter ? true : false"
                         aria-disabled="false"
@@ -58,20 +63,18 @@
                     <label for="typeAll--mobile">Show All <span class="sr-only">Results: </span> ({{ handleFilterPostCount('all') }})</label>
                   </div>
                   <!-- Note regarding .replace() implementations: we run .replace() twice to improve selector name quality.  The first .replace() call can result in multiple -- instances within the class's dynamic name. -->
-                  <div v-for="(filter, index) in additional_filters" :key="index" :class="`filter__item radio radio--${filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')}`">
+                  <div v-for="(filter, index) in additional_filters" :key="index" :class="`filter__item radio radio--${filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')} ${ filter === selectedAdditionalFilter ? isCheckedClass : '' }`">
                     <input :id="filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-') + '--mobile'"
                         :data-filter-value="filter.toLowerCase().replace(/ /g, '_')"
                         class="sr-only"
                         type="radio"
                         v-model="selectedAdditionalFilter"
-                        :name="filter"
+                        name="additionalFiltersMobile"
                         :value="filter"
                         :aria-checked="filter === selectedAdditionalFilter ? true : false"
                         :aria-disabled="0 === handleFilterPostCount(filter) ? true : false"
                         :disabled="0 === handleFilterPostCount(filter) ? true : false"
-                        :checked="filter === selectedAdditionalFilter ? true : false"
-                        @click="handleRadioFilterStylingClass"
-                        @touchend="handleRadioFilterStylingClass">
+                        :checked="filter === selectedAdditionalFilter ? true : false">
                     <label :for="filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-') + '--mobile'">{{ filter }} <span class="sr-only">Number of results: </span>({{ handleFilterPostCount(filter) }})</label>
                   </div>
                 </fieldset>
@@ -119,35 +122,35 @@
         <div class="filter filter--types">
           <h2>Additional filters</h2>
           <fieldset class="filter__list" v-if="!isLoading && faqs">
+            <legend class="sr-only">Additional Filters:</legend>
             <!-- All Filter -->
             <div :class="`filter__item radio radio--all all ${ 'all' === selectedAdditionalFilter ? isCheckedClass : '' }`">
               <input id="typeAll"
                   data-filter-value="all"
                   class="sr-only"
                   type="radio"
-                  name="all"
+                  name="additionalFilters"
                   value="all"
                   :aria-checked="'all' === selectedAdditionalFilter ? true : false"
                   aria-disabled="false"
                   :checked="'all' === selectedAdditionalFilter ? true : false"
-                  @click="handleSelectAllInputFilter">
+                  @click="handleSelectAllInputFilter"
+                  @touchend="handleSelectAllInputFilter">
               <label for="typeAll">Show All <span class="sr-only">Results: </span> ({{ handleFilterPostCount('all') }})</label>
             </div>
             <!-- Filter element loop -->
-            <div v-for="(filter, index) in additional_filters" :key="index" :class="`filter__item radio radio--${filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')}`">
+            <div v-for="(filter, index) in additional_filters" :key="index" :class="`filter__item radio radio--${filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-') } ${ filter === selectedAdditionalFilter ? isCheckedClass : '' }`">
               <input :id="filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')"
                   :data-filter-value="filter.toLowerCase().replace(/ /g, '_')"
                   class="sr-only"
                   type="radio"
                   v-model="selectedAdditionalFilter"
-                  :name="filter"
+                  name="additionalFilters"
                   :value="filter"
                   :aria-checked="filter === selectedAdditionalFilter ? true : false"
                   :aria-disabled="0 === handleFilterPostCount(filter) ? true : false"
                   :disabled="0 === handleFilterPostCount(filter) ? true : false"
-                  :checked="filter === selectedAdditionalFilter ? true : false"
-                  @click="handleRadioFilterStylingClass"
-                  @touchend="handleRadioFilterStylingClass">
+                  :checked="filter === selectedAdditionalFilter ? true : false">
               <label :for="filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')">{{ filter }} <span class="sr-only">Number of results: </span>({{ handleFilterPostCount(filter) }})</label>
             </div>
           </fieldset>
@@ -248,7 +251,7 @@
                       </div>
                       <div class="faq__body" v-html="faq.body"></div>
                       <div class="faq__close">
-                        <button :id="`faqAccordionTrigger--${faq.id}`"
+                        <button :id="`faqAccordionTrigger--${faq.id}--close`"
                           class=""
                           @click.stop.prevent="collapseThisFaq"
                           @touchend.stop.prevent="collapseThisFaq"
@@ -409,6 +412,10 @@ const filteredFaqs = computed(() => {
 	}
 
 	resetSelectsActiveState();
+
+  setTimeout(() => {
+    null
+  }, 1000);
 
 	return filteredFaqs;
 });
@@ -677,37 +684,6 @@ const clearFilters = () => {
         handleUpdatingAnimationClass('.control.pagination .pages');
     }
     currentPage.value = 1;
-};
-
-/**
- * Handler function to update styling classes for radio filters.
- *
- * This function is triggered when a radio filter element is clicked.
- * It updates the styling classes of the clicked radio filter and the "All" filter.
- * If there was a previously active radio filter, its styling class is removed.
- *
- * @param {Event} event - The event triggered by clicking a radio filter.
- * @returns {void}
- */
-const handleRadioFilterStylingClass = (event) => {
-    const filterContainers = document.querySelectorAll('.filter--types');
-
-    if ( filterContainers.length ) {
-      filterContainers.forEach((filterContainer) => {
-        const allFilterRadio = filterContainer ? filterContainer.querySelector('.all') : null;
-        const prevActiveRadio = filterContainer ? filterContainer.querySelector(`.${isCheckedClass.value}`) : null;
-        const actionedFilter = filterContainer ? filterContainer.querySelector('input[data-filter-value="' + event.target.dataset.filterValue + '"]') : null;
-
-        // Adjust the state of the "Select All" radio based on active radio filters.
-        allFilterRadio ? prevActiveRadio.classList.remove(isCheckedClass.value) : null;
-
-        // Remove active state from the old active radio filter if present.
-        prevActiveRadio ? prevActiveRadio.classList.remove(isCheckedClass.value) : null;
-
-        // Toggle the active state of the clicked radio filter.
-        actionedFilter ? actionedFilter.parentNode.classList.add(isCheckedClass.value) : null;
-      });
-    }
 };
 
 /**
@@ -997,8 +973,6 @@ function handleLinkCopiedMessageContent(event) {
   const messageToUser = ref('Link to FAQ copied to clipboard!');
   const messageArea = item ? item.querySelector('.copy-message') : null;
 
-  console.log(messageArea)
-
   if ( messageArea && messageArea.classList.contains('isFadedOut') ) {
     // Inject message to user, triggering ARIA live region.
     messageArea.innerText = messageToUser.value;
@@ -1145,7 +1119,8 @@ function collapseThisFaq(event) {
   const accordion = new Accordion(faq);
 
   accordion.rootEl.classList.remove('isOpen');
-  accordion.close();
+  accordion.toggle(false);
+  accordion.rootEl.focus();
 }
 </script>
 

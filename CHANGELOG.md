@@ -1,4 +1,6 @@
 ## 1.5.0 May 9, 2024
+- Rebates and FAQs app bugfixing.
+- Improved keyboard nav for PQEA/Contractor/Rebates/FAQ Vue apps.
 - FAQs app functionality.
 - Refactored styles to /styles/betterhomes/_vue-apps.scss.
 - Code clean up and improved documentation.

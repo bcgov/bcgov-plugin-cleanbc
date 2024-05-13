@@ -90,27 +90,27 @@
                                 <input id="upgradeTypeAll"
                                     class="sr-only"
                                     type="checkbox"
-                                    name="all"
+                                    name="upgradeTypes"
                                     value="all"
                                     :aria-checked="selectedUpgradeTypes.length ? false : true"
                                     :checked="selectedUpgradeTypes.length ? false : true"
-                                    @click="handleSelectAllInputFilter">
+                                    @click="handleSelectAllInputFilter"
+                                    @keyup.enter="simulateClickOnEnter">
                                 <label for="upgradeTypeAll">All Upgrade Types</label>
                             </div>
                             <!-- Note regarding .replace() implementations: we run .replace() twice to improve selector name quality.  The first .replace() call can result in multiple -- instances within the class's dynamic name. -->
-                            <div v-for="(upgrade, index) in upgrades" :key="index" :class="`filter__item checkbox checkbox--${upgrade.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g,'-')} ${handleTermCountDisabledClass(upgrade)}`">
+                            <div v-for="(upgrade, index) in upgrades" :key="index" :class="`filter__item checkbox checkbox--${upgrade.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g,'-')} ${ -1 !== selectedUpgradeTypes.indexOf(upgrade) ? isCheckedClass : '' }`">
                                 <input :id="upgrade.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')"
                                     class="sr-only"
                                     type="checkbox"
                                     v-model="selectedUpgradeTypes"
-                                    :name="upgrade"
+                                    name="upgradeTypes"
                                     :value="upgrade"
                                     :aria-checked="selectedUpgradeTypes.includes(upgrade) ? true : false"
                                     :checked="selectedUpgradeTypes.includes(upgrade) ? true : false"
                                     :aria-disabled="0 === getUpgradeTypeTagCount(upgrade) ? true : false"
                                     :disabled="0 === getUpgradeTypeTagCount(upgrade) ? true : false"
-                                    @click="handleCheckboxFilterStylingClass"
-                                    @touchend="handleCheckboxFilterStylingClass">
+                                    @keyup.enter="simulateClickOnEnter">
                                 <label :for="upgrade.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')">{{ upgrade }} ({{ getUpgradeTypeTagCount(upgrade) }})</label>
                             </div>
                         </fieldset>
@@ -151,7 +151,7 @@
                                     @click="handleSelectAllInputFilter">
                                 <label for="offerTypeAll--mobile">No additional filters applied</label>
                             </div>
-                            <div v-for="(offer, index) in offers" :key="index" :class="`filter__item radio radio--${offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')}`">
+                            <div v-for="(offer, index) in offers" :key="index" :class="`filter__item radio radio--${offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')} ${ offer === selectedOtherOffers ? isCheckedClass : '' }`">
                                 <input :id="offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-') + '--mobile'"
                                     :data-filter-value="offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')"
                                     class="sr-only"
@@ -162,9 +162,7 @@
                                     :aria-checked="offer === selectedOtherOffers ? true : false"
                                     :aria-disabled="0 === handleOfferTagCount(offer) ? true : false"
                                     :disabled="0 === handleOfferTagCount(offer) ? true : false"
-                                    :checked="offer === selectedOtherOffers ? true : false"
-                                    @click="handleRadioFilterStylingClass"
-                                    @touchend="handleRadioFilterStylingClass">
+                                    :checked="offer === selectedOtherOffers ? true : false">
                                 <label :for="offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-') + '--mobile'">{{ offer }} ({{ handleOfferTagCount(offer) }})</label>
                             </div>
                         </fieldset>
@@ -213,33 +211,35 @@
             <div class="filter filter--other-offers">
                 <h2>Additional filters ({{ getOfferTotalTagCount }})</h2>
                 <fieldset class="filter__list" v-if="!isLoading && offers">
+                    <legend class="sr-only">Additional Filters:</legend>
                     <div :class="`filter__item radio all ${ 'all' === selectedOtherOffers ? isCheckedClass : '' }`">
                         <input id="offerTypeAll"
                             data-filter-value="all"
                             class="sr-only"
                             type="radio"
-                            name="all"
+                            name="otherOffers"
                             value="all"
                             :aria-checked="'all' === selectedOtherOffers ? true : false"
                             aria-disabled="false"
                             :checked="'all' === selectedOtherOffers ? true : false"
-                            @click="handleSelectAllInputFilter">
+                            tabindex="0"
+                            @click="handleSelectAllInputFilter"
+                            @touchend="handleSelectAllInputFilter">
                         <label for="offerTypeAll">No additional filters applied</label>
                     </div>
-                    <div v-for="(offer, index) in offers" :key="index" :class="`filter__item radio radio--${offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')}`">
+                    <div v-for="(offer, index) in offers" :key="index" :class="`filter__item radio radio--${offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')} ${ offer === selectedOtherOffers ? isCheckedClass : '' }`">
                         <input :id="offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')"
                             :data-filter-value="offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')"
                             class="sr-only"
                             type="radio"
                             v-model="selectedOtherOffers"
-                            :name="offer"
+                            name="otherOffers"
                             :value="offer"
                             :aria-checked="offer === selectedOtherOffers ? true : false"
                             :aria-disabled="0 === handleOfferTagCount(offer) ? true : false"
                             :disabled="0 === handleOfferTagCount(offer) ? true : false"
                             :checked="offer === selectedOtherOffers ? true : false"
-                            @click="handleRadioFilterStylingClass"
-                            @touchend="handleRadioFilterStylingClass">
+                            tabindex="0">
                         <label :for="offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')">{{ offer }} ({{ handleOfferTagCount(offer) }})</label>
                     </div>
                 </fieldset>
@@ -783,7 +783,7 @@ const clearFilters = () => {
     const container = event.target.closest(".filter__list");
 
     // Retrieve the "Select All" checkbox within the container.
-    const checkboxFilterAll = container ? container.querySelector(".all") : null;
+    const filterAll = container.querySelector('.all');
 
     // Find all currently active filters within the container.
     const allActiveFilters = container ? container.querySelectorAll(`.${isCheckedClass.value}`) : null;
@@ -797,95 +797,26 @@ const clearFilters = () => {
         selectedUpgradeTypes.value = [];
     }
 
-    // Remove active state from all other filters.
-    if ( allActiveFilters ) {
-        allActiveFilters.forEach((activeFilter) => {
+    // Remove isCheckedClass from all active filters except for the "All" filter.
+    allActiveFilters.forEach((activeFilter) => {
+        if (activeFilter !== filterAll) {
             activeFilter.classList.remove(isCheckedClass.value);
-        });
-    }
+        }
+    });
 
-    // Reset pagination if current page is not 1.
-    if ( currentPage.value !== 1 ) {
-        handleUpdatingAnimationClass(".control.pagination .pages");
-        currentPage.value = 1;
-    }
-};
-
-/**
- * Manage styling classes for checkbox filter elements.
- *
- * This function handles the styling classes for checkbox filter elements based on user interaction.
- * It toggles the active state of the clicked checkbox filter and manages the "Select All" checkbox state.
- *
- * @param {Event} event - The event object representing the checkbox filter interaction.
- * @returns {void}
- */
- const handleCheckboxFilterStylingClass = (event) => {
-    // Find the closest filter container element.
-    const container = event.target.closest(".filter-container");
-
-    // Retrieve the "Select All" checkbox within the container.
-    const allFiltersInput = container ? container.querySelector(".all") : null;
-
-    // Toggle the active state of the clicked checkbox filter.
+    // Add isCheckedClass to the parent node of the event target if it's not already added.
     if (!event.target.parentNode.classList.contains(isCheckedClass.value)) {
         event.target.parentNode.classList.add(isCheckedClass.value);
-    } else {
-        event.target.parentNode.classList.remove(isCheckedClass.value);
     }
 
-    // Check and adjust the state of the "Select All" checkbox based on active filters.
-    if (allFiltersInput && allFiltersInput.classList.contains(isCheckedClass.value)) {
-        allFiltersInput.classList.remove(isCheckedClass.value);
+    // Check the "All" filter checkbox to select it.
+    filterAll.checked = true;
+
+    // Reset the current pagination page to 1 and trigger a UI animation if necessary.
+    if (currentPage.value !== 1) {
+        handleUpdatingAnimationClass('.control.pagination .pages');
     }
-};
-
-/**
- * Manage styling classes for radio filter elements.
- *
- * This function handles the styling classes for radio filter elements based on user interaction.
- * It manages the active state of the clicked radio filter and adjusts the "Select All" checkbox state accordingly.
- *
- * @param {Event} event - The event object representing the radio filter interaction.
- * @returns {void}
- */
-const handleRadioFilterStylingClass = (event) => {
-    // Find all instances of this filter on the page.
-    const filterContainers = document.querySelectorAll('.filter--other-offers');
-
-    if ( filterContainers.length ) {
-        filterContainers.forEach((filterContainer) => {
-            // Retrieve the "Select All" radio and old active radio filter within the container.
-            const allFilterRadio = filterContainer ? filterContainer.querySelector('.all') : null;
-            const prevActiveRadio = filterContainer ? filterContainer.querySelector(`.${isCheckedClass.value}`) : null;
-
-            // Retrieve the user-actioned radio and old active radio filter within the container.
-            const actionedFilterInput = filterContainer ? filterContainer.querySelector('input[data-filter-value="' + event.target.dataset.filterValue + '"]') : null;
-
-            // Adjust the state of the "Select All" radio based on active radio filters.
-            allFilterRadio ? prevActiveRadio.classList.remove(isCheckedClass.value) : null;
-
-            // Remove active state from the old active radio filter if present.
-            prevActiveRadio ? prevActiveRadio.classList.remove(isCheckedClass.value) : null;
-
-            // Toggle the active state of the clicked radio filter.
-            actionedFilterInput ? actionedFilterInput.parentNode.classList.add(isCheckedClass.value) : null;
-        });
-    }
-}
-
-/**
- * If the count associated with the results for a given term is equal to zero
- * return an is-disabled CSS class.
- *
- * @param {string} upgrade
- */
-function handleTermCountDisabledClass(upgrade) {
-    if ( 0 !== getUpgradeTypeTagCount(upgrade) ) {
-        return '';
-    } else {
-        return 'is-disabled';
-    }
+    currentPage.value = 1;
 };
 
 /**
@@ -1007,11 +938,32 @@ const getUpgradeTypeTagCount = (tag) => {
 const handleOfferTagCount = (tag) => {
     const app = document.querySelector('#rebateFilterApp');
     const filterContainers = app ? app.querySelectorAll('.filter--other-offers') : null;
+    const selectedLoc = selectedLocation.value;
+	const selectedUpgrades = selectedUpgradeTypes.value;
+	const selectedBuild = selectedBuildType.value;
+	const selectedSystem = selectedHeatingSystem.value;
+    let primaryFilteredRebates = [...rebates.value];
+    let count = primaryFilteredRebates.length;
 
-	let altFilteredRebates = [...filteredRebates.value];
-    let count = altFilteredRebates.length;
+    // Filter by location if 'all' is not selected.
+    if ('all' !== selectedLoc) {
+        primaryFilteredRebates = primaryFilteredRebates.filter(rebate => rebate.locations && rebate.locations.some(location => location.name === selectedLoc));
+    }
+    // Filter by Build Type if 'all' is not selected.
+    if ('all' !== selectedBuild) {
+        primaryFilteredRebates = primaryFilteredRebates.filter(rebate => rebate.types && rebate.types.some(type => type.name === selectedBuild));
+    }
+    // Filter by Current Primary Heating System if 'all' is not selected.
+    if ('all' !== selectedSystem) {
+        primaryFilteredRebates = primaryFilteredRebates.filter(rebate => rebate.primary_heating_sys && rebate.primary_heating_sys.some(sys => sys.name === selectedSystem));
+    }
 
-    count = altFilteredRebates.reduce(
+    // Filter by Upgrade Types (multi) if any are selected.
+	if (selectedUpgrades.length) {
+		primaryFilteredRebates = primaryFilteredRebates.filter(rebate => rebate.upgrade_types && rebate.upgrade_types.some(type => selectedUpgrades.includes(type.name)));
+	}
+
+    count = primaryFilteredRebates.reduce(
 		(count, rebate) => count + (JSON.stringify(rebate.other_offers).includes(tag) ? 1 : 0),
 		0
 	);
@@ -1041,6 +993,10 @@ const handleOfferTagCount = (tag) => {
 
 	return count;
 };
+
+function simulateClickOnEnter(event) {
+    event.target.click();
+}
 
 /**
  * Compute the total count of offer tags from filtered rebates.
@@ -1228,13 +1184,6 @@ watch(totalPages, () => {
             history.replaceState(selectedOtherOffers.value, defaultOtherOffers.value);
         })
     }
-});
-
-watch([selectedBuildType, selectedLocation, selectedHeatingSystem], () => {
-    const app = document.querySelector('#rebateFilterApp');
-    const upgradeTypesFilter = app ? app.querySelector('.filter--upgrade-types') : null;
-    const additionalOffersFilter = app ? app.querySelectorAll('.filter--other-offers') : null;
-    const activeUpgradeTypesFilters = upgradeTypesFilter ? upgradeTypesFilter.querySelectorAll(`.${isCheckedClass.value}:not(.all)`) : null;
 });
 
 /**

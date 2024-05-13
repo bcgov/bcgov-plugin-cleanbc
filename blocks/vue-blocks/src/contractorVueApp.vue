@@ -121,7 +121,7 @@
 
             <!-- Results Loop -->
             <template v-if="contractors.length > 0" v-for="(contractor, index) in paginatedContractors" :key="index">
-                <tr :class="`contractor result result--${index+1} ${0 === (index+1) % 2 ? `even` : `odd`}`" tabindex="0">
+                <tr :class="`contractor result result--${index+1} ${0 === (index+1) % 2 ? `even` : `odd`}`">
                     <!-- Company Name and Head Office -->
                     <td data-label="Company Name and Head Office" class="contractor__company-and-location">
                         <!-- Company Website Link -->
