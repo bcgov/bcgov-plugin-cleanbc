@@ -1,4 +1,4 @@
-## 1.5.0 May 9, 2024
+## 1.5.0 May 13, 2024
 - Rebates and FAQs app bugfixing.
 - Improved keyboard nav for PQEA/Contractor/Rebates/FAQ Vue apps.
 - FAQs app functionality.

@@ -153,7 +153,7 @@ class EnableVueApp {
 		$headingLinkActive = isset( $attributes['headingLinkActive'] ) ? $attributes['headingLinkActive'] : 'false';
 		$useExcerpt        = isset( $attributes['useExcerpt'] ) ? $attributes['useExcerpt'] : 'excerpt';
 
-		// Add the 'data-columns' attribute to the output div.
+		// Return the Post Filter App's container with appropriate class names and data-columns.
 		return '<div id="postFilterApp" class="' . esc_attr( $className ) . '" data-columns="' . esc_attr( $columns ) . '" data-post-type="' . esc_attr( $postType ) . '"  data-heading-size="' . esc_attr( $headingSize ) . '" data-heading-link-active="' . esc_attr( $headingLinkActive ) . '" data-use-excerpt="' . esc_attr( $useExcerpt ) . '" data-post-type-label="' . esc_attr( $postTypeLabel ) . '">Loading...</div>';
 	}
 
@@ -188,7 +188,7 @@ class EnableVueApp {
 		// Set up the attributes passed to the Vue frontend, with defaults.
 		$className = isset( $attributes['className'] ) ? $attributes['className'] : '';
 
-		// Add the 'data-columns' attribute to the output div.
+		// Return the Vehicle Filter App's container with appropriate class names.
 		return '<div id="vehicleFilterApp" class="' . esc_attr( $className ) . '">Loading...</div>';
 	}
 
@@ -224,7 +224,7 @@ class EnableVueApp {
 		// Set up the attributes passed to the Vue frontend, with defaults.
 		$className = isset( $attributes['className'] ) ? $attributes['className'] : '';
 
-		// Add the 'data-columns' attribute to the output div.
+		// Return the PQEA Filter App's container with appropriate class names.
 		return '<div id="pqeaFilterApp" class="' . esc_attr( $className ) . '">Loading...</div>';
 	}
 
@@ -259,7 +259,7 @@ class EnableVueApp {
 		// Set up the attributes passed to the Vue frontend, with defaults.
 		$className = isset( $attributes['className'] ) ? $attributes['className'] : '';
 
-		// Add the 'data-columns' attribute to the output div.
+		// Return the Contractor Filter App's container with appropriate class names.
 		return '<div id="contractorFilterApp" class="' . esc_attr( $className ) . '">Loading...</div>';
 	}
 
@@ -294,7 +294,7 @@ class EnableVueApp {
 		// Set up the attributes passed to the Vue frontend, with defaults.
 		$className = isset( $attributes['className'] ) ? $attributes['className'] : '';
 
-		// Add the 'data-columns' attribute to the output div.
+		// Return the Rebate Filter App's container with appropriate class names.
 		return '<div id="rebateFilterApp" class="' . esc_attr( $className ) . '">Loading...</div>';
 	}
 
@@ -329,7 +329,7 @@ class EnableVueApp {
 		// Set up the attributes passed to the Vue frontend, with defaults.
 		$className = isset( $attributes['className'] ) ? $attributes['className'] : '';
 
-		// Add the 'data-columns' attribute to the output div.
+		// Return the FAQ Filter App's container with appropriate class names.
 		return '<div id="faqFilterApp" class="' . esc_attr( $className ) . '">Loading...</div>';
 	}
 
