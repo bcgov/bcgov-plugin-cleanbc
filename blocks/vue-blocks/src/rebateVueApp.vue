@@ -1,10 +1,13 @@
 <template>
+  <div class="inner">
     <!-- Heading for screen readers -->
     <h2 class="sr-only">Rebate Listings</h2>
+    <!-- Skip to results link -->
+    <a href="#rebatesResults" class="sr-only skip-to-results">Skip to results</a>
     <!-- Filter Controls -->
-    <div class="rebatesFilterControls" id="rebatesFilterControls">
+    <div id="rebatesFilterControls" class="rebatesFilterControls filter-container">
         <!-- Build Type Select -->
-        <div class="control build-type">
+        <div class="control build-type-select">
             <label for="typeSelect" class="">Are you building or renovating the home?</label>
             <div class="custom-select">
                 <select id="typeSelect"
@@ -22,8 +25,8 @@
             </div>
         </div>
 
-        <!-- Location Select -->
-        <div class="control location">
+        <!-- Primary Filter: Location Select -->
+        <div class="control location-select">
             <label for="locationSelect" class="">Choose a service region</label>
             <div class="custom-select">
                 <select id="locationSelect"
@@ -41,9 +44,9 @@
             </div>
         </div>
 
-        <!-- Primary Heating System Select -->
-        <div class="control heating-system">
-            <label for="systemSelect" class="">Choose your current, primary heating system</label>
+        <!-- Primary Filter: Primary Heating System Select -->
+        <div class="control heating-system-select">
+            <label for="systemSelect" class="">Choose your current primary heating system</label>
             <div class="custom-select">
                 <select id="systemSelect" class="select select--system"
                     @change="selectIsActive"
@@ -59,6 +62,7 @@
             </div>
         </div>
 
+        <!-- Primary Filter: Upgrade Types Filter -->
         <div class="control upgrade-types">
             <!-- Upgrade Type Filter -->
             <div v-if="upgrades" class="filter filter--upgrade-types accordion">
@@ -68,12 +72,12 @@
                         aria-expanded="false"
                         aria-controls="upgradeTypesAccordionPanel"
                         type="button">
-                            <span class="accordion-title">Filter by type of upgrade ({{ 0 === selectedUpgradeTypes.length ? 'all types' : selectedUpgradeTypes.length + ' filter(s)' }} active)</span>
+                            <span class="accordion-title" v-html="'Filter by type of upgrade ' + upgradeTypesAccordionTitle(selectedUpgradeTypes)"></span>
                             <span class="accordion-icon"></span>
                     </button>
                 </h2>
                 <div id="upgradeTypesAccordionPanel"
-                    class="filter-container filter__list accordion-panel"
+                    class="filter filter__list accordion-panel"
                     role="region"
                     aria-labelledby="upgradeTypesAccordionTrigger"
                     hidden>
@@ -82,29 +86,32 @@
                             <p>Click to select the type(s) of upgrade you would like displayed, you may choose more than one.</p>
                         </div>
                         <fieldset>
-                            <div :class="`checkbox all ${ selectedUpgradeTypes.length ? '' : isCheckedClass }`">
+                            <div :class="`filter__item checkbox all ${ selectedUpgradeTypes.length ? '' : isCheckedClass }`">
                                 <input id="upgradeTypeAll"
                                     class="sr-only"
                                     type="checkbox"
-                                    name="all"
+                                    name="upgradeTypes"
                                     value="all"
                                     :aria-checked="selectedUpgradeTypes.length ? false : true"
                                     :checked="selectedUpgradeTypes.length ? false : true"
-                                    @click="handleSelectAllInputFilter">
+                                    @click="handleSelectAllInputFilter"
+                                    @keyup.enter="simulateClickOnEnter">
                                 <label for="upgradeTypeAll">All Upgrade Types</label>
                             </div>
-                            <div v-for="(upgrade, index) in upgrades" :key="index" :class="`checkbox checkbox--${upgrade.toLowerCase().replace(/ /g,'_')}`">
-                                <input :id="upgrade.toLowerCase().replace(/ /g,'_')"
+                            <!-- Note regarding .replace() implementations: we run .replace() twice to improve selector name quality.  The first .replace() call can result in multiple -- instances within the class's dynamic name. -->
+                            <div v-for="(upgrade, index) in upgrades" :key="index" :class="`filter__item checkbox checkbox--${upgrade.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g,'-')} ${ -1 !== selectedUpgradeTypes.indexOf(upgrade) ? isCheckedClass : '' }`">
+                                <input :id="upgrade.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')"
                                     class="sr-only"
                                     type="checkbox"
                                     v-model="selectedUpgradeTypes"
-                                    :name="upgrade"
+                                    name="upgradeTypes"
                                     :value="upgrade"
                                     :aria-checked="selectedUpgradeTypes.includes(upgrade) ? true : false"
                                     :checked="selectedUpgradeTypes.includes(upgrade) ? true : false"
-                                    @click="handleCheckboxFilterStylingClass"
-                                    @touchend="handleCheckboxFilterStylingClass">
-                                <label :for="upgrade.toLowerCase().replace(/ /g,'_')">{{ upgrade }} ({{ getUpgradeTypeTagCount(upgrade) }})</label>
+                                    :aria-disabled="0 === getUpgradeTypeTagCount(upgrade) ? true : false"
+                                    :disabled="0 === getUpgradeTypeTagCount(upgrade) ? true : false"
+                                    @keyup.enter="simulateClickOnEnter">
+                                <label :for="upgrade.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')">{{ upgrade }} ({{ getUpgradeTypeTagCount(upgrade) }})</label>
                             </div>
                         </fieldset>
                     </div>
@@ -112,16 +119,70 @@
             </div><!-- end .filter--upgrade-types -->
         </div> <!-- end .control.upgrade-types -->
 
+        <!-- Secondary Filter: Offers Filter -->
+        <div class="control other-offers other-offers--mobile">
+            <div class="filter filter--other-offers accordion">
+                <h2>
+                    <button id="otherOffersAccordionTrigger"
+                        class="accordion-trigger"
+                        aria-expanded="false"
+                        aria-controls="otherOffersAccordionPanel"
+                        type="button">
+                        <span class="accordion-title">Additional filters</span>
+                        <span class="accordion-icon"></span>
+                    </button>
+                </h2>
+                <div id="otherOffersAccordionPanel"
+                    class="filter filter__list accordion-panel"
+                    role="region"
+                    aria-labelledby="otherOffersAccordionTrigger"
+                    hidden>
+                    <div class="inner">
+                        <fieldset class="filter__list" v-if="!isLoading && offers">
+                            <div :class="`filter__item radio all ${ 'all' === selectedOtherOffers ? isCheckedClass : '' }`">
+                                <input id="offerTypeAll--mobile"
+                                    class="sr-only"
+                                    type="radio"
+                                    name="all"
+                                    value="all"
+                                    :aria-checked="'all' === selectedOtherOffers ? true : false"
+                                    aria-disabled="false"
+                                    :checked="'all' === selectedOtherOffers ? true : false"
+                                    @click="handleSelectAllInputFilter">
+                                <label for="offerTypeAll--mobile">No additional filters applied</label>
+                            </div>
+                            <div v-for="(offer, index) in offers" :key="index" :class="`filter__item radio radio--${offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')} ${ offer === selectedOtherOffers ? isCheckedClass : '' }`">
+                                <input :id="offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-') + '--mobile'"
+                                    :data-filter-value="offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')"
+                                    class="sr-only"
+                                    type="radio"
+                                    v-model="selectedOtherOffers"
+                                    :name="offer"
+                                    :value="offer"
+                                    :aria-checked="offer === selectedOtherOffers ? true : false"
+                                    :aria-disabled="0 === handleOfferTagCount(offer) ? true : false"
+                                    :disabled="0 === handleOfferTagCount(offer) ? true : false"
+                                    :checked="offer === selectedOtherOffers ? true : false">
+                                <label :for="offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-') + '--mobile'">{{ offer }} ({{ handleOfferTagCount(offer) }})</label>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Clear Filters Button -->
-        <button class="clear-filters" @click.prevent="clearFilters"
-            @touchend="clearFilters"
-            @keydown.enter.prevent="clearFilters"
-            type="button">
-            Reset selection
-        </button>
+        <div class="control reset-filters">
+          <button class="clear-filters" @click.prevent="clearFilters"
+              @touchend="clearFilters"
+              @keydown.enter.prevent="clearFilters"
+              type="button">
+              Reset selection
+          </button>
+        </div>
 
         <!-- Pagination Controls (Top) -->
-        <div class="rebatesFilterPagination filter__pagination filter__pagination--top">
+        <div class="rebatesFilterPagination control pagination pagination--top">
             <!-- Previous Page Button -->
             <button class="prev-page" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0" type="button">Previous Page</button>
             <!-- Current Page & Totals -->
@@ -136,7 +197,7 @@
 
             <span class="sr-status sr-only">
                 <span class="results-count" role="status" aria-live="polite">
-                    Showing <span class="numValue paginated-rebates">{{paginatedRebates.length }}</span> of <span class="numValue filtered-rebates">{{ filteredRebates.length }}</span> Rebates.  {{ currentTypeFilterMessage }} {{ currentLocationFilterMessage }}
+                    Showing <span class="numValue paginated-rebates">{{paginatedRebates.length }}</span> of <span class="numValue filtered-rebates">{{ filteredRebates.length }}</span> rebates {{ currentBuildTypeFilterMessage }} {{ currentLocationFilterMessage }} {{ currentHeatingSystemFilterMessage }}
                 </span>
                 <span class="pages" role="status" aria-live="polite">Page <span class="numValue current-page">{{ currentPage }}</span> of <span class="numValue total-pages">{{ totalPages }}</span></span>
             </span>
@@ -144,110 +205,103 @@
     </div>
 
     <div id="rebatesTool" class="rebatesTool">
-        <!-- Loading Message -->
-        <div v-if="isLoading" class="is-loading" aria-live="polite">
-            <div class="inner">
-                <p class="no-results loading">Retrieving list of Rebates, please wait...</p>
-            </div>
-        </div>
-
-        <div id="rebatesSidebar" class="rebatesSidebar" role="complementary">
-            <!-- Offers Filter -->
-            <div v-if="!isLoading && offers" class="filter filter--other-offers">
-                <h2>Additional Filters ({{ getOfferTotalTagCount }})</h2>
-                <fieldset class="filter-container filter__list">
-                    <div :class="`radio all ${ 'all' === selectedOtherOffers ? isCheckedClass : '' }`">
+        <!-- Sidebar -->
+        <div id="rebatesSidebar" class="rebatesSidebar sidebar" role="complementary">
+            <!-- Secondary Filter: Offers -->
+            <div class="filter filter--other-offers">
+                <h2>Additional filters ({{ getOfferTotalTagCount }})</h2>
+                <fieldset class="filter__list" v-if="!isLoading && offers">
+                    <legend class="sr-only">Additional Filters:</legend>
+                    <div :class="`filter__item radio all ${ 'all' === selectedOtherOffers ? isCheckedClass : '' }`">
                         <input id="offerTypeAll"
+                            data-filter-value="all"
                             class="sr-only"
                             type="radio"
-                            name="all"
+                            name="otherOffers"
                             value="all"
                             :aria-checked="'all' === selectedOtherOffers ? true : false"
                             aria-disabled="false"
                             :checked="'all' === selectedOtherOffers ? true : false"
-                            @click="handleSelectAllInputFilter">
+                            tabindex="0"
+                            @click="handleSelectAllInputFilter"
+                            @touchend="handleSelectAllInputFilter">
                         <label for="offerTypeAll">No additional filters applied</label>
                     </div>
-                    <div v-for="(offer, index) in offers" :key="index" :class="`radio radio--${offer.toLowerCase().replace(/ /g,'_')}`">
-                        <input :id="offer.toLowerCase().replace(/ /g,'_')"
+                    <div v-for="(offer, index) in offers" :key="index" :class="`filter__item radio radio--${offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')} ${ offer === selectedOtherOffers ? isCheckedClass : '' }`">
+                        <input :id="offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')"
+                            :data-filter-value="offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')"
                             class="sr-only"
                             type="radio"
                             v-model="selectedOtherOffers"
-                            :name="offer"
+                            name="otherOffers"
                             :value="offer"
                             :aria-checked="offer === selectedOtherOffers ? true : false"
-                            aria-disabled="false"
+                            :aria-disabled="0 === handleOfferTagCount(offer) ? true : false"
+                            :disabled="0 === handleOfferTagCount(offer) ? true : false"
                             :checked="offer === selectedOtherOffers ? true : false"
-                            @click="handleRadioFilterStylingClass"
-                            @touchend="handleRadioFilterStylingClass">
-                        <label :for="offer.toLowerCase().replace(/ /g,'_')">{{ offer }} ({{ handleOfferTagCount(offer) }})</label>
+                            tabindex="0">
+                        <label :for="offer.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')">{{ offer }} ({{ handleOfferTagCount(offer) }})</label>
                     </div>
                 </fieldset>
             </div>
         </div>
 
         <!-- Rebates Results Grid -->
-        <div id="rebatesResults" class="rebatesResults">
-            <h2 v-if="!isLoading">Results ({{ filteredRebates.length }})</h2>
+        <div id="rebatesResults" class="rebatesResults results">
+            <h2 class="results__title">Results (<span class="counter__value">{{ filteredRebates.length }}</span>)</h2>
             <div :class="`page page--${currentPage}`">
+                <!-- Loading Message -->
+                <div v-if="isLoading" class="is-loading" role="status" aria-live="polite">
+                        <div class="inner">
+                                <p class="no-results loading">Retrieving a list of Rebates, please wait...</p>
+                        </div>
+                </div>
+
                 <!-- No Results Message -->
                 <div v-if="filteredRebates.length === 0 && !isLoading" class="no-results">
                     <div>
-                        <p class="no-results" aria-live="polite">Sorry, no results found.</p>
+                        <p class="no-results" role="status" aria-live="polite">Sorry, no results found.</p>
                     </div>
                 </div>
 
                 <!-- Results Loop -->
                 <template v-if="rebates.length > 0 && !isLoading" v-for="(rebate, index) in paginatedRebates" :key="index">
-                    <article :class="`rebate result result--${index+1} ${0 === (index+1) % 2 ? `even` : `odd`}`" tabindex="0">
+                    <article :class="`rebate result result--${index+1} ${0 === (index+1) % 2 ? `even` : `odd`}`">
                         <div class="rebate__title"><h3 v-html="rebate.title"></h3></div>
                         <div :class=rebateAmountClasses(rebate.rebate_amount)><p>{{ rebate.rebate_amount }}</p></div>
                         <div class="rebate__short-description"><p v-html="rebate.short_description"></p></div>
                         <div class="rebate__learn-more">
-                            <a :href="rebate.post_url" class="button" :title="rebate.title + ' learn more'">Learn more</a>
+                            <a :href="rebate.post_url" class="button" :aria-label="rebate.title + ' view rebate details'">View rebate details</a>
                         </div>
                     </article>
                 </template>
             </div>
         </div>
     </div>
-
-    <!-- Pagination Controls (Bottom) -->
-    <div class="rebatesFilterPagination filter__pagination filter__pagination--bottom">
-        <!-- Previous Page Button -->
-        <button class="prev-page" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0" type="button">Previous Page</button>
-        <!-- Current Page & Totals -->
-        <span class="pages">Page <span class="numValue current-page">{{ currentPage }}</span> of <span class="numValue total-pages">{{ totalPages }}</span></span>
-        <!-- Next Page Button -->
-        <button class="next-page" @click.prevent="nextPage" :disabled="currentPage === totalPages" tabindex="0" type="button">Next Page</button>
-        <!-- Clear Filters Button -->
-        <button class="clear-filters" @click.prevent="clearFilters"
-            @touchend="clearFilters"
-            @keydown.enter.prevent="clearFilters"
-            type="button">
-            Reset selection
-        </button>
-
-        <!-- Results Information -->
-        <div class="totals">
-            Showing <span class="results-count"><span class="numValue paginated-rebates">{{paginatedRebates.length }}</span> of <span class="numValue filtered-rebates">{{ filteredRebates.length }}</span></span> Rebates
-        </div>
-    </div>
+  </div>
 </template>
 
 <script setup>
 /**
- * Vue Composition API imports for reactive data and lifecycle hooks.
+ * Imports necessary for using Vue Composition API features such as reactive data and lifecycle hooks.
  *
- * @type {{ ref: Function, onMounted: Function, computed: Function, watch: Function }}
+ * This block imports specific functions (`ref`, `onMounted`, `computed`, `watch`) from the Vue Composition API (`vue` package).
+ * These functions enable the creation of reactive data, lifecycle hooks, computed properties, and watchers in Vue.js components.
+ *
+ * @type {Object}
+ * @property {Function} ref - Function for creating a reactive reference to a value.
+ * @property {Function} onMounted - Function for defining a lifecycle hook that runs after component is mounted.
+ * @property {Function} computed - Function for creating a computed property that reacts to reactive dependencies.
+ * @property {Function} watch - Function for creating a watcher to react to changes in reactive data or computed properties.
  * @namespace VueCompositionAPI
  */
  import {
-	ref,
-	onMounted,
-	computed,
-	watch
+    ref,
+    onMounted,
+    computed,
+    watch
 } from 'vue';
+
 
 /**
  * Ref for storing an array of Rebates (incentives).
@@ -343,6 +397,8 @@ const currentPage = ref(1);
 const itemsToClearFromSessionStorage = ref([
 	'contractorsData',
 	'contractorsTimestamp',
+	'faqsData',
+	'faqsTimestamp',
 	'pqeasData',
 	'pqeasTimestamp',
 ]);
@@ -403,18 +459,34 @@ const filteredRebates = computed(() => {
 	return filteredRebates;
 });
 
-const handleUpdatingAnimationClass = (elementCssPath) => {
-	const elements = document.querySelectorAll(elementCssPath);
+/**
+ * Function to apply and remove an updating animation class to specified elements.
+ *
+ * This function selects elements based on the provided CSS path (`elementCssPath`) using `document.querySelectorAll`.
+ * It then adds an updating animation class (`updatingClass.value`) to each selected element and removes it after a short delay (125ms)
+ * to simulate an update animation effect.
+ *
+ * @param {string} elementCssPath - The CSS path selector used to target elements for animation.
+ * @returns {void}
+ */
+ const handleUpdatingAnimationClass = (elementCssPath) => {
+    // Query all elements matching the specified CSS path.
+    const elements = document.querySelectorAll(elementCssPath);
 
-	if (0 < elements.length) {
-		elements.forEach((element) => {
-			element.classList.add(updatingClass.value);
-			setTimeout(() => {
-				element.classList.remove(updatingClass.value);
-			}, 125);
-		})
-	}
-}
+    // Check if any elements are found.
+    if (elements.length > 0) {
+        // Apply the updating animation class to each element and schedule its removal.
+        elements.forEach((element) => {
+            // Add the updating animation class to the element.
+            element.classList.add(updatingClass.value);
+
+            // Schedule the removal of the updating animation class after a short delay (125ms).
+            setTimeout(() => {
+                element.classList.remove(updatingClass.value);
+            }, 125);
+        });
+    }
+};
 
 /**
  * Computed property to calculate the total number of pages for paginated Rebates (Rebates).
@@ -464,15 +536,15 @@ const nextPage = () => {
 };
 
 /**
- * Computed property to extract unique Project Types (project-types) from Contractors.
- * Iterates through the Contractors to collect distinct project type names and sorts them alphabetically.
+ * Computed property to extract unique Project Types (project-types) from Rebates.
+ * Iterates through the Rebates to collect distinct project type names and sorts them alphabetically.
  *
  * @type {Array} - An array containing unique Project Types sorted alphabetically.
  */
 const types = computed(() => {
 	const uniqueTypes = new Set();
 
-	// Iterate through Contractors to collect distinct project type names.
+	// Iterate through Rebates to collect distinct project type names.
 	rebates.value.forEach(rebate => {
 		if (rebate.types) {
 			if (typeof rebate.types === 'string') {
@@ -607,19 +679,8 @@ const locations = computed(() => {
  *
  * @type {String} - A string indicating the filter results message based on the selected category.
  */
-const currentTypeFilterMessage = computed(() => {
-	const message = ref('');
-
-	if (selectedUpgradeTypes.value.length) {
-		message.value = 'Active upgrade type filters: ';
-
-		selectedUpgradeTypes.value.forEach((type, index) => {
-			message.value += ' ' + type;
-			index < selectedUpgradeTypes.value.length - 1 ? message.value += ', and' : null;
-		});
-	}
-
-	return message.value;
+const currentBuildTypeFilterMessage = computed(() => {
+    return 'all' !== selectedBuildType.value ? ' for ' + selectedBuildType.value.toLowerCase() : null;
 });
 
 /**
@@ -629,29 +690,47 @@ const currentTypeFilterMessage = computed(() => {
  * @type {String|null} - A string indicating the filter results message or null if 'all' is selected.
  */
 const currentLocationFilterMessage = computed(() => {
-	return 'all' !== selectedLocation.value ? 'servicing ' + selectedLocation.value : null;
+	return 'all' !== selectedLocation.value ? ' available to residents of ' + selectedLocation.value : null;
 });
 
+const currentHeatingSystemFilterMessage = computed(() => {
+	return 'all' !== selectedHeatingSystem.value ? ' for ' + selectedHeatingSystem.value + ' heating systems ': null;
+});
 
-const rebateAmountClasses = (rebate_amount) => {
-	const default_class = ref('rebate__amount');
-	const contextual_classes = ref('');
+/**
+ * Determine the CSS classes for a rebate amount based on its value.
+ *
+ * This function calculates and returns a string of CSS classes based on the provided `rebate_amount`.
+ * The resulting CSS classes include a default class (`rebate__amount`) combined with contextual classes
+ * determined by the `rebate_amount` value.
+ *
+ * @param {string} rebate_amount - The rebate amount value to evaluate.
+ * @returns {string} - A string of CSS classes representing the styled presentation of the rebate amount.
+ */
+ const rebateAmountClasses = (rebate_amount) => {
+    // Define a reactive reference to the default CSS class.
+    const default_class = ref('rebate__amount');
 
-	switch (rebate_amount.toLowerCase()) {
-		case 'fully subscribed':
-			contextual_classes.value = 'fully-subscribed';
-			break;
-		case 'free':
-			contextual_classes.value = 'free';
-			break;
-		case 'nearly subscribed':
-			contextual_classes.value = 'nearly-subscribed';
-			break;
-		default:
-			contextual_classes.value = '';
-	}
+    // Define a reactive reference for contextual CSS classes.
+    const contextual_classes = ref('');
 
-	return default_class.value + ' ' + contextual_classes.value;
+    // Determine contextual classes based on the rebate_amount value.
+    switch (rebate_amount.toLowerCase()) {
+        case 'fully subscribed':
+            contextual_classes.value = 'fully-subscribed';
+            break;
+        case 'free':
+            contextual_classes.value = 'free';
+            break;
+        case 'nearly subscribed':
+            contextual_classes.value = 'nearly-subscribed';
+            break;
+        default:
+            contextual_classes.value = '';
+    }
+
+    // Concatenate default class with contextual classes and return the result.
+    return default_class.value + ' ' + contextual_classes.value;
 };
 
 /**
@@ -685,54 +764,80 @@ const clearFilters = () => {
 		checkbox.classList.add(isCheckedClass.value)
 	});
 
-	currentPage.value !== 1 ? handleUpdatingAnimationClass(".filter__pagination .pages") : null;
+	currentPage.value !== 1 ? handleUpdatingAnimationClass(".control.pagination .pages") : null;
 	currentPage.value = 1;
 };
 
-const handleSelectAllInputFilter = (event) => {
-	const container = event.target.closest(".filter-container");
-	const checkboxFilterAll = container.querySelector(".all");
-	const allActiveFilters = container ? container.querySelectorAll(`.${isCheckedClass.value}`) : null;
+/**
+ * Handle the selection of "Select All" input filters.
+ *
+ * This function manages the behavior when a "Select All" input filter is selected.
+ * It toggles the selection state of the filter and updates related reactive data.
+ * Additionally, it resets other active filters and triggers pagination updates if needed.
+ *
+ * @param {Event} event - The event object representing the input filter selection.
+ * @returns {void}
+ */
+ const handleSelectAllInputFilter = (event) => {
+    // Find the closest filter list container element.
+    const container = event.target.closest(".filter__list");
 
-	event.target.id === "offerTypeAll" ? selectedOtherOffers.value = 'all' : null;
-	event.target.id === "upgradeTypeAll" ? selectedUpgradeTypes.value = [] : null;
+    // Retrieve the "Select All" checkbox within the container.
+    const filterAll = container.querySelector('.all');
 
-	allActiveFilters.length ? allActiveFilters.forEach((activeFilter) => {
-		activeFilter.classList.remove(isCheckedClass.value)
-	}) : null;
+    // Find all currently active filters within the container.
+    const allActiveFilters = container ? container.querySelectorAll(`.${isCheckedClass.value}`) : null;
 
-	!event.target.parentNode.classList.contains(isCheckedClass.value) ? event.target.parentNode.classList.add(isCheckedClass.value) : null;
-	checkboxFilterAll.checked = true;
+    // Handle specific actions based on the selected input filter ID.
+    if (event.target.id === "offerTypeAll" || event.target.id === "offerTypeAll--mobile" ) {
+        // Update the selectedOtherOffers value when offer type "Select All" is selected.
+        selectedOtherOffers.value = 'all';
+    } else if (event.target.id === "upgradeTypeAll") {
+        // Reset the selectedUpgradeTypes array when upgrade type "Select All" is selected.
+        selectedUpgradeTypes.value = [];
+    }
 
-	currentPage.value !== 1 ? handleUpdatingAnimationClass(".filter__pagination .pages") : null;
-	currentPage.value = 1;
-}
+    // Remove isCheckedClass from all active filters except for the "All" filter.
+    allActiveFilters.forEach((activeFilter) => {
+        if (activeFilter !== filterAll) {
+            activeFilter.classList.remove(isCheckedClass.value);
+        }
+    });
 
-const handleCheckboxFilterStylingClass = (event) => {
-	const container = event.target.closest(".filter-container");
-	const allFiltersInput = container.querySelector(".all");
+    // Add isCheckedClass to the parent node of the event target if it's not already added.
+    if (!event.target.parentNode.classList.contains(isCheckedClass.value)) {
+        event.target.parentNode.classList.add(isCheckedClass.value);
+    }
 
-	!event.target.parentNode.classList.contains(isCheckedClass.value) ? event.target.parentNode.classList.add(isCheckedClass.value) : event.target.parentNode.classList.remove(isCheckedClass.value);
-	allFiltersInput.classList.contains(isCheckedClass.value) ? allFiltersInput.classList.remove(isCheckedClass.value) : null;
-}
+    // Check the "All" filter checkbox to select it.
+    filterAll.checked = true;
 
-const handleRadioFilterStylingClass = (event) => {
-	const container = event.target.closest(".filter-container");
-	const allFiltersInput = container.querySelector(".all");
-	const oldActiveRadio = container.querySelector(`.${isCheckedClass.value}`);
+    // Reset the current pagination page to 1 and trigger a UI animation if necessary.
+    if (currentPage.value !== 1) {
+        handleUpdatingAnimationClass('.control.pagination .pages');
+    }
+    currentPage.value = 1;
+};
 
-	undefined !== oldActiveRadio ? oldActiveRadio.classList.remove(isCheckedClass.value) : null;
-	!event.target.parentNode.classList.contains(isCheckedClass.value) ? event.target.parentNode.classList.add(isCheckedClass.value) : null;
-	allFiltersInput.classList.contains(isCheckedClass.value) ? allFiltersInput.classList.remove(isCheckedClass.value) : null;
-}
+/**
+ * Reset the active state of custom select elements.
+ *
+ * This function resets the active state of custom select elements within the rebate filter application.
+ * It removes the 'is-active' class from all currently active custom select elements.
+ *
+ * @returns {void}
+ */
+ const resetSelectsActiveState = () => {
+    // Find all active custom select elements within the rebate filter application.
+    const activeSelects = document.querySelectorAll('#rebateFilterApp .custom-select.is-active');
 
-const resetSelectsActiveState = () => {
-	let activeSelects = document.querySelectorAll('#rebateFilterApp .custom-select.is-active');
-
-	0 < activeSelects.length ? activeSelects.forEach((item) => {
-		item.classList.remove('is-active')
-	}) : null;
-}
+    // Check if there are active custom select elements, then remove the 'is-active' class.
+    if (activeSelects.length > 0) {
+        activeSelects.forEach((item) => {
+            item.classList.remove('is-active');
+        });
+    }
+};
 
 /**
  * Event listener bound to @click and @keyup.esc
@@ -743,12 +848,12 @@ const resetSelectsActiveState = () => {
  */
 const selectIsActive = (event) => {
 	return 'click' !== event.type ? event.target.parentNode.classList.remove(activeClass.value) : event.target.parentNode.classList.toggle(activeClass.value);
-}
+};
 
 /**
  * Calculates and returns the count of posts containing a specific tag.
  *
- * Iterates through the `rebates` array and increments the count for each post that includes the specified tag.
+ * Iterates through the `filteredRebates` array and increments the count for each post that includes the specified tag.
  *
  * @param {string} tag - The tag for which to calculate the count.
  * @returns {number} The count of posts containing the specified tag.
@@ -756,10 +861,70 @@ const selectIsActive = (event) => {
  * Because the Upgrade Type filter is presented as a multi-select, * run .reduce() against all Rebates, rather than just the current, * filtered sub-set.
  */
 const getUpgradeTypeTagCount = (tag) => {
-	return rebates.value.reduce(
+    const app = document.querySelector('#rebateFilterApp');
+    const filterContainers = app ? app.querySelectorAll('.filter--upgrade-types') : null;
+    const selectedLoc = selectedLocation.value;
+	const selectedBuild = selectedBuildType.value;
+	const selectedSystem = selectedHeatingSystem.value;
+
+    let count = 0;
+
+    // filteredRebates is the result of all filters.  For this count, we
+    // want to use the results filtered by the primary filters only.
+    let primaryFilteredRebates = [...rebates.value];
+
+    // Filter by location if 'all' is not selected.
+    if ('all' !== selectedLoc) {
+        primaryFilteredRebates = primaryFilteredRebates.filter(rebate => rebate.locations && rebate.locations.some(location => location.name === selectedLoc));
+    }
+    // Filter by Build Type if 'all' is not selected.
+    if ('all' !== selectedBuild) {
+        primaryFilteredRebates = primaryFilteredRebates.filter(rebate => rebate.types && rebate.types.some(type => type.name === selectedBuild));
+    }
+    // Filter by Current Primary Heating System if 'all' is not selected.
+    if ('all' !== selectedSystem) {
+        primaryFilteredRebates = primaryFilteredRebates.filter(rebate => rebate.primary_heating_sys && rebate.primary_heating_sys.some(sys => sys.name === selectedSystem));
+    }
+
+    // Because we cannot pass the taxonomy term array into .reduce(), we
+    // flatten the array into a string with JSON.stringify() and run
+    // .includes() against the outcome.  If our string is found, increment
+    // count by 1.  Otherwise increment by zero.
+    count = primaryFilteredRebates.reduce(
 		(count, rebate) => count + (JSON.stringify(rebate.upgrade_types).includes(tag) ? 1 : 0),
 		0
 	);
+
+    // Failsafe against this code being run when the DOM is not fully loaded.
+    if ( filterContainers.length ) {
+        filterContainers.forEach((filterContainer) => {
+            // Find the radio input element corresponding to the specified filter.
+            const radioInput = filterContainer ? filterContainer.querySelector('.filter__item input[value=\"' + tag + '\"]') : null;
+
+            if ( radioInput ) {
+                if ( 0 === count ) {
+                    // Manage helper CSS classes.
+                    radioInput.parentNode.classList.remove(isCheckedClass.value);
+                    radioInput.parentNode.classList.add('is-disabled');
+
+                    // If the given filter has zero results (because another filter has changed)
+                    // remove it from the current search criteria.
+                    selectedUpgradeTypes.value.forEach((upgrade) => {
+                        if ( radioInput.name === upgrade ) {
+                            // Remove empty term from search query if secondary filter count
+                            // is zero as a result of primary filter configuration.
+                            selectedUpgradeTypes.value = selectedUpgradeTypes.value.filter(upgrade => upgrade !== radioInput.name);
+                        }
+                    });
+                } else {
+                    // Remove CSS helper class.
+                    radioInput.parentNode.classList.remove('is-disabled');
+                }
+            }
+        });
+    }
+
+    return count;
 };
 
 /**
@@ -771,34 +936,81 @@ const getUpgradeTypeTagCount = (tag) => {
  * @returns {number} The count of posts containing the specified tag.
  */
 const handleOfferTagCount = (tag) => {
-  const container = document.querySelector("#rebatesSidebar .filter-container");
-  const radioInput = container ? container.querySelector(".radio input[value=\""+tag+"\"]") : null;
+    const app = document.querySelector('#rebateFilterApp');
+    const filterContainers = app ? app.querySelectorAll('.filter--other-offers') : null;
+    const selectedLoc = selectedLocation.value;
+	const selectedUpgrades = selectedUpgradeTypes.value;
+	const selectedBuild = selectedBuildType.value;
+	const selectedSystem = selectedHeatingSystem.value;
+    let primaryFilteredRebates = [...rebates.value];
+    let count = primaryFilteredRebates.length;
 
-  let count = filteredRebates.value.reduce(
+    // Filter by location if 'all' is not selected.
+    if ('all' !== selectedLoc) {
+        primaryFilteredRebates = primaryFilteredRebates.filter(rebate => rebate.locations && rebate.locations.some(location => location.name === selectedLoc));
+    }
+    // Filter by Build Type if 'all' is not selected.
+    if ('all' !== selectedBuild) {
+        primaryFilteredRebates = primaryFilteredRebates.filter(rebate => rebate.types && rebate.types.some(type => type.name === selectedBuild));
+    }
+    // Filter by Current Primary Heating System if 'all' is not selected.
+    if ('all' !== selectedSystem) {
+        primaryFilteredRebates = primaryFilteredRebates.filter(rebate => rebate.primary_heating_sys && rebate.primary_heating_sys.some(sys => sys.name === selectedSystem));
+    }
+
+    // Filter by Upgrade Types (multi) if any are selected.
+	if (selectedUpgrades.length) {
+		primaryFilteredRebates = primaryFilteredRebates.filter(rebate => rebate.upgrade_types && rebate.upgrade_types.some(type => selectedUpgrades.includes(type.name)));
+	}
+
+    count = primaryFilteredRebates.reduce(
 		(count, rebate) => count + (JSON.stringify(rebate.other_offers).includes(tag) ? 1 : 0),
 		0
 	);
 
-  if ( 0 === count ) {
-    radioInput.disabled = true;
-    radioInput.setAttribute('aria-disabled', true);
-    radioInput.parentNode.classList.add("is-disabled");
-  } else {
-    if ( container && radioInput ) {
-      radioInput.disabled = false;
-      radioInput.setAttribute('aria-disabled', false);
-      radioInput.parentNode.classList.remove("is-disabled");
+    if ( filterContainers.length ) {
+        filterContainers.forEach((filterContainer) => {
+            // Find the radio input element corresponding to the specified filter.
+            const radioInput = filterContainer ? filterContainer.querySelector('.filter__item input[value=\"' + tag + '\"]') : null;
+            const radioInputAll = filterContainer ? filterContainer.querySelector('.all input') : null;
+
+            if ( radioInput ) {
+                if ( 0 === count ) {
+                    // Manage helper CSS classes.
+                    radioInput.parentNode.classList.remove(isCheckedClass.value);
+                    radioInput.parentNode.classList.add('is-disabled');
+
+                    if ( selectedOtherOffers.value === radioInput.name ) {
+                        selectedOtherOffers.value = defaultOtherOffers.value;
+                        history.replaceState(selectedOtherOffers.value, defaultOtherOffers.value);
+                    }
+                } else {
+                    radioInput.parentNode.classList.remove('is-disabled');
+                }
+            }
+        });
     }
-  }
 
 	return count;
 };
 
+function simulateClickOnEnter(event) {
+    event.target.click();
+}
+
+/**
+ * Compute the total count of offer tags from filtered rebates.
+ *
+ * This computed property calculates the total count of offer tags from filtered rebates.
+ * It iterates through the filtered rebates and counts the number of offer tags present in each rebate.
+ *
+ * @type {number} - The total count of offer tags from filtered rebates.
+ */
 const getOfferTotalTagCount = computed(() => {
-  return filteredRebates.value.reduce(
-		(count, rebate) => count + (undefined !== rebate.other_offers.length ? rebate.other_offers.length : 0),
-		0
-	);
+    return filteredRebates.value.reduce((count, rebate) => {
+        // Check if the rebate has 'other_offers' and add the length of 'other_offers' to the count.
+        return count + (rebate.other_offers ? rebate.other_offers.length : 0);
+    }, 0);
 });
 
 /**
@@ -861,6 +1073,26 @@ const fetchData = async (offset = 0) => {
 };
 
 /**
+ * Manages the accordion title, updating the title when one or more filters
+ * are active.
+ *
+ * @param {array} selectedUpgradeTypes
+ */
+const upgradeTypesAccordionTitle = (selectedUpgradeTypes) => {
+    let title = '';
+
+    if ( 0 === selectedUpgradeTypes.length ) {
+        title += ' (All types active)';
+    } else {
+        title += '(' + selectedUpgradeTypes.length.toString();
+        title += 1 === selectedUpgradeTypes.length ? ' filter ' : ' filters ';
+        title += 'active)';
+    }
+
+    return title;
+};
+
+/**
  * Watcher for changes in the window.site?.domain variable.
  * Invokes the fetchData() function when the window.site?.domain becomes truthy.
  *
@@ -873,41 +1105,85 @@ watch(() => window.site?.domain, (newVal) => {
 	}
 });
 
+/**
+ * Watchers for changes in paginated and filtered rebates.
+ *
+ * These watchers monitor changes in paginated and filtered rebates to trigger animations accordingly.
+ * They avoid firing animations when the number value remains the same to optimize performance.
+ *
+ * @returns {void}
+ */
 watch(paginatedRebates, () => {
-	// Avoid firing animation when number value is the same.
-	if (oldPaginatedRebatesCount.value !== paginatedRebates.value.length) {
-		oldPaginatedRebatesCount.value = paginatedRebates.value.length;
-		handleUpdatingAnimationClass(".filter__pagination .paginated-rebates");
-	}
+    // Check if the number of paginated rebates has changed.
+    if (oldPaginatedRebatesCount.value !== paginatedRebates.value.length) {
+        // Update the old count of paginated rebates.
+        oldPaginatedRebatesCount.value = paginatedRebates.value.length;
+
+        // Trigger the updating animation class for paginated rebates.
+        handleUpdatingAnimationClass('.control.pagination .paginated-rebates');
+    }
 });
+
 watch(filteredRebates, () => {
-	// Avoid firing animation when number value is the same.
-	if (oldFilteredRebatesCount.value !== filteredRebates.value.length) {
-		oldFilteredRebatesCount.value = filteredRebates.value.length;
-		handleUpdatingAnimationClass(".filter__pagination .filtered-rebates");
-	}
+    // Check if the number of filtered rebates has changed.
+    if (oldFilteredRebatesCount.value !== filteredRebates.value.length) {
+        // Update the old count of filtered rebates.
+        oldFilteredRebatesCount.value = filteredRebates.value.length;
+
+        // Trigger the updating animation class for filtered rebates.
+        handleUpdatingAnimationClass('.control.pagination .filtered-rebates');
+        handleUpdatingAnimationClass('.counter__value');
+    }
 });
 
-watch(currentPage, () => {
-	handleUpdatingAnimationClass(".filter__pagination .current-page");
+/**
+ * Watchers for changes in current page and total pages.
+ *
+ * These watchers monitor changes in the current page and total pages to trigger animations accordingly.
+ * They use the 'handleUpdatingAnimationClass' function to apply updating animations to specific UI elements.
+ *
+ * @returns {void}
+ */
+ watch(currentPage, () => {
+    // Trigger the updating animation class for the current page.
+    handleUpdatingAnimationClass(".control.pagination .current-page");
 });
+
 watch(totalPages, () => {
-	handleUpdatingAnimationClass(".filter__pagination .total-pages");
+    // Trigger the updating animation class for the total pages.
+    handleUpdatingAnimationClass(".control.pagination .total-pages");
 });
 
-watch(selectedUpgradeTypes, () => {
-	const container = document.querySelector(".filter--other-offers");
-	const radioFilterAll = container.querySelector(".all");
-	const activeOfferFilter = container.querySelector("." + isCheckedClass.value);
+/**
+ * Watcher for changes in selectedUpgradeTypes.
+ *
+ * This watcher monitors changes in the selectedUpgradeTypes reactive property and performs UI updates accordingly.
+ * It resets the selected other offers filter if 'all' is not selected, updating the UI state and history state.
+ *
+ * @returns {void}
+ */
+ watch(selectedUpgradeTypes, () => {
+    // Find the container for other offers filters.
+    const filterContainers = document.querySelectorAll('.filter--other-offers');
 
-	if ('all' !== selectedOtherOffers.value) {
-		selectedOtherOffers.value = defaultOtherOffers.value;
-		history.replaceState(selectedOtherOffers.value, defaultOtherOffers.value);
-		activeOfferFilter.querySelector('input').checked = false;
-		activeOfferFilter.classList.remove(isCheckedClass.value);
-		radioFilterAll.querySelector('input').checked = true;
-		radioFilterAll.classList.add(isCheckedClass.value);
-	}
+    if ( filterContainers.length && 'all' !== selectedOtherOffers.value ) {
+        filterContainers.forEach((filterContainer) => {
+            // Retrieve the "Select All" radio and old active radio filter within the container.
+            const allFilterRadio = filterContainer ? filterContainer.querySelector('.all') : null;
+            const prevActiveRadio = filterContainer ? filterContainer.querySelector(`.${isCheckedClass.value}`) : null;
+
+            // Remove active state from the old active radio filter if present.
+            prevActiveRadio ? prevActiveRadio.classList.remove(isCheckedClass.value) : null;
+
+            // Adjust the state of the "Select All" radio based on active radio filters.
+            allFilterRadio ? allFilterRadio.classList.add(isCheckedClass.value) : null;
+
+            // Reset the other offers filter because filter selections may
+            // cause it to be empty.
+            selectedOtherOffers.value = defaultOtherOffers.value;
+            history.replaceState(selectedOtherOffers.value, defaultOtherOffers.value);
+        })
+    }
 });
 
 /**
@@ -922,10 +1198,22 @@ watch([selectedBuildType, selectedLocation, selectedUpgradeTypes, selectedHeatin
 	currentPage.value = 1;
 });
 
+/**
+ * Event listener for global click events.
+ *
+ * This event listener is triggered on any click event within the window.
+ * It checks if the clicked target is not within an active custom select dropdown or any custom select dropdown within the rebate filter app.
+ * If the click is outside of these areas, it calls the 'resetSelectsActiveState' function to deactivate all active custom select dropdowns.
+ *
+ * @param {Event} event - The click event object.
+ * @returns {void}
+ */
 window.addEventListener("click", (event) => {
-	if (!event.target.closest('.custom-select.is-active' || document.querySelectorAll('#rebateFilterApp .custom-select.is-active').length)) {
-		resetSelectsActiveState();
-	}
+    // Check if the clicked target is not within an active custom select dropdown.
+    if (!event.target.closest('.custom-select.is-active') || !document.querySelectorAll('#rebateFilterApp .custom-select.is-active').length) {
+        // Reset all active custom select dropdowns.
+        resetSelectsActiveState();
+    }
 });
 
 /**
@@ -944,10 +1232,11 @@ onMounted(() => {
 	if (window.site?.domain) {}
 
 	// init accordions
-	const accordions = document.querySelectorAll('.filter--upgrade-types.accordion h2');
+	const accordions = document.querySelectorAll('.filter.accordion h2');
 	accordions.forEach((accordionEl) => {
 		new Accordion(accordionEl);
 	});
+
 
 });
 
@@ -999,644 +1288,6 @@ class Accordion {
 </script>
 
 <style lang='scss' scoped>
-// Breakpoints
-$breakpoint-xxs: 0;
-$breakpoint-xs: 479px;
-$breakpoint-sm: 767px;
-$breakpoint-md: 991px;
-$breakpoint-md-lg: 1024px;
-$breakpoint-lg: 1199px;
-// Colours
-$mineshaft: #333;
-$scorpiongrey: #484747;
-$dovegrey: #656565;
-$gallerygray: #edebeb;
-$vehiclegrey: #ccc;
-$prussianblue: #002a4e;
-$bahamablue: #005d99;
-$bondiblue: #007e9e;
-$eucalyptus: #1d8045;
-$porcelain: #dcdcdc;
-$white: #fff;
-$snow: $white;
-// Other style defaults.
-$default_transition_timing_fn: ease-in-out;
-$default_transition_duration: 0.125s;
-$default_outline_width: 0.125rem;
-$default_outline_offset: 0.125rem;
-$default_interactable_min_height: 2.5rem;
-$default_button_min_width: 11.625rem;
-$default_button_padding_vert: 0.5rem;
-$default_button_padding_horz: 1rem;
-$default_border_radius: calc(7rem/16);
-
-// Icons
-$external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDI2LjAuMiwgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPgo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IgoJIHZpZXdCb3g9IjAgMCAxOCAxOCIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgMTggMTg7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPHN0eWxlIHR5cGU9InRleHQvY3NzIj4KCS5zdDB7ZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7ZmlsbDojMDAyQTRFO30KPC9zdHlsZT4KPHBhdGggY2xhc3M9InN0MCIgZD0iTTkuNywzLjljMC0wLjEtMC4xLTAuMy0wLjItMC40QzkuNCwzLjQsOS4zLDMuNCw5LjIsMy40SDEuN2MtMC40LDAtMC45LDAuMi0xLjIsMC41QzAuMiw0LjIsMCw0LjYsMCw1LjF2MTEuMgoJYzAsMC40LDAuMiwwLjksMC41LDEuMkMwLjgsMTcuOCwxLjIsMTgsMS43LDE4aDExLjJjMC40LDAsMC45LTAuMiwxLjItMC41YzAuMy0wLjMsMC41LTAuNywwLjUtMS4yVjguOGMwLTAuMS0wLjEtMC4zLTAuMi0wLjQKCWMtMC4xLTAuMS0wLjItMC4yLTAuNC0wLjJjLTAuMSwwLTAuMywwLjEtMC40LDAuMmMtMC4xLDAuMS0wLjIsMC4yLTAuMiwwLjR2Ny41YzAsMC4xLTAuMSwwLjMtMC4yLDAuNGMtMC4xLDAuMS0wLjIsMC4yLTAuNCwwLjIKCUgxLjdjLTAuMSwwLTAuMy0wLjEtMC40LTAuMmMtMC4xLTAuMS0wLjItMC4yLTAuMi0wLjRWNS4xYzAtMC4xLDAuMS0wLjMsMC4yLTAuNGMwLjEtMC4xLDAuMi0wLjIsMC40LTAuMmg3LjUKCWMwLjEsMCwwLjMtMC4xLDAuNC0wLjJDOS43LDQuMiw5LjcsNC4xLDkuNywzLjl6Ii8+CjxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik0xOCwwLjZjMC0wLjEtMC4xLTAuMy0wLjItMC40QzE3LjcsMC4xLDE3LjYsMCwxNy40LDBoLTUuNmMtMC4xLDAtMC4zLDAuMS0wLjQsMC4yYy0wLjEsMC4xLTAuMiwwLjItMC4yLDAuNAoJczAuMSwwLjMsMC4yLDAuNGMwLjEsMC4xLDAuMiwwLjIsMC40LDAuMmg0LjNsLTkuMiw5LjJjLTAuMSwwLjEtMC4xLDAuMS0wLjEsMC4yYzAsMC4xLDAsMC4xLDAsMC4yczAsMC4xLDAsMC4yCgljMCwwLjEsMC4xLDAuMSwwLjEsMC4yQzcsMTEuMSw3LDExLjIsNy4xLDExLjJjMC4xLDAsMC4xLDAsMC4yLDBjMC4xLDAsMC4xLDAsMC4yLDBzMC4xLTAuMSwwLjItMC4xbDkuMi05LjJ2NC4zCgljMCwwLjEsMC4xLDAuMywwLjIsMC40YzAuMSwwLjEsMC4yLDAuMiwwLjQsMC4yYzAuMSwwLDAuMy0wLjEsMC40LTAuMkMxNy45LDYuNSwxOCw2LjMsMTgsNi4yVjAuNnoiLz4KPC9zdmc+Cg==);
-$amount-icon-dark: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDAuNzVDOS4wMTU4NCAwLjc1IDYuMTU0OCAxLjkzNSA0LjA0NTIgNC4wNDUyQzEuOTM0ODggNi4xNTQ1OCAwLjc1IDkuMDE1ODQgMC43NSAxMkMwLjc1IDE0Ljk4NDIgMS45MzUgMTcuODQ1MiA0LjA0NTIgMTkuOTU0OEM2LjE1NDU4IDIyLjA2NTEgOS4wMTU4NCAyMy4yNSAxMiAyMy4yNUMxNC45ODQyIDIzLjI1IDE3Ljg0NTIgMjIuMDY1IDE5Ljk1NDggMTkuOTU0OEMyMi4wNjUxIDE3Ljg0NTQgMjMuMjUgMTQuOTg0MiAyMy4yNSAxMkMyMy4yNSA5LjAxNTg0IDIyLjA2NSA2LjE1NDggMTkuOTU0OCA0LjA0NTJDMTcuODQ1NCAxLjkzNDg4IDE0Ljk4NDIgMC43NSAxMiAwLjc1Wk0xMiAyMS43NUM5LjQxNDQ4IDIxLjc1IDYuOTMzODQgMjAuNzIyNSA1LjEwNTUyIDE4Ljg5NDVDMy4yNzczOSAxNy4wNjY0IDIuMjUgMTQuNTg1OCAyLjI1IDEyQzIuMjUgOS40MTQyNCAzLjI3NzQ5IDYuOTMzODQgNS4xMDU1MiA1LjEwNTUyQzYuOTMzNjUgMy4yNzczOSA5LjQxNDI0IDIuMjUgMTIgMi4yNUMxNC41ODU4IDIuMjUgMTcuMDY2MiAzLjI3NzQ5IDE4Ljg5NDUgNS4xMDU1MkMyMC43MjI2IDYuOTMzNjUgMjEuNzUgOS40MTQyNCAyMS43NSAxMkMyMS43NSAxNC41ODU4IDIwLjcyMjUgMTcuMDY2MiAxOC44OTQ1IDE4Ljg5NDVDMTcuMDY2NCAyMC43MjI2IDE0LjU4NTggMjEuNzUgMTIgMjEuNzVaTTkuNzUgOS40Mjc0NEM5Ljc1IDEwLjU4MjQgMTAuMTE3NSAxMS4yNSAxMiAxMS4yNUMxNC40OSAxMS4yNSAxNS43NSAxMi4zNjc0IDE1Ljc1IDE0LjU3MjVDMTUuNzA5NyAxNS4zODA2IDE1LjM4NzIgMTYuMTQ4NCAxNC44Mzg3IDE2Ljc0MjhDMTQuMjkxMyAxNy4zMzgyIDEzLjU1MTYgMTcuNzIxNiAxMi43NSAxNy44Mjc1VjE4Ljc1QzEyLjc1IDE5LjE2NDQgMTIuNDE0NCAxOS41IDEyIDE5LjVDMTEuNTg1NiAxOS41IDExLjI1IDE5LjE2NDQgMTEuMjUgMTguNzVWMTcuODI3NUMxMC40NDg0IDE3LjcyMTYgOS43MDg3NSAxNy4zMzgxIDkuMTYxMjYgMTYuNzQyOEM4LjYxMjgxIDE2LjE0ODQgOC4yOTAzMiAxNS4zODA2IDguMjUgMTQuNTcyNUM4LjI1IDE0LjE1ODEgOC41ODU2MiAxMy44MjI1IDkgMTMuODIyNUM5LjQxNDM4IDEzLjgyMjUgOS43NSAxNC4xNTgxIDkuNzUgMTQuNTcyNUM5Ljg4MzEzIDE1LjY4OTEgMTAuODgwNiAxNi40OTYzIDEyIDE2LjM5NUMxMy4xMTk0IDE2LjQ5NjMgMTQuMTE2OSAxNS42ODkxIDE0LjI1IDE0LjU3MjVDMTQuMjUgMTMuNDE3NSAxMy44ODI1IDEyLjc1IDEyIDEyLjc1QzkuNTEgMTIuNzUgOC4yNSAxMS42MzI1IDguMjUgOS40Mjc0NEM4LjI5MDMxIDguNjE5MzEgOC42MTI4MSA3Ljg1MTUgOS4xNjEyNiA3LjI1NzEyQzkuNzA4NzUgNi42NjE4IDEwLjQ0ODQgNi4yNzgzOCAxMS4yNSA2LjE3MjQ0VjUuMjQ5OTNDMTEuMjUgNC44MzU1NCAxMS41ODU2IDQuNDk5OTMgMTIgNC40OTk5M0MxMi40MTQ0IDQuNDk5OTMgMTIuNzUgNC44MzU1NCAxMi43NSA1LjI0OTkzVjYuMTcyNDRDMTMuNTUxNiA2LjI3ODM4IDE0LjI5MTMgNi42NjE4MiAxNC44Mzg3IDcuMjU3MTJDMTUuMzg3MiA3Ljg1MTUgMTUuNzA5NyA4LjYxOTMxIDE1Ljc1IDkuNDI3NDRDMTUuNzUgOS44NDE4MiAxNS40MTQ0IDEwLjE3NzQgMTUgMTAuMTc3NEMxNC41ODU2IDEwLjE3NzQgMTQuMjUgOS44NDE4MiAxNC4yNSA5LjQyNzQ0QzE0LjExNjkgOC4zMTA4OSAxMy4xMTk0IDcuNTAzNyAxMiA3LjYwNDkzQzEwLjg4MDYgNy41MDM2OCA5Ljg4MzEzIDguMzEwODYgOS43NSA5LjQyNzQ0WiIgZmlsbD0iYmxhY2siLz4KPC9zdmc+);
-$house-icon-dark: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjIiIGhlaWdodD0iMjIiIHZpZXdCb3g9IjAgMCAyMiAyMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE4LjQ1MzYgMTEuODA0NVYyMC40Mjc3SDMuNTQ1NTRWMTEuODQyMkwzLjU0NzQ2IDExLjgzN1YxMS44MDQ1QzMuNTQ3NDYgMTEuNTA2MyAzLjMwNTYyIDExLjI2NDUgMy4wMDc0NiAxMS4yNjQ1QzIuNzA5MyAxMS4yNjQ1IDIuNDY3NDYgMTEuNTA2MyAyLjQ2NzQ2IDExLjgwNDVWMjAuOTY3N0MyLjQ2NzQ2IDIxLjI2NzEgMi43MDk2MSAyMS41MDc3IDMuMDA3NDYgMjEuNTA3N0gxOC45OTM2QzE5LjI5MTUgMjEuNTA3NyAxOS41MzM2IDIxLjI2NzEgMTkuNTMzNiAyMC45Njc3VjExLjgwNDVDMTkuNTMzNiAxMS41MDYzIDE5LjI5MTggMTEuMjY0NSAxOC45OTM2IDExLjI2NDVDMTguNjk1NSAxMS4yNjQ1IDE4LjQ1MzYgMTEuNTA2MyAxOC40NTM2IDExLjgwNDVaIiBmaWxsPSJibGFjayIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIwLjM2Ii8+CjxwYXRoIGQ9Ik0xLjE2OTczIDEyLjE5OTdDMS4xNzg2OCAxMi4xOTA2IDEuMTg3MzQgMTIuMTgxMiAxLjE5NTY4IDEyLjE3MTRMMS4xOTcxIDEyLjE2OTlMMTAuODgzMyAxLjYzMDUzTDEwLjg4MzMgMS42MzA1OEwxMC44ODY1IDEuNjI2ODlDMTAuOTE0MiAxLjU5NTA0IDEwLjk1NTEgMS41NzYyMyAxMS4wMDAxIDEuNTc2MjNDMTEuMDQ1MSAxLjU3NjIzIDExLjA4NiAxLjU5NTAzIDExLjExMzcgMS42MjY5TDExLjExMzcgMS42MjY5NEwxMS4xMTcgMS42MzA1M0wyMC43OTk5IDEyLjE2NjRDMjAuODkzOSAxMi4yNzkgMjEuMDI5NyAxMi4zNDg3IDIxLjE3NjIgMTIuMzU5OEwyMS4xNzc5IDEyLjM1OTlDMjEuMzI1NiAxMi4zNjk2IDIxLjQ3MTcgMTIuMzE5NSAyMS41ODE4IDEyLjIxNzlDMjEuNjkyMSAxMi4xMTYxIDIxLjc1MzYgMTEuOTczOSAyMS43NTUgMTEuODI1N0MyMS43NTY0IDExLjY3ODkgMjEuNjk3OCAxMS41Mzc2IDIxLjU5MzUgMTEuNDM1MUwxMS45MTQxIDAuOTAxMjIzQzExLjkxMzggMC45MDA5MTEgMTEuOTEzNSAwLjkwMDU5OSAxMS45MTMyIDAuOTAwMjg3QzExLjY4MDQgMC42NDA0ODkgMTEuMzQ4OCAwLjQ5MjQ4NSAxMC45OTk5IDAuNDkyNDg1QzEwLjY1MSAwLjQ5MjQ4NSAxMC4zMTk1IDAuNjQwNDk3IDEwLjA4NjYgMC45MDAyOTRMMC40MDYzMjUgMTEuNDM1MUMwLjMwMjA1NyAxMS41Mzc2IDAuMjQzNDQ1IDExLjY3ODkgMC4yNDQ4MjkgMTEuODI1N0wwLjQyNDgyMSAxMS44MjRMMC4yNDQ4MjkgMTEuODI1N0MwLjI0NjIyNiAxMS45NzM5IDAuMzA3Nzk2IDEyLjExNjEgMC40MTgwNTQgMTIuMjE3OU0xLjE2OTczIDEyLjE5OTdMMC40MTgwNTQgMTIuMjE3OU0xLjE2OTczIDEyLjE5OTdMMS4xNDM2MSAxMi4yMjgxSDEuMTM5NDVMMS4xNjk3MyAxMi4xOTk3Wk0wLjQxODA1NCAxMi4yMTc5QzAuNDE4MDUgMTIuMjE3OSAwLjQxODA0NyAxMi4yMTc5IDAuNDE4MDQzIDEyLjIxNzlMMC41NDAxMyAxMi4wODU2TDAuNDE4MDU0IDEyLjIxNzlaIiBmaWxsPSJibGFjayIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIwLjM2Ii8+Cjwvc3ZnPg==);
-
-#rebateFilterApp {
-  a {
-    display: inline-block;
-    outline: 2px solid transparent;
-    border-radius: 0;
-    outline-offset: 2px;
-
-    &:hover,
-    &:focus {
-      border-radius: 0;
-      outline-color: $bahamablue;
-    }
-  }
-
-  h2 {
-    margin-top: 0;
-    margin-bottom: 1rem;
-  }
-
-  h3 {
-    margin-bottom: 0;
-  }
-
-  a,
-  button,
-  .button,
-  select,
-  .select,
-  label,
-  input,
-  span,
-  p {
-    font-size: clamp(
-      var(--wp--preset--font-size--normal),
-      1rem + ((1vw - 0.48rem) * 0.481),
-      1.25rem
-    );
-  }
-
-  p {
-    display: block;
-    width: 100%;
-
-    &.no-results {
-      grid-column: span 3;
-      text-align: center;
-    }
-  }
-
-  button,
-  .button,
-  select,
-  .select {
-    min-width: $default_button_min_width;
-    min-height: $default_interactable_min_height;
-    padding: $default_button_padding_vert $default_button_padding_horz;
-    border-radius: $default_border_radius;
-    font-weight: bold;
-    border: none;
-    box-shadow: none;
-  }
-
-  .button,
-  button {
-    color: $scorpiongrey;
-    background-color: $vehiclegrey;
-    transition: all $default_transition_timing_fn $default_transition_duration;
-
-    &:not([disabled]) {
-      background-color: $bahamablue;
-      color: $white;
-      outline: $default_outline_offset solid transparent;
-      outline-offset: $default_outline_offset;
-      cursor: pointer;
-
-      &:hover,
-      &:focus {
-        background-color: darken($bahamablue, 7.5%);
-        transition: all $default_transition_timing_fn $default_transition_duration;
-        outline: $default_outline_offset solid darken($bondiblue, 7.5%);
-      }
-    }
-
-    &.clear-filters {
-      margin-bottom: 1rem;
-
-      @media (min-width: $breakpoint-md) {
-        margin-bottom: 0;
-      }
-    }
-
-    // &.next-page {}
-    // &.prev-page {}
-  }
-
-  .accordion {
-    &-icon {
-      display: inline-block;
-      position: relative;
-      width: 1rem;
-      height: 1rem;
-      margin-left: 1rem;
-
-      &::before,
-      &::after {
-        content: "";
-        position: absolute;
-        // z-index: -1;
-        background: $bahamablue;
-        left: 50%;
-        top: 50%;
-        transform: translateX(-50%) translateY(-50%);
-      }
-
-      &::before {
-        width: 0.25rem;
-        height: 100%;
-        transition: background-color $default_transition_timing_fn $default_transition_duration;
-      }
-
-      &::after {
-        height: 0.25rem;
-        width: 100%;
-      }
-    }
-  }
-
-  button {
-    &.accordion-trigger {
-      position: relative;
-      width: 100%;
-
-      &[aria-expanded="true"] {
-        .accordion-icon {
-          &::before {
-            background-color: transparent;
-            transition: background-color $default_transition_timing_fn $default_transition_duration;
-          }
-        }
-      }
-    }
-  }
-
-  .button {
-    padding: 0.5rem 1rem;
-    font-weight: bold;
-    text-decoration: none;
-  }
-
-  .rebatesFilterControls {
-    display: flex;
-    flex-direction: column;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    align-content: flex-start;
-    align-items: stretch;
-    padding: 2rem;
-    margin-bottom: 1rem;
-    background-color: #fff;
-    box-shadow: 0 0.25rem 0.7rem rgba(49, 49, 50, 0.25);
-    border: 0;
-    // border-radius: 0.66rem;
-    border-radius: $default_border_radius;
-
-    @media (min-width: $breakpoint-sm) {
-      flex-direction: row;
-      justify-content: space-between;
-      margin-bottom: 2rem;
-    }
-
-    .clear-filters {
-      margin-top: calc(1rem / 3);
-    }
-  }
-
-  .control {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-content: flex-start;
-    align-items: stretch;
-    width: 100%;
-
-    @media (min-width: $breakpoint-sm) {
-      flex-basis: calc((100% / 3) - (1rem / 3));
-      width: auto;
-      justify-content: space-between;
-    }
-
-    &.upgrade-types {
-      flex-basis: 100%;
-      margin-top: 0.5rem;
-    }
-  }
-
-  label {
-    margin-bottom: 0.5rem;
-  }
-
-  .custom-select {
-    display: inline-block;
-    position: relative;
-    width: 100%;
-    max-width: 100%;
-    // margin-bottom: 1rem;
-    margin-bottom: 0;
-
-    &::after {
-      display: block;
-      content: " ";
-      position: absolute;
-      right: 1rem;
-      top: 40%;
-      transform: rotateZ(45deg);
-      transform-origin: center;
-      border-color: rgba(var(--secondary-brand-rgb), 1);
-      border-bottom-style: solid;
-      border-bottom-width: #{calc(3 / 16)}rem;
-      border-right-style: solid;
-      border-right-width: #{calc(3 / 16)}rem;
-      height: #{calc(7 / 16)}rem;
-      width: #{calc(7 / 16)}rem;
-      pointer-events: none;
-    }
-
-    &.is-active {
-      &::after {
-        transform: rotate(225deg);
-      }
-    }
-
-    .select {
-      display: block;
-      height: 100%;
-      width: 100%;
-      position: relative;
-      margin-bottom: 0.5rem;
-      padding: $default_button_padding_vert 3rem $default_button_padding_vert $default_button_padding_horz;
-      width: 100%;
-      max-width: 100%;
-      text-align: left;
-      line-height: 1.2;
-      background-color: #eceef0;
-      color: $bahamablue;
-      -moz-appearance: none;
-      -webkit-appearance: none;
-      appearance: none;
-      cursor: pointer;
-
-      @media (prefers-color-scheme: dark) {
-        background-color: #eceef0;
-        color: $bahamablue;
-      }
-    }
-  }
-
-  .external {
-    &::after {
-      content: $external-link-icon-dark !important;
-      display: inline-block;
-      width: 1rem;
-      margin-left: 0.5rem;
-    }
-  }
-
-  .filter {
-    &__pagination {
-      display: flex;
-      flex-direction: column;
-      align-content: flex-start;
-      align-items: flex-start;
-      justify-content: flex-start;
-      margin: 0 0 1rem;
-      padding: 0;
-
-      @media (min-width: $breakpoint-sm) {
-        flex-basis: 100%;
-        flex-direction: row;
-        align-items: center;
-      }
-
-      &--top,
-      &--bottom { margin-top: 1rem; }
-
-      &--top { margin-bottom: 0; }
-
-      &--bottom {
-        .clear-filters {
-          margin-top: calc(1rem / 3);
-
-          @media (min-width: $breakpoint-sm) {
-            margin-top: 0;
-            margin-left: 0.5rem;
-          }
-        }
-      }
-    }
-    &--upgrade-types {
-      h2 { margin-bottom: 0; }
-
-      button {
-        color: $bahamablue;
-        background-color: transparent;
-
-        &:hover,
-        &:focus {
-          background-color: transparent;
-        }
-      }
-
-      label { text-align: center; }
-
-      .checkbox {
-        background-color: $white;
-
-        &.is-checked {
-          background-color: $bahamablue;
-          color: $white;
-        }
-      }
-
-      .filter__list {
-
-        fieldset {
-          display: grid;
-          grid-template-columns: 1fr;
-          margin: 0;
-          padding: 0;
-          border: none;
-
-          @media (min-width: $breakpoint-md) {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1px;
-          }
-          @media (min-width: $breakpoint-lg) {
-            grid-template-columns: repeat(3, 1fr);
-          }
-        }
-      }
-
-      .help-text {
-        grid-column: 1 / span 3;
-        margin-bottom: 0;
-        padding-left: 0;
-      }
-    }
-    &--other-offers {
-      fieldset {
-        padding: 0;
-        border: none;
-      }
-    }
-  }
-
-  .rebatesTool {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-content: flex-start;
-    align-items: stretch;
-    position: relative;
-
-    @media (min-width: $breakpoint-sm) {
-      flex-direction: row;
-      align-items: flex-start;
-      flex-wrap: wrap;
-    }
-  }
-
-  .rebatesResults {
-    flex-basis: 100%;
-
-    @media (min-width: $breakpoint-sm) {
-      flex-basis: calc(70% - 0.5rem);
-      min-height: 60vh;
-    }
-
-    .no-results {
-      width: 100%;
-      text-align: center;
-    }
-
-    .page {
-      width: 100%;
-      display: grid;
-      grid-template-columns: 1fr;
-      column-gap: 1rem;
-      row-gap: 1rem;
-      padding: 0 0 1rem;
-
-      @media (min-width: $breakpoint-sm) {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      @media (min-width: $breakpoint-md) {
-        grid-template-columns: repeat(3, 1fr);
-        column-gap: 2rem;
-        row-gap: 2rem;
-      }
-    }
-  }
-
-  .rebate {
-    display: flex;
-    flex-direction: column;
-    align-content: flex-start;
-    align-items: stretch;
-    justify-content: flex-start;
-    border-radius: 0;
-
-    a,
-    p { margin: 0; }
-
-    img {
-      display: block;
-      width: 1.875rem;
-      height: auto;
-      margin-right: 1rem;
-    }
-
-    &__amount,
-    &__short-description {
-      position: relative;
-      display: flex;
-      flex-direction: row;
-      justify-content: flex-start;
-      align-content: flex-start;
-      align-items: flex-start;
-
-      &::before {
-        display: inline-block;
-        line-height: 1;
-        margin-right: 0.5rem;
-      }
-    }
-
-    &__amount {
-      margin-bottom: 0.5rem;
-
-      &::before {
-        content: $amount-icon-dark !important;
-      }
-    }
-
-    &__short-description {
-      margin-bottom: 1rem;
-
-      &::before {
-        content: $house-icon-dark !important;
-      }
-    }
-
-    &__learn-more {
-      margin-top: auto;
-      text-align: center;
-    }
-
-    &__title {
-      margin-bottom: 1rem;
-
-      h3 {
-        font-size: clamp(
-          var(--wp--preset--font-size--normal),
-          1.25rem + ((1vw - 0.48rem) * 0.481),
-          1.5rem
-        );
-        margin-top: 0;
-        color: $bahamablue;
-      }
-
-      a {
-        text-decoration-color: $bahamablue;
-        text-decoration: none;
-      }
-    }
-  }
-
-  .rebatesSidebar {
-    flex: 0 0 100%;
-    width: 100%;
-    padding: 0 1rem 0 0;
-
-    @media (min-width: $breakpoint-sm) {
-      flex-basis: calc(30% - 0.5rem);
-      position: sticky;
-      top: 4rem;
-      // top: 8.25rem;
-    }
-
-    .filter {
-      margin-bottom: 1rem;
-
-      @media (min-width: $breakpoint-sm) {
-        margin-bottom: 2rem;
-      }
-    }
-  }
-
-  .current-page,
-  .total-pages,
-  .filtered-rebates,
-  .paginated-rebates {
-    display: inline-block;
-    transform: scale(1);
-    transition: transform linear $default_transition_duration;
-    transform-origin: center;
-
-    &.is-updating {
-      transform: scale(1.35);
-      transition: transform linear $default_transition_duration;
-      transform-origin: center;
-    }
-  }
-
-  .pages,
-  .totals {
-    padding: $default_button_padding_vert 0;
-  }
-
-  .pages {
-    margin: 0.5rem 0;
-
-    @media (min-width: $breakpoint-sm) {
-      margin: 0 1rem;
-    }
-  }
-
-  .totals {
-    margin-top: 1rem;
-
-    @media (min-width: $breakpoint-sm) {
-      margin-top: 0;
-      margin-left: 1rem;
-    }
-  }
-
-  .help-text {
-    padding: 1rem;
-
-    p {
-      margin-top: 0;
-
-      &:last-of-type {
-        margin-bottom: 0;
-      }
-    }
-  }
-
-  .checkbox,
-  .radio {
-    &.is-checked {
-      label {
-        font-weight: bold;
-        background-color: rgba($prussianblue, 0.15);
-        border-left-color: $prussianblue;
-      }
-    }
-
-    &.is-disabled {
-      opacity: 0.5;
-
-      label {
-        cursor: default;
-
-        &:hover,
-        &:focus {
-          background-color: rgba($prussianblue, 0);
-          border-left: 0.25rem solid transparent;
-          transition: background-color $default_transition_timing_fn $default_transition_duration;
-        }
-      }
-    }
-
-    input {
-      margin: 0;
-      appearance: none;
-    }
-
-    label {
-      display: block;
-      width: 100%;
-      height: 100%;
-      margin-bottom: 0;
-      padding: 0.5rem;
-      cursor: pointer;
-      background-color: rgba($prussianblue, 0);
-      border-left: 0.25rem solid transparent;
-      transition: all $default_transition_timing_fn $default_transition_duration;
-
-      &:hover,
-      &:focus {
-        background-color: rgba($prussianblue, 0.15);
-        border-left-color: $prussianblue;
-        transition: all $default_transition_timing_fn $default_transition_duration;
-      }
-    }
-  }
-
-  .is-loading {
-    flex-basis: 100%;
-    text-align: center;
-
-    p { margin-bottom: 0; }
-  }
-}
+// See bcgov-plugin-cleanbc/styles/public/betterhomes/_vue-apps.scss
+#rebateFilterApp {}
 </style>

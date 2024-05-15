@@ -1,45 +1,65 @@
 <template>
+  <div class="inner">
     <!-- Heading for screen readers -->
     <h2 class="sr-only">Contractor Listings</h2>
+    <!-- Skip to results link -->
+    <a href="#contractorsResults" class="sr-only skip-to-results">Skip to results</a>
     <!-- Filter Controls -->
-    <div class="contractorsFilterControls" id="contractorsFilterControls">
+    <div id="contractorsFilterControls" class="contractorsFilterControls filter-container">
         <!-- Type Select -->
-        <label for="typeSelect" class="sr-only">Choose a type of upgrade</label>
-        <div class="custom-select">
-            <select @change="selectIsActive" @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive" tabindex="0" id="typeSelect" class="select select--type" v-model="selectedUpgradeType" :required="true" data-active="false">
-                <option value="all">All Upgrade Types</option>
-                <option v-for="(type, index) in types" :key="type" :value="type">{{ type }}</option>
-            </select>
+        <div class="control type-select">
+          <label for="typeSelect" class="">Choose a type of upgrade</label>
+          <div class="custom-select">
+              <select @change="selectIsActive"
+                @click.prevent="selectIsActive"
+                @touchend="selectIsActive"
+                @keyup.esc="selectIsActive"
+                tabindex="0"
+                id="typeSelect"
+                class="select select--type"
+                v-model="selectedUpgradeType"
+                :required="true"
+                data-active="false">
+                  <option value="all">All Upgrade Types</option>
+                  <option v-for="(type, index) in types" :key="type" :value="type">{{ type }}</option>
+              </select>
+          </div>
         </div>
 
-        <!-- Type Select -->
-        <label for="programSelect" class="sr-only">Choose a rebate program</label>
-        <div class="custom-select">
-            <select @change="selectIsActive" @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive" tabindex="0" id="programSelect" class="select select--program" v-model="selectedProgram" :required="true" data-active="false">
-                <option value="all">All Programs</option>
-                <option v-for="(program, index) in programs" :key="program" :value="program">{{ program }}</option>
-            </select>
+        <!-- Program Select -->
+        <div class="control program-select">
+          <label for="programSelect" class="">Choose a rebate program</label>
+          <div class="custom-select">
+              <select @change="selectIsActive" @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive" tabindex="0" id="programSelect" class="select select--program" v-model="selectedProgram" :required="true" data-active="false">
+                  <option value="all">All Programs</option>
+                  <option v-for="(program, index) in programs" :key="program" :value="program">{{ program }}</option>
+              </select>
+          </div>
         </div>
 
         <!-- Location Select -->
-        <label for="locationSelect" class="sr-only">Choose a service region</label>
-        <div class="custom-select">
-            <select @change="selectIsActive" @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive" tabindex="0" id="locationSelect" class="select select--location" v-model="selectedLocation">
-                <option value="all">All Locations</option>
-                <option v-for="location in locations" :key="location" :value="location">{{ location }}</option>
-            </select>
+        <div class="control location-select">
+          <label for="locationSelect" class="">Choose a service region</label>
+          <div class="custom-select">
+              <select @change="selectIsActive" @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive" tabindex="0" id="locationSelect" class="select select--location" v-model="selectedLocation">
+                  <option value="all">All Locations</option>
+                  <option v-for="location in locations" :key="location" :value="location">{{ location }}</option>
+              </select>
+          </div>
         </div>
 
         <!-- Clear Filters Button -->
-        <button class="clear-filters" @click.prevent="clearFilters"
+        <div class="control reset-filters">
+          <button class="clear-filters" @click.prevent="clearFilters"
             @touchend="clearFilters"
             @keydown.enter.prevent="clearFilters"
             type="button">
             Reset selection
-        </button>
+          </button>
+        </div>
 
         <!-- Pagination Controls -->
-        <div class="contractorsFilterPagination contractors-filter__pagination contractors-filter__pagination--top">
+        <div class="contractorsFilterPagination control pagination pagination--top">
             <!-- Previous Page Button -->
             <button class="prev-page" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0" type="button">Previous Page</button>
             <!-- Current Page & Totals -->
@@ -52,15 +72,17 @@
                 Showing <span class="results-count"><span class="numValue paginated-contractors">{{paginatedContractors.length }}</span> of <span class="numValue filtered-contractors">{{ filteredContractors.length }}</span></span> registered contractors
             </div>
 
+            <!-- ARIA live regions -->
             <span class="sr-status sr-only">
-                <span class="results-count" role="status" aria-live="polite">Showing <span class="numValue paginated-contractors">{{paginatedContractors.length }}</span> of <span class="numValue filtered-contractors">{{ filteredContractors.length }}</span> registered contractors {{ currentTypeFilterMessage }} {{ currentLocationFilterMessage }}</span>
+                <span class="results-count" role="status" aria-live="polite">Showing <span class="numValue paginated-contractors">{{ paginatedContractors.length }}</span> of <span class="numValue filtered-contractors">{{ filteredContractors.length }}</span> registered contractors {{ currentTypeFilterMessage }} {{ currentLocationFilterMessage }}.</span>
                 <span class="pages" role="status" aria-live="polite">Page <span class="numValue current-page">{{ currentPage }}</span> of <span class="numValue total-pages">{{ totalPages }}</span></span>
             </span>
         </div>
     </div>
 
     <!-- Contractors Results Table -->
-    <table id="contractorsResults" class="contractorsResults table table--striped">
+    <h2 class="results__title">Results (<span class="counter__value">{{ filteredContractors.length }}</span>)</h2>
+    <table id="contractorsResults" class="contractorsResults results table table--striped">
         <caption class="sr-only">Registered Contractors</caption>
         <!-- Table Columns -->
         <colgroup>
@@ -86,24 +108,24 @@
             <!-- No Results Message -->
             <tr v-if="filteredContractors.length === 0 && !isLoading" class="no-results">
                 <td colspan="100%">
-                    <p class="no-results" aria-live="polite">Sorry, no results found.</p>
+                    <p class="no-results" role="status" aria-live="polite">Sorry, no results found.</p>
                 </td>
             </tr>
 
             <!-- Loading Message -->
-            <tr v-if="isLoading" class="is-loading" aria-live="polite">
+            <tr v-if="isLoading" class="is-loading" role="status" aria-live="polite">
                 <td colspan="100%">
-                    <p class="no-results loading">Retrieving list of registered contractors, please wait...</p>
+                    <p class="no-results loading">Retrieving a list of registered contractors, please wait...</p>
                 </td>
             </tr>
 
             <!-- Results Loop -->
             <template v-if="contractors.length > 0" v-for="(contractor, index) in paginatedContractors" :key="index">
-                <tr :class="`contractor result result--${index+1} ${0 === (index+1) % 2 ? `even` : `odd`}`" tabindex="0">
+                <tr :class="`contractor result result--${index+1} ${0 === (index+1) % 2 ? `even` : `odd`}`">
                     <!-- Company Name and Head Office -->
                     <td data-label="Company Name and Head Office" class="contractor__company-and-location">
                         <!-- Company Website Link -->
-                        <a v-if="contractor.company_website" class="contractor__company external" :href="contractor.company_website" target="_blank" :title="contractor.company_name + ' website, opens in a new tab/window.'">
+                        <a v-if="contractor.company_website" class="contractor__company external-app-link" :href="contractor.company_website" target="_blank" :aria-label="contractor.company_name + ' website, opens in a new tab/window.'">
                             {{ contractor.company_name ? contractor.company_name : 'Website' }}
                         </a>
                         <!-- Company Name if No Website -->
@@ -147,39 +169,29 @@
             </template>
         </tbody>
     </table>
-
-    <!-- Pagination Controls (Bottom) -->
-    <div class="contractorsFilterPagination contractors-filter__pagination contractors-filter__pagination--bottom">
-        <!-- Previous Page Button -->
-        <button class="prev-page" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0" type="button">Previous Page</button>
-        <!-- Current Page & Totals -->
-        <span class="pages">Page <span class="numValue current-page">{{ currentPage }}</span> of <span class="numValue total-pages">{{ totalPages }}</span></span>
-        <!-- Next Page Button -->
-        <button class="next-page" @click.prevent="nextPage" :disabled="currentPage === totalPages" tabindex="0" type="button">Next Page</button>
-
-        <!-- Results Information -->
-        <div class="totals">
-            Showing <span class="results-count"><span class="numValue paginated-contractors">{{paginatedContractors.length }}</span> of <span class="numValue filtered-contractors">{{ filteredContractors.length }}</span></span> Contractors
-        </div>
-    </div>
+  </div>
 </template>
 
 <script setup>
 /**
  * Vue Composition API imports for reactive data and lifecycle hooks.
  *
- * @type {{ ref: Function, onMounted: Function, computed: Function, watch: Function }}
  * @namespace VueCompositionAPI
+ * @type {object}
+ * @property {Function} ref - Function for creating a reactive reference.
+ * @property {Function} onMounted - Lifecycle hook that is called after the component is mounted.
+ * @property {Function} computed - Function for creating a computed property that automatically updates based on its dependencies.
+ * @property {Function} watch - Function for watching a reactive reference or computed property for changes.
  */
  import {
-	ref,
-	onMounted,
-	computed,
-	watch
+    ref,
+    onMounted,
+    computed,
+    watch
 } from 'vue';
 
 /**
- * Ref for storing an array of Contractors (Program Qualified Contractors).
+ * Ref for storing an array of Contractors.
  *
  * @type {Ref<Array>} - A reference to an array containing Contractors.
  */
@@ -247,7 +259,6 @@ const isLoading = ref(false);
  * @type {Ref<String>} - A reference to the CSS class name for an active state.
  */
 const activeClass = ref('is-active');
-
 const updatingClass = ref('is-updating');
 
 // Pagination related data
@@ -266,14 +277,34 @@ const pageSize = ref(30); // Default page size
  */
 const currentPage = ref(1);
 
-const itemsToClearFromSessionStorage = ref([
-	'pqeasData',
-	'pqeasTimestamp',
-	'rebatesData',
-	'rebatesTimestamp',
+/**
+ * Ref array containing keys for session storage items to clear.
+ *
+ * This ref array contains keys corresponding to session storage items that should be cleared to avoid storage limit issues.
+ *
+ * @type {Ref<Array<String>>}
+ */
+ const itemsToClearFromSessionStorage = ref([
+    'faqsData',
+    'faqsTimestamp',
+    'pqeasData',
+    'pqeasTimestamp',
+    'rebatesData',
+    'rebatesTimestamp'
 ]);
 
+/**
+ * Ref for storing the previous number of paginated contractors and filtered contractors.
+ *
+ * @type {Ref<Number>}
+ */
 const oldPaginatedContractorsCount = ref(0);
+
+/**
+ * Ref for storing the previous number of filtered contractors.
+ *
+ * @type {Ref<Number>}
+ */
 const oldFilteredContractorsCount = ref(0);
 
 /**
@@ -373,7 +404,7 @@ const locations = computed(() => {
 });
 
 /**
- * Computed property to handle filtering Contractors (Program Qualified Contractors) by type and/or location.
+ * Computed property to handle filtering Contractors by type and/or location.
  *
  * Uses the selected location to filter Contractors based on location and incorporates the results from type filtering.
  *
@@ -393,8 +424,6 @@ const filteredContractors = computed(() => {
 	if ('all' !== selectedProg) {
 		filteredContractors = filteredContractors.filter(contractor => contractor.program_designations && contractor.program_designations.some(program => program.name === selectedProg));
 	}
-
-	// handleUpdatingAnimationClass(".contractors-filter__pagination .totals");
 
 	return filteredContractors;
 });
@@ -430,7 +459,7 @@ const filteredContractorsByProgram = computed(() => {
 });
 
 /**
- * Computed property to calculate the total number of pages for paginated Contractors (Program Qualified Contractors).
+ * Computed property to calculate the total number of pages for paginated Contractors.
  *
  * Uses the length of filtered Contractors and the page size to determine the total number of pages.
  *
@@ -442,7 +471,7 @@ const totalPages = computed(() => {
 });
 
 /**
- * Computed property to calculate the paginated Contractors (Program Qualified Contractors).
+ * Computed property to calculate the paginated Contractors.
  *
  * Uses the current page and page size to determine the slice of filtered Contractors to display.
  *
@@ -483,7 +512,7 @@ const nextPage = () => {
  * @type {String} - A string indicating the filter results message based on the selected type.
  */
 const currentTypeFilterMessage = computed(() => {
-	return defaultSelectedUpgradeType.value === selectedUpgradeType.value ? ' no upgrade type selected.' : ' specializing in ' + selectedUpgradeType.value.toLowerCase() + ' upgrades';
+	return defaultSelectedUpgradeType.value === selectedUpgradeType.value ? ' no upgrade type selected ' : ' specializing in ' + selectedUpgradeType.value.toLowerCase() + ' upgrades ';
 });
 
 /**
@@ -513,17 +542,30 @@ const clearFilters = () => {
 	history.replaceState(selectedLocation.value, defaultSelectedLocation.value);
 	history.replaceState(selectedProgram.value, defaultSelectedProgram.value);
 
-	currentPage.value !== 1 ? handleUpdatingAnimationClass(".contractors-filter__pagination .pages") : null;
+	currentPage.value !== 1 ? handleUpdatingAnimationClass('.control.pagination .pages') : null;
 	currentPage.value = 1;
 };
 
-const resetSelectsActiveState = () => {
-	let activeSelects = document.querySelectorAll('#contractorFilterApp .custom-select.is-active');
+/**
+ * Function to reset the active state of custom-select dropdowns.
+ *
+ * This function queries and resets the active state (`is-active` class) of custom-select dropdowns within the `#contractorFilterApp` container.
+ * If there are active custom-select dropdowns found, it removes the `is-active` class from each of them to deactivate them.
+ *
+ * @returns {void}
+ */
+ const resetSelectsActiveState = () => {
+    // Query all active custom-select dropdowns within the #contractorFilterApp container.
+    let activeSelects = document.querySelectorAll('#contractorFilterApp .custom-select.is-active');
 
-	1 <= activeSelects.length ? activeSelects.forEach((item) => {
-		item.classList.remove('is-active')
-	}) : null;
-}
+    // Check if there are active custom-select dropdowns found.
+    if (activeSelects.length >= 1) {
+        // Iterate over each active custom-select dropdown and remove the is-active class to deactivate them.
+        activeSelects.forEach((item) => {
+            item.classList.remove('is-active');
+        });
+    }
+};
 
 /**
  * Event listener bound to @click and @keyup.esc
@@ -536,18 +578,34 @@ const selectIsActive = (event) => {
 	return 'click' !== event.type ? event.target.parentNode.classList.remove(activeClass.value) : event.target.parentNode.classList.toggle(activeClass.value);
 }
 
-const handleUpdatingAnimationClass = (elementCssPath) => {
-	const elements = document.querySelectorAll(elementCssPath);
+/**
+ * Function to handle updating animation class on specified elements.
+ *
+ * This function applies an updating animation class to elements selected by the given CSS path (`elementCssPath`).
+ * It adds the animation class (`updatingClass.value`) to each element and removes it after a short delay (125ms),
+ * simulating an update animation effect.
+ *
+ * @param {string} elementCssPath - The CSS path selector to target elements for animation.
+ * @returns {void}
+ */
+ const handleUpdatingAnimationClass = (elementCssPath) => {
+    // Query all elements matching the provided CSS path.
+    const elements = document.querySelectorAll(elementCssPath);
 
-	if (0 < elements.length) {
-		elements.forEach((element) => {
-			element.classList.add(updatingClass.value);
-			setTimeout(() => {
-				element.classList.remove(updatingClass.value);
-			}, 125);
-		})
-	}
-}
+    // Check if there are elements found.
+    if (elements.length > 0) {
+        // Iterate over each element and apply the updating animation class.
+        elements.forEach((element) => {
+            // Add the updating animation class to the element.
+            element.classList.add(updatingClass.value);
+
+            // Remove the updating animation class after a short delay (125ms).
+            setTimeout(() => {
+                element.classList.remove(updatingClass.value);
+            }, 125);
+        });
+    }
+};
 
 /**
  * Checks if the DOM (Document Object Model) is fully loaded and interactive.
@@ -635,26 +693,77 @@ watch(() => window.site?.domain, (newVal) => {
 	}
 });
 
-watch(paginatedContractors, () => {
-	// Avoid firing animation when number value is the same.
-	if (oldPaginatedContractorsCount.value !== paginatedContractors.value.length) {
-		oldPaginatedContractorsCount.value = paginatedContractors.value.length;
-		handleUpdatingAnimationClass(".contractors-filter__pagination .paginated-contractors");
-	}
-});
-watch(filteredContractors, () => {
-	// Avoid firing animation when number value is the same.
-	if (oldFilteredContractorsCount.value !== filteredContractors.value.length) {
-		oldFilteredContractorsCount.value = filteredContractors.value.length;
-		handleUpdatingAnimationClass(".contractors-filter__pagination .filtered-contractors");
-	}
+/**
+ * Watcher to trigger an animation when paginated contractors change.
+ *
+ * This watcher monitors changes in the `paginatedContractors` array's length (`paginatedContractors.value.length`).
+ * When the length of `paginatedContractors` changes (indicating a change in paginated contractors),
+ * it triggers an animation by adding and removing a CSS class to the specified elements using the `handleUpdatingAnimationClass` function.
+ *
+ * @param {Function} callback - The callback function to execute when the watched property changes.
+ * @returns {void}
+ */
+ watch(paginatedContractors, () => {
+    // Check if the length of paginatedContractors array has changed.
+    if (oldPaginatedContractorsCount.value !== paginatedContractors.value.length) {
+        // Update the oldPaginatedContractorsCount to match the current length.
+        oldPaginatedContractorsCount.value = paginatedContractors.value.length;
+
+        // Trigger an animation by applying the updating animation class to specified elements.
+        handleUpdatingAnimationClass('.control.pagination .paginated-contractors');
+    }
 });
 
-watch(currentPage, () => {
-	handleUpdatingAnimationClass(".contractors-filter__pagination .current-page");
+/**
+ * Watcher to trigger an animation when filtered contractors change.
+ *
+ * This watcher monitors changes in the `filteredContractors` array's length (`filteredContractors.value.length`).
+ * When the length of `filteredContractors` changes (indicating a change in filtered contractors),
+ * it triggers an animation by adding and removing a CSS class to the specified elements using the `handleUpdatingAnimationClass` function.
+ *
+ * @param {Function} callback - The callback function to execute when the watched property changes.
+ * @returns {void}
+ */
+ watch(filteredContractors, () => {
+    // Check if the length of filteredContractors array has changed.
+    if (oldFilteredContractorsCount.value !== filteredContractors.value.length) {
+        // Update the oldFilteredContractorsCount to match the current length.
+        oldFilteredContractorsCount.value = filteredContractors.value.length;
+
+        // Trigger an animation by applying the updating animation class to specified elements.
+        handleUpdatingAnimationClass('.control.pagination .filtered-contractors');
+        handleUpdatingAnimationClass('.counter__value');
+    }
 });
-watch(totalPages, () => {
-	handleUpdatingAnimationClass(".contractors-filter__pagination .total-pages");
+
+/**
+ * Watcher to trigger an animation when the current page changes.
+ *
+ * This watcher monitors changes in the `currentPage` reactive reference.
+ * When the `currentPage` value changes (indicating a change in the current page),
+ * it triggers an animation by adding and removing a CSS class to the specified elements using the `handleUpdatingAnimationClass` function.
+ *
+ * @param {Function} callback - The callback function to execute when the watched property changes.
+ * @returns {void}
+ */
+ watch(currentPage, () => {
+    // Trigger an animation by applying the updating animation class to specified elements.
+    handleUpdatingAnimationClass('.control.pagination .current-page');
+});
+
+/**
+ * Watcher to trigger an animation when the total pages change.
+ *
+ * This watcher monitors changes in the `totalPages` computed property.
+ * When the `totalPages` value changes (indicating a change in the total number of pages),
+ * it triggers an animation by adding and removing a CSS class to the specified elements using the `handleUpdatingAnimationClass` function.
+ *
+ * @param {Function} callback - The callback function to execute when the watched property changes.
+ * @returns {void}
+ */
+ watch(totalPages, () => {
+    // Trigger an animation by applying the updating animation class to specified elements.
+    handleUpdatingAnimationClass('.control.pagination .total-pages');
 });
 
 /**
@@ -669,7 +778,25 @@ watch([selectedUpgradeType, selectedProgram, selectedLocation], () => {
 	currentPage.value = 1;
 });
 
-window.addEventListener("click", (event) => {
+/**
+ * Event listener for handling custom-select deactivation on click outside.
+ *
+ * This event listener is triggered on a click event anywhere in the window (`window.addEventListener('click')`).
+ * It checks if the click target is not within an active custom-select dropdown (`!event.target.closest('.custom-select.is-active')`).
+ * If the click is outside of any active custom-select dropdown, it calls the `resetSelectsActiveState()` function to deactivate them.
+ *
+ * @param {Event} event - The click event object.
+ * @returns {void}
+ */
+ window.addEventListener('click', (event) => {
+    // Check if the click target is not within an active custom-select dropdown.
+    if (!event.target.closest('.custom-select.is-active')) {
+        // Call the resetSelectsActiveState function to deactivate active custom-select dropdowns.
+        resetSelectsActiveState();
+    }
+});
+
+window.addEventListener('click', (event) => {
 	!event.target.closest('.custom-select.is-active') ? resetSelectsActiveState() : null;
 });
 
@@ -696,495 +823,6 @@ onMounted(() => {
 </script>
 
 <style lang='scss' scoped>
-// Breakpoints
-$breakpoint-xxs: 0;
-$breakpoint-xs: 479px;
-$breakpoint-sm: 767px;
-$breakpoint-md: 991px;
-$breakpoint-md-lg: 1024px;
-$breakpoint-lg: 1199px;
-// Colours
-$mineshaft: #333;
-$scorpiongrey: #484747;
-$dovegrey: #656565;
-$gallerygray: #edebeb;
-$vehiclegrey: #ccc;
-$prussianblue: #002a4e;
-$bahamablue: #005d99;
-$bondiblue: #007e9e;
-$eucalyptus: #1d8045;
-$porcelain: #dcdcdc;
-$white: #fff;
-$snow: $white;
-// Other style defaults.
-$default_transition_timing_fn: ease-in-out;
-$default_transition_duration: 0.125s;
-$default_outline_width: 0.125rem;
-$default_outline_offset: 0.125rem;
-$default_interactable_min_height: 2.5rem;
-$default_button_min_width: 11.625rem;
-$default_button_padding_vert: 0.5rem;
-$default_button_padding_horz: 1rem;
-$default_table_cell_padding_mobile_vert: 1rem;
-$default_table_cell_padding_mobile_horz: 1rem;
-$default_table_cell_padding_desktop_vert: 0.5rem;
-$default_table_cell_padding_desktop_horz: 1rem;
-$default_border_radius: calc(7rem/16);
-
-// Icons
-$external-link-icon-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDI2LjAuMiwgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPgo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IgoJIHZpZXdCb3g9IjAgMCAxOCAxOCIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgMTggMTg7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPHN0eWxlIHR5cGU9InRleHQvY3NzIj4KCS5zdDB7ZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7ZmlsbDojMDAyQTRFO30KPC9zdHlsZT4KPHBhdGggY2xhc3M9InN0MCIgZD0iTTkuNywzLjljMC0wLjEtMC4xLTAuMy0wLjItMC40QzkuNCwzLjQsOS4zLDMuNCw5LjIsMy40SDEuN2MtMC40LDAtMC45LDAuMi0xLjIsMC41QzAuMiw0LjIsMCw0LjYsMCw1LjF2MTEuMgoJYzAsMC40LDAuMiwwLjksMC41LDEuMkMwLjgsMTcuOCwxLjIsMTgsMS43LDE4aDExLjJjMC40LDAsMC45LTAuMiwxLjItMC41YzAuMy0wLjMsMC41LTAuNywwLjUtMS4yVjguOGMwLTAuMS0wLjEtMC4zLTAuMi0wLjQKCWMtMC4xLTAuMS0wLjItMC4yLTAuNC0wLjJjLTAuMSwwLTAuMywwLjEtMC40LDAuMmMtMC4xLDAuMS0wLjIsMC4yLTAuMiwwLjR2Ny41YzAsMC4xLTAuMSwwLjMtMC4yLDAuNGMtMC4xLDAuMS0wLjIsMC4yLTAuNCwwLjIKCUgxLjdjLTAuMSwwLTAuMy0wLjEtMC40LTAuMmMtMC4xLTAuMS0wLjItMC4yLTAuMi0wLjRWNS4xYzAtMC4xLDAuMS0wLjMsMC4yLTAuNGMwLjEtMC4xLDAuMi0wLjIsMC40LTAuMmg3LjUKCWMwLjEsMCwwLjMtMC4xLDAuNC0wLjJDOS43LDQuMiw5LjcsNC4xLDkuNywzLjl6Ii8+CjxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik0xOCwwLjZjMC0wLjEtMC4xLTAuMy0wLjItMC40QzE3LjcsMC4xLDE3LjYsMCwxNy40LDBoLTUuNmMtMC4xLDAtMC4zLDAuMS0wLjQsMC4yYy0wLjEsMC4xLTAuMiwwLjItMC4yLDAuNAoJczAuMSwwLjMsMC4yLDAuNGMwLjEsMC4xLDAuMiwwLjIsMC40LDAuMmg0LjNsLTkuMiw5LjJjLTAuMSwwLjEtMC4xLDAuMS0wLjEsMC4yYzAsMC4xLDAsMC4xLDAsMC4yczAsMC4xLDAsMC4yCgljMCwwLjEsMC4xLDAuMSwwLjEsMC4yQzcsMTEuMSw3LDExLjIsNy4xLDExLjJjMC4xLDAsMC4xLDAsMC4yLDBjMC4xLDAsMC4xLDAsMC4yLDBzMC4xLTAuMSwwLjItMC4xbDkuMi05LjJ2NC4zCgljMCwwLjEsMC4xLDAuMywwLjIsMC40YzAuMSwwLjEsMC4yLDAuMiwwLjQsMC4yYzAuMSwwLDAuMy0wLjEsMC40LTAuMkMxNy45LDYuNSwxOCw2LjMsMTgsNi4yVjAuNnoiLz4KPC9zdmc+Cg==);
-
-#contractorFilterApp {
-  h2 {
-    margin-top: 0;
-  }
-
-  a,
-  button,
-  .button,
-  select,
-  .select,
-  label,
-  input,
-  span,
-  p {
-    font-size: clamp(
-      var(--wp--preset--font-size--normal),
-      1rem + ((1vw - 0.48rem) * 0.481),
-      1.25rem
-    );
-  }
-
-  button,
-  select {
-    min-width: $default_button_min_width;
-    min-height: $default_interactable_min_height;
-    padding: $default_button_padding_vert $default_button_padding_horz;
-    font-size: clamp(
-      var(--wp--preset--font-size--normal),
-      1rem + ((1vw - 0.48rem) * 0.481),
-      1.25rem
-    );
-    font-weight: bold;
-    border: none;
-    border-radius: $default_border_radius;
-    box-shadow: none;
-  }
-
-  button {
-    color: $scorpiongrey;
-    background-color: $vehiclegrey;
-    transition: all $default_transition_timing_fn $default_transition_duration;
-
-    &:not([disabled]) {
-      background-color: $bahamablue;
-      color: $white;
-      outline: $default_outline_offset solid transparent;
-      outline-offset: $default_outline_offset;
-      cursor: pointer;
-
-      &:hover,
-      &:focus {
-        background-color: darken($bahamablue, 7.5%);
-        transition: all $default_transition_timing_fn
-          $default_transition_duration;
-        outline: $default_outline_offset solid darken($bondiblue, 7.5%);
-      }
-    }
-
-    &.clear-filters {
-      margin-bottom: 1rem;
-
-      @media (min-width: $breakpoint-md) {
-        margin-bottom: 0;
-      }
-    }
-  }
-
-  p {
-    display: block;
-    width: 100%;
-    &.no-results {
-      text-align: center;
-    }
-  }
-
-  .custom-select {
-    display: inline-block;
-    position: relative;
-    width: 100%;
-    max-width: 100%;
-    // margin-bottom: 1rem;
-    margin-bottom: 0;
-
-    @media (min-width: $breakpoint-sm) {
-      // width: auto;
-      // margin-right: 1rem;
-    }
-    @media (min-width: $breakpoint-md) {
-      // margin-bottom: 0;
-    }
-
-    &::after {
-      display: block;
-      content: " ";
-      position: absolute;
-      right: 1rem;
-      top: calc(50% - 0.6rem);
-      transform: translateY(-50%) rotate(45deg);
-      transform-origin: center;
-      border-color: rgba(var(--secondary-brand-rgb), 1);
-      border-bottom-style: solid;
-      border-bottom-width: #{calc(3 / 16)}rem;
-      border-right-style: solid;
-      border-right-width: #{calc(3 / 16)}rem;
-      height: #{calc(7 / 16)}rem;
-      width: #{calc(7 / 16)}rem;
-      pointer-events: none;
-    }
-
-    &.is-active {
-      &::after {
-        transform: translateY(-50%) rotate(225deg);
-      }
-    }
-
-    .select {
-      display: block;
-      height: 100%;
-      width: 100%;
-      position: relative;
-      margin-bottom: 0.5rem;
-      padding: $default_button_padding_vert 3rem $default_button_padding_vert
-        $default_button_padding_horz;
-      width: 100%;
-      max-width: 100%;
-      text-align: left;
-      font-size: clamp(
-        var(--wp--preset--font-size--normal),
-        1rem + ((1vw - 0.48rem) * 0.481),
-        1.25rem
-      );
-      line-height: 1.2;
-      background-color: #eceef0;
-      color: $bahamablue;
-      -moz-appearance: none;
-      -webkit-appearance: none;
-      appearance: none;
-      cursor: pointer;
-
-      @media (min-width: $breakpoint-sm) {
-        width: auto;
-      }
-      @media (prefers-color-scheme: dark) {
-        background-color: #eceef0;
-        color: $bahamablue;
-      }
-    }
-  }
-
-  .external {
-    &::after {
-      content: $external-link-icon-dark !important;
-      display: inline-block;
-      width: 1rem;
-      margin-left: 0.5rem;
-    }
-  }
-
-  .contractorsFilterControls {
-    display: flex;
-    flex-direction: column;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    align-content: flex-start;
-    align-items: flex-start;
-    margin-bottom: 1rem;
-    padding: 2rem;
-    background-color: #fff;
-    box-shadow: 0 0.25rem 0.7rem rgba(49, 49, 50, 0.25);
-    border: 0;
-    border-radius: 0.66rem;
-
-    @media (min-width: $breakpoint-sm) {
-      flex-direction: row;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 2rem;
-    }
-
-    .custom-select {
-      flex: 0 0 100%;
-      width: 100%;
-
-      @media (min-width: $breakpoint-sm) {
-        flex: 0 0 calc(50% - 0.25rem);
-      }
-
-      select {
-        width: 100%;
-      }
-    }
-
-    .clear-filters {
-      @media (min-width: $breakpoint-sm) {
-        margin-left: 0.5rem;
-        margin-right: auto;
-      }
-    }
-  }
-
-  .contractors-filter {
-    &__pagination {
-      display: flex;
-      flex-direction: column;
-      align-content: flex-start;
-      align-items: flex-start;
-      justify-content: flex-start;
-      width: 100%;
-      margin: 0;
-      padding: 0;
-
-      @media (min-width: $breakpoint-sm) {
-        flex-direction: row;
-        align-items: center;
-      }
-
-      &--top {}
-
-      &--bottom {
-        margin-top: 1rem;
-      }
-
-      .current-page,
-      .total-pages,
-      .filtered-contractors,
-      .paginated-contractors {
-        display: inline-block;
-        transform: scale(1);
-        transition: transform linear $default_transition_duration;
-        transform-origin: center;
-        &.is-updating {
-          transform: scale(1.35);
-          transition: transform linear $default_transition_duration;
-          transform-origin: center;
-        }
-      }
-
-      .pages,
-      .totals {
-        padding: $default_button_padding_vert 0;
-      }
-
-      .pages {
-        min-width: 6rem;
-        margin: 0.5rem auto 0.5rem 0;
-
-        @media (min-width: $breakpoint-sm) {
-          margin: 0 1rem;
-        }
-      }
-
-      .totals {
-        margin-top: 1rem;
-        transform: scale(1);
-        transition: transform linear $default_transition_duration;
-        transform-origin: center;
-
-        &.is-updating {
-          transform: scale(1.125);
-          transition: transform linear $default_transition_duration;
-          transform-origin: center;
-        }
-
-        @media (min-width: $breakpoint-sm) {
-          margin-top: 0;
-          margin-left: 1rem;
-        }
-      }
-    }
-  }
-
-  .contractorsResults {
-    width: 100%;
-    table-layout: fixed;
-    border-spacing: 0;
-
-    address {
-      font-style: normal;
-    }
-
-    thead,
-    tbody {
-      width: 100%;
-    }
-
-    th,
-    td {
-      vertical-align: top;
-      padding: $default_table_cell_padding_mobile_vert
-        $default_table_cell_padding_mobile_horz;
-      width: 100%;
-
-      @media (min-width: $breakpoint-sm) {
-        padding: $default_table_cell_padding_desktop_vert
-          $default_table_cell_padding_desktop_horz;
-        width: auto;
-      }
-    }
-
-    th {
-      font-size: clamp(
-        var(--wp--preset--font-size--normal),
-        1rem + ((1vw - 0.48rem) * 0.481),
-        1.25rem
-      );
-      text-align: left;
-      background-color: $bahamablue;
-      color: white;
-
-      @media (max-width: $breakpoint-sm) {
-        border: none;
-        clip: rect(0 0 0 0);
-        height: 1px;
-        margin: -1px;
-        overflow: hidden;
-        padding: 0;
-        position: absolute;
-        width: 1px;
-      }
-
-      &.odd,
-      &.even {
-        background-color: $bahamablue;
-      }
-    }
-
-    td,
-    tr {
-      @media (max-width: $breakpoint-sm) {
-        display: block;
-      }
-    }
-
-    tr {
-      width: 100%;
-    }
-
-    td {
-      font-size: clamp(
-        var(--wp--preset--font-size--normal),
-        1rem + ((1vw - 0.48rem) * 0.481),
-        1.25rem
-      );
-      word-wrap: break-word;
-
-      &::before {
-        content: attr(data-label);
-        font-size: 1.125rem;
-        font-weight: bold;
-        color: $bahamablue;
-
-        @media (min-width: $breakpoint-sm) {
-          content: none;
-        }
-      }
-
-      a,
-      p,
-      ul {
-        display: block;
-        margin-top: 0;
-        font-size: clamp(
-          var(--wp--preset--font-size--normal),
-          1rem + ((1vw - 0.48rem) * 0.481),
-          1.25rem
-        );
-      }
-      ul {
-        padding-inline-start: 1rem;
-      }
-      li {
-        // list-style-type: none;
-        font-size: clamp(
-          var(--wp--preset--font-size--normal),
-          1rem + ((1vw - 0.48rem) * 0.481),
-          1.25rem
-        );
-      }
-    }
-    .col {
-      width: 100%;
-      column-span: all;
-
-      @media (max-width: $breakpoint-sm) {
-        display: block;
-      }
-      @media (min-width: $breakpoint-sm) {
-        width: 20%;
-        column-span: 1;
-      }
-      &--contractor {
-        &__company-and-location,
-        &__email-and-phone {
-          @media (min-width: $breakpoint-md) {
-            width: 25%;
-          }
-        }
-        &__head-office,
-        &__upgrade-types {
-          @media (min-width: $breakpoint-md) {
-            width: 15%;
-          }
-        }
-      }
-    }
-    .even {
-      background-color: $white;
-    }
-    .odd {
-      background-color: $gallerygray;
-    }
-    .no-results {
-      width: 100%;
-      text-align: center;
-    }
-  }
-  .contractor {
-    &__company-and-location,
-    &__email-and-phone,
-    &__service-organizations {
-      > * {
-        display: block;
-      }
-    }
-
-    &__service {
-      display: inline-block;
-    }
-    &__service-areas,
-    &__service-organizations {
-      ul {
-        margin-top: 0;
-        margin-bottom: 0;
-      }
-    }
-
-    td {
-      p {
-        &:last-of-type {
-          margin-bottom: 0;
-        }
-      }
-    }
-  }
-
-  .is-loading {
-    text-align: center;
-
-    p {
-      margin-bottom: 0;
-    }
-  }
-}
+// See bcgov-plugin-cleanbc/styles/public/betterhomes/_vue-apps.scss
+#contractorFilterApp {}
 </style>

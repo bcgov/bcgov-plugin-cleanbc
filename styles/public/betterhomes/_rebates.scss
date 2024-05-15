@@ -59,7 +59,7 @@
 
     &.external {
       &::after {
-        content: $external-link-icon-dark !important;
+        content: $external_link_icon_dark !important;
         display: inline-block;
         width: 1rem;
         margin-left: 0.5rem;
@@ -333,7 +333,7 @@
   }
 
   .grid {
-    @include grid123;
+    @include grid1-2-3;
   }
 
   .grid-item {

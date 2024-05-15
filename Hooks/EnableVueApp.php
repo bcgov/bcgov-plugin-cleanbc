@@ -61,6 +61,14 @@ class EnableVueApp {
 			$latest_version,
 			true
 		);
+
+		wp_enqueue_script(
+			'cleanbc-plugin/betterhomes-faqs-filter-block',
+			plugin_dir_url( __DIR__ ) . 'blocks/vue-blocks/betterhomes-faqs-vue-block.js',
+			[ 'wp-blocks', 'wp-element', 'wp-editor' ],
+			$latest_version,
+			true
+		);
 	}
 
 
@@ -145,7 +153,7 @@ class EnableVueApp {
 		$headingLinkActive = isset( $attributes['headingLinkActive'] ) ? $attributes['headingLinkActive'] : 'false';
 		$useExcerpt        = isset( $attributes['useExcerpt'] ) ? $attributes['useExcerpt'] : 'excerpt';
 
-		// Add the 'data-columns' attribute to the output div.
+		// Return the Post Filter App's container with appropriate class names and data-columns.
 		return '<div id="postFilterApp" class="' . esc_attr( $className ) . '" data-columns="' . esc_attr( $columns ) . '" data-post-type="' . esc_attr( $postType ) . '"  data-heading-size="' . esc_attr( $headingSize ) . '" data-heading-link-active="' . esc_attr( $headingLinkActive ) . '" data-use-excerpt="' . esc_attr( $useExcerpt ) . '" data-post-type-label="' . esc_attr( $postTypeLabel ) . '">Loading...</div>';
 	}
 
@@ -180,7 +188,7 @@ class EnableVueApp {
 		// Set up the attributes passed to the Vue frontend, with defaults.
 		$className = isset( $attributes['className'] ) ? $attributes['className'] : '';
 
-		// Add the 'data-columns' attribute to the output div.
+		// Return the Vehicle Filter App's container with appropriate class names.
 		return '<div id="vehicleFilterApp" class="' . esc_attr( $className ) . '">Loading...</div>';
 	}
 
@@ -216,7 +224,7 @@ class EnableVueApp {
 		// Set up the attributes passed to the Vue frontend, with defaults.
 		$className = isset( $attributes['className'] ) ? $attributes['className'] : '';
 
-		// Add the 'data-columns' attribute to the output div.
+		// Return the PQEA Filter App's container with appropriate class names.
 		return '<div id="pqeaFilterApp" class="' . esc_attr( $className ) . '">Loading...</div>';
 	}
 
@@ -251,7 +259,7 @@ class EnableVueApp {
 		// Set up the attributes passed to the Vue frontend, with defaults.
 		$className = isset( $attributes['className'] ) ? $attributes['className'] : '';
 
-		// Add the 'data-columns' attribute to the output div.
+		// Return the Contractor Filter App's container with appropriate class names.
 		return '<div id="contractorFilterApp" class="' . esc_attr( $className ) . '">Loading...</div>';
 	}
 
@@ -286,8 +294,43 @@ class EnableVueApp {
 		// Set up the attributes passed to the Vue frontend, with defaults.
 		$className = isset( $attributes['className'] ) ? $attributes['className'] : '';
 
-		// Add the 'data-columns' attribute to the output div.
+		// Return the Rebate Filter App's container with appropriate class names.
 		return '<div id="rebateFilterApp" class="' . esc_attr( $className ) . '">Loading...</div>';
+	}
+
+	/**
+	 * Load VueJS app assets when the block is on the page.
+	 *
+	 * @param array $attributes The block attributes.
+	 * @return string The HTML output for the block.
+	 */
+	public function vuejs_betterhomes_faq_filter_app_dynamic_block_plugin( $attributes ) {
+
+		$plugin_dir = plugin_dir_path( __DIR__ );
+		$assets_dir = $plugin_dir . 'dist/assets/';
+
+		$plugin_data    = get_plugin_data( $plugin_dir . 'index.php' );
+		$plugin_version = $plugin_data['Version'];
+		$latest_version = $plugin_version; // Fallback to the installed version.
+
+		$public_css_files = glob( $assets_dir . 'vue*.css' );
+		$public_js_files  = glob( $assets_dir . 'vue*.js' );
+
+		foreach ( $public_css_files as $file ) {
+			$file_url = plugins_url( str_replace( $plugin_dir, '', $file ), __DIR__ );
+			wp_enqueue_style( 'vue-app-' . basename( $file, '.css' ), $file_url, [], $latest_version );
+		}
+
+		foreach ( $public_js_files as $file ) {
+			$file_url = plugins_url( str_replace( $plugin_dir, '', $file ), __DIR__ );
+			wp_enqueue_script( 'vue-app-' . basename( $file, '.js' ), $file_url, [ 'bcgov-block-theme-public' ], $latest_version, true ); // Sets the dependency to Block Theme to enqueue after.
+		}
+
+		// Set up the attributes passed to the Vue frontend, with defaults.
+		$className = isset( $attributes['className'] ) ? $attributes['className'] : '';
+
+		// Return the FAQ Filter App's container with appropriate class names.
+		return '<div id="faqFilterApp" class="' . esc_attr( $className ) . '">Loading...</div>';
 	}
 
 	/**
@@ -326,6 +369,13 @@ class EnableVueApp {
 			'cleanbc-plugin/betterhomes-rebate-filter-block',
 			[
 				'render_callback' => [ $this, 'vuejs_betterhomes_rebate_filter_app_dynamic_block_plugin' ],
+			]
+		);
+
+		register_block_type(
+			'cleanbc-plugin/betterhomes-faqs-filter-block',
+			[
+				'render_callback' => [ $this, 'vuejs_betterhomes_faq_filter_app_dynamic_block_plugin' ],
 			]
 		);
 	}
@@ -507,7 +557,7 @@ class EnableVueApp {
 	/**
 	 * Custom callback function for the Contractor filter in the API.
 	 *
-	 * This function fetches and formats data for Contractors (Program Qualified Energy Advisors)
+	 * This function fetches and formats data for Contractors
 	 * to be used in a custom API endpoint.
 	 *
 	 * @return array An array of formatted data for Contractors.
@@ -546,14 +596,14 @@ class EnableVueApp {
 		return $posts_data;
 	}
 
-		/**
-         * Custom callback function for the Rebate filter in the API.
-         *
-         * This function fetches and formats data for Rebates (Program Qualified Energy Advisors)
-         * to be used in a custom API endpoint.
-         *
-         * @return array An array of formatted data for Rebates.
-         */
+	/**
+	 * Custom callback function for the Rebate filter in the API.
+	 *
+	 * This function fetches and formats data for Rebates
+	 * to be used in a custom API endpoint.
+	 *
+	 * @return array An array of formatted data for Rebates.
+	 */
 	public function custom_api_rebate_filter_callback() {
 		// Set up the arguments for WP_Query.
 		$args = array(
@@ -580,6 +630,84 @@ class EnableVueApp {
 				'upgrade_types'       => get_the_terms( $rebate->ID, 'upgrades' ),
 				'primary_heating_sys' => get_the_terms( $rebate->ID, 'primary-space-heating' ),
 				'other_offers'        => get_the_terms( $rebate->ID, 'other-offers' ),
+			);
+		}
+
+		// Return the formatted data.
+		return $posts_data;
+	}
+
+		/**
+         * Custom callback function for the FAQ filter in the API.
+         *
+         * This function fetches and formats data for FAQs
+         * to be used in a custom API endpoint.
+         *
+         * @return array An array of formatted data for FAQs.
+         */
+	public function custom_api_faq_filter_callback() {
+		// Set up the arguments for WP_Query.
+		$args = array(
+			'post_type'      => [ 'faqs', 'products' ],
+			'posts_per_page' => -1,
+			'post_status'    => 'publish',
+		);
+
+		// Query FAQs using WP_Query.
+		$faqs = new \WP_Query( $args );
+
+		// Fetch associated meta and ACF fields on a per-post basis.
+		foreach ( $faqs->posts as $faq ) {
+			// Get taxonomy terms.
+			$faq_building_types           = get_the_terms( $faq->ID, 'building-types' );
+			$faq_categories               = get_the_terms( $faq->ID, 'faqs_categories' );
+			$product_categories           = get_the_terms( $faq->ID, 'product_categories' );
+			$faq_types                    = get_the_terms( $faq->ID, 'faq_type' );
+			$additional_filter_taxonomies = [];
+
+			$faq_content = $faq->post_content;
+			$faq_content = wp_strip_all_tags( $faq_content );
+			$faq_content = html_entity_decode( strtolower( $faq_content ) );
+			$faq_content = str_replace( [ "\n", "\r", "\t" ], ' ', $faq_content );
+			$faq_content = preg_replace( '/[^\p{L}\s]+/u', '', $faq_content );
+			$faq_content = preg_replace( '/[\d\x{00BC}-\x{00BE}\x{2150}-\x{215E}]+/u', '', $faq_content );
+			$faq_content = preg_replace( '/\s+/', ' ', $faq_content );
+
+			$noise_words = [ ':', 'a', 'about', 'above', 'after', 'again', 'against', 'all', 'am', 'an', 'and', 'any', 'are', "aren't", 'as', 'at', 'be', 'because', 'been', 'before', 'being', 'below', 'between', 'both', 'but', 'by', "can't", 'cannot', 'could', "couldn't", 'did', "didn't", 'do', 'does', "doesn't", 'doing', "don't", 'down', 'during', 'each', 'few', 'for', 'from', 'further', 'had', "hadn't", 'has', "hasn't", 'have', "haven't", 'having', 'he', "he'd", "he'll", "he's", 'her', 'here', "here's", 'hers', 'herself', 'him', 'himself', 'his', 'how', "how's", 'i', "i'd", "i'll", "i'm", "i've", 'if', 'in', 'into', 'is', "isn't", 'it', "it's", 'its', 'itself', "let's", 'me', 'more', 'most', "mustn't", 'my', 'myself', 'no', 'nor', 'not', 'of', 'off', 'on', 'once', 'only', 'or', 'other', 'ought', 'our', 'ours', 'ourselves', 'out', 'over', 'own', 'same', "shan't", 'she', "she'd", "she'll", "she's", 'should', "shouldn't", 'so', 'some', 'such', 'than', 'that', "that's", 'the', 'their', 'theirs', 'them', 'themselves', 'then', 'there', "there's", 'these', 'they', "they'd", "they'll", "they're", "they've", 'this', 'those', 'through', 'to', 'too', 'under', 'until', 'up', 'very', 'was', "wasn't", 'we', "we'd", "we'll", "we're", "we've", 'were', "weren't", 'what', "what's", 'when', "when's", 'where', "where's", 'which', 'while', 'who', "who's", 'whom', 'why', "why's", 'with', "won't", 'would', "wouldn't", 'you', "you'd", "you'll", "you're", "you've", 'your', 'yours', 'yourself', 'yourselves', 'description', 'serving', 'suggestions', 'instructions', 'cups', 'cup', 'tsp', 'tbsp', 'let', 'add', 'lbs' ];
+
+			$words          = explode( ' ', $faq_content );
+			$filtered_words = array_filter(
+				$words,
+				function ( $word ) use ( $noise_words ) {
+					return ! in_array( strtolower( $word ), $noise_words, true );
+				}
+			);
+
+			$faq_content_cleaned = implode( ' ', $filtered_words );
+			$faq_content_cleaned = preg_replace( '/\b\w{1,2}\b/u', '', $faq_content_cleaned );
+			$faq_content_cleaned = trim( preg_replace( '/\s+/u', ' ', $faq_content_cleaned ) );
+
+			$faq_content_keywords_unique = implode( ' ', array_unique( explode( ' ', $faq_content_cleaned ) ) );
+
+			is_array( $faq_building_types ) ? $additional_filter_taxonomies = array_merge( $additional_filter_taxonomies, $faq_building_types ) : null;
+			is_array( $faq_types ) ? $additional_filter_taxonomies          = array_merge( $additional_filter_taxonomies, $faq_types ) : null;
+
+			$all_categories                                   = [];
+			is_array( $faq_categories ) ? $all_categories     = array_merge( $all_categories, $faq_categories ) : null;
+			is_array( $product_categories ) ? $all_categories = array_merge( $all_categories, $product_categories ) : null;
+
+			// Setup post data for return at the endpoint.
+			$posts_data[] = (object) array(
+				'id'                 => $faq->ID,
+				'title'              => get_the_title( $faq->ID ),
+				'url'                => $faq->url,
+				'post_url'           => get_permalink( $faq->ID ),
+				'building_types'     => $faq_building_types,
+				'faq_types'          => $faq_types,
+				'additional_filters' => $additional_filter_taxonomies,
+				'categories'         => $all_categories,
+				'body'               => $faq->post_content,
+				'keywords'           => $faq_content_keywords_unique,
 			);
 		}
 
@@ -639,6 +767,16 @@ class EnableVueApp {
 			array(
 				'methods'             => 'GET',
 				'callback'            => [ $this, 'custom_api_rebate_filter_callback' ],
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		register_rest_route(
+			'custom/v1',
+			'/faqs',
+			array(
+				'methods'             => 'GET',
+				'callback'            => [ $this, 'custom_api_faq_filter_callback' ],
 				'permission_callback' => '__return_true',
 			)
 		);
