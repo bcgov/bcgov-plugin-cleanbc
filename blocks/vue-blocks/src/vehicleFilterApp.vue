@@ -1,21 +1,24 @@
 <template>
-  <h3 class="mb-2 d-none d-md-block">Filter vehicles <span v-if="vehicles.length !== undefined">({{ searchvehicles.length }} of {{ vehicles.length }})</span> <span v-else>(no vehicles currently available)</span></h3>
+  <h3 class="mb-2 d-none d-md-block" aria-live='polite'>Find a vehicle <span v-if="vehicles.length !== undefined">(<span class='sr-only'>showing</span>{{
+    searchvehicles.length }} of {{ vehicles.length }})</span> <span v-else>(no vehicles currently available)</span> 
+  </h3>
   <div class="container-fluid flex-container" v-if="vehicles.length">
     <div id="vue-app" class="row scrollable">
       <div class="filter-container filter-container-desktop d-none d-md-block">
         <div class="filter-flex-container">
           <div class="flex-group">
-            <h4 id="make-header-mobile">By make or model</h4>
+            <h4 id="make-header-mobile">By make, model or year</h4>
             <div class="mb-2"><input type="text" v-model="filterValue" class="form-control"
-                placeholder="filter by name..." aria-label="enter a vehicle make or model to filter the options below" /></div>
-            <p class="msrp-link text-dark">Or EV Type using initialism eg: BEV, PHEV, etc.</p>
+                placeholder="filter by name..."
+                aria-label="enter a vehicle make or model to filter the options below" /></div>
+            <p class="msrp-link text-dark">...or by EV type eg: BEV, PHEV, etc.</p>
           </div>
           <div class="flex-group">
             <h4>Price Range</h4>
             <vue-slider ref="slider" v-model="rangeValue" v-bind="rangeOptions" tabindex="0"
               aria-label="This slider allows you to set a minimum and maximum price range – the low end begins at the minimum amount of 28,000 and the high end is set to the maximum amount of 70,000"></vue-slider>
-            <p class="msrp-range"><span class="max-msrp">${{ rangeValue[1] | addComma }}</span> ${{ rangeValue[0] |
-              addComma }}</p>
+              <p class="msrp-range" aria-live='polite'>${{ rangeValue[0] | addComma }} <span class='sr-only'>minimum price to </span><span class="max-msrp">${{ rangeValue[1] |
+    addComma }}<span class='sr-only'>maximum price</span></span></p>
             <p class="msrp-link mt-3"><a href="#disclaimer"
                 aria-label="navigate to the M.S.R.P. disclaimer information below">Price range as shown is based on
                 automaker <nobr>MSRP<sup> *</sup></nobr></a></p>
@@ -24,23 +27,42 @@
             <div class="flex-group-filters">
               <h4 style='margin-bottom: 0.25rem;'>Sort by</h4>
               <div class="btn-group-horizontal" role="group">
-                <button type="button" class="btn btn-default btn-33" :class="{ active: isMake }"
+                <button type="button" class="btn btn-default btn-33" 
+                  :class="{ active: isMake }" 
+                  :aria-pressed="isMake"
                   @click="changeOrder('make')" aria-label="sort available vehicles by Make">Make</button>
-                <button type="button" class="btn btn-default btn-33" :class="{ active: isModel }"
+                <button type="button" class="btn btn-default btn-33" 
+                  :class="{ active: isModel }" 
+                  :aria-pressed="isModel"
                   @click="changeOrder('model')" aria-label="sort available vehicles by Model">Model</button>
-                <button type="button" class="btn btn-default btn-33" :class="{ active: isMSRP }"
-                  @click="changeOrder('msrp')" aria-label="sort available vehicles by MSRP">MSRP<sup> *</sup></button>
+                <button type="button" class="btn btn-default btn-33" 
+                  :class="{ active: isYear }" 
+                  :aria-pressed="isYear"
+                  @click="changeOrder('year')" aria-label="sort available vehicles by Year">Year</button>
               </div>
               <div class="btn-group-horizontal" role="group">
-                 <button type="button" class="btn btn-default btn-50" :class="{ active: isType }"
+                <button type="button" class="btn btn-default btn-33" 
+                  :class="{ active: isType }" 
+                  :aria-pressed="isType"
                   @click="changeOrder('type')" aria-label="sort available vehicles by Type">EV Type</button>
-                <button type="button" class="btn btn-default btn-50" :class="{ active: isRebate }"
+                <button type="button" class="btn btn-default btn-33" 
+                  :class="{ active: isMSRP }" 
+                  :aria-pressed="isMSRP"
+                  @click="changeOrder('msrp')" aria-label="sort available vehicles by MSRP">MSRP<sup> *</sup></button>
+                <button type="button" class="btn btn-default btn-33" 
+                  :class="{ active: isRebate }" 
+                  :aria-pressed="isRebate"
                   @click="changeOrder('rebate')" aria-label="sort vehicles by Rebate">Rebate Amt.</button>
               </div>
               <div class="btn-group-horizontal" role="group">
-                <button type="button" class="btn btn-default btn-50" :class="{ active: isElectricRange }"
-                  @click="changeOrder('rangeElectric')" aria-label="sort vehicles by Electric Range">Elec. Range</button>
-                <button type="button" class="btn btn-default btn-50" :class="{ active: isFullRange }"
+                <button type="button" class="btn btn-default btn-50" 
+                  :class="{ active: isElectricRange }" 
+                  :aria-pressed="isElectricRange"
+                  @click="changeOrder('rangeElectric')" aria-label="sort vehicles by Electric Range">Elec.
+                  Range</button>
+                <button type="button" class="btn btn-default btn-50" 
+                  :class="{ active: isFullRange }" 
+                  :aria-pressed="isFullRange"
                   @click="changeOrder('rangeFull')" aria-label="sort vehicles by Full Range">Full Range</button>
               </div>
             </div>
@@ -65,20 +87,23 @@
       </div>
       <div class="filter-container filter-container-mobile d-sm-block d-md-none">
         <p><img class="logo-img img-fluid" :src="cleanBCLogo" alt="CleanBC Go electric" /></p>
-        <h3 class="mt-3">Filter vehicles ({{ searchvehicles.length }} of {{ vehicles.length }})</h3>
+        <h3 class="mt-3" aria-live='polite'>Find a vehicle <span v-if="vehicles.length !== undefined">(<span class='sr-only'>showing</span>{{
+    searchvehicles.length }} of {{ vehicles.length }})</span> <span v-else>(no vehicles currently available)</span> 
+        </h3>
         <h4 id="make-header">By make or model or type</h4>
         <p class="mb-2"><input type="text" v-model="filterValue" class="form-control" placeholder="filter by name..."
             aria-label="enter a vehicle make or model to filter the options below" /></p>
-        <p class="msrp-link text-dark">Or EV Type using initialism eg: BEV, PHEV, etc.</p>
+        <p class="msrp-link text-dark">...or by EV type eg: BEV, PHEV, etc.</p>
         <div class="filter-flex-container">
           <div class="flex-group">
             <h4>MSRP Range</h4>
             <div class="msrp-range-slider">
               <vue-slider ref="slider" v-model="rangeValue" v-bind="rangeOptions"></vue-slider>
-            <p class="msrp-range">${{ rangeValue[0] | addComma }} – <span class="max-msrp">${{ rangeValue[1] | addComma
-            }}</span></p>
+              <p class="msrp-range" aria-live='polite'>${{ rangeValue[0] | addComma }} <span class='sr-only'>minimum price to </span> <span aria-hidden='true'>–</span> <span class="max-msrp">${{ rangeValue[1] |
+    addComma }}<span class='sr-only'>maximum price</span></span></p>
             </div>
-            <p class="msrp-link"><a href="#disclaimer" aria-label="navigate to the M.S.R.P. disclaimer information">Price
+            <p class="msrp-link"><a href="#disclaimer"
+                aria-label="navigate to the M.S.R.P. disclaimer information">Price
                 range as shown is based on automaker <nobr>MSRP<sup> *</sup></nobr></a></p>
           </div>
           <div class="flex-group">
@@ -94,8 +119,8 @@
                 <span class="filter-header">Value &rtrif;</span>
                 <button type="button" class="btn btn-default" :class="{ active: isMSRP }" @click="changeOrder('msrp')"
                   aria-label="sort vehicles by MSRP">MSRP<sup> *</sup></button>
-                <button type="button" class="btn btn-default" :class="{ active: isRebate }" @click="changeOrder('rebate')"
-                  aria-label="sort vehicles by Rebate">Rebate Amt.</button>
+                <button type="button" class="btn btn-default" :class="{ active: isRebate }"
+                  @click="changeOrder('rebate')" aria-label="sort vehicles by Rebate">Rebate Amt.</button>
               </div>
               <div class="btn-group-horizontal" role="group">
                 <span class="filter-header">Range &rtrif;</span>
@@ -108,6 +133,8 @@
                 <span class="filter-header">Style &rtrif;</span>
                 <button type="button" class="btn btn-default" :class="{ active: isType }" @click="changeOrder('type')"
                   aria-label="sort vehicles by Type">EV Type</button>
+                  <button type="button" class="btn btn-default" :class="{ active: isYear }" @click="changeOrder('year')"
+                  aria-label="sort vehicles by Type">Year</button>
               </div>
             </div>
           </div>
@@ -133,17 +160,20 @@
           <div>
             <div class="ev-img"><img class="img-fluid" :src="vehicle.image ? vehicle.image : placeholderImg"
                 :alt="'photo of a ' + vehicle.make + ' ' + vehicle.model" /></div>
-            <p style='margin-bottom: 1rem;'><span class="highlight">{{ vehicle.make }}</span> <span><strong>| {{ vehicle.type }}</strong></span><br />
-              <span class="model">{{ vehicle.model }}</span><br />
+            <p style='margin-bottom: 1rem;'><span class="highlight"> {{ vehicle.make }}</span> <span><strong>| {{
+    vehicle.type }}</strong></span>
+              <span class="model">{{ vehicle.model }}</span>
+              <span class="year" v-if='0 !== vehicle.year.length' style='margin-top: 0;'>20{{ vehicle.year.map(year => year - 2000).join('/') }}</span>
               <span v-if="vehicle.maxMsrp === 0" class="msrp"><strong>MSRP<sup v-if="index === 0"> *</sup> ${{
-                vehicle.minMsrp.toLocaleString() }}</strong></span>
-              <span v-else class="msrp"><strong>MSRP<sup v-if="index === 0">*</sup>: ${{ vehicle.minMsrp.toLocaleString()
-              }}–${{ vehicle.maxMsrp.toLocaleString() }}</strong></span>
+    vehicle.minMsrp.toLocaleString() }}</strong></span>
+              <span v-else class="msrp"><strong>MSRP<sup v-if="index === 0">*</sup>: ${{
+    vehicle.minMsrp.toLocaleString()
+  }}–${{ vehicle.maxMsrp.toLocaleString() }}</strong></span>
               <hr class="hr" size="1" />
               <span class="d-block"><strong>Range:</strong></span>
               <span class="d-block mt-2 mb-1">{{ vehicle.rangeElectricKm.toLocaleString() }}km Electric</span>
               <span v-if="vehicle.rangeFullKm !== 0" class="d-block">{{ vehicle.rangeFullKm.toLocaleString()
-              }}km Full</span>
+                }}km Full</span>
               <span v-if="vehicle.rangeFullKm === 0" class="d-block">{{ vehicle.rangeElectricKm }}km Full</span>
               <span v-if="false" class="d-block mt-2 mb-1">Type:
                 <span v-if="vehicle.type === 'BEV'">Battery Electric Vehicle</span>
@@ -155,28 +185,33 @@
               <hr class="hr" size="1" />
               <span class="d-block"><strong>Rebates up to:</strong></span>
               <span class="d-block mt-2 mb-1" v-if="vehicle.rebate_provincial !== 0">${{
-                vehicle.rebate_provincial.toLocaleString() }} Provincial</span>
+    vehicle.rebate_provincial.toLocaleString() }} Provincial</span>
               <span v-else class="d-block mt-2 mb-1">No Provincial rebate</span>
-              <span v-if="vehicle.rebate_federal !== 0 && vehicle.rebate_federal_status === 'processed'" class="d-block">${{
-                vehicle.rebate_federal.toLocaleString() }} Federal</span>
-              <span v-else-if="vehicle.rebate_federal_status === 'pending'" class="d-block">Federal rebate pending</span>
+              <span v-if="vehicle.rebate_federal !== 0 && vehicle.rebate_federal_status === 'processed'"
+                class="d-block">${{
+    vehicle.rebate_federal.toLocaleString() }} Federal</span>
+              <span v-else-if="vehicle.rebate_federal_status === 'pending'" class="d-block">Federal rebate
+                pending</span>
               <span v-else class="d-block">No Federal rebate</span>
               <hr class="hr" size="1" />
               <span class="d-block"><a class="external accessibleFocusItem" :href="vehicle.url"
-                :aria-label="'Go to the ' + vehicle.make + ' ' + vehicle.model + ' website.'" :key="index">Visit manufacturer website</a></span>
+                  :aria-label="'Go to the ' + vehicle.make + ' ' + vehicle.model + ' website.'" :key="index">Visit
+                  manufacturer website</a></span>
             </p>
-            <p v-if="vehicle.rebate_federal_status === 'processed'" class="rebate-content">Combined rebates up to ${{ (vehicle.rebate_provincial +
-              vehicle.rebate_federal).toLocaleString() }}</p>
-            <p v-else class="rebate-content">Combined rebates up to ${{ (vehicle.rebate_provincial).toLocaleString() }}</p>
+            <p v-if="vehicle.rebate_federal_status === 'processed'" class="rebate-content">Combined rebates up to ${{
+    (vehicle.rebate_provincial +
+      vehicle.rebate_federal).toLocaleString() }}</p>
+            <p v-else class="rebate-content">Combined rebates up to ${{ (vehicle.rebate_provincial).toLocaleString() }}
+            </p>
           </div>
         </div>
       </template>
       <div class="vehicle-details" v-if='searchvehicles.length === 0'>
-          <div class="no-content"><img :src="cleanBCLeaf" /></div>
-          <h3 class="no-content">We're unable to find any Electric Vehicles that match your criteria</h3>
-          <p class="no-content">Your filtering options did not return any results. Please try refining your input or
-            parameters. Common issues include invalid makes or models, or too narrow a price range.</p>
-        </div>
+        <div class="no-content"><img :src="cleanBCLeaf" /></div>
+        <h3 class="no-content">We're unable to find any Electric Vehicles that match your criteria</h3>
+        <p class="no-content">Your filtering options did not return any results. Please try refining your input or
+          parameters. Common issues include invalid makes or models, or too narrow a price range.</p>
+      </div>
     </div>
   </div>
 </template>
@@ -201,6 +236,7 @@ const isModel = ref(true);
 const isMSRP = ref(false);
 const isClass = ref(false);
 const isRebate = ref(false);
+const isYear = ref(false);
 const typeLabel = ref('');
 const isElectricRange = ref(false);
 const isFullRange = ref(false);
@@ -251,19 +287,19 @@ const rangeOptions = {
 /**
  * Watches the `window.site?.domain` variable and invokes `fetchData` when it becomes truthy.
  */
- watch(() => window.site?.domain, (newVal, oldVal) => {
-    if (newVal) {
-        fetchData();
-    }
+watch(() => window.site?.domain, (newVal, oldVal) => {
+  if (newVal) {
+    fetchData();
+  }
 });
 
 const searchvehicles = computed(() => {
 
-  if(undefined !== window.pluginCleanbc && false === globalPluginDirFlag) {
-      globalPluginDirFlag = true;
-      cleanBCLogo = ref(`${window.pluginCleanbc.pluginDir}/blocks/vue-blocks/src/assets/go_electric_cleanbc_logo.png`);
-      cleanBCLeaf = ref(`${window.pluginCleanbc.pluginDir}/blocks/vue-blocks/src/assets/leaf-icon-01.png`);
-      placeholderImg = ref(`${window.pluginCleanbc.pluginDir}/blocks/vue-blocks/src/assets/image-unavailable.png`);
+  if (undefined !== window.pluginCleanbc && false === globalPluginDirFlag) {
+    globalPluginDirFlag = true;
+    cleanBCLogo = ref(`${window.pluginCleanbc.pluginDir}/blocks/vue-blocks/src/assets/go_electric_cleanbc_logo.png`);
+    cleanBCLeaf = ref(`${window.pluginCleanbc.pluginDir}/blocks/vue-blocks/src/assets/leaf-icon-01.png`);
+    placeholderImg = ref(`${window.pluginCleanbc.pluginDir}/blocks/vue-blocks/src/assets/image-unavailable.png`);
   }
 
   let result = vehicles.value;
@@ -286,7 +322,7 @@ const searchvehicles = computed(() => {
     if (minPriceRange > actualVehiclePriceMax) {
       return false;
     }
-    if (maxPriceRange < actualVehiclePriceMin ) {
+    if (maxPriceRange < actualVehiclePriceMin) {
       return false;
     }
     if (minPriceRange < actualVehiclePriceMin && maxPriceRange < actualVehiclePriceMax) {
@@ -296,10 +332,15 @@ const searchvehicles = computed(() => {
       return true;
     }
 
+    const yearMatch = vehicle.year.some((year) => 
+      year.toString().includes(filterValue.value)
+    );
+
     return (
       vehicle.make.toLowerCase().includes(filterValueLowerCase) ||
       vehicle.model.toLowerCase().includes(filterValueLowerCase) ||
-      vehicle.type.toLowerCase().includes(filterValueLowerCase)
+      vehicle.type.toLowerCase().includes(filterValueLowerCase) ||
+      yearMatch
     );
   });
 });
@@ -324,6 +365,7 @@ const changeOrder = (val) => {
   isClass.value = selection === 'class';
   isRebate.value = selection === 'rebate';
   isType.value = selection === 'type';
+  isYear.value = selection === 'year';
   isElectricRange.value = selection === 'rangeElectric';
   isFullRange.value = selection === 'rangeFull';
 
@@ -335,6 +377,7 @@ const changeOrder = (val) => {
     class: (a, b) => (a.vehicle_class > b.vehicle_class ? 1 : -1),
     rebate: (a, b) => (a.rebate_provincial + a.rebate_federal > b.rebate_provincial + b.rebate_federal ? -1 : 1),
     type: (a, b) => (a.type > b.type ? 1 : -1),
+    year: (a, b) => (a.year < b.year ? 1 : -1),
     rangeElectric: (a, b) => (parseInt(a.rangeElectricKm) > parseInt(b.rangeElectricKm) ? -1 : 1),
     rangeFull: (a, b) => {
       let aIntToParse = null === a.rangeFullKm || 0 === a.rangeFullKm ? a.rangeElectricKm : a.rangeFullKm;
@@ -742,6 +785,7 @@ $external_link_icon_dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
           }
 
         }
+
         &::after {
           content: $external_link_icon_dark !important;
           display: inline-block;
@@ -778,6 +822,7 @@ $external_link_icon_dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
           width: 100%;
         }
       }
+
       div.no-content {
         img {
           position: relative;
@@ -785,6 +830,7 @@ $external_link_icon_dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
           scale: 75%;
         }
       }
+
       h3.no-content {
         font-size: 1.4rem;
         color: $bahamablue;
@@ -814,6 +860,7 @@ $external_link_icon_dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
           display: inline-block;
 
           &.highlight {
+            display: block;
             color: $bahamablue;
             font-weight: 700;
           }
@@ -823,9 +870,19 @@ $external_link_icon_dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
           }
 
           &.model {
+            display: block !important;
             font-size: 1.5rem;
             font-weight: 700;
             color: $prussianblue;
+            margin-bottom: 0;
+          }
+
+          &.year {
+            display: block !important;
+            font-size: 1.15;
+            font-weight: 700;
+            color: $bondiblue;
+            margin-top: 0;
           }
 
           &.msrp {

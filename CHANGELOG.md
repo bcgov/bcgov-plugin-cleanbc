@@ -1,3 +1,6 @@
+## 1.5.1 November 13, 2024
+- Modified Vehicle filter app to include year mechanism and bolstered ARIA for accessibility including live readback and sort button state.
+
 ## 1.5.0 May 13, 2024
 - Rebates and FAQs app bugfixing.
 - Improved keyboard nav for PQEA/Contractor/Rebates/FAQ Vue apps.
