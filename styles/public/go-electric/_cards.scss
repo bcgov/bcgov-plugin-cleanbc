@@ -20,13 +20,13 @@ body.custom-goelectricbc {
 					padding: 0;
 
 					* {
-						color: #002A4E;
-					  line-height: 1;
-					  margin: 0.85rem 0.25rem 0.85rem 0;
-						  display: inline-block;
+						color: #002a4e;
+						line-height: 1;
+						margin: 0.85rem 0.25rem 0.85rem 0;
+						display: inline-block;
 						width: fit-content;
 						padding: 0.66rem 1.66rem !important;
-						border: 1px solid #002A4E !important;
+						border: 1px solid #002a4e !important;
 						border-radius: 999px;
 						font-size: 0.85rem;
 					}
@@ -261,7 +261,7 @@ body.custom-goelectricbc {
 
 				flex-direction: row;
 				flex-wrap: wrap;
-				;
+
 				position: relative;
 
 				.bg-overlay {
@@ -347,7 +347,7 @@ body.custom-goelectricbc {
 			// 	flex-direction: column;
 			// }
 
-			&.lg-break-2>* {
+			&.lg-break-2 > * {
 				width: 100%;
 				max-width: calc(50% - 1rem);
 				margin: 0 !important;
@@ -357,7 +357,7 @@ body.custom-goelectricbc {
 				}
 			}
 
-			&.lg-break-3>* {
+			&.lg-break-3 > * {
 				width: 100%;
 				max-width: calc(32.33% - 1rem);
 				margin: 0 !important;
@@ -367,7 +367,7 @@ body.custom-goelectricbc {
 				}
 			}
 
-			&.lg-break-4>* {
+			&.lg-break-4 > * {
 				width: 100%;
 				max-width: calc(23% - 0.66rem);
 				margin: 0 !important;

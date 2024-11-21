@@ -4,7 +4,7 @@
  *
  * @since 1.1.1
  *
- * @package Bcgov/Theme/Block
+ * @package Bcgov\Plugin\CleanBC
  */
 
 namespace Bcgov\Plugin\CleanBC;
@@ -43,19 +43,19 @@ class Loader {
      * Attempts to load the given class by searching through each of the base directories.
      * The class is only loaded if it uses the specified namespace prefix.
      *
-     * @param string $className The fully qualified class name to load.
+     * @param string $class_name The fully qualified class name to load.
      */
-    public function load_class( $className ) {
+    public function load_class( $class_name ) {
         // Namespace prefix.
         $prefix = 'Bcgov\\Plugin\\CleanBC\\';
 
         // Does the class use the namespace prefix?
-        if ( strncmp( $prefix, $className, strlen( $prefix ) ) !== 0 ) {
+        if ( strncmp( $prefix, $class_name, strlen( $prefix ) ) !== 0 ) {
             return;
         }
 
         // Get the relative class name.
-        $relative_class = substr( $className, strlen( $prefix ) );
+        $relative_class = substr( $class_name, strlen( $prefix ) );
 
         // Replace namespace separators with directory separators.
         $filename = str_replace( '\\', '/', $relative_class ) . '.php';

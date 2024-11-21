@@ -12,7 +12,7 @@ a.icon-definition.icon-definition {
 		justify-content: center;
 		align-items: center;
 		line-height: 1;
-		font-weight: 700;
+		font-weight: bold;
 		font-style: normal;
 		width: 0.85rem;
 		height: 0.85rem;
@@ -41,13 +41,13 @@ body:has(#dialog[open]) {
 	}
 
 	.dialog-content {
+
 		h2 {
 			border-bottom: 7px solid var(--wp--preset--color--secondary-brand);
 			color: var(--wp--preset--color--secondary-brand);
 			display: inline-block;
 			font-size: 1.5rem;
 			padding-top: 0.5rem;
-			padding-bottom: 1rem;
 			padding-inline: 3rem;
 			padding-bottom: 0.5rem;
 			margin-top: 0;
@@ -56,13 +56,16 @@ body:has(#dialog[open]) {
 			left: -2rem;
 			outline: none;
 		}
+
 		> * {
 			padding-inline: 1rem;
 		}
+
 		> *:last-child {
 			padding-bottom: 0.5rem;
 		}
 	}
+
 	#close-dialog {
 		position: absolute;
 		top: 1rem;
@@ -73,14 +76,16 @@ body:has(#dialog[open]) {
 		color: var(--wp--preset--color--text-color);
 		padding-inline: 0.5rem;
 		padding-top: 0.25rem;
+
 		&::after {
 			content: $closeIcon;
-			font-family:Verdana, Geneva, Tahoma, sans-serif;
+			font-family: Verdana, Geneva, Tahoma, sans-serif;
 			font-size: 1rem;
 			display: inline-block;
 			padding: 0.25rem;
 			width: 1rem;
 		}
+
 		&:hover,
 		&:focus-visible {
 			border: thin solid var(--wp--preset--color--text-color);

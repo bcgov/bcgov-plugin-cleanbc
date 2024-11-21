@@ -1,4 +1,4 @@
-html {
+html:has(body.betterhomesbc) {
 	scroll-padding: 6.5rem !important;
 }
 
@@ -49,6 +49,7 @@ h6 {
 
 /* Search button */
 @media (max-width: 600px) {
+
 	body.alpha-v3 .toggle-search-btn.toggle-search-btn a {
 		font-size: 0 !important;
 		width: 2rem;
@@ -117,7 +118,7 @@ body.search-results.search-results .wp-block-query-pagination-numbers a.page-num
 #post-content#post-content a:not(.wp-block-button__link, .button):is(:hover, :focus-visible),
 .post-content.post-content a:not(.wp-block-button__link, .button):is(:hover, :focus-visible) {
 	display: initial;
-	border-bottom: 2px solid currentColor;
+	border-bottom: 2px solid currentcolor;
 	outline: none;
 	outline-offset: 0;
 	border-radius: 3px;
@@ -143,7 +144,7 @@ body.search-results.search-results .wp-block-query-pagination-numbers a.page-num
 }
 
 .wp-block-bcgov-block-theme-collapse:not(.is-style-bcgov) .wp-block-bcgov-block-theme-collapse-item .collapse-header.collapse-header h3 button span {
-	font-weight: 700;
+	font-weight: bold;
 	color: var(--wp--preset--color--headline-color);
 }
 
@@ -176,6 +177,7 @@ option {
 }
 
 @media only screen and (min-width: 641px) {
+
 	html:not([dir="rtl"]) .gform_legacy_markup_wrapper ul.gform_fields:not(.top_label) .ginput_container:not(.ginput_container_time):not(.ginput_container_date) {
 		width: 100%;
 	}
@@ -198,6 +200,7 @@ option {
 }
 
 @media (max-width: 979px) {
+
 	.sticky-side-nav {
 		display: none;
 	}
@@ -208,6 +211,7 @@ option {
 }
 
 @media (min-width: 991px) {
+
 	.single-incentives .post-content .icon.icon {
 		position: relative;
 		top: 0.5rem;
@@ -226,7 +230,7 @@ body.single-incentives .post-content .entry-content {
 
 body.single-incentives .overview-block {
 	box-shadow: none;
-	border: 1px solid lightgray;
+	border: 1px solid $lightgray;
 }
 
 #overview:not(:has(.item.amount)) {
@@ -238,7 +242,7 @@ body:not(:has(#overview .item.amount)) .side-nav li:nth-of-type(1) {
 }
 
 #overview .item.amount .body {
-	font-weight: 700;
+	font-weight: bold;
 }
 
 body:not(:has(#rebate-amount)) .side-nav li:nth-of-type(2) {
@@ -282,8 +286,8 @@ body:not(:has(#faqs-and-more)) .side-nav li:nth-of-type(8) {
 }
 
 .single-incentives.single-incentives table {
-	border-block: 1px solid lightgray;
-	border-inline: 0.5px solid lightgray;
+	border-block: 1px solid $lightgray;
+	border-inline: 0.5px solid $lightgray;
 }
 
 .single-incentives.single-incentives table h3,
@@ -360,7 +364,7 @@ body.single-incentives a.wp-block-social-link-anchor:is(:hover, :focus-visible) 
 	height: 1.5rem;
 	min-width: 1.5rem;
 	width: 1.5rem;
-	margin-bottom: .5rem;
+	margin-bottom: 0.5rem;
 	background-repeat: no-repeat;
 	background-position: center;
 	border: none;
