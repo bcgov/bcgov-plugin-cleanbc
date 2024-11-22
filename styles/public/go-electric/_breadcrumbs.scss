@@ -5,108 +5,108 @@
 */
 body.custom-goelectricbc {
 
-    &.home bcgov-breadcrumb,
-    &.search bcgov-breadcrumb {
-        display: none;
-    }
+	&.home bcgov-breadcrumb,
+	&.search bcgov-breadcrumb {
+		display: none;
+	}
 
-    .breadcrumb-nav-section {
-        padding: 0 2rem;
+	.breadcrumb-nav-section {
+		padding: 0 2rem;
 
-        @media (min-width: 1500px) {
-            padding: 0;
-        }
-    }
+		@media (min-width: 1500px) {
+			padding: 0;
+		}
+	}
 
-    bcgov-breadcrumb {
+	bcgov-breadcrumb {
 
-        background-color: transparent;
-        margin: 0 auto !important;
-        padding: 0.5rem 0 !important;
-        max-width: 1200px !important;
-        width: 92% !important;
+		background-color: transparent;
+		margin: 0 auto !important;
+		padding: 0.5rem 0 !important;
+		max-width: 1200px !important;
+		width: 92% !important;
 
-        @media screen and (max-width: $breakpoint-lg) {
-            margin-left: 1rem !important;
-            margin-right: 1rem !important;
-        }
+		@media screen and (max-width: $breakpoint-lg) {
+			margin-left: 1rem !important;
+			margin-right: 1rem !important;
+		}
 
-        @media (max-width: $breakpoint-sm) {
-            padding: 1rem;
-        }
+		@media (max-width: $breakpoint-sm) {
+			padding: 1rem;
+		}
 
-        * {
-            color: $dovegrey;
-            letter-spacing: 0.15px;
-            text-decoration: none;
-            font-size: 1rem;
-        }
+		* {
+			color: $dovegrey;
+			letter-spacing: 0.15px;
+			text-decoration: none;
+			font-size: 1rem;
+		}
 
-        a {
-            color: $dovegrey;
+		a {
+			color: $dovegrey;
 
-            &:hover,
-            &:focus {
+			&:hover,
+			&:focus {
 
-                span {
-                    color: $bondiblue !important;
-                }
-            }
-        }
+				span {
+					color: $bondiblue !important;
+				}
+			}
+		}
 
-        ol,
-        ul {
-            margin-top: 0 !important;
+		ol,
+		ul {
+			margin-top: 0 !important;
 
-            flex-wrap: wrap;
-            ;
+			flex-wrap: wrap;
 
-            li::after {
-                content: "/" !important;
-                color: $silvergrey;
-            }
 
-            li:last-of-type::after {
-                content: "" !important;
-            }
-        }
+			li::after {
+				content: "/" !important;
+				color: $silvergrey;
+			}
 
-        @media (max-width: $breakpoint-lg) {
-            left: 0;
-        }
+			li:last-of-type::after {
+				content: "" !important;
+			}
+		}
 
-        @media (max-width: $breakpoint-sm) {
-            left: 0;
-            margin-bottom: -2rem;
-            position: relative;
-        }
+		@media (max-width: $breakpoint-lg) {
+			left: 0;
+		}
 
-        .wp-block-column+p {
-            color: $scorpiongrey;
-        }
+		@media (max-width: $breakpoint-sm) {
+			left: 0;
+			margin-bottom: -2rem;
+			position: relative;
+		}
 
-        ul {
+		.wp-block-column + p {
+			color: $scorpiongrey;
+		}
 
-            li {
-                list-style: none !important;
-                margin-bottom: 1rem !important;
-                color: $scorpiongrey;
+		ul {
 
-                &::before {
-                    content: "\2022";
-                    color: $bondiblue;
-                    font-weight: 700;
-                    display: inline-block;
-                    width: 1rem;
-                    margin-left: -1rem;
-                    font-size: 1rem;
-                }
-            }
-        }
+			li {
+				list-style: none !important;
+				margin-bottom: 1rem !important;
+				color: $scorpiongrey;
 
-    }
+				&::before {
+					content: "\2022";
+					color: $bondiblue;
+					font-weight: bold;
+					display: inline-block;
+					width: 1rem;
+					margin-left: -1rem;
+					font-size: 1rem;
+				}
+			}
+		}
 
-    span.aioseo-breadcrumb-separator {
-        padding-inline: 0.66rem;
-    }
+	}
+
+	span.aioseo-breadcrumb-separator {
+		padding-inline: 0.66rem;
+	}
 }

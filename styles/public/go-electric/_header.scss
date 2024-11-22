@@ -3,9 +3,13 @@
 body.custom-goelectricbc {
 
 	&.no-scroll {
+
 		.bcgov-header {
+
 			header {
+
 				.banner {
+
 					img {
 						display: none;
 					}
@@ -16,24 +20,32 @@ body.custom-goelectricbc {
 	}
 
 	&.home {
+
 		.header-branding {
+
 			a {
 				pointer-events: none;
 			}
 		}
+
 		.bcgov-header.hydrated {
+
 			header {
+
 				.headline {
+
 					a {
 						pointer-events: none;
 					}
 				}
 			}
-		}				
+		}
 	}
 
 	&.admin-bar {
+
 		.bcgov-header.hydrated {
+
 			header {
 				margin-top: -32px;
 			}
@@ -130,7 +142,7 @@ body.custom-goelectricbc {
 					width: 100%;
 					color: #036;
 					font-size: 1rem;
-					font-weight: 700;
+					font-weight: bold;
 					padding: 0.25rem 0.25rem 0.5rem;
 					position: fixed;
 					left: auto;

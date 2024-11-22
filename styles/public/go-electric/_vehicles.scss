@@ -59,7 +59,7 @@
 			align-content: center;
 			justify-content: flex-start;
 			align-items: stretch;
-			flex-wrap: wrap;;
+			flex-wrap: wrap;
 			transition: transform 0.5s cubic-bezier(0.65, 0.05, 0.36, 1);
 
 			.headline {
@@ -158,7 +158,7 @@
 
 				h3 {
 					color: $bahamablue;
-					font-weight: 700;
+					font-weight: bold;
 					font-size: 1rem;
 					text-align: center;
 					margin: 0;
@@ -175,7 +175,7 @@
 
 				.msrp-range {
 					color: $bahamablue;
-					font-weight: 700;
+					font-weight: bold;
 					margin: 0;
 				}
 
@@ -240,7 +240,7 @@
 						text-align: left;
 
 						.type-key {
-							font-weight: 400;
+							font-weight: normal;
 							font-size: 115%;
 							padding: 4rem 2rem !important;
 							text-align: right;
@@ -248,7 +248,7 @@
 
 						span {
 							font-size: 90%;
-							font-weight: 400;
+							font-weight: normal;
 							color: $bondiblue;
 						}
 					}
@@ -391,7 +391,7 @@
 				h3.no-content {
 					font-size: 1.4rem;
 					color: $bahamablue;
-					font-weight: 700;
+					font-weight: bold;
 				}
 
 				p.no-content {
@@ -403,7 +403,7 @@
 					border: 1px solid $scorpiongrey;
 					width: 20%;
 					margin: 20px 0;
-					
+
 					&.hr {
 						border: 1px solid $highlightblue;
 						width: 25%;
@@ -423,7 +423,7 @@
 
 						&.highlight {
 							color: $bahamablue;
-							font-weight: 700;
+							font-weight: bold;
 						}
 
 						strong {
@@ -432,7 +432,7 @@
 
 						&.model {
 							font-size: 1.5rem;
-							font-weight: 700;
+							font-weight: bold;
 							color: $prussianblue;
 						}
 
@@ -444,7 +444,7 @@
 
 					&.rebate-content {
 						font-size: 1.5rem;
-						font-weight: 700;
+						font-weight: bold;
 						color: $bahamablue;
 					}
 				}

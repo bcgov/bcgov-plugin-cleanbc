@@ -1,3 +1,9 @@
+## 1.6.0 November 21, 2024
+- Added GitHub Actions linting and testing workflows. 
+- Added and removed composer dependencies to fscilitate github.com deployment.
+- Added various node dependencies and support packages
+- Moved Vite based script test to "Vite-test", added jest config to exclude Vite specific tests.
+
 ## 1.5.1 November 13, 2024
 - Modified Vehicle filter app to include year mechanism and bolstered ARIA for accessibility including live readback and sort button state.
 

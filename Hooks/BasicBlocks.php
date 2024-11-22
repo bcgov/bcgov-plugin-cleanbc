@@ -2,8 +2,6 @@
 
 namespace Bcgov\Plugin\CleanBC\Hooks;
 
-use Bcgov\Common\Loader;
-
 /**
  * Sets up basic php template blocks for CleanBC
  *
@@ -25,11 +23,10 @@ class BasicBlocks {
      * @return void
      */
     public function init() {
-        $loader = new Loader();
-        $loader->add_action( 'init', $this, 'register_blocks' );
-    	$loader->add_action( 'admin_enqueue_scripts', $this, 'enqueue_admin_scripts', 10 );
-        $loader->run();
+        add_action( 'init', [ $this, 'register_blocks' ] );
+        add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_scripts' ], 10 );
     }
+
 
 	/**
 	 * Register the stylesheets and JavaScript for the admin area.

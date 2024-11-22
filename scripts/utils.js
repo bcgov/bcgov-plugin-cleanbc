@@ -13,37 +13,42 @@
  * @param {Element}        [parent=document] - The parent element to attach the event listener to (defaults to document)
  */
 
+/**
+ *
+ * @param type
+ * @param selector
+ * @param callback
+ * @param parent
+ */
 export function addGlobalEventListenerPlugin(
-	type,
-	selector,
-	callback,
-	parent = document
+    type,
+    selector,
+    callback,
+    parent = document
 ) {
-	// check if the selector is valid
-	if ( ! selector || typeof selector !== 'string' ) {
-		throw new Error(
-			'Invalid selector: must be CSS selector or an element'
-		);
-	}
+    // check if the selector is valid
+    if (!selector || typeof selector !== 'string') {
+        throw new Error('Invalid selector: must be CSS selector or an element');
+    }
 
-	// check if the callback is a valid function
-	if ( typeof callback !== 'function' ) {
-		throw new Error( 'Invalid callback provided' );
-	}
+    // check if the callback is a valid function
+    if (typeof callback !== 'function') {
+        throw new Error('Invalid callback provided');
+    }
 
-	parent.addEventListener( type, ( event ) => {
-		// use qsa to get all elements that match the selector
-		const elements = document.querySelectorAll( selector );
+    parent.addEventListener(type, (event) => {
+        // use qsa to get all elements that match the selector
+        const elements = document.querySelectorAll(selector);
 
-		// check if the event target is one of the matching elements
-		const target = event.target;
-		if (
-			elements.includes( target ) ||
-			elements.some( ( element ) => element.contains( target ) )
-		) {
-			callback( event );
-		}
-	} );
+        // check if the event target is one of the matching elements
+        const target = event.target;
+        if (
+            elements.includes(target) ||
+            elements.some((element) => element.contains(target))
+        ) {
+            callback(event);
+        }
+    });
 }
 
 /**
@@ -56,38 +61,38 @@ export function addGlobalEventListenerPlugin(
  * @param {string} options.text    - the text content to set on the element
  * @return {HTMLElement} the created element
  */
-export function createElement( type, options = {} ) {
-	const element = document.createElement( type );
-	Object.entries( options ).forEach( ( [ key, value ] ) => {
-		if ( key === 'class' ) {
-			value.split( ' ' ).forEach( ( className ) => {
-				if ( '' !== className ) {
-					element.classList.add( className );
-				}
-			} );
-			return;
-		}
+export function createElement(type, options = {}) {
+    const element = document.createElement(type);
+    Object.entries(options).forEach(([key, value]) => {
+        if ('class' === key) {
+            value.split(' ').forEach((className) => {
+                if ('' !== className) {
+                    element.classList.add(className);
+                }
+            });
+            return;
+        }
 
-		if ( key === 'dataset' ) {
-			Object.entries( value ).forEach( ( [ dataKey, dataValue ] ) => {
-				element.dataset[ dataKey ] = dataValue;
-			} );
-			return;
-		}
+        if ('dataset' === key) {
+            Object.entries(value).forEach(([dataKey, dataValue]) => {
+                element.dataset[dataKey] = dataValue;
+            });
+            return;
+        }
 
-		if ( key === 'text' ) {
-			element.textContent = value;
-			return;
-		}
+        if ('text' === key) {
+            element.textContent = value;
+            return;
+        }
 
-		if ( key === 'html' ) {
-			element.innerHTML = value;
-			return;
-		}
+        if ('html' === key) {
+            element.innerHTML = value;
+            return;
+        }
 
-		element.setAttribute( key, value );
-	} );
-	return element;
+        element.setAttribute(key, value);
+    });
+    return element;
 }
 
 /**
@@ -98,13 +103,11 @@ export function createElement( type, options = {} ) {
  * @return {Element} - The first element matching the selector, or null if no match is found
  * @throws {Error} If `selector` argument is missing
  */
-export function qs( selector, parent = document ) {
-	if ( ! selector ) {
-		throw new Error(
-			'A selector argument is required for the qs function'
-		);
-	}
-	return parent.querySelector( selector );
+export function qs(selector, parent = document) {
+    if (!selector) {
+        throw new Error('A selector argument is required for the qs function');
+    }
+    return parent.querySelector(selector);
 }
 
 /**
@@ -115,13 +118,11 @@ export function qs( selector, parent = document ) {
  * @return {Element[]} - An array of all elements matching the selector, or an empty array if no matches are found
  * @throws {Error} If `selector` argument is missing
  */
-export function qsa( selector, parent = document ) {
-	if ( ! selector ) {
-		throw new Error(
-			'A selector argument is required for the qsa function'
-		);
-	}
-	return [ ...parent.querySelectorAll( selector ) ];
+export function qsa(selector, parent = document) {
+    if (!selector) {
+        throw new Error('A selector argument is required for the qsa function');
+    }
+    return [...parent.querySelectorAll(selector)];
 }
 
 /**
@@ -130,12 +131,12 @@ export function qsa( selector, parent = document ) {
  * @param {string} cssStr – the CSS string to unescape containing CSS selectors and attributes
  * @return {string} - An escaped CSS string
  */
-export function unEscapeCSS( cssStr ) {
-	cssStr = cssStr.replace( /&gt;/g, '>' );
-	cssStr = cssStr.replace( /&quot;/g, '"' );
-	cssStr = cssStr.replace( /&#39;/g, "'" );
-	cssStr = cssStr.replace( /&amp;/g, '&' );
-	return cssStr;
+export function unEscapeCSS(cssStr) {
+    cssStr = cssStr.replace(/&gt;/g, '>');
+    cssStr = cssStr.replace(/&quot;/g, '"');
+    cssStr = cssStr.replace(/&#39;/g, "'");
+    cssStr = cssStr.replace(/&amp;/g, '&');
+    return cssStr;
 }
 
 /**
@@ -145,16 +146,16 @@ export function unEscapeCSS( cssStr ) {
  * @param {string}      className - The class name to search for.
  * @return {HTMLElement|null} - The closest ancestor element with the specified class name, or null if not found.
  */
-export function findParentElementByClass( element, className ) {
-	let current = element.parentNode;
-	while (
-		current !== null &&
-		current.nodeType === window.Node.ELEMENT_NODE &&
-		! current.classList.contains( className )
-	) {
-		current = current.parentNode;
-	}
-	return current;
+export function findParentElementByClass(element, className) {
+    let current = element.parentNode;
+    while (
+        current !== null &&
+        current.nodeType === window.Node.ELEMENT_NODE &&
+        !current.classList.contains(className)
+    ) {
+        current = current.parentNode;
+    }
+    return current;
 }
 
 /**
@@ -164,27 +165,27 @@ export function findParentElementByClass( element, className ) {
  * @param {Array} paths - An array of objects representing the breadcrumb paths, with each object containing the name and URL of a breadcrumb path.
  * @return {HTMLElement} The breadcrumb container element containing all of the breadcrumbs.
  */
-export function createBreadcrumbs( paths ) {
-	const breadcrumbsContainer = document.createElement( 'div' );
-	breadcrumbsContainer.classList.add( 'aioseo-breadcrumbs' );
+export function createBreadcrumbs(paths) {
+    const breadcrumbsContainer = document.createElement('div');
+    breadcrumbsContainer.classList.add('aioseo-breadcrumbs');
 
-	const homeBreadcrumb = createBreadcrumb( 'Home', '/' );
-	breadcrumbsContainer.appendChild( homeBreadcrumb );
+    const homeBreadcrumb = createBreadcrumb('Home', '/');
+    breadcrumbsContainer.appendChild(homeBreadcrumb);
 
-	const separator = createBreadcrumbSeparator();
+    const separator = createBreadcrumbSeparator();
 
-	for ( let i = 0; i < paths.length; i++ ) {
-		const path = paths[ i ];
-		const breadcrumb = createBreadcrumb(
-			path.name,
-			path.url,
-			i === paths.length - 1
-		);
-		breadcrumbsContainer.appendChild( separator.cloneNode( true ) );
-		breadcrumbsContainer.appendChild( breadcrumb );
-	}
+    for (let i = 0; i < paths.length; i++) {
+        const path = paths[i];
+        const breadcrumb = createBreadcrumb(
+            path.name,
+            path.url,
+            i === paths.length - 1
+        );
+        breadcrumbsContainer.appendChild(separator.cloneNode(true));
+        breadcrumbsContainer.appendChild(breadcrumb);
+    }
 
-	return breadcrumbsContainer;
+    return breadcrumbsContainer;
 }
 
 /**
@@ -195,32 +196,32 @@ export function createBreadcrumbs( paths ) {
  * @param {boolean} isLast - A flag indicating whether this breadcrumb is the last one. If not, a separator will be added after the breadcrumb.
  * @return {HTMLElement} - The breadcrumb navigation element, represented as an HTML span element with class 'aioseo-breadcrumb'.
  */
-function createBreadcrumb( text, href, isLast ) {
-	const breadcrumb = document.createElement( 'span' );
-	breadcrumb.classList.add( 'aioseo-breadcrumb' );
+function createBreadcrumb(text, href, isLast) {
+    const breadcrumb = document.createElement('span');
+    breadcrumb.classList.add('aioseo-breadcrumb');
 
-	if ( href ) {
-		const link = document.createElement( 'a' );
-		link.href = href;
-		link.title = text;
-		link.dataset.text = text;
-		link.textContent = text;
-		breadcrumb.appendChild( link );
-	} else {
-		breadcrumb.textContent = text;
-	}
+    if (href) {
+        const link = document.createElement('a');
+        link.href = href;
+        link.title = text;
+        link.dataset.text = text;
+        link.textContent = text;
+        breadcrumb.appendChild(link);
+    } else {
+        breadcrumb.textContent = text;
+    }
 
-	if ( ! isLast ) {
-		const separator = createBreadcrumbSeparator();
-		if ( breadcrumb.parentNode ) {
-			breadcrumb.parentNode.insertBefore(
-				separator,
-				breadcrumb.nextSibling
-			);
-		}
-	}
+    if (!isLast) {
+        const separator = createBreadcrumbSeparator();
+        if (breadcrumb.parentNode) {
+            breadcrumb.parentNode.insertBefore(
+                separator,
+                breadcrumb.nextSibling
+            );
+        }
+    }
 
-	return breadcrumb;
+    return breadcrumb;
 }
 
 /**
@@ -230,10 +231,10 @@ function createBreadcrumb( text, href, isLast ) {
  * @return {HTMLElement} The breadcrumb separator element.
  */
 function createBreadcrumbSeparator() {
-	const separator = document.createElement( 'span' );
-	separator.classList.add( 'aioseo-breadcrumb-separator' );
-	separator.textContent = '›';
-	return separator;
+    const separator = document.createElement('span');
+    separator.classList.add('aioseo-breadcrumb-separator');
+    separator.textContent = '›';
+    return separator;
 }
 
 /**
@@ -245,15 +246,15 @@ function createBreadcrumbSeparator() {
  * @param {boolean | object}     [options] - An optional object specifying options for the event listener.
  * @throws {Error} Throws an error if the target is not a valid element or if it doesn't support addEventListener.
  */
-export function addSafeEventListenerPlugin( el, event, handler, options ) {
-	if ( el && typeof el.addEventListener === 'function' ) {
-		// Call the original function
-		el.addEventListener( event, handler, options );
-	} else {
-		/* eslint-disable no-console */
-		console.warn(
-			'el is not a valid EventTarget or does not support addEventListener'
-		);
-		/* eslint-enable no-console */
-	}
+export function addSafeEventListenerPlugin(el, event, handler, options) {
+    if (el && 'function' === typeof el.addEventListener) {
+        // Call the original function
+        el.addEventListener(event, handler, options);
+    } else {
+        /* eslint-disable no-console */
+        console.warn(
+            'el is not a valid EventTarget or does not support addEventListener'
+        );
+        /* eslint-enable no-console */
+    }
 }
