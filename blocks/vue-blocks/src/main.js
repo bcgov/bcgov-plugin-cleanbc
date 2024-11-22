@@ -3,6 +3,9 @@ import { createApp } from 'vue';
 import PostFilterApp from './postFilterApp.vue';
 import VehicleFilterApp from './vehicleFilterApp.vue';
 import PQEAFilterApp from './pqeaVueApp.vue';
+import ContractorFilterApp from './contractorVueApp.vue';
+import RebateFilterApp from './rebateVueApp.vue';
+import FAQFilterApp from './faqVueApp.vue';
 
 // Common initialization function for creating and mounting a Vue app
 
@@ -21,6 +24,9 @@ const bcgovBlockThemePluginMain = () => {
     const postFilterAppElement = document.querySelector('#postFilterApp');
     const VehicleFilterAppElement = document.querySelector('#vehicleFilterApp');
     const PQEAFilterAppElement = document.querySelector('#pqeaFilterApp');
+    const ContractorFilterAppElement = document.querySelector('#contractorFilterApp');
+    const RebateFilterAppElement = document.querySelector('#rebateFilterApp');
+    const FAQFilterAppElement = document.querySelector('#faqFilterApp');
 
     /**
      * Initialize a Vue.js application with the given component, selector, and attributes.
@@ -65,6 +71,20 @@ const bcgovBlockThemePluginMain = () => {
         initVueApp(PQEAFilterApp, PQEAFilterAppElement);
     }
 
+    // Initialize Vue app for the 'ContractorFilterApp' component if the corresponding element exists
+    if (ContractorFilterAppElement) {
+        initVueApp(ContractorFilterApp, ContractorFilterAppElement);
+    }
+
+    // Initialize Vue app for the 'RebateFilterApp' component if the corresponding element exists
+    if (RebateFilterAppElement) {
+        initVueApp(RebateFilterApp, RebateFilterAppElement);
+    }
+
+    // Initialize Vue app for the 'FAQFilterApp' component if the corresponding element exists
+    if (FAQFilterAppElement) {
+        initVueApp(FAQFilterApp, FAQFilterAppElement);
+    }
 };
 
 /**

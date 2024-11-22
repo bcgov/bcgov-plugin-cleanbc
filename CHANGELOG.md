@@ -1,4 +1,28 @@
-## 1.5.0 February 27, 2024
+## 1.6.0 November 21, 2024
+- Added GitHub Actions linting and testing workflows. 
+- Added and removed composer dependencies to fscilitate github.com deployment.
+- Added various node dependencies and support packages
+- Moved Vite based script test to "Vite-test", added jest config to exclude Vite specific tests.
+
+## 1.5.1 November 13, 2024
+- Modified Vehicle filter app to include year mechanism and bolstered ARIA for accessibility including live readback and sort button state.
+
+## 1.5.0 May 13, 2024
+- Rebates and FAQs app bugfixing.
+- Improved keyboard nav for PQEA/Contractor/Rebates/FAQ Vue apps.
+- FAQs app functionality.
+- Refactored styles to /styles/betterhomes/_vue-apps.scss.
+- Code clean up and improved documentation.
+- Rebates block partials.
+- Accessibility improvements for Rebates app filters.
+- PQEAs, Rebates, and Contractors Vue apps, fixed sessionStorage purge, style clean-up and reorg.
+- Rebates app: updated filtering logic and display for Offers and Types.
+- Rebates app: improved UX, term counts, updated filtering logic.
+- Rebates: added Vue app for Rebate Search Tool.
+- Contractors filter block: API endpoint and VueJS block.
+- Rebates page block to show the content sections.
+- PQEA filter block CSS animations for pagination & results.
+- PQEA filter block accessibility feature refinement.
 - PQEA filter block and output ready for inclusion on beta site. Added script module fix for Vite/Vue. ([CLEANBC-189](https://apps.nrs.gov.bc.ca/int/jira/browse/CLEANBC-189))
 - Added scaffolding for PQEA filter block.
 

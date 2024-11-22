@@ -34,24 +34,24 @@
 
 			.wp-block-button__link {
 				font-size: clamp(0.875rem, 0.875rem + ((1vw - 0.48rem) * 0.24), 1rem);
-                border: 2px solid;
-                background-color: var(--wp--preset--color--secondary-brand) !important;
-                color: #fff !important;
-                border-radius: .33rem !important;
-                padding: .667rem 1.333rem;
-                width: 100%;
-                min-height: 80px;
-                display: inline-flex;
-                text-align: center;
-                justify-content: center;
-                align-items: center;
+				border: 2px solid;
+				background-color: var(--wp--preset--color--secondary-brand) !important;
+				color: #fff !important;
+				border-radius: 0.33rem !important;
+				padding: 0.667rem 1.333rem;
+				width: 100%;
+				min-height: 80px;
+				display: inline-flex;
+				text-align: center;
+				justify-content: center;
+				align-items: center;
 
-                &:hover,
-                &:focus-visible {
-                    outline: 2px solid var(--wp--preset--color--secondary-brand) !important;
-                    outline-offset: 2px;
-                    display: inline-flex !important;
-                }
+				&:hover,
+				&:focus-visible {
+					outline: 2px solid var(--wp--preset--color--secondary-brand) !important;
+					outline-offset: 2px;
+					display: inline-flex !important;
+				}
 			}
 
 			svg {
@@ -70,8 +70,8 @@
 
 		img {
 			max-width: 3rem;
-			padding: .25rem;
-			margin-right: .66rem;
+			padding: 0.25rem;
+			margin-right: 0.66rem;
 		}
 	}
 }

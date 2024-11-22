@@ -13,7 +13,7 @@
   </php>
   <testsuites>
     <testsuite name="WordPress Plugin Test Suite for CleanBC">
-      <directory>./Tests/</directory>
+      <directory>./tests/</directory>
     </testsuite>
   </testsuites>
 
