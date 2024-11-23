@@ -306,7 +306,7 @@ const filteredPqeas = computed(() => {
 
 	resetSelectsActiveState();
 
-	return filteredPqeas;
+    return shuffleArray(filteredPqeas); // Add random display of filtered energy advisors.
 });
 
 /**
@@ -377,6 +377,19 @@ const paginatedPqeas = computed(() => {
 	const end = start + pageSize.value;
 	return filteredPqeas.value.slice(start, end);
 });
+
+/**
+ * Function to shuffle the array of pqea results.
+ *
+ * @returns {Array} - The updated array of pqea results.
+ */
+ const shuffleArray = (array) => {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+};
 
 /**
  * Function to navigate to the previous page in paginated results.
