@@ -1,3 +1,7 @@
+## 1.6.1 November 23, 2024
+- Modified Contractor and PQEA output to randomise results when applications are refiltered or reloaded (but not paginated).
+- Added BH additional styles wrapping with body.betterhomesbc.
+
 ## 1.6.0 November 21, 2024
 - Added GitHub Actions linting and testing workflows. 
 - Added and removed composer dependencies to fscilitate github.com deployment.

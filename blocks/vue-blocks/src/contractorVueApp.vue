@@ -198,6 +198,13 @@
 const contractors = ref([]);
 
 /**
+ * Ref for storing an array of randomized Contractors.
+ *
+ * @type {Ref<Array>} - A reference to an array containing randomized Contractors.
+ */
+const shuffledContractors = ref([]);
+
+/**
  * Ref for the default selected type.
  *
  * @type {Ref<String>} - A reference to the default selected type.
@@ -425,7 +432,7 @@ const filteredContractors = computed(() => {
 		filteredContractors = filteredContractors.filter(contractor => contractor.program_designations && contractor.program_designations.some(program => program.name === selectedProg));
 	}
 
-	return filteredContractors;
+	return shuffleArray(filteredContractors); // Add random display of filtered contractors.
 });
 
 // Define a computed property to filter contractors based on the selected type
@@ -482,6 +489,20 @@ const paginatedContractors = computed(() => {
 	const end = start + pageSize.value;
 	return filteredContractors.value.slice(start, end);
 });
+
+/**
+ * Function to shuffle the array of contractor results.
+ *
+ * @returns {Array} - The updated array of contractor results.
+ */
+const shuffleArray = (array) => {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+};
+
 
 /**
  * Function to navigate to the previous page in paginated results.
