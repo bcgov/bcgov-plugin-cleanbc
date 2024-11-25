@@ -1,3 +1,6 @@
+## 1.6.3 November 25, 2024
+- Removed redundant functions in Contractor and PQEA SFC causing an error on CleanBC.
+
 ## 1.6.2 November 25, 2024
 - Added FAQ, Contractor and PQEA pagination to bottom of results table with scroll to top of results button.
 - Created a 'shared functions' import script to add DRY functionality across Vue-based apps.

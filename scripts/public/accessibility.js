@@ -8,7 +8,9 @@ const bcgovBlockThemePluginAccessibility = () => {
 	 * SafarIE iOS requires window.requestAnimationFrame update.
 	 */
 	window.requestAnimationFrame( () => {
-		if ( qs( '.actions-accordion-header' ) ) {
+
+		const actionsAccordionHeader = document.querySelector( '.actions-accordion-header' );
+		if ( null !== actionsAccordionHeader ) {
 			const getSiblings = function ( elem ) {
 				// Setup siblings array and get the first sibling
 				const siblings = [];

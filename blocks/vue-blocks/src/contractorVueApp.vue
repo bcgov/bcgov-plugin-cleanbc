@@ -505,20 +505,6 @@ const paginatedContractors = computed(() => {
 });
 
 /**
- * Function to shuffle the array of contractor results.
- *
- * @returns {Array} - The updated array of contractor results.
- */
-const shuffleArray = (array) => {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-};
-
-
-/**
  * Function to navigate to the previous page in paginated results.
  *
  * Decrements the current page if it is greater than 1.
