@@ -177,6 +177,19 @@
         </tbody>
     </table>
   </div>
+
+  <div class="pqeasFilterControls filter-container filter-container--bottom">
+    <!-- Lower Pagination Controls -->
+    <div class="pqeasFilterPagination control pagination pagination--bottom">
+            <!-- Previous Page Button -->
+            <button class="prev-page" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0" type="button">Previous Page</button>
+            <!-- Current Page & Totals -->
+            <span class="pages">Page <span class="numValue current-page">{{ currentPage }}</span> of <span class="numValue total-pages">{{ totalPages }}</span></span>
+            <!-- Next Page Button -->
+            <button class="next-page" @click.prevent="nextPage" :disabled="currentPage === totalPages" tabindex="0" type="button">Next Page</button>
+            <button class="go-to-top" tabindex="0" type="button" :disabled="filteredPqeas.length === 0" @click="scrollToElementID('pqeasResults', '11rem')">Go to top of results</button>
+        </div>
+  </div>
 </template>
 
 <script setup>
@@ -197,6 +210,7 @@
 	watch
 } from 'vue';
 
+import { shuffleArray, scrollToElementID } from '../shared-functions.js';
 
 /**
  * Ref for storing an array of Program Qualified Energy Advisors (PQEAs).
@@ -377,19 +391,6 @@ const paginatedPqeas = computed(() => {
 	const end = start + pageSize.value;
 	return filteredPqeas.value.slice(start, end);
 });
-
-/**
- * Function to shuffle the array of pqea results.
- *
- * @returns {Array} - The updated array of pqea results.
- */
- const shuffleArray = (array) => {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-};
 
 /**
  * Function to navigate to the previous page in paginated results.
