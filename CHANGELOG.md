@@ -1,3 +1,7 @@
+## 1.6.2 November 25, 2024
+- Added FAQ, Contractor and PQEA pagination to bottom of results table with scroll to top of results button.
+- Created a 'shared functions' import script to add DRY functionality across Vue-based apps.
+
 ## 1.6.1 November 23, 2024
 - Modified Contractor and PQEA output to randomise results when applications are refiltered or reloaded (but not paginated).
 - Added BH additional styles wrapping with body.betterhomesbc.

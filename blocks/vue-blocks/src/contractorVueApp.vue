@@ -170,6 +170,18 @@
         </tbody>
     </table>
   </div>
+  <div class="contractorsFilterControls filter-container filter-container--bottom">
+    <!-- Lower Pagination Controls -->
+    <div class="contractorsFilterPagination control pagination pagination--bottom">
+            <!-- Previous Page Button -->
+            <button class="prev-page" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0" type="button">Previous Page</button>
+            <!-- Current Page & Totals -->
+            <span class="pages">Page <span class="numValue current-page">{{ currentPage }}</span> of <span class="numValue total-pages">{{ totalPages }}</span></span>
+            <!-- Next Page Button -->
+            <button class="next-page" @click.prevent="nextPage" :disabled="currentPage === totalPages" tabindex="0" type="button">Next Page</button>
+            <button class="go-to-top" tabindex="0" type="button" :disabled="filteredContractors.length === 0" @click="scrollToElementID('contractorsResults', '11rem')">Go to top of results</button>
+        </div>
+  </div>
 </template>
 
 <script setup>
@@ -189,6 +201,8 @@
     computed,
     watch
 } from 'vue';
+
+import { shuffleArray, scrollToElementID } from '../shared-functions.js';
 
 /**
  * Ref for storing an array of Contractors.
