@@ -188,7 +188,7 @@
               <h3>
                 <button :id="`faqAccordionTrigger--${faq.id}`" class="accordion-trigger" aria-expanded="false"
                   :aria-controls="`faqAccordionPanel--${faq.id}`" type="button">
-                  <span class="accordion-title">{{ faq.title }}</span>
+                  <span class="accordion-title">{{ decodeHtmlEntities(faq.title) }}</span>
                   <span class="accordion-icon"></span>
                 </button>
               </h3>
@@ -277,7 +277,7 @@ import {
   onUpdated
 } from 'vue';
 
-import { scrollToElementID } from '../shared-functions.js';
+import { decodeHtmlEntities, scrollToElementID } from '../shared-functions.js';
 
 /**
  * Ref for storing an array of FAQs.

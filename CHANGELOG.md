@@ -1,8 +1,9 @@
 ## 1.6.3 November 25, 2024
 - Removed redundant functions in Contractor and PQEA SFC causing an error on CleanBC.
 - Fixed a scoping issue with FireFox causing a definitions error on CleanBC when using the keyboard to open the modal.
+- Added HTML decoding to FAQ titles, Contractor and PQEA names with a shared decodeHtmlEntities function.
 
-## 1.6.2 November 25, 2024
+## 1.6.2 November 24, 2024
 - Added FAQ, Contractor and PQEA pagination to bottom of results table with scroll to top of results button.
 - Created a 'shared functions' import script to add DRY functionality across Vue-based apps.
 
