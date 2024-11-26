@@ -5,7 +5,7 @@
     <!-- Skip to results link -->
     <a href="#pqeasResults" class="sr-only skip-to-results">Skip to results</a>
     <!-- Filter Controls -->
-    <div v-if='isVisible && filteredPqeas.length !== 0 && currentPage !== totalPages' id="pqeasFilterControls" class="pqeasFilterControls filter-container">
+    <div id="pqeasFilterControls" class="pqeasFilterControls filter-container">
         <!-- Category Select -->
         <div v-if='isVisible' class="control category-select">
           <label for="categorySelect" class="">Choose between home construction and home renovation</label>
@@ -191,7 +191,7 @@
     </table>
   </div>
 
-  <div v-if='isVisible && filteredPqeas.length !== 0 && currentPage !== totalPages' class="pqeasFilterControls filter-container filter-container--bottom">
+  <div v-if="isVisible && filteredPqeas.length !== 0 && 1 !== totalPages" class="pqeasFilterControls filter-container filter-container--bottom">
     <!-- Lower Pagination Controls -->
     <div class="pqeasFilterPagination control pagination pagination--bottom">
             <!-- Previous Page Button -->
