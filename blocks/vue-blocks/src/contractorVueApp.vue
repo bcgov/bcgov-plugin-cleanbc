@@ -182,7 +182,7 @@
         </tbody>
     </table>
   </div>
-  <div v-if="filteredContractors.length !== 0 && totalPages !== currentPage" class="contractorsFilterControls filter-container filter-container--bottom">
+  <div v-if="filteredContractors.length !== 0 && 1 !== totalPages" class="contractorsFilterControls filter-container filter-container--bottom">
     <!-- Lower Pagination Controls -->
     <div class="contractorsFilterPagination control pagination pagination--bottom">
             <!-- Previous Page Button -->
