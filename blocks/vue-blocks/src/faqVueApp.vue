@@ -17,12 +17,16 @@
       <div class="control category-select">
         <label for="categorySelect" class="">Choose a category</label>
         <div class="custom-select">
-          <select @change="selectIsActive" @click.prevent="selectIsActive" @touchend="selectIsActive"
-            @keyup.esc="selectIsActive" tabindex="0" id="categorySelect" class="select select--category"
-            v-model="selectedCategory" :required="true" data-active="false">
+          <select v-model="selectedCategory" id="categorySelect" class="select select--category">
             <option value="all">All Categories</option>
-            <option v-if="!isLoading" v-for="(category, index) in categories" :key="category" :value="category">{{
-              category }}</option>
+            <template v-for="category in hierarchicalCategories" :key="category.term_id">
+              <option :value="category.name">{{ category.name }}</option>
+              <template v-if="category.children.length">
+                <template v-for="child in category.children" :key="child.term_id">
+                  <option :value="child.name">{{ '– ' + child.name }}</option>
+                </template>
+              </template>
+            </template>
           </select>
         </div>
       </div>
@@ -79,6 +83,18 @@
           @keydown.enter.prevent="clearFilters" type="button">
           Reset selection
         </button>
+      </div>
+
+      <!-- Add Link to Clipboard Button -->
+      <div class="control copy-link-btn">
+          <button class="copy-link" 
+              @click.prevent="addLinkToClipboard"
+              @touchend="addLinkToClipboard"
+              @keydown.enter.prevent="addLinkToClipboard"
+              :disabled="selectedCategory === 'all'"
+              type="button">
+              Copy link
+          </button>
       </div>
 
       <!-- Pagination Controls -->
@@ -274,6 +290,7 @@ import {
   onMounted,
   computed,
   watch,
+  watchEffect,
   onUpdated
 } from 'vue';
 
@@ -285,6 +302,13 @@ import { decodeHtmlEntities, scrollToElementID } from '../shared-functions.js';
  * @type {Ref<Array>} - A reference to an array containing FAQs.
  */
 const faqs = ref([]);
+
+/**
+ * Ref for for controlling tool visibility.
+ *
+ * @type {Ref<Bool>} - A reference to the current visibility.
+ */
+ const isVisible = ref(true);
 
 /**
  * Ref for the current text search input.
@@ -463,6 +487,139 @@ const paginatedFaqs = computed(() => {
   const end = start + pageSize.value;
   return filteredFaqs.value.slice(start, end);
 });
+
+// temp
+const hierarchicalCategories = computed(() => {
+  // Collect all categories from FAQs
+  const allCategories = faqs.value.flatMap(faq => faq.categories || []);
+  return buildCategoryHierarchy(allCategories);
+});
+
+
+/**
+ * Builds a hierarchical structure from a flat list of categories.
+ *
+ * This function processes an array of categories, organizing them into a hierarchical structure based on 
+ * their parent-child relationships. It creates a `Map` of all categories keyed by their `term_id` and 
+ * initializes an empty `children` array for each category. Additionally, it maintains a `Map` to track 
+ * the children added to each parent to prevent duplication.
+ *
+ * @function
+ * @param {Array<Object>} categories - An array of category objects to build the hierarchy from.
+ * @param {number} categories[].term_id - The unique identifier for the category.
+ * @param {string} categories[].name - The name of the category.
+ * @param {number} categories[].parent - The parent ID of the category. A value of `0` indicates a top-level category.
+ * @returns {Map<number, Object>} - A `Map` of all categories keyed by their `term_id`, where each category has a `children` array.
+ */
+const buildCategoryHierarchy = (categories) => {
+  const categoryMap = new Map(); // Map of all categories by term_id
+  const parentToChildrenSet = new Map(); // Tracks children added to each parent
+
+  // Create a map of all categories and initialize empty children arrays
+  categories.forEach((category) => {
+    if (!categoryMap.has(category.term_id)) {
+      categoryMap.set(category.term_id, { ...category, children: [] });
+    }
+  });
+
+/**
+ * Builds a hierarchical structure of categories from a flat array.
+ *
+ * This function organizes a flat array of categories into a hierarchical structure based on parent-child 
+ * relationships. Each category is represented as an object with a `children` array containing its child categories.
+ *
+ * @param {Array<Object>} categories - The flat array of category objects.
+ * @param {number} categories[].term_id - The unique identifier for the category.
+ * @param {string} categories[].name - The name of the category.
+ * @param {number} categories[].parent - The parent ID of the category. A value of `0` indicates a root-level category.
+ * @returns {Array<Object>} - An array of root-level categories, each containing a `children` array with its descendants.
+ */
+  categories.forEach((category) => {
+    if (category.parent !== 0) {
+      const parent = categoryMap.get(category.parent);
+
+      if (parent) {
+        // Ensure no duplicate children are added to a parent
+        if (!parentToChildrenSet.has(parent.term_id)) {
+          parentToChildrenSet.set(parent.term_id, new Set());
+        }
+
+        const childrenSet = parentToChildrenSet.get(parent.term_id);
+        if (!childrenSet.has(category.term_id)) {
+          parent.children.push(categoryMap.get(category.term_id));
+          childrenSet.add(category.term_id);
+        }
+      }
+    }
+  });
+
+  // Sort each parent's children alphabetically by name
+  categoryMap.forEach((category) => {
+    category.children.sort((a, b) => a.name.localeCompare(b.name));
+  });
+
+  // Return only top-level categories (parent === 0), sorted alphabetically
+  return [...categoryMap.values()]
+    .filter(category => category.parent === 0)
+    .sort((a, b) => a.name.localeCompare(b.name));
+};
+
+/**
+ * Function assembles a URL with query string parameters for the selected type, program, and location.
+ *
+ * @returns {string} - The assembled URL with query string parameters.
+ */
+ const assembleUrl = () => {
+  const baseUrl = window.location.origin + window.location.pathname;
+
+  const urlParams = new URLSearchParams();
+
+  // Add tool identifier
+  urlParams.set('tool', 'faqs');
+
+  // Add category filter if not default
+  if (selectedCategory.value && selectedCategory.value !== 'all') {
+    urlParams.set('category', encodeURIComponent(selectedCategory.value));
+  }
+
+  // Add program filter if not default
+  if (selectedAdditionalFilter.value && selectedAdditionalFilter.value !== 'all') {
+    urlParams.set('additional', encodeURIComponent(selectedAdditionalFilter.value));
+  }
+
+  // Combine base URL with query string
+  return `${baseUrl}?${urlParams.toString()}`;
+};
+
+/**
+ * Copies the dynamically assembled URL with filters to the clipboard.
+ *
+ * This function generates a URL containing query string parameters based on
+ * the selected type, program, and location, and copies it to the clipboard.
+ * It provides feedback via a success or error message.
+ *
+ * @function
+ * @returns {void}
+ *
+ * @example
+ * // Example usage:
+ * addLinkToClipboard();
+ * // Copies a URL like:
+ * // https://betterhomesbc.ca?tool=contractors&type=Heat%20Pump&program=Energy%20Savings&region=Vancouver
+ */
+ const addLinkToClipboard = () => {
+  const url = assembleUrl();
+
+  navigator.clipboard
+    .writeText(url)
+    .then(() => {
+      console.log('URL copied to clipboard:', url);
+    })
+    .catch((err) => {
+      console.error('Failed to copy URL:', err);
+      alert('Failed to copy the link. Please try again.');
+    });
+};
 
 /**
  * Function to navigate to the previous page in paginated results.
@@ -993,7 +1150,6 @@ onMounted(() => {
   fetchData();
 
   const appElement = document.getElementById('faqFilterApp');
-  showLoadingMessage.value = true;
 
   if (window.site?.domain) { }
 
@@ -1001,6 +1157,64 @@ onMounted(() => {
     appElement.classList.add('noNavigator');
   }
 });
+
+
+watchEffect(() => {
+  // Check if FAQs and related data are loaded before proceeding
+  if (faqs.value.length && categories.value.length && additional_filters.value.length) {
+    // Get query string parameters
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // Check for visibility toggle
+    const showParam = urlParams.get('show');
+    if (showParam === 'off') {
+      isVisible.value = false;
+      return; // No further processing if the tool is hidden
+    } else {
+      isVisible.value = true;
+    }
+
+    // Check for the tool parameter
+    if (urlParams.get('tool') !== 'faqs') {
+      console.warn('Tool parameter does not match "faqs". Initialization skipped.');
+      return;
+    }
+
+    // Initialize selected filters from query string
+    const category = urlParams.get('category');
+    const additional = urlParams.get('additional');
+    const searchText = urlParams.get('search');
+
+    // Decode and set the category filter
+    if (category) {
+      const decodedCategory = decodeURIComponent(category);
+      if (categories.value.includes(decodedCategory)) {
+        selectedCategory.value = decodedCategory;
+      } else {
+        console.warn(`Invalid category: ${decodedCategory}`);
+      }
+    }
+
+    // Decode and set the additional filter
+    if (additional) {
+      const decodedAdditionalFilter = decodeURIComponent(additional);
+      if (additional_filters.value.includes(decodedAdditionalFilter)) {
+        selectedAdditionalFilter.value = decodedAdditionalFilter;
+      } else {
+        console.warn(`Invalid additional filter: ${decodedAdditionalFilter}`);
+      }
+    }
+
+    // Decode and set the text search
+    if (searchText) {
+      textSearch.value = decodeURIComponent(searchText);
+    }
+
+    // Stop showing the loading message once data is initialized
+    showLoadingMessage.value = false;
+  }
+});
+
 
 /**
  * Watches for updates and initializes accordions for FAQ elements after updates.
@@ -1119,5 +1333,14 @@ function collapseThisFaq(event) {
 
 <style lang='scss' scoped>
 // See bcgov-plugin-cleanbc/styles/public/betterhomes/_vue-apps.scss
-#faqFilterApp {}
+#faqFilterApp {
+  .select option {
+    font-weight: normal;
+  }
+
+  .select option.child {
+    padding-left: 0;
+    font-weight: normal;
+  }
+}
 </style>
