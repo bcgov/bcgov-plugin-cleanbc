@@ -1,3 +1,10 @@
+## 1.7.0 November 26, 2024
+- Added watchEffect in Contractors and PQEAs tools to look for query string values able to instantiate the tools based on preset values. 
+- Also includes the ability to hide tools based on the '&show=off' query string addition.
+- Added the ability to assemble and copy a link to the clipboard with the specific filter values.
+- Added scaffolding to sort an array of objects asc or desc based on a specified property.
+- Style updates: added light site link icon variant and general copy-link style for buttons.
+
 ## 1.6.3 November 25, 2024
 - Removed redundant functions in Contractor and PQEA SFC causing an error on CleanBC.
 - Fixed a scoping issue with FireFox causing a definitions error on CleanBC when using the keyboard to open the modal.

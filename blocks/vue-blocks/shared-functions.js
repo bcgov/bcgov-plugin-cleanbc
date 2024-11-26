@@ -18,6 +18,47 @@ export function decodeHtmlEntities(text) {
 }
 
 /**
+ * Sorts an array of objects alphabetically based on a specified property.
+ *
+ * @param {Object[]} array - The array of objects to sort.
+ * @param {string} key - The key or property path (e.g., 'company_name') to sort by.
+ * @param {string} [order='asc'] - The sort order: 'asc' for ascending, 'desc' for descending.
+ * @returns {Object[]} - The array sorted by the specified property and order.
+ *
+ * @example
+ * const contractors = [
+ *   { company_name: 'Zebra Corp', id: 1 },
+ *   { company_name: 'Alpha LLC', id: 2 },
+ *   { company_name: 'Mango Inc', id: 3 }
+ * ];
+ * const sortedAsc = sortArrayAZ(contractors, 'company_name');
+ * console.log(sortedAsc);
+ * // Ascending:
+ * // [
+ * //   { company_name: 'Alpha LLC', id: 2 },
+ * //   { company_name: 'Mango Inc', id: 3 },
+ * //   { company_name: 'Zebra Corp', id: 1 }
+ * // ]
+ *
+ * const sortedDesc = sortArrayAZ(contractors, 'company_name', 'desc');
+ * console.log(sortedDesc);
+ * // Descending:
+ * // [
+ * //   { company_name: 'Zebra Corp', id: 1 },
+ * //   { company_name: 'Mango Inc', id: 3 },
+ * //   { company_name: 'Alpha LLC', id: 2 }
+ * // ]
+ */
+export function sortArray(array, key, order = 'asc') {
+	return array.slice().sort((a, b) => {
+	  const valueA = key.split('.').reduce((obj, k) => obj && obj[k], a) || '';
+	  const valueB = key.split('.').reduce((obj, k) => obj && obj[k], b) || '';
+	  const comparison = valueA.localeCompare(valueB, undefined, { sensitivity: 'base' });
+	  return order === 'desc' ? -comparison : comparison;
+	});
+  }
+
+/**
  * Function to shuffle an array.
  *
  * @param {Array} - The array to be randomised.
