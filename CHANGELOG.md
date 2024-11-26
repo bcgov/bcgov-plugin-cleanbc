@@ -1,5 +1,5 @@
 ## 1.7.0 November 26, 2024
-- Added watchEffect in Contractors and PQEAs tools to look for query string values able to instantiate the tools based on preset values. 
+- Added watchEffect in Contractors, PQEAs and FAQs tools to look for query string values able to instantiate the tools based on preset values. 
 - Also includes the ability to hide tools based on the '&show=off' query string addition.
 - Added the ability to assemble and copy a link to the clipboard with the specific filter values.
 - Added scaffolding to sort an array of objects asc or desc based on a specified property.
