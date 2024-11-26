@@ -103,12 +103,12 @@
                     <!-- Company Name and Head Office -->
                     <td data-label="Company Name and Head Office" class="pqea__company-and-location">
                         <!-- Company Website Link -->
-                        <a v-if="pqea.details.company_website" class="pqea__company external" :href="pqea.details.company_website" target="_blank" :aria-label="pqea.details.company_name + ' website, opens in a new tab/window.'">
-                            {{ pqea.details.company_name ? pqea.details.company_name : 'Website' }}
+                        <a v-if="pqea.details.company_website" class="pqea__company external" :href="pqea.details.company_website" target="_blank" :aria-label="decodeHtmlEntities(pqea.details.company_name) + ' website, opens in a new tab/window.'">
+                            {{ pqea.details.company_name ? decodeHtmlEntities(pqea.details.company_name) : 'Website' }}
                         </a>
                         <!-- Company Name if No Website -->
                         <span v-else class="pqea__company">
-                            {{ pqea.details.company_name ? pqea.details.company_name : 'No company name provided' }}
+                            {{ pqea.details.company_name ? decodeHtmlEntities(pqea.details.company_name) : 'No company name provided' }}
                         </span>
                         <!-- Company Location -->
                         <span class="pqea__location">
@@ -210,7 +210,7 @@
 	watch
 } from 'vue';
 
-import { shuffleArray, scrollToElementID } from '../shared-functions.js';
+import { decodeHtmlEntities, shuffleArray, scrollToElementID } from '../shared-functions.js';
 
 /**
  * Ref for storing an array of Program Qualified Energy Advisors (PQEAs).

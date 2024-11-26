@@ -125,12 +125,12 @@
                     <!-- Company Name and Head Office -->
                     <td data-label="Company Name and Head Office" class="contractor__company-and-location">
                         <!-- Company Website Link -->
-                        <a v-if="contractor.company_website" class="contractor__company external-app-link" :href="contractor.company_website" target="_blank" :aria-label="contractor.company_name + ' website, opens in a new tab/window.'">
-                            {{ contractor.company_name ? contractor.company_name : 'Website' }}
+                        <a v-if="contractor.company_website" class="contractor__company external-app-link" :href="contractor.company_website" target="_blank" :aria-label="decodeHtmlEntities(pqea.details.company_name) + ' website, opens in a new tab/window.'">
+                            {{ contractor.company_name ? decodeHtmlEntities(contractor.company_name) : 'Website' }}
                         </a>
                         <!-- Company Name if No Website -->
                         <span v-else class="contractor__company">
-                            {{ contractor.company_name ? contractor.company_name : 'No company name provided' }}
+                            {{ contractor.company_name ? decodeHtmlEntities(contractor.company_name) : 'No company name provided' }}
                         </span>
                     </td>
 
@@ -202,7 +202,7 @@
     watch
 } from 'vue';
 
-import { shuffleArray, scrollToElementID } from '../shared-functions.js';
+import { decodeHtmlEntities, shuffleArray, scrollToElementID } from '../shared-functions.js';
 
 /**
  * Ref for storing an array of Contractors.
