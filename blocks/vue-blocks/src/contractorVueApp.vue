@@ -7,7 +7,7 @@
     <!-- Filter Controls -->
     <div id="contractorsFilterControls" class="contractorsFilterControls filter-container">
         <!-- Type Select -->
-        <div class="control type-select">
+        <div v-if='isVisible' class="control type-select">
           <label for="typeSelect" class="">Choose a type of upgrade</label>
           <div class="custom-select">
               <select @change="selectIsActive"
@@ -27,7 +27,7 @@
         </div>
 
         <!-- Program Select -->
-        <div class="control program-select">
+        <div v-if='isVisible' class="control program-select">
           <label for="programSelect" class="">Choose a rebate program</label>
           <div class="custom-select">
               <select @change="selectIsActive" @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive" tabindex="0" id="programSelect" class="select select--program" v-model="selectedProgram" :required="true" data-active="false">
@@ -38,7 +38,7 @@
         </div>
 
         <!-- Location Select -->
-        <div class="control location-select">
+        <div v-if='isVisible' class="control location-select">
           <label for="locationSelect" class="">Choose a service region</label>
           <div class="custom-select">
               <select @change="selectIsActive" @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive" tabindex="0" id="locationSelect" class="select select--location" v-model="selectedLocation">
@@ -49,13 +49,25 @@
         </div>
 
         <!-- Clear Filters Button -->
-        <div class="control reset-filters">
+        <div v-if='isVisible' class="control reset-filters">
           <button class="clear-filters" @click.prevent="clearFilters"
             @touchend="clearFilters"
             @keydown.enter.prevent="clearFilters"
             type="button">
             Reset selection
           </button>
+        </div>
+
+         <!-- Add Link to Clipboard Button -->
+         <div v-if='isVisible' class="control copy-link-btn">
+            <button class="copy-link" 
+                @click.prevent="addLinkToClipboard"
+                @touchend="addLinkToClipboard"
+                @keydown.enter.prevent="addLinkToClipboard"
+                :disabled="selectedUpgradeType === 'all' && selectedProgram === 'all' && selectedLocation === 'all'"
+                type="button">
+                Copy link
+            </button>
         </div>
 
         <!-- Pagination Controls -->
@@ -81,7 +93,7 @@
     </div>
 
     <!-- Contractors Results Table -->
-    <h2 class="results__title">Results (<span class="counter__value">{{ filteredContractors.length }}</span>)</h2>
+    <h2 class="results__title">Find a registered contractor results (<span class="counter__value">{{ filteredContractors.length }}</span>)</h2>
     <table id="contractorsResults" class="contractorsResults results table table--striped">
         <caption class="sr-only">Registered Contractors</caption>
         <!-- Table Columns -->
@@ -170,7 +182,7 @@
         </tbody>
     </table>
   </div>
-  <div class="contractorsFilterControls filter-container filter-container--bottom">
+  <div v-if="filteredContractors.length !== 0 && totalPages !== currentPage" class="contractorsFilterControls filter-container filter-container--bottom">
     <!-- Lower Pagination Controls -->
     <div class="contractorsFilterPagination control pagination pagination--bottom">
             <!-- Previous Page Button -->
@@ -199,7 +211,8 @@
     ref,
     onMounted,
     computed,
-    watch
+    watch,
+    watchEffect
 } from 'vue';
 
 import { decodeHtmlEntities, shuffleArray, scrollToElementID } from '../shared-functions.js';
@@ -217,6 +230,13 @@ const contractors = ref([]);
  * @type {Ref<Array>} - A reference to an array containing randomized Contractors.
  */
 const shuffledContractors = ref([]);
+
+/**
+ * Ref for for controlling tool visibility.
+ *
+ * @type {Ref<Bool>} - A reference to the current visibility.
+ */
+ const isVisible = ref(true);
 
 /**
  * Ref for the default selected type.
@@ -446,6 +466,7 @@ const filteredContractors = computed(() => {
 		filteredContractors = filteredContractors.filter(contractor => contractor.program_designations && contractor.program_designations.some(program => program.name === selectedProg));
 	}
 
+  // return sortArray(filteredContractors, 'company_name', 'asc'); // Todo: Display sorted filtered contractors.
 	return shuffleArray(filteredContractors); // Add random display of filtered contractors.
 });
 
@@ -503,6 +524,69 @@ const paginatedContractors = computed(() => {
 	const end = start + pageSize.value;
 	return filteredContractors.value.slice(start, end);
 });
+
+/**
+ * Function assembles a URL with query string parameters for the selected type, program, and location.
+ *
+ * @returns {string} - The assembled URL with query string parameters.
+ */
+const assembleUrl = () => {
+  const baseUrl = window.location.origin + window.location.pathname;
+
+  const urlParams = new URLSearchParams();
+
+  // Add tool identifier
+  urlParams.set('tool', 'contractors');
+
+  // Add type filter if not default
+  if (selectedUpgradeType.value && selectedUpgradeType.value !== 'all') {
+    urlParams.set('type', encodeURIComponent(selectedUpgradeType.value));
+  }
+
+  // Add program filter if not default
+  if (selectedProgram.value && selectedProgram.value !== 'all') {
+    urlParams.set('program', encodeURIComponent(selectedProgram.value));
+  }
+
+  // Add location filter if not default
+  if (selectedLocation.value && selectedLocation.value !== 'all') {
+    urlParams.set('region', encodeURIComponent(selectedLocation.value));
+  }
+
+  // Combine base URL with query string
+  return `${baseUrl}?${urlParams.toString()}`;
+};
+
+/**
+ * Copies the dynamically assembled URL with filters to the clipboard.
+ *
+ * This function generates a URL containing query string parameters based on
+ * the selected type, program, and location, and copies it to the clipboard.
+ * It provides feedback via a success or error message.
+ *
+ * @function
+ * @returns {void}
+ *
+ * @example
+ * // Example usage:
+ * addLinkToClipboard();
+ * // Copies a URL like:
+ * // https://betterhomesbc.ca?tool=contractors&type=Heat%20Pump&program=Energy%20Savings&region=Vancouver
+ */
+ const addLinkToClipboard = () => {
+  const url = assembleUrl();
+
+  navigator.clipboard
+    .writeText(url)
+    .then(() => {
+      console.log('URL copied to clipboard:', url);
+    })
+    .catch((err) => {
+      console.error('Failed to copy URL:', err);
+      alert('Failed to copy the link. Please try again.');
+    });
+};
+
 
 /**
  * Function to navigate to the previous page in paginated results.
@@ -833,14 +917,70 @@ window.addEventListener('click', (event) => {
  *
  * @returns {void}
  */
-onMounted(() => {
-	fetchData();
-
-	const appElement = document.getElementById('contractorFilterApp');
-	showLoadingMessage.value = true;
-
-	if (window.site?.domain) {}
+ onMounted(() => {
+  fetchData(); // Start fetching data
+  showLoadingMessage.value = true;
 });
+
+watchEffect(() => {
+  // Ensure types, programs, and locations are populated before proceeding
+  if (types.value.length && programs.value.length && locations.value.length) {
+    // Get query string parameters
+    const urlParams = new URLSearchParams(window.location.search);
+
+    const showParam = urlParams.get('show');
+
+    // Ensure the tool matches "contractors" before processing
+    if (urlParams.get('tool') !== 'contractors') {
+      console.warn('Tool parameter does not match "contractors". Initialization skipped.');
+      return;
+    }
+
+    // Hide tools if `show=off` is in the query string
+    if (showParam === 'off') {
+        isVisible.value = false;
+    }
+
+    // Initialize selected filters from query string
+    const upgradeType = urlParams.get('type');
+    const rebateProgram = urlParams.get('program');
+    const serviceRegion = urlParams.get('region');
+
+    // Update the corresponding reactive properties with URI-decoded values
+    if (upgradeType) {
+      const decodedUpgradeType = decodeURIComponent(upgradeType);
+      if (types.value.includes(decodedUpgradeType)) {
+        selectedUpgradeType.value = decodedUpgradeType;
+      } else {
+        console.warn(`Invalid upgrade type: ${decodedUpgradeType}`);
+      }
+    }
+
+    if (rebateProgram) {
+      const decodedRebateProgram = decodeURIComponent(rebateProgram);
+      if (programs.value.includes(decodedRebateProgram)) {
+        selectedProgram.value = decodedRebateProgram;
+      } else {
+        console.warn(`Invalid rebate program: ${decodedRebateProgram}`);
+      }
+    }
+
+    if (serviceRegion) {
+      const decodedServiceRegion = decodeURIComponent(serviceRegion);
+      if (locations.value.includes(decodedServiceRegion)) {
+        selectedLocation.value = decodedServiceRegion;
+      } else {
+        console.warn(`Invalid service region: ${decodedServiceRegion}`);
+      }
+    }
+
+    // Stop showing the loading message once data is initialized
+    showLoadingMessage.value = false;
+  }
+});
+
+
+
 </script>
 
 <style lang='scss' scoped>

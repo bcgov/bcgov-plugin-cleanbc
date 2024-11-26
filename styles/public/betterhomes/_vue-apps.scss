@@ -88,6 +88,7 @@
 		// &.type-select {}
 
 		&.reset-filters,
+		&.copy-link-btn,
 		&.close-accordions {
 			display: flex;
 			flex-direction: column;
@@ -99,6 +100,12 @@
 				flex-basis: auto;
 				align-items: flex-start;
 			}
+		}
+
+		&.copy-link-btn {
+			justify-content: center;
+			margin-left: auto;
+			margin-right: 0;
 		}
 
 		&.close-accordions {
@@ -736,6 +743,52 @@
 			text-align: center;
 		}
 	}
+
+	.copy-link {
+		display: inline-flex;
+		position: relative;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		align-content: flex-start;
+		align-items: center;
+		justify-content: center;
+		// padding: 0.5rem;
+		padding: 0;
+		width: auto;
+
+		&::before {
+			display: block;
+			content: "";
+			height: 1.5rem;
+			width: 1.5rem;
+			margin-right: 0.5rem;
+			background-image: $site_icon_light;
+			background-repeat: no-repeat;
+			background-position: center;
+			background-size: contain;
+		}
+
+		&:disabled {
+			opacity: 0.66;
+		}
+
+		&:disabled::before,
+		&[disabled]::before {
+			background-image: $site_icon;
+			filter: grayscale(1);
+			opacity: 0.66;
+		}
+	}
+
+	.copy-link {
+
+		&.external {
+
+			svg {
+				display: none;
+			}
+		}
+	}
 }
 
 // Layouts with Sidebar.
@@ -1133,6 +1186,15 @@
 
 			@media (min-width: $breakpoint-md) {
 				margin-right: auto;
+			}
+		}
+
+		&.copy-link-btn {
+			margin-bottom: 1rem;
+
+			@media (min-width: $breakpoint-md) {
+				margin-left: auto;
+				margin-right: 0;
 			}
 		}
 	}
