@@ -79,22 +79,23 @@
 
       <!-- Clear Filters Button -->
       <div class="control reset-filters">
-        <button class="clear-filters" @click.prevent="clearFilters" @touchend="clearFilters"
+        <button class="clear-filters " @click.prevent="clearFilters" @touchend="clearFilters"
           @keydown.enter.prevent="clearFilters" type="button">
           Reset selection
         </button>
       </div>
-
+      
       <!-- Add Link to Clipboard Button -->
       <div class="control copy-link-btn">
-          <button class="copy-link" 
-              @click.prevent="addLinkToClipboard"
-              @touchend="addLinkToClipboard"
-              @keydown.enter.prevent="addLinkToClipboard"
-              :disabled="selectedCategory === 'all'"
-              type="button">
-              Copy link
-          </button>
+        <button class="copy-link" 
+          @click.prevent="addLinkToClipboard"
+          @touchend="addLinkToClipboard"
+          @keydown.enter.prevent="addLinkToClipboard"
+          :disabled="'' === textSearch && selectedCategory === 'all'"
+          type="button">
+          Copy link
+        </button>
+        <span class="copy-message isFadedOut" role="status" aria-live="polite"></span>
       </div>
 
       <!-- Pagination Controls -->
@@ -255,7 +256,7 @@
           </template>
         </div>
 
-        <div class="faqsFilterControls filter-container">
+        <div v-if="isVisible && filteredFaqs.length !== 0 && 1 !== totalPages" class="faqsFilterControls filter-container">
           <!-- Lower Pagination Controls -->
           <div class="faqsFilterPagination control pagination pagination--bottom">
             <!-- Previous Page Button -->
@@ -287,10 +288,11 @@
  */
 import {
   ref,
-  onMounted,
   computed,
+  nextTick,
   watch,
   watchEffect,
+  onMounted,
   onUpdated
 } from 'vue';
 
@@ -302,6 +304,20 @@ import { decodeHtmlEntities, scrollToElementID } from '../shared-functions.js';
  * @type {Ref<Array>} - A reference to an array containing FAQs.
  */
 const faqs = ref([]);
+
+/**
+ * Ref to tracks if the number of results is 1.
+ *
+ * @type {Ref<Bool>} - A reference to the state of results.
+ */
+const isSingleResult = ref(false);
+
+/**
+ * Ref to tracks if the expand button was previously clicked automatically.
+ *
+ * @type {Ref<Bool>} - A reference to the state of clicks.
+ */
+const wasClicked = ref(false);
 
 /**
  * Ref for for controlling tool visibility.
@@ -577,6 +593,10 @@ const buildCategoryHierarchy = (categories) => {
   // Add tool identifier
   urlParams.set('tool', 'faqs');
 
+  // Add textSearch
+  if (textSearch.value && textSearch.value !== '') {
+    urlParams.set('filterText', encodeURIComponent(textSearch.value));
+  }
   // Add category filter if not default
   if (selectedCategory.value && selectedCategory.value !== 'all') {
     urlParams.set('category', encodeURIComponent(selectedCategory.value));
@@ -607,13 +627,14 @@ const buildCategoryHierarchy = (categories) => {
  * // Copies a URL like:
  * // https://betterhomesbc.ca?tool=contractors&type=Heat%20Pump&program=Energy%20Savings&region=Vancouver
  */
- const addLinkToClipboard = () => {
+ const addLinkToClipboard = (event) => {
+  
   const url = assembleUrl();
 
   navigator.clipboard
     .writeText(url)
     .then(() => {
-      console.log('URL copied to clipboard:', url);
+      handleLinkCopiedMessageContent(event, '.filter-container', 'Settings link to copied to clipboard!');
     })
     .catch((err) => {
       console.error('Failed to copy URL:', err);
@@ -1086,6 +1107,29 @@ window.addEventListener('click', (event) => {
 });
 
 /**
+ * Watches the length of `filteredFaqs` to determine if there's only one result.
+ * If so, it triggers a click event on the Expand or Collapse all button so that single results are auto-expanded.
+ */
+ watch(filteredFaqs, async () => {
+  const isSingle = filteredFaqs.value.length === 1;
+  isSingleResult.value = isSingle;
+
+  await nextTick(); // Ensure the DOM updates
+
+  const buttonSelector = isSingle
+    ? '#faqFilterApp .expand-accordions button'
+    : '#faqFilterApp .close-accordions button';
+
+  const actionButton = document.querySelector(buttonSelector);
+
+  if (actionButton) {
+    actionButton.click();
+    wasClicked.value = isSingle; // Track if button was clicked
+  }
+});
+
+
+/**
  * Initializes accordion components for a list of DOM elements.
  *
  * @param {Array<Element>} accordions - An array of DOM elements representing accordions.
@@ -1102,7 +1146,7 @@ function initAccordions(accordions) {
  * @param {Event} event - The event object triggered by the click action.
  */
 function addFaqLinkToClipboard(event) {
-  handleLinkCopiedMessageContent(event);
+  handleLinkCopiedMessageContent(event, '.faq', 'FAQ link copied to clipboard!');
 
   // Add to clipboard via Navigator API.
   if (navigator.clipboard) {
@@ -1116,9 +1160,9 @@ function addFaqLinkToClipboard(event) {
  *
  * @param {Event} event - The event object triggered by the click action.
  */
-function handleLinkCopiedMessageContent(event) {
-  const item = event.target.closest('.faq');
-  const messageToUser = ref('Link to FAQ copied to clipboard!');
+function handleLinkCopiedMessageContent(event, target = '.faq', msg) {
+  const item = event.target.closest(target);
+  const messageToUser = ref(msg);
   const messageArea = item ? item.querySelector('.copy-message') : null;
 
   if (messageArea && messageArea.classList.contains('isFadedOut')) {
@@ -1183,7 +1227,7 @@ watchEffect(() => {
     // Initialize selected filters from query string
     const category = urlParams.get('category');
     const additional = urlParams.get('additional');
-    const searchText = urlParams.get('search');
+    const searchText = urlParams.get('filterText');
 
     // Decode and set the category filter
     if (category) {
@@ -1203,6 +1247,8 @@ watchEffect(() => {
       } else {
         console.warn(`Invalid additional filter: ${decodedAdditionalFilter}`);
       }
+    } else {
+      selectedAdditionalFilter.value = 'all';
     }
 
     // Decode and set the text search
