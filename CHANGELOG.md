@@ -1,3 +1,9 @@
+## 1.7.1 November 27, 2024
+- Added text filtering to FAQ link generation and if a single result is show, auto expands the FAQ result.
+- Suppress the lower pagination on single page results for FAQs.
+- Disabled Copy Link on PQEAs until lregion/location is selected.
+- Added user feedback interaction to Copy Link buttons.
+
 ## 1.7.0 November 26, 2024
 - Added watchEffect in Contractors, PQEAs and FAQs tools to look for query string values able to instantiate the tools based on preset values. 
 - Also includes the ability to hide tools based on the '&show=off' query string addition.

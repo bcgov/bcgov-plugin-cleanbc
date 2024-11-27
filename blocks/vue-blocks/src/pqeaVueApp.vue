@@ -44,10 +44,11 @@
                 @click.prevent="addLinkToClipboard"
                 @touchend="addLinkToClipboard"
                 @keydown.enter.prevent="addLinkToClipboard"
-                :disabled="locationSelect === 'all'"
+                :disabled="selectedLocation === 'all'"
                 type="button">
                 Copy link
             </button>
+            <span class="copy-message isFadedOut" role="status" aria-live="polite"></span>
         </div>
 
         <!-- Pagination Controls -->
@@ -456,19 +457,48 @@ const paginatedPqeas = computed(() => {
  * // Copies a URL like:
  * // https://betterhomesbc.ca?tool=contractors&type=Heat%20Pump&program=Energy%20Savings&region=Vancouver
  */
- const addLinkToClipboard = () => {
+ const addLinkToClipboard = (event) => {
+
   const url = assembleUrl();
 
   navigator.clipboard
     .writeText(url)
     .then(() => {
-      console.log('URL copied to clipboard:', url);
+      handleLinkCopiedMessageContent(event, '.filter-container', 'Settings link to copied to clipboard!');
     })
     .catch((err) => {
       console.error('Failed to copy URL:', err);
       alert('Failed to copy the link. Please try again.');
     });
 };
+
+/**
+ * Injects messageToUser into ARIA live region node.
+ *
+ * @param {Event} event - The event object triggered by the click action.
+ */
+ function handleLinkCopiedMessageContent(event, target = '.filter-container', msg) {
+  const item = event.target.closest(target);
+  const messageToUser = ref(msg);
+  const messageArea = item ? item.querySelector('.copy-message') : null;
+
+  if (messageArea && messageArea.classList.contains('isFadedOut')) {
+    // Inject message to user, triggering ARIA live region.
+    messageArea.innerText = messageToUser.value;
+
+    // Show copy message and fade out after a delay.
+    messageArea.classList.remove('isFadedOut');
+    // Wait before re-adding the opacity class.
+    setTimeout(() => { messageArea.classList.add('isFadedOut'); }, 1000);
+    // Check again, in case of double-click.
+    setTimeout(() => {
+      if (messageArea.classList.contains('isFadedOut')) {
+        messageArea.innerText = '';
+      }
+    }, 1600);
+
+  }
+}
 
 /**
  * Function to navigate to the previous page in paginated results.
