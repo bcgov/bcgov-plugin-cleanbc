@@ -1,3 +1,10 @@
+## 1.7.2 November 28, 2024
+- Added Rebates query string ability to instantiate the tool based on preset values with copy link. 
+- Update includes all relevant features from other tools eg: hide/show lower pagination, assemble URLs, clipboard copy, etc.
+- Added Rebates pagination to bottom of results table with scroll to top of results button.
+- Auto-expand Filter by upgrade accordion is any options are pre-selected.
+- Added HTML decoding guard to rebate title display.
+
 ## 1.7.1 November 27, 2024
 - Added text filtering to FAQ link generation and if a single result is show, auto expands the FAQ result.
 - Suppress the lower pagination on single page results for FAQs.
