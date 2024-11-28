@@ -181,6 +181,19 @@
           </button>
         </div>
 
+        <!-- Add Link to Clipboard Button -->
+        <div v-if='isVisible' class="control copy-link-btn">
+            <button class="copy-link" 
+                @click.prevent="addLinkToClipboard"
+                @touchend="addLinkToClipboard"
+                @keydown.enter.prevent="addLinkToClipboard"
+                :disabled="selectedBuildType === 'all' && selectedLocation === 'all' && selectedHeatingSystem === 'all' && !selectedUpgradeTypes.length"
+                type="button">
+                Copy link
+            </button>
+            <span class="copy-message isFadedOut" role="status" aria-live="polite"></span>
+        </div>
+
         <!-- Pagination Controls (Top) -->
         <div class="rebatesFilterPagination control pagination pagination--top">
             <!-- Previous Page Button -->
@@ -267,14 +280,30 @@
                 <!-- Results Loop -->
                 <template v-if="rebates.length > 0 && !isLoading" v-for="(rebate, index) in paginatedRebates" :key="index">
                     <article :class="`rebate result result--${index+1} ${0 === (index+1) % 2 ? `even` : `odd`}`">
-                        <div class="rebate__title"><h3 v-html="rebate.title"></h3></div>
+                        <div class="rebate__title"><h3 v-html="decodeHtmlEntities(rebate.title)"></h3></div>
                         <div :class=rebateAmountClasses(rebate.rebate_amount)><p>{{ rebate.rebate_amount }}</p></div>
                         <div class="rebate__short-description"><p v-html="rebate.short_description"></p></div>
                         <div class="rebate__learn-more">
-                            <a :href="rebate.post_url" class="button" :aria-label="rebate.title + ' view rebate details'">View rebate details</a>
+                            <a :href="rebate.post_url" class="button" :aria-label="decodeHtmlEntities(rebate.title) + ' view rebate details'">View rebate details</a>
                         </div>
                     </article>
                 </template>
+            </div>
+            
+            <div v-if="isVisible && filteredRebates.length !== 0 && 1 !== totalPages" class="rebatesFilterControls filter-container">
+              <!-- Lower Pagination Controls -->
+              <div class="rebatesFilterPagination control pagination pagination--bottom">
+                <!-- Previous Page Button -->
+                <button class="prev-page" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0"
+                  type="button">Previous Page</button>
+                <!-- Current Page & Totals -->
+                <span class="pages">Page <span class="numValue current-page">{{ currentPage }}</span> of <span
+                    class="numValue total-pages">{{ totalPages }}</span></span>
+                <!-- Next Page Button -->
+                <button class="next-page" @click.prevent="nextPage" :disabled="currentPage === totalPages" tabindex="0"
+                  type="button">Next Page</button>
+                <button class="go-to-top" tabindex="0" type="button" :disabled="filteredRebates.length === 0" @click="scrollToElementID('rebatesResults', '11rem')">Go to top of results</button>
+              </div>
             </div>
         </div>
     </div>
@@ -296,12 +325,15 @@
  * @namespace VueCompositionAPI
  */
  import {
+    computed,
+    nextTick,
     ref,
     onMounted,
-    computed,
-    watch
+    watch,
+    watchEffect
 } from 'vue';
 
+import { decodeHtmlEntities, scrollToElementID } from '../shared-functions.js';
 
 /**
  * Ref for storing an array of Rebates (incentives).
@@ -309,6 +341,13 @@
  * @type {Ref<Array>} - A reference to an array containing Rebates.
  */
 const rebates = ref([]);
+
+/**
+ * Ref for for controlling tool visibility.
+ *
+ * @type {Ref<Bool>} - A reference to the current visibility.
+ */
+ const isVisible = ref(true);
 
 /**
  * Refs to store the previous paginated/filtered Rebates count for
@@ -672,6 +711,100 @@ const locations = computed(() => {
 	const sortedLocations = Array.from(uniqueLocations).sort((a, b) => a.localeCompare(b));
 	return [...sortedLocations];
 });
+
+
+/**
+ * Function assembles a URL with query string parameters for the selected type, program, and location.
+ *
+ * @returns {string} - The assembled URL with query string parameters.
+ */
+ const assembleUrl = () => {
+  const baseUrl = window.location.origin + window.location.pathname;
+
+  const urlParams = new URLSearchParams();
+
+  // Add tool identifier
+  urlParams.set('tool', 'rebates');
+
+  // Add type filter if not default
+  if (selectedBuildType.value && selectedBuildType.value !== 'all') {
+    urlParams.set('type', encodeURIComponent(selectedBuildType.value));
+  }
+
+  // Add program filter if not default
+  if (selectedLocation.value && selectedLocation.value !== 'all') {
+    urlParams.set('region', encodeURIComponent(selectedLocation.value));
+  }
+
+  // Add location filter if not default
+  if (selectedHeatingSystem.value && selectedHeatingSystem.value !== 'all') {
+    urlParams.set('system', encodeURIComponent(selectedHeatingSystem.value));
+  }
+
+  // Add location filter if not default
+  if (selectedUpgradeTypes.value.length > 0) {
+    urlParams.set('upgrade', encodeURIComponent(selectedUpgradeTypes.value.join(',')));
+  }
+
+  // Combine base URL with query string
+  return `${baseUrl}?${urlParams.toString()}`;
+};
+
+/**
+ * Copies the dynamically assembled URL with filters to the clipboard.
+ *
+ * This function generates a URL containing query string parameters based on
+ * the selected type, program, and location, and copies it to the clipboard.
+ * It provides feedback via a success or error message.
+ *
+ * @function
+ * @returns {void}
+ *
+ * @example
+ * // Example usage:
+ * addLinkToClipboard();
+ * // Copies a URL like:
+ * // https://betterhomesbc.ca?tool=contractors&type=Heat%20Pump&program=Energy%20Savings&region=Vancouver
+ */
+ const addLinkToClipboard = (event) => {
+  const url = assembleUrl();
+
+  navigator.clipboard
+    .writeText(url)
+    .then(() => {
+      handleLinkCopiedMessageContent(event, '.filter-container', 'Link copied to clipboard successfully!');
+    })
+    .catch((err) => {
+      console.error('Failed to copy URL:', err);
+      alert('Failed to copy the link. Please try again.');
+    });
+};
+;
+
+
+/**
+ * Injects messageToUser into ARIA live region node.
+ *
+ * @param {Event} event - The event object triggered by the click action.
+ */
+ function handleLinkCopiedMessageContent(event, target = '.filter-container', msg) {
+  const container = event.target.closest(target);
+  const messageArea = container ? container.querySelector('.copy-message') : null;
+
+  if (messageArea) {
+    messageArea.innerText = msg;
+    messageArea.classList.remove('isFadedOut');
+
+    setTimeout(() => {
+      messageArea.classList.add('isFadedOut');
+    }, 1500);
+
+    setTimeout(() => {
+      messageArea.innerText = '';
+    }, 2000);
+  }
+}
+
 
 /**
  * Computed property for generating a filter results message based on the selected category.
@@ -1217,6 +1350,45 @@ window.addEventListener("click", (event) => {
 });
 
 /**
+ * Watches the `selectedUpgradeTypes` array for changes and ensures the upgrade types accordion is expanded
+ * if any upgrade type checkboxes are selected. It does not auto-close the accordion at any point.
+ *
+ * @function
+ * @async
+ * @returns {Promise<void>} - Resolves when the DOM updates and the accordion's state is handled.
+ *
+ * @description
+ * - Monitors the `selectedUpgradeTypes` array for changes.
+ * - If any upgrade type checkboxes are selected:
+ *   - Ensures the DOM is updated using `nextTick`.
+ *   - Locates the accordion trigger button (`#upgradeTypesAccordionTrigger`).
+ *   - Checks the `aria-expanded` attribute to determine if the accordion is already expanded.
+ *   - If not expanded, clicks the trigger button to expand the accordion.
+ * - Prevents auto-closing by only acting when the accordion is not expanded.
+ */
+watch(selectedUpgradeTypes, async () => {
+  // Check if any upgrade type checkboxes are selected
+  const hasSelectedUpgradeTypes = selectedUpgradeTypes.value.length > 0;
+
+  // Get the upgrade types accordion trigger button
+  const accordionTrigger = document.querySelector('#upgradeTypesAccordionTrigger');
+
+  // Wait for DOM updates to ensure the checkboxes are rendered
+  await nextTick();
+  
+  if (hasSelectedUpgradeTypes && accordionTrigger) {
+    // Check if the accordion is not already expanded
+    const isExpanded = accordionTrigger.getAttribute('aria-expanded') === 'true';
+
+    if (!isExpanded) {
+      // Click the trigger to expand the accordion
+      accordionTrigger.click();
+    }
+  }
+});
+
+
+/**
  * A Vue lifecycle hook that is called after the instance has been mounted.
  * It retrieves various attributes from the 'postFilterApp' element and assigns them to reactive properties.
  * It also shows a loading message, fetches data, and then handles the URL hash.
@@ -1225,11 +1397,6 @@ window.addEventListener("click", (event) => {
  */
 onMounted(() => {
 	fetchData();
-
-	const appElement = document.getElementById('rebateFilterApp');
-	showLoadingMessage.value = true;
-
-	if (window.site?.domain) {}
 
 	// init accordions
 	const accordions = document.querySelectorAll('.filter.accordion h2');
@@ -1285,6 +1452,75 @@ class Accordion {
 		this.toggle(false);
 	}
 }
+
+watchEffect(() => {
+  // Ensure types, systems, locations, and upgrades are populated before proceeding
+  if (types.value.length && locations.value.length && systems.value.length && upgrades.value.length) {
+    // Get query string parameters
+    const urlParams = new URLSearchParams(window.location.search);
+
+    const showParam = urlParams.get('show');
+
+    // Ensure the tool matches "rebates" before processing
+    if (urlParams.get('tool') !== 'rebates') {
+      console.warn('Tool parameter does not match "rebates". Initialization skipped.');
+      return;
+    }
+
+    // Hide tools if `show=off` is in the query string
+    if (showParam === 'off') {
+      isVisible.value = false;
+    }
+
+    // Initialize selected filters from query string
+    const buildType = urlParams.get('type');
+    const serviceRegion = urlParams.get('region');
+    const rebateSystem = urlParams.get('system');
+    const upgradeType = urlParams.get('upgrade');
+
+    // Update the corresponding reactive properties with URI-decoded values
+    if (buildType) {
+      const decodedBuildType = decodeURIComponent(buildType);
+      if (types.value.includes(decodedBuildType)) {
+        selectedBuildType.value = decodedBuildType;
+      } else {
+        console.warn(`Invalid build type: ${decodedBuildType}`);
+      }
+    }
+
+    if (serviceRegion) {
+      const decodedServiceRegion = decodeURIComponent(serviceRegion);
+      if (locations.value.includes(decodedServiceRegion)) {
+        selectedLocation.value = decodedServiceRegion;
+      } else {
+        console.warn(`Invalid service region: ${decodedServiceRegion}`);
+      }
+    }
+
+    if (rebateSystem) {
+      const decodedRebateSystem = decodeURIComponent(rebateSystem);
+      if (systems.value.includes(decodedRebateSystem)) {
+        selectedHeatingSystem.value = decodedRebateSystem;
+      } else {
+        console.warn(`Invalid rebate program: ${decodedRebateSystem}`);
+      }
+    }
+
+    if (upgradeType) {
+      const decodedUpgradeTypes = decodeURIComponent(upgradeType).split(',');
+      const validUpgradeTypes = decodedUpgradeTypes.filter(upgrade => upgrades.value.includes(upgrade));
+
+      if (validUpgradeTypes.length) {
+        selectedUpgradeTypes.value = validUpgradeTypes;
+      } else {
+        console.warn(`Invalid upgrade types: ${decodedUpgradeTypes.join(', ')}`);
+      }
+    }
+
+    // Stop showing the loading message once data is initialized
+    showLoadingMessage.value = false;
+  }
+});
 </script>
 
 <style lang='scss' scoped>
