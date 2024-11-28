@@ -4,6 +4,7 @@
 - Added Rebates pagination to bottom of results table with scroll to top of results button.
 - Auto-expand Filter by upgrade accordion is any options are pre-selected.
 - Added HTML decoding guard to rebate title display.
+- Fixed comma bug in link Upgrade filters list options by parsing quoted values.
 
 ## 1.7.1 November 27, 2024
 - Added text filtering to FAQ link generation and if a single result is show, auto expands the FAQ result.
