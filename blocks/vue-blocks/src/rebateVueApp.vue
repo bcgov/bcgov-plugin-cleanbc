@@ -741,9 +741,10 @@ const locations = computed(() => {
     urlParams.set('system', encodeURIComponent(selectedHeatingSystem.value));
   }
 
-  // Add location filter if not default
+  // Add upgrade filter if not default
   if (selectedUpgradeTypes.value.length > 0) {
-    urlParams.set('upgrade', encodeURIComponent(selectedUpgradeTypes.value.join(',')));
+    const wrappedUpgrades = selectedUpgradeTypes.value.map(upgrade => `"${upgrade}"`).join(',');
+    urlParams.set('upgrade', encodeURIComponent(wrappedUpgrades));
   }
 
   // Combine base URL with query string
@@ -1507,13 +1508,17 @@ watchEffect(() => {
     }
 
     if (upgradeType) {
-      const decodedUpgradeTypes = decodeURIComponent(upgradeType).split(',');
-      const validUpgradeTypes = decodedUpgradeTypes.filter(upgrade => upgrades.value.includes(upgrade));
+      // Decode the upgradeType parameter and parse quoted values
+      const decodedUpgradeType = decodeURIComponent(upgradeType);
+      const upgradeTypesArray = parseQuotedValues(decodedUpgradeType);
+
+      // Validate the parsed upgrade types
+      const validUpgradeTypes = upgradeTypesArray.filter(upgrade => upgrades.value.includes(upgrade));
 
       if (validUpgradeTypes.length) {
         selectedUpgradeTypes.value = validUpgradeTypes;
       } else {
-        console.warn(`Invalid upgrade types: ${decodedUpgradeTypes.join(', ')}`);
+        console.warn(`Invalid upgrade types: ${upgradeTypesArray.join(', ')}`);
       }
     }
 
@@ -1521,6 +1526,39 @@ watchEffect(() => {
     showLoadingMessage.value = false;
   }
 });
+
+/**
+ * Parses a string containing quoted values separated by commas, allowing for commas within quotes.
+ *
+ * @param {string} input - The string to parse.
+ * @returns {string[]} - An array of parsed values.
+ */
+ function parseQuotedValues(input) {
+  const values = [];
+  let current = '';
+  let insideQuotes = false;
+
+  for (const char of input) {
+    if (char === '"') {
+      // Toggle the insideQuotes state
+      insideQuotes = !insideQuotes;
+    } else if (char === ',' && !insideQuotes) {
+      // Push the current value when outside quotes and reset
+      values.push(current.trim());
+      current = '';
+    } else {
+      // Append character to the current value
+      current += char;
+    }
+  }
+
+  // Add the last value
+  if (current.trim()) {
+    values.push(current.trim());
+  }
+
+  return values;
+}
 </script>
 
 <style lang='scss' scoped>
