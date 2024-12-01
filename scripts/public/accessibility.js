@@ -21,7 +21,9 @@ const bcgovBlockThemePluginAccessibility = () => {
 					if ( sibling.nodeType === 1 && sibling !== elem ) {
 						siblings.push( sibling );
 					}
-					sibling = sibling.nextSibling;
+					if ( null !==  sibling.nextSibling ) {
+						sibling = sibling.nextSibling;
+					}
 				}
 				return siblings;
 			};
