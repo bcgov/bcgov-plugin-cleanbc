@@ -1219,7 +1219,7 @@ watchEffect(() => {
     }
 
     // Check for the tool parameter
-    if (urlParams.get('tool') !== 'faqs') {
+    if (null !== urlParams.get('tool') && urlParams.get('tool') !== 'faqs') {
       console.warn('Tool parameter does not match "faqs". Initialization skipped.');
       return;
     }

@@ -1,3 +1,6 @@
+## 1.8.0 Decvember 1, 2024
+- Added isolation of Vue component initialization.
+
 ## 1.7.2 November 28, 2024
 - Added Rebates query string ability to instantiate the tool based on preset values with copy link. 
 - Update includes all relevant features from other tools eg: hide/show lower pagination, assemble URLs, clipboard copy, etc.
