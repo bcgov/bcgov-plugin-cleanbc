@@ -1,4 +1,4 @@
-## 1.8.0 Decvember 1, 2024
+## 1.8.0 December 1, 2024
 - Added isolation of Vue component initialization.
 
 ## 1.7.2 November 28, 2024
