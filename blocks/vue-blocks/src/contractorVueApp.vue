@@ -961,7 +961,7 @@ watchEffect(() => {
     const showParam = urlParams.get('show');
 
     // Ensure the tool matches "contractors" before processing
-    if (urlParams.get('tool') !== 'contractors') {
+    if (null !== urlParams.get('tool') && urlParams.get('tool') !== 'contractors') {
       console.warn('Tool parameter does not match "contractors". Initialization skipped.');
       return;
     }

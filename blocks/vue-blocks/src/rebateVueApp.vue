@@ -1463,7 +1463,7 @@ watchEffect(() => {
     const showParam = urlParams.get('show');
 
     // Ensure the tool matches "rebates" before processing
-    if (urlParams.get('tool') !== 'rebates') {
+    if (null !== urlParams.get('tool') && urlParams.get('tool') !== 'rebates') {
       console.warn('Tool parameter does not match "rebates". Initialization skipped.');
       return;
     }

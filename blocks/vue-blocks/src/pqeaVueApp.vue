@@ -850,7 +850,7 @@ watchEffect(() => {
     const showParam = urlParams.get('show');
 
     // Ensure the tool matches "pqeas" before processing
-    if (urlParams.get('tool') !== 'pqeas') {
+    if (null !== urlParams.get('tool') && urlParams.get('tool') !== 'pqeas') {
       console.warn('Tool parameter does not match "pqeas". Initialization skipped.');
       return;
     }
