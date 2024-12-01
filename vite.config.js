@@ -25,5 +25,6 @@ export default defineConfig({
         vuePosts: resolve(__dirname,'blocks/vue-blocks/vue.html')
       }
     },
+    sourcemap: true
   },
 })
