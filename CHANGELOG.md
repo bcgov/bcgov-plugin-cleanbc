@@ -1,3 +1,6 @@
+## 1.8.1 December 2, 2024
+- Re-initialize the definitions links after using the Category filtering on CleanBC Actons Vue tool.
+
 ## 1.8.0 December 1, 2024
 - Added isolation of Vue component initialization.
 

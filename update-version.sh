@@ -41,4 +41,4 @@ perl -pi -e "s/\"version\": \"[0-9.]+\"/\"version\": \"${NEW_VERSION}\"/" compos
 # Update package.json
 perl -pi -e "s/\"version\": \"[0-9.]+\"/\"version\": \"${NEW_VERSION}\"/" package.json
 
-echo "Version updated successfully to ${NEW_VERSION}!"
+echo "Version updated successfully to ${NEW_VERSION}! Don't forget to update the composer lock file."

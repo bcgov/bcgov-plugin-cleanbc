@@ -147,7 +147,7 @@ const fetchData = async (offset = 0) => {
         setTimeout(() => {
             doExternalLinkCheck();
             checkDefinitions();
-        }, 50);
+        }, 150);
 
     } catch (error) {
         console.error('Error fetching data:', error);
@@ -178,6 +178,12 @@ const checkTag = (index) => {
     if (actionTitleElement) {
         actionTitleElement.scrollIntoView({ behavior: 'smooth' });
     }
+
+    setTimeout(() => {
+        doExternalLinkCheck();
+        checkDefinitions();
+    }, 150);
+    
 };
 
 /**
@@ -222,7 +228,7 @@ const clearFilters = () => {
     setTimeout(() => {
         doExternalLinkCheck();
         checkDefinitions();
-    }, 50);
+    }, 150);
 };
 
 /**
