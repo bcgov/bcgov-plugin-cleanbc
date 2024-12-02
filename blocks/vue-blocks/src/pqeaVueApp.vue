@@ -7,7 +7,7 @@
     <!-- Filter Controls -->
     <div id="pqeasFilterControls" class="pqeasFilterControls filter-container">
         <!-- Category Select -->
-        <div class="control category-select">
+        <div v-if='isVisible' class="control category-select">
           <label for="categorySelect" class="">Choose between home construction and home renovation</label>
           <div class="custom-select">
               <select @change="selectIsActive" @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive" tabindex="0" id="categorySelect" class="select select--category" v-model="selectedCategory" :required="true" data-active="false">
@@ -18,7 +18,7 @@
         </div>
 
         <!-- Location Select -->
-        <div class="control location-select">
+        <div v-if='isVisible' class="control location-select">
           <label for="locationSelect" class="">Choose a service region</label>
           <div class="custom-select">
               <select @change="selectIsActive" @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive" tabindex="0" id="locationSelect" class="select select--location" v-model="selectedLocation">
@@ -29,7 +29,7 @@
         </div>
 
         <!-- Clear Filters Button -->
-        <div class="control reset-filters">
+        <div v-if='isVisible' class="control reset-filters">
           <button class="clear-filters" @click.prevent="clearFilters"
               @touchend="clearFilters"
               @keydown.enter.prevent="clearFilters"
@@ -37,6 +37,20 @@
               Reset selection
           </button>
         </div>
+
+        <!-- Add Link to Clipboard Button -->
+        <div v-if='isVisible' class="control copy-link-btn">
+            <button class="copy-link" 
+                @click.prevent="addLinkToClipboard"
+                @touchend="addLinkToClipboard"
+                @keydown.enter.prevent="addLinkToClipboard"
+                :disabled="selectedLocation === 'all'"
+                type="button">
+                Copy link
+            </button>
+            <span class="copy-message isFadedOut" role="status" aria-live="polite"></span>
+        </div>
+
         <!-- Pagination Controls -->
         <div class="pqeasFilterPagination control pagination pagination--top">
             <!-- Previous Page Button -->
@@ -59,7 +73,7 @@
     </div>
 
     <!-- PQEAs Results Table -->
-    <h2 class="results__title">Results (<span class="counter__value">{{ filteredPqeas.length }}</span>)</h2>
+    <h2 class="results__title">Find an Energy Advisor results (<span class="counter__value">{{ filteredPqeas.length }}</span>)</h2>
     <table id="pqeasResults" class="pqeasResults results table table--striped">
         <caption class="sr-only">Program Qualified Energy Advisors</caption>
         <!-- Table Columns -->
@@ -103,12 +117,12 @@
                     <!-- Company Name and Head Office -->
                     <td data-label="Company Name and Head Office" class="pqea__company-and-location">
                         <!-- Company Website Link -->
-                        <a v-if="pqea.details.company_website" class="pqea__company external" :href="pqea.details.company_website" target="_blank" :aria-label="pqea.details.company_name + ' website, opens in a new tab/window.'">
-                            {{ pqea.details.company_name ? pqea.details.company_name : 'Website' }}
+                        <a v-if="pqea.details.company_website" class="pqea__company external" :href="pqea.details.company_website" target="_blank" :aria-label="decodeHtmlEntities(pqea.details.company_name) + ' website, opens in a new tab/window.'">
+                            {{ pqea.details.company_name ? decodeHtmlEntities(pqea.details.company_name) : 'Website' }}
                         </a>
                         <!-- Company Name if No Website -->
                         <span v-else class="pqea__company">
-                            {{ pqea.details.company_name ? pqea.details.company_name : 'No company name provided' }}
+                            {{ pqea.details.company_name ? decodeHtmlEntities(pqea.details.company_name) : 'No company name provided' }}
                         </span>
                         <!-- Company Location -->
                         <span class="pqea__location">
@@ -177,6 +191,19 @@
         </tbody>
     </table>
   </div>
+
+  <div v-if="isVisible && filteredPqeas.length !== 0 && 1 !== totalPages" class="pqeasFilterControls filter-container filter-container--bottom">
+    <!-- Lower Pagination Controls -->
+    <div class="pqeasFilterPagination control pagination pagination--bottom">
+            <!-- Previous Page Button -->
+            <button class="prev-page" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0" type="button">Previous Page</button>
+            <!-- Current Page & Totals -->
+            <span class="pages">Page <span class="numValue current-page">{{ currentPage }}</span> of <span class="numValue total-pages">{{ totalPages }}</span></span>
+            <!-- Next Page Button -->
+            <button class="next-page" @click.prevent="nextPage" :disabled="currentPage === totalPages" tabindex="0" type="button">Next Page</button>
+            <button class="go-to-top" tabindex="0" type="button" :disabled="filteredPqeas.length === 0" @click="scrollToElementID('pqeasResults', '11rem')">Go to top of results</button>
+        </div>
+  </div>
 </template>
 
 <script setup>
@@ -194,9 +221,11 @@
 	ref,
 	onMounted,
 	computed,
-	watch
+	watch,
+    watchEffect
 } from 'vue';
 
+import { decodeHtmlEntities, shuffleArray, scrollToElementID } from '../shared-functions.js';
 
 /**
  * Ref for storing an array of Program Qualified Energy Advisors (PQEAs).
@@ -204,6 +233,13 @@
  * @type {Ref<Array>} - Reference to an array containing PQEAs.
  */
 const pqeas = ref([]);
+
+/**
+ * Ref for for controlling tool visibility.
+ *
+ * @type {Ref<Bool>} - A reference to the current visibility.
+ */
+ const isVisible = ref(true);
 
 /**
  * Ref for the default and currently selected category.
@@ -306,7 +342,7 @@ const filteredPqeas = computed(() => {
 
 	resetSelectsActiveState();
 
-	return filteredPqeas;
+    return shuffleArray(filteredPqeas); // Add random display of filtered energy advisors.
 });
 
 /**
@@ -377,6 +413,92 @@ const paginatedPqeas = computed(() => {
 	const end = start + pageSize.value;
 	return filteredPqeas.value.slice(start, end);
 });
+
+/**
+ * Function assembles a URL with query string parameters for the selected type, program, and location.
+ *
+ * @returns {string} - The assembled URL with query string parameters.
+ */
+ const assembleUrl = () => {
+  const baseUrl = window.location.origin + window.location.pathname;
+
+  const urlParams = new URLSearchParams();
+
+  // Add tool identifier
+  urlParams.set('tool', 'pqeas');
+
+  // Add category filter
+  if (categorySelect.value) {
+    urlParams.set('category', encodeURIComponent(selectedCategory.value));
+  }
+
+  // Add location filter if not default
+  if (selectedLocation.value && selectedLocation.value !== 'all') {
+    urlParams.set('region', encodeURIComponent(selectedLocation.value));
+  }
+
+  // Combine base URL with query string
+  return `${baseUrl}?${urlParams.toString()}`;
+};
+
+/**
+ * Copies the dynamically assembled URL with filters to the clipboard.
+ *
+ * This function generates a URL containing query string parameters based on
+ * the selected type, program, and location, and copies it to the clipboard.
+ * It provides feedback via a success or error message.
+ *
+ * @function
+ * @returns {void}
+ *
+ * @example
+ * // Example usage:
+ * addLinkToClipboard();
+ * // Copies a URL like:
+ * // https://betterhomesbc.ca?tool=contractors&type=Heat%20Pump&program=Energy%20Savings&region=Vancouver
+ */
+ const addLinkToClipboard = (event) => {
+
+  const url = assembleUrl();
+
+  navigator.clipboard
+    .writeText(url)
+    .then(() => {
+      handleLinkCopiedMessageContent(event, '.filter-container', 'Settings link to copied to clipboard!');
+    })
+    .catch((err) => {
+      console.error('Failed to copy URL:', err);
+      alert('Failed to copy the link. Please try again.');
+    });
+};
+
+/**
+ * Injects messageToUser into ARIA live region node.
+ *
+ * @param {Event} event - The event object triggered by the click action.
+ */
+ function handleLinkCopiedMessageContent(event, target = '.filter-container', msg) {
+  const item = event.target.closest(target);
+  const messageToUser = ref(msg);
+  const messageArea = item ? item.querySelector('.copy-message') : null;
+
+  if (messageArea && messageArea.classList.contains('isFadedOut')) {
+    // Inject message to user, triggering ARIA live region.
+    messageArea.innerText = messageToUser.value;
+
+    // Show copy message and fade out after a delay.
+    messageArea.classList.remove('isFadedOut');
+    // Wait before re-adding the opacity class.
+    setTimeout(() => { messageArea.classList.add('isFadedOut'); }, 1000);
+    // Check again, in case of double-click.
+    setTimeout(() => {
+      if (messageArea.classList.contains('isFadedOut')) {
+        messageArea.innerText = '';
+      }
+    }, 1600);
+
+  }
+}
 
 /**
  * Function to navigate to the previous page in paginated results.
@@ -718,6 +840,54 @@ onMounted(() => {
 
 	if (window.site?.domain) {}
 });
+
+watchEffect(() => {
+  // Ensure categories and locations are populated before proceeding
+  if (categories.value.length && locations.value.length) {
+    // Get query string parameters
+    const urlParams = new URLSearchParams(window.location.search);
+
+    const showParam = urlParams.get('show');
+
+    // Ensure the tool matches "pqeas" before processing
+    if (null !== urlParams.get('tool') && urlParams.get('tool') !== 'pqeas') {
+      console.warn('Tool parameter does not match "pqeas". Initialization skipped.');
+      return;
+    }
+
+    // Hide tools if `show=off` is in the query string
+    if (showParam === 'off') {
+        isVisible.value = false;
+    }
+
+    // Initialize selected filters from query string
+    const category = urlParams.get('category');
+    const serviceRegion = urlParams.get('region');
+
+    // Update the corresponding reactive properties with URI-decoded values
+    if (category) {
+      const decodedCategory = decodeURIComponent(category);
+      if (categories.value.includes(decodedCategory)) {
+        selectedCategory.value = decodedCategory;
+      } else {
+        console.warn(`Invalid category: ${decodedCategory}`);
+      }
+    }
+
+    if (serviceRegion) {
+      const decodedRegion = decodeURIComponent(serviceRegion);
+      if (locations.value.includes(decodedRegion)) {
+        selectedLocation.value = decodedRegion;
+      } else {
+        console.warn(`Invalid service region: ${decodedRegion}`);
+      }
+    }
+
+    // Stop showing the loading message once data is initialized
+    showLoadingMessage.value = false;
+  }
+});
+
 </script>
 
 <style lang='scss' scoped>

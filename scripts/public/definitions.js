@@ -61,41 +61,47 @@ const bcgovBlockThemePluginDefnitions = () => {
                 ('keypress' === event.type && 'Enter' === event.key)
             ) {
                 event.preventDefault();
-                const url = this.getAttribute('href');
+                const url = event.currentTarget.getAttribute('href');
+                console.log('url', url);
                 const cachedData = window.sessionStorage.getItem(url);
-
+                console.log('cachedData', cachedData);
                 if (cachedData) {
                     const { title, content } = JSON.parse(cachedData);
                     displayContent(title, content);
                 } else {
                     try {
                         const response = await fetch(url);
+        
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+        
                         const html = await response.text();
                         const parser = new window.DOMParser();
-                        const doc = parser.parseFromString(
-                            html,
-                            'text/html'
-                        );
-                        const title = doc.querySelector(
-                            'h1.wp-block-post-title'
-                        ).innerText;
-                        const content =
-                            doc.querySelector('.entry-content').innerHTML;
+                        const doc = parser.parseFromString(html, 'text/html');
+        
+                        const titleElement = doc.querySelector('.wp-block-post-title');
+                        const contentElement = doc.querySelector('.entry-content');
+        
+                        if (!titleElement || !contentElement) {
+                            throw new Error(
+                                'Required content not found in the fetched HTML.'
+                            );
+                        }
+        
+                        const title = titleElement.innerText;
+                        const content = contentElement.innerHTML;
                         const dataToCache = { title, content };
-
-                        window.sessionStorage.setItem(
-                            url,
-                            JSON.stringify(dataToCache)
-                        );
+        
+                        window.sessionStorage.setItem(url, JSON.stringify(dataToCache));
                         displayContent(title, content);
                     } catch (error) {
-                        /* eslint-disable no-console */
                         console.error('Error fetching content:', error);
-                        /* eslint-enable no-console */
                     }
                 }
             }
         }
+        
 
         /**
          *
@@ -126,7 +132,8 @@ const bcgovBlockThemePluginDefnitions = () => {
          *
          */
         function showDialog() {
-            window.dialog.showModal();
+            const dialog = document.getElementById('dialog');
+            dialog.showModal();
         }
     });
 };

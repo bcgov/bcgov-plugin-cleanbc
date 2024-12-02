@@ -8,7 +8,9 @@ const bcgovBlockThemePluginAccessibility = () => {
 	 * SafarIE iOS requires window.requestAnimationFrame update.
 	 */
 	window.requestAnimationFrame( () => {
-		if ( qs( '.actions-accordion-header' ) ) {
+
+		const actionsAccordionHeader = document.querySelector( '.actions-accordion-header' );
+		if ( null !== actionsAccordionHeader ) {
 			const getSiblings = function ( elem ) {
 				// Setup siblings array and get the first sibling
 				const siblings = [];
@@ -19,7 +21,9 @@ const bcgovBlockThemePluginAccessibility = () => {
 					if ( sibling.nodeType === 1 && sibling !== elem ) {
 						siblings.push( sibling );
 					}
-					sibling = sibling.nextSibling;
+					if ( null !==  sibling.nextSibling ) {
+						sibling = sibling.nextSibling;
+					}
 				}
 				return siblings;
 			};

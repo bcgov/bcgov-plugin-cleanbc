@@ -1,3 +1,44 @@
+## 1.8.1 December 2, 2024
+- Re-initialize the definitions links after using the Category filtering on CleanBC Actons Vue tool.
+
+## 1.8.0 December 1, 2024
+- Added isolation of Vue component initialization.
+
+## 1.7.2 November 28, 2024
+- Added Rebates query string ability to instantiate the tool based on preset values with copy link. 
+- Update includes all relevant features from other tools eg: hide/show lower pagination, assemble URLs, clipboard copy, etc.
+- Added Rebates pagination to bottom of results table with scroll to top of results button.
+- Auto-expand Filter by upgrade accordion is any options are pre-selected.
+- Added HTML decoding guard to rebate title display.
+- Fixed comma bug in link Upgrade filters list options by parsing quoted values.
+
+## 1.7.1 November 27, 2024
+- Added text filtering to FAQ link generation and if a single result is show, auto expands the FAQ result.
+- Suppress the lower pagination on single page results for FAQs.
+- Disabled Copy Link on PQEAs until lregion/location is selected.
+- Added user feedback interaction to Copy Link buttons.
+
+## 1.7.0 November 26, 2024
+- Added watchEffect in Contractors, PQEAs and FAQs tools to look for query string values able to instantiate the tools based on preset values. 
+- Also includes the ability to hide tools based on the '&show=off' query string addition.
+- Added the ability to assemble and copy a link to the clipboard with the specific filter values.
+- Added scaffolding to sort an array of objects asc or desc based on a specified property.
+- Style updates: added light site link icon variant and general copy-link style for buttons.
+
+## 1.6.3 November 25, 2024
+- Removed redundant functions in Contractor and PQEA SFC causing an error on CleanBC.
+- Fixed a scoping issue with FireFox causing a definitions error on CleanBC when using the keyboard to open the modal.
+- Added HTML decoding to FAQ titles, Contractor and PQEA names with a shared decodeHtmlEntities function.
+- Fixed an ARIA label issue on Contractors company name.
+
+## 1.6.2 November 24, 2024
+- Added FAQ, Contractor and PQEA pagination to bottom of results table with scroll to top of results button.
+- Created a 'shared functions' import script to add DRY functionality across Vue-based apps.
+
+## 1.6.1 November 23, 2024
+- Modified Contractor and PQEA output to randomise results when applications are refiltered or reloaded (but not paginated).
+- Added BH additional styles wrapping with body.betterhomesbc.
+
 ## 1.6.0 November 21, 2024
 - Added GitHub Actions linting and testing workflows. 
 - Added and removed composer dependencies to fscilitate github.com deployment.

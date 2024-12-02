@@ -1,7 +1,7 @@
 {
     "name": "bcgov-plugin/bcgov-plugin-cleanbc",
     "description": "Frontend plugin to augment Clean BC and Go Electric BC using Block Theme for BC Gov",
-    "version": "1.6.0",
+    "version": "1.8.1",
     "type": "wordpress-plugin",
     "license": "Apache-2.0",
     "repositories": [

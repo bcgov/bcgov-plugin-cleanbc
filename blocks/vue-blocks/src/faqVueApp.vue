@@ -6,112 +6,125 @@
     <a href="#faqsResults" class="sr-only skip-to-results">Skip to results</a>
     <!-- Filter Controls -->
     <div id="faqsFilterControls" class="faqsFilterControls filter-container">
-        <!-- Primary Filter: Text Search Input -->
-        <div class="control text-search">
-          <label for="textSearch" class="">Type to filter results</label>
-          <input id="textSearch"
-            type="text"
-            class="input input--text"
-            v-model="textSearch"
-            name="textSearch"
-            placeholder="Search FAQs..."/>
-        </div>
+      <!-- Primary Filter: Text Search Input -->
+      <div class="control text-search">
+        <label for="textSearch" class="">Type to filter results</label>
+        <input id="textSearch" type="text" class="input input--text" v-model="textSearch" name="textSearch"
+          placeholder="Search FAQs..." />
+      </div>
 
-        <!-- Primary Filter: Category Select -->
-        <div class="control category-select">
-          <label for="categorySelect" class="">Choose a category</label>
-          <div class="custom-select">
-              <select @change="selectIsActive" @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive" tabindex="0" id="categorySelect" class="select select--category" v-model="selectedCategory" :required="true" data-active="false">
-                  <option value="all">All Categories</option>
-                  <option v-if="!isLoading" v-for="(category, index) in categories" :key="category" :value="category">{{ category }}</option>
-              </select>
-          </div>
+      <!-- Primary Filter: Category Select -->
+      <div class="control category-select">
+        <label for="categorySelect" class="">Choose a category</label>
+        <div class="custom-select">
+          <select v-model="selectedCategory" id="categorySelect" class="select select--category">
+            <option value="all">All Categories</option>
+            <template v-for="category in hierarchicalCategories" :key="category.term_id">
+              <option :value="category.name">{{ category.name }}</option>
+              <template v-if="category.children.length">
+                <template v-for="child in category.children" :key="child.term_id">
+                  <option :value="child.name">{{ '– ' + child.name }}</option>
+                </template>
+              </template>
+            </template>
+          </select>
         </div>
+      </div>
 
-        <!-- Secondary Filter: Additional filters accordion for mobile. -->
-        <div class="control additional-filters additional-filters--mobile accordion">
-          <!-- Filters -->
-          <div class="filter filter--types">
-            <h2>
-              <button id="additionalFiltersAccordionTrigger"
-                class="accordion-trigger"
-                aria-expanded="false"
-                aria-controls="additionalFiltersAccordionPanel"
-                type="button">
-                <span class="accordion-title">Additional filters</span>
-                <span class="accordion-icon"></span>
-              </button>
-            </h2>
-            <div id="additionalFiltersAccordionPanel"
-              class="filter filter__list accordion-panel"
-              role="region"
-              aria-labelledby="additionalFiltersAccordionTrigger"
-              hidden>
-              <div class="inner">
-                <fieldset class="filter__list" v-if="!isLoading && faqs">
-                  <div :class="`filter__item radio radio--all all ${ 'all' === selectedAdditionalFilter ? isCheckedClass : '' }`">
-                    <input id="typeAll--mobile"
-                        data-filter-value="all"
-                        class="sr-only"
-                        type="radio"
-                        name="additionalFiltersMobile"
-                        value="all"
-                        :aria-checked="'all' === selectedAdditionalFilter ? true : false"
-                        aria-disabled="false"
-                        :checked="'all' === selectedAdditionalFilter ? true : false"
-                        @click="handleSelectAllInputFilter">
-                    <label for="typeAll--mobile">Show All <span class="sr-only">Results: </span> ({{ handleFilterPostCount('all') }})</label>
-                  </div>
-                  <!-- Note regarding .replace() implementations: we run .replace() twice to improve selector name quality.  The first .replace() call can result in multiple -- instances within the class's dynamic name. -->
-                  <div v-for="(filter, index) in additional_filters" :key="index" :class="`filter__item radio radio--${filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')} ${ filter === selectedAdditionalFilter ? isCheckedClass : '' }`">
-                    <input :id="filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-') + '--mobile'"
-                        :data-filter-value="filter.toLowerCase().replace(/ /g, '_')"
-                        class="sr-only"
-                        type="radio"
-                        v-model="selectedAdditionalFilter"
-                        name="additionalFiltersMobile"
-                        :value="filter"
-                        :aria-checked="filter === selectedAdditionalFilter ? true : false"
-                        :aria-disabled="0 === handleFilterPostCount(filter) ? true : false"
-                        :disabled="0 === handleFilterPostCount(filter) ? true : false"
-                        :checked="filter === selectedAdditionalFilter ? true : false">
-                    <label :for="filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-') + '--mobile'">{{ filter }} <span class="sr-only">Number of results: </span>({{ handleFilterPostCount(filter) }})</label>
-                  </div>
-                </fieldset>
-              </div>
+      <!-- Secondary Filter: Additional filters accordion for mobile. -->
+      <div class="control additional-filters additional-filters--mobile accordion">
+        <!-- Filters -->
+        <div class="filter filter--types">
+          <h2>
+            <button id="additionalFiltersAccordionTrigger" class="accordion-trigger" aria-expanded="false"
+              aria-controls="additionalFiltersAccordionPanel" type="button">
+              <span class="accordion-title">Additional filters</span>
+              <span class="accordion-icon"></span>
+            </button>
+          </h2>
+          <div id="additionalFiltersAccordionPanel" class="filter filter__list accordion-panel" role="region"
+            aria-labelledby="additionalFiltersAccordionTrigger" hidden>
+            <div class="inner">
+              <fieldset class="filter__list" v-if="!isLoading && faqs">
+                <div
+                  :class="`filter__item radio radio--all all ${'all' === selectedAdditionalFilter ? isCheckedClass : ''}`">
+                  <input id="typeAll--mobile" data-filter-value="all" class="sr-only" type="radio"
+                    name="additionalFiltersMobile" value="all"
+                    :aria-checked="'all' === selectedAdditionalFilter ? true : false" aria-disabled="false"
+                    :checked="'all' === selectedAdditionalFilter ? true : false" @click="handleSelectAllInputFilter">
+                  <label for="typeAll--mobile">Show All <span class="sr-only">Results: </span> ({{
+                    handleFilterPostCount('all') }})</label>
+                </div>
+                <!-- Note regarding .replace() implementations: we run .replace() twice to improve selector name quality.  The first .replace() call can result in multiple -- instances within the class's dynamic name. -->
+                <div v-for="(filter, index) in additional_filters" :key="index"
+                  :class="`filter__item radio radio--${filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g, '-').replace(/--/g, '-')} ${filter === selectedAdditionalFilter ? isCheckedClass : ''}`">
+                  <input
+                    :id="filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g, '-').replace(/--/g, '-') + '--mobile'"
+                    :data-filter-value="filter.toLowerCase().replace(/ /g, '_')" class="sr-only" type="radio"
+                    v-model="selectedAdditionalFilter" name="additionalFiltersMobile" :value="filter"
+                    :aria-checked="filter === selectedAdditionalFilter ? true : false"
+                    :aria-disabled="0 === handleFilterPostCount(filter) ? true : false"
+                    :disabled="0 === handleFilterPostCount(filter) ? true : false"
+                    :checked="filter === selectedAdditionalFilter ? true : false">
+                  <label
+                    :for="filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g, '-').replace(/--/g, '-') + '--mobile'">{{
+                      filter }} <span class="sr-only">Number of results: </span>({{ handleFilterPostCount(filter)
+                    }})</label>
+                </div>
+              </fieldset>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Clear Filters Button -->
-        <div class="control reset-filters">
-          <button class="clear-filters" @click.prevent="clearFilters"
-              @touchend="clearFilters"
-              @keydown.enter.prevent="clearFilters"
-              type="button">
-              Reset selection
-          </button>
-        </div>
+      <!-- Clear Filters Button -->
+      <div class="control reset-filters">
+        <button class="clear-filters " @click.prevent="clearFilters" @touchend="clearFilters"
+          @keydown.enter.prevent="clearFilters" type="button">
+          Reset selection
+        </button>
+      </div>
+      
+      <!-- Add Link to Clipboard Button -->
+      <div class="control copy-link-btn">
+        <button class="copy-link" 
+          @click.prevent="addLinkToClipboard"
+          @touchend="addLinkToClipboard"
+          @keydown.enter.prevent="addLinkToClipboard"
+          :disabled="'' === textSearch && selectedCategory === 'all'"
+          type="button">
+          Copy link
+        </button>
+        <span class="copy-message isFadedOut" role="status" aria-live="polite"></span>
+      </div>
 
-        <!-- Pagination Controls -->
-        <div class="faqsFilterPagination control pagination pagination--top">
-            <!-- Previous Page Button -->
-            <button class="prev-page" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0" type="button">Previous Page</button>
-            <!-- Current Page & Totals -->
-            <span class="pages">Page <span class="numValue current-page">{{ currentPage }}</span> of <span class="numValue total-pages">{{ totalPages }}</span></span>
-            <!-- Next Page Button -->
-            <button class="next-page" @click.prevent="nextPage" :disabled="currentPage === totalPages" tabindex="0" type="button">Next Page</button>
+      <!-- Pagination Controls -->
+      <div class="faqsFilterPagination control pagination pagination--top">
+        <!-- Previous Page Button -->
+        <button class="prev-page" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0"
+          type="button">Previous Page</button>
+        <!-- Current Page & Totals -->
+        <span class="pages">Page <span class="numValue current-page">{{ currentPage }}</span> of <span
+            class="numValue total-pages">{{ totalPages }}</span></span>
+        <!-- Next Page Button -->
+        <button class="next-page" @click.prevent="nextPage" :disabled="currentPage === totalPages" tabindex="0"
+          type="button">Next Page</button>
 
-            <!-- Results Information -->
-            <span class="totals">
-                Showing <span class="results-count"><span class="numValue paginated-faqs">{{paginatedFaqs.length }}</span> of <span class="numValue filtered-faqs">{{ filteredFaqs.length }}</span></span> Frequently Asked Questions
-            </span>
+        <!-- Results Information -->
+        <span class="totals">
+          Showing <span class="results-count"><span class="numValue paginated-faqs">{{ paginatedFaqs.length }}</span> of
+            <span class="numValue filtered-faqs">{{ filteredFaqs.length }}</span></span> Frequently Asked Questions
+        </span>
 
-            <span class="sr-status sr-only">
-                <span class="results-count" role="status" aria-live="polite">Showing <span class="numValue paginated-faqs">{{paginatedFaqs.length }}</span> of <span class="numValue filtered-faqs">{{ filteredFaqs.length }}</span> Frequently Asked Questions {{ currentTypeFilterMessage }}.</span>
-                <span class="pages" role="status" aria-live="polite">Page <span class="numValue current-page">{{ currentPage }}</span> of <span class="numValue total-pages">{{ totalPages }}</span></span>
-            </span>
-        </div>
+        <span class="sr-status sr-only">
+          <span class="results-count" role="status" aria-live="polite">Showing <span class="numValue paginated-faqs">{{
+            paginatedFaqs.length }}</span> of <span class="numValue filtered-faqs">{{ filteredFaqs.length }}</span>
+            Frequently Asked Questions {{
+              currentTypeFilterMessage }}.</span>
+          <span class="pages" role="status" aria-live="polite">Page <span class="numValue current-page">{{ currentPage
+              }}</span> of <span class="numValue total-pages">{{ totalPages }}</span></span>
+        </span>
+      </div>
     </div>
 
     <!-- FAQs Tool -->
@@ -124,34 +137,27 @@
           <fieldset class="filter__list" v-if="!isLoading && faqs">
             <legend class="sr-only">Additional Filters:</legend>
             <!-- All Filter -->
-            <div :class="`filter__item radio radio--all all ${ 'all' === selectedAdditionalFilter ? isCheckedClass : '' }`">
-              <input id="typeAll"
-                  data-filter-value="all"
-                  class="sr-only"
-                  type="radio"
-                  name="additionalFilters"
-                  value="all"
-                  :aria-checked="'all' === selectedAdditionalFilter ? true : false"
-                  aria-disabled="false"
-                  :checked="'all' === selectedAdditionalFilter ? true : false"
-                  @click="handleSelectAllInputFilter"
-                  @touchend="handleSelectAllInputFilter">
-              <label for="typeAll">Show All <span class="sr-only">Results: </span> ({{ handleFilterPostCount('all') }})</label>
+            <div
+              :class="`filter__item radio radio--all all ${'all' === selectedAdditionalFilter ? isCheckedClass : ''}`">
+              <input id="typeAll" data-filter-value="all" class="sr-only" type="radio" name="additionalFilters"
+                value="all" :aria-checked="'all' === selectedAdditionalFilter ? true : false" aria-disabled="false"
+                :checked="'all' === selectedAdditionalFilter ? true : false" @click="handleSelectAllInputFilter"
+                @touchend="handleSelectAllInputFilter">
+              <label for="typeAll">Show All <span class="sr-only">Results: </span> ({{ handleFilterPostCount('all')
+                }})</label>
             </div>
             <!-- Filter element loop -->
-            <div v-for="(filter, index) in additional_filters" :key="index" :class="`filter__item radio radio--${filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-') } ${ filter === selectedAdditionalFilter ? isCheckedClass : '' }`">
-              <input :id="filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')"
-                  :data-filter-value="filter.toLowerCase().replace(/ /g, '_')"
-                  class="sr-only"
-                  type="radio"
-                  v-model="selectedAdditionalFilter"
-                  name="additionalFilters"
-                  :value="filter"
-                  :aria-checked="filter === selectedAdditionalFilter ? true : false"
-                  :aria-disabled="0 === handleFilterPostCount(filter) ? true : false"
-                  :disabled="0 === handleFilterPostCount(filter) ? true : false"
-                  :checked="filter === selectedAdditionalFilter ? true : false">
-              <label :for="filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g,'-').replace(/--/g, '-')">{{ filter }} <span class="sr-only">Number of results: </span>({{ handleFilterPostCount(filter) }})</label>
+            <div v-for="(filter, index) in additional_filters" :key="index"
+              :class="`filter__item radio radio--${filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g, '-').replace(/--/g, '-')} ${filter === selectedAdditionalFilter ? isCheckedClass : ''}`">
+              <input :id="filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g, '-').replace(/--/g, '-')"
+                :data-filter-value="filter.toLowerCase().replace(/ /g, '_')" class="sr-only" type="radio"
+                v-model="selectedAdditionalFilter" name="additionalFilters" :value="filter"
+                :aria-checked="filter === selectedAdditionalFilter ? true : false"
+                :aria-disabled="0 === handleFilterPostCount(filter) ? true : false"
+                :disabled="0 === handleFilterPostCount(filter) ? true : false"
+                :checked="filter === selectedAdditionalFilter ? true : false">
+              <label :for="filter.toLowerCase().replace(/[ .,\/#!$%\^&\*;:{}=\-_`~()]/g, '-').replace(/--/g, '-')">{{
+                filter }} <span class="sr-only">Number of results: </span>({{ handleFilterPostCount(filter) }})</label>
             </div>
           </fieldset>
         </div>
@@ -163,21 +169,17 @@
         <div v-if="!isLoading" class="controls controls--accordions">
           <!-- Close All Accordions Button -->
           <div class="control expand-accordions">
-            <button class="expand-accordions" @click.prevent="openAllAccordions"
-                @touchend="openAllAccordions"
-                @keydown.enter.prevent="openAllAccordions"
-                type="button">
-                Expand all
+            <button class="expand-accordions" @click.prevent="openAllAccordions" @touchend="openAllAccordions"
+              @keydown.enter.prevent="openAllAccordions" type="button">
+              Expand all
             </button>
           </div>
 
           <!-- Close All Accordions Button -->
           <div class="control close-accordions">
-            <button class="close-accordions" @click.prevent="closeAllAccordions"
-                @touchend="closeAllAccordions"
-                @keydown.enter.prevent="closeAllAccordions"
-                type="button">
-                Collapse all
+            <button class="close-accordions" @click.prevent="closeAllAccordions" @touchend="closeAllAccordions"
+              @keydown.enter.prevent="closeAllAccordions" type="button">
+              Collapse all
             </button>
           </div>
         </div>
@@ -186,9 +188,9 @@
         <div :class="`page page--${currentPage}`">
           <!-- Loading Message -->
           <div v-if="isLoading" class="is-loading" role="status" aria-live="polite">
-              <div class="inner">
-                  <p class="no-results loading">Retrieving a list of FAQs, please wait...</p>
-              </div>
+            <div class="inner">
+              <p class="no-results loading">Retrieving a list of FAQs, please wait...</p>
+            </div>
           </div>
           <!-- No Results Message -->
           <div v-if="filteredFaqs.length === 0 && !isLoading" class="no-results">
@@ -198,72 +200,77 @@
           </div>
           <!-- Results Loop -->
           <template v-if="faqs.length > 0 && !isLoading" v-for="(faq, index) in paginatedFaqs" :key="index">
-              <article :class="`faq accordion result result--${index+1} ${0 === (index+1) % 2 ? `even` : `odd`}`" :data-keywords="faq.keywords">
-                  <h3>
-                    <button :id="`faqAccordionTrigger--${faq.id}`"
-                      class="accordion-trigger"
-                      aria-expanded="false"
-                      :aria-controls="`faqAccordionPanel--${faq.id}`"
-                      type="button">
-                      <span class="accordion-title">{{ faq.title }}</span>
-                      <span class="accordion-icon"></span>
-                    </button>
-                  </h3>
-                  <div :id="`faqAccordionPanel--${faq.id}`"
-                    class="accordion-panel"
-                    role="region"
-                    :aria-labelledby="`faqAccordionTrigger--${faq.id}`"
-                    hidden>
-                    <div class="inner">
-                      <div v-if="faq.building_types.length || faq.categories.length" class="faq__terms">
-                        <div v-if="faq.building_types.length" class="faq__building-types">
-                          <p>If you're:</p>
-                          <ul>
-                            <li v-for="building_type in faq.building_types">{{ building_type.name }}</li>
-                          </ul>
-                        </div>
-                        <div v-if="faq.categories.length" class="faq__faq-types">
-                          <p>{{ 1 < faq.categories.length ? 'Categories:' : 'Category:'  }}</p>
+            <article :class="`faq accordion result result--${index + 1} ${0 === (index + 1) % 2 ? `even` : `odd`}`"
+              :data-keywords="faq.keywords">
+              <h3>
+                <button :id="`faqAccordionTrigger--${faq.id}`" class="accordion-trigger" aria-expanded="false"
+                  :aria-controls="`faqAccordionPanel--${faq.id}`" type="button">
+                  <span class="accordion-title">{{ decodeHtmlEntities(faq.title) }}</span>
+                  <span class="accordion-icon"></span>
+                </button>
+              </h3>
+              <div :id="`faqAccordionPanel--${faq.id}`" class="accordion-panel" role="region"
+                :aria-labelledby="`faqAccordionTrigger--${faq.id}`" hidden>
+                <div class="inner">
+                  <div v-if="faq.building_types.length || faq.categories.length" class="faq__terms">
+                    <div v-if="faq.building_types.length" class="faq__building-types">
+                      <p>If you're:</p>
+                      <ul>
+                        <li v-for="building_type in faq.building_types">{{ building_type.name }}</li>
+                      </ul>
+                    </div>
+                    <div v-if="faq.categories.length" class="faq__faq-types">
+                      <p>{{ 1 < faq.categories.length ? 'Categories:' : 'Category:' }}</p>
                           <ul>
                             <li v-for="faq_category in faq.categories">{{ faq_category.name }}</li>
                           </ul>
+                    </div>
+                    <div class="faq__permalinks">
+                      <div class="inner">
+                        <div class="faq__link">
+                          <a :href="faq.post_url" class="copy-link" @click.stop.prevent="addFaqLinkToClipboard"
+                            @touchend.stop.prevent="addFaqLinkToClipboard">
+                            Copy FAQ link
+                          </a>
+                          <span class="copy-message isFadedOut" role="status" aria-live="polite"></span>
                         </div>
-                        <div class="faq__permalinks">
-                          <div class="inner">
-                            <div class="faq__link">
-                              <a :href="faq.post_url"
-                                class="copy-link"
-                                @click.stop.prevent="addFaqLinkToClipboard"
-                                @touchend.stop.prevent="addFaqLinkToClipboard">
-                                Copy FAQ link
-                              </a>
-                              <span class="copy-message isFadedOut" role="status" aria-live="polite"></span>
-                            </div>
-                            <div class="faq__link">
-                              <a :href="faq.post_url"
-                                class="visible-link"
-                                target="_blank">
-                                Open this FAQ in a new tab/window.
-                              </a>
-                            </div>
-                          </div>
+                        <div class="faq__link">
+                          <a :href="faq.post_url" class="visible-link" target="_blank">
+                            Open this FAQ in a new tab/window.
+                          </a>
                         </div>
-                      </div>
-                      <div class="faq__body" v-html="faq.body"></div>
-                      <div class="faq__close">
-                        <button :id="`faqAccordionTrigger--${faq.id}--close`"
-                          class=""
-                          @click.stop.prevent="collapseThisFaq"
-                          @touchend.stop.prevent="collapseThisFaq"
-                          :aria-controls="`faqAccordionPanel--${faq.id}`"
-                          type="button">
-                          <span class="accordion-title">Collapse this FAQ</span>
-                        </button>
                       </div>
                     </div>
                   </div>
-              </article>
+                  <div class="faq__body" v-html="faq.body"></div>
+                  <div class="faq__close">
+                    <button :id="`faqAccordionTrigger--${faq.id}--close`" class="" @click.stop.prevent="collapseThisFaq"
+                      @touchend.stop.prevent="collapseThisFaq" :aria-controls="`faqAccordionPanel--${faq.id}`"
+                      type="button">
+                      <span class="accordion-title">Collapse this FAQ</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </article>
           </template>
+        </div>
+
+        <div v-if="isVisible && filteredFaqs.length !== 0 && 1 !== totalPages" class="faqsFilterControls filter-container">
+          <!-- Lower Pagination Controls -->
+          <div class="faqsFilterPagination control pagination pagination--bottom">
+            <!-- Previous Page Button -->
+            <button class="prev-page" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0"
+              type="button">Previous
+              Page</button>
+            <!-- Current Page & Totals -->
+            <span class="pages">Page <span class="numValue current-page">{{ currentPage }}</span> of <span
+                class="numValue total-pages">{{ totalPages }}</span></span>
+            <!-- Next Page Button -->
+            <button class="next-page" @click.prevent="nextPage" :disabled="currentPage === totalPages" tabindex="0"
+              type="button">Next Page</button>
+            <button class="go-to-top" tabindex="0" type="button" :disabled="filteredFaqs.length === 0" @click="scrollToElementID('faqsResults', '11rem')">Go to top of results</button>
+          </div>
         </div>
       </div>
     </div>
@@ -279,14 +286,17 @@
  * @type {{ ref: Function, onMounted: Function, computed: Function, watch: Function, onUpdated: Function }}
  * @namespace VueCompositionAPI
  */
- import {
-    ref,
-    onMounted,
-    computed,
-    watch,
-    onUpdated
+import {
+  ref,
+  computed,
+  nextTick,
+  watch,
+  watchEffect,
+  onMounted,
+  onUpdated
 } from 'vue';
 
+import { decodeHtmlEntities, scrollToElementID } from '../shared-functions.js';
 
 /**
  * Ref for storing an array of FAQs.
@@ -294,6 +304,27 @@
  * @type {Ref<Array>} - A reference to an array containing FAQs.
  */
 const faqs = ref([]);
+
+/**
+ * Ref to tracks if the number of results is 1.
+ *
+ * @type {Ref<Bool>} - A reference to the state of results.
+ */
+const isSingleResult = ref(false);
+
+/**
+ * Ref to tracks if the expand button was previously clicked automatically.
+ *
+ * @type {Ref<Bool>} - A reference to the state of clicks.
+ */
+const wasClicked = ref(false);
+
+/**
+ * Ref for for controlling tool visibility.
+ *
+ * @type {Ref<Bool>} - A reference to the current visibility.
+ */
+ const isVisible = ref(true);
 
 /**
  * Ref for the current text search input.
@@ -358,12 +389,12 @@ const pageSize = ref(30); // Default page size
 const currentPage = ref(1);
 
 const itemsToClearFromSessionStorage = ref([
-	'contractorsData',
-	'contractorsTimestamp',
+  'contractorsData',
+  'contractorsTimestamp',
   'pqeasData',
-	'pqeasTimestamp',
-	'rebatesData',
-	'rebatesTimestamp',
+  'pqeasTimestamp',
+  'rebatesData',
+  'rebatesTimestamp',
 ]);
 
 const oldPaginatedFaqsCount = ref(0);
@@ -392,59 +423,59 @@ const faqsAPI = `${window.site?.domain ? window.site.domain : publicDomain}/wp-j
  * @type {Array} - An array containing the filtered FAQs based on selected category and/or location.
  */
 const filteredFaqs = computed(() => {
-	let filteredFaqs = [...filteredFaqsByCategory.value];
-	const selectedAdditional = selectedAdditionalFilter.value;
-	const searchValue = textSearch.value.toLowerCase().trim();
+  let filteredFaqs = [...filteredFaqsByCategory.value];
+  const selectedAdditional = selectedAdditionalFilter.value;
+  const searchValue = textSearch.value.toLowerCase().trim();
 
-	if (searchValue) {
-		const searchWords = searchValue.split(/\s+/);
-		filteredFaqs = filteredFaqs.filter(faq => {
-			const titleWords = faq.title.toLowerCase().split(/\s+/);
-			const keywordWords = faq.keywords.toLowerCase().split(/\s+/);
-			const uniqueWords = [...new Set([...titleWords, ...keywordWords])];
-			const combinedText = uniqueWords.join(' ');
-			return searchWords.every(word => combinedText.includes(word));
-		});
-	}
+  if (searchValue) {
+    const searchWords = searchValue.split(/\s+/);
+    filteredFaqs = filteredFaqs.filter(faq => {
+      const titleWords = faq.title.toLowerCase().split(/\s+/);
+      const keywordWords = faq.keywords.toLowerCase().split(/\s+/);
+      const uniqueWords = [...new Set([...titleWords, ...keywordWords])];
+      const combinedText = uniqueWords.join(' ');
+      return searchWords.every(word => combinedText.includes(word));
+    });
+  }
 
-	if ('all' !== selectedAdditional) {
-		filteredFaqs = filteredFaqs.filter(faq => faq.additional_filters && faq.additional_filters.some(filter => filter.name === selectedAdditional));
-	}
+  if ('all' !== selectedAdditional) {
+    filteredFaqs = filteredFaqs.filter(faq => faq.additional_filters && faq.additional_filters.some(filter => filter.name === selectedAdditional));
+  }
 
-	resetSelectsActiveState();
+  resetSelectsActiveState();
 
   setTimeout(() => {
     null
   }, 1000);
 
-	return filteredFaqs;
+  return filteredFaqs;
 });
 
 // Define a computed property to filter faqs based on the selected category
 const filteredFaqsByCategory = computed(() => {
-	const selectedCat = selectedCategory.value;
-	currentPage.value = 1;
+  const selectedCat = selectedCategory.value;
+  currentPage.value = 1;
 
-	history.replaceState(selectedAdditionalFilter.value, defaultSelectedAdditionalFilter.value);
+  history.replaceState(selectedAdditionalFilter.value, defaultSelectedAdditionalFilter.value);
 
-	if (selectedCat === 'all') {
-		return faqs.value;
-	} else {
-		return faqs.value.filter(faq => faq.categories && faq.categories.some(category => category.name === selectedCat));
-	}
+  if (selectedCat === 'all') {
+    return faqs.value;
+  } else {
+    return faqs.value.filter(faq => faq.categories && faq.categories.some(category => category.name === selectedCat));
+  }
 });
 
 const handleUpdatingAnimationClass = (elementCssPath) => {
-	const elements = document.querySelectorAll(elementCssPath);
+  const elements = document.querySelectorAll(elementCssPath);
 
-	if (0 < elements.length) {
-		elements.forEach((element) => {
-			element.classList.add(updatingClass.value);
-			setTimeout(() => {
-				element.classList.remove(updatingClass.value);
-			}, 125);
-		})
-	}
+  if (0 < elements.length) {
+    elements.forEach((element) => {
+      element.classList.add(updatingClass.value);
+      setTimeout(() => {
+        element.classList.remove(updatingClass.value);
+      }, 125);
+    })
+  }
 }
 
 /**
@@ -455,8 +486,8 @@ const handleUpdatingAnimationClass = (elementCssPath) => {
  * @type {number} - The total number of pages for paginated FAQs.
  */
 const totalPages = computed(() => {
-	const totalFaqs = filteredFaqs.value.length;
-	return totalFaqs > 0 ? Math.ceil(totalFaqs / pageSize.value) : 1;
+  const totalFaqs = filteredFaqs.value.length;
+  return totalFaqs > 0 ? Math.ceil(totalFaqs / pageSize.value) : 1;
 });
 
 
@@ -468,10 +499,148 @@ const totalPages = computed(() => {
  * @type {Array} - An array containing the paginated FAQs for the current page.
  */
 const paginatedFaqs = computed(() => {
-	const start = (currentPage.value - 1) * pageSize.value;
-	const end = start + pageSize.value;
-	return filteredFaqs.value.slice(start, end);
+  const start = (currentPage.value - 1) * pageSize.value;
+  const end = start + pageSize.value;
+  return filteredFaqs.value.slice(start, end);
 });
+
+// temp
+const hierarchicalCategories = computed(() => {
+  // Collect all categories from FAQs
+  const allCategories = faqs.value.flatMap(faq => faq.categories || []);
+  return buildCategoryHierarchy(allCategories);
+});
+
+
+/**
+ * Builds a hierarchical structure from a flat list of categories.
+ *
+ * This function processes an array of categories, organizing them into a hierarchical structure based on 
+ * their parent-child relationships. It creates a `Map` of all categories keyed by their `term_id` and 
+ * initializes an empty `children` array for each category. Additionally, it maintains a `Map` to track 
+ * the children added to each parent to prevent duplication.
+ *
+ * @function
+ * @param {Array<Object>} categories - An array of category objects to build the hierarchy from.
+ * @param {number} categories[].term_id - The unique identifier for the category.
+ * @param {string} categories[].name - The name of the category.
+ * @param {number} categories[].parent - The parent ID of the category. A value of `0` indicates a top-level category.
+ * @returns {Map<number, Object>} - A `Map` of all categories keyed by their `term_id`, where each category has a `children` array.
+ */
+const buildCategoryHierarchy = (categories) => {
+  const categoryMap = new Map(); // Map of all categories by term_id
+  const parentToChildrenSet = new Map(); // Tracks children added to each parent
+
+  // Create a map of all categories and initialize empty children arrays
+  categories.forEach((category) => {
+    if (!categoryMap.has(category.term_id)) {
+      categoryMap.set(category.term_id, { ...category, children: [] });
+    }
+  });
+
+/**
+ * Builds a hierarchical structure of categories from a flat array.
+ *
+ * This function organizes a flat array of categories into a hierarchical structure based on parent-child 
+ * relationships. Each category is represented as an object with a `children` array containing its child categories.
+ *
+ * @param {Array<Object>} categories - The flat array of category objects.
+ * @param {number} categories[].term_id - The unique identifier for the category.
+ * @param {string} categories[].name - The name of the category.
+ * @param {number} categories[].parent - The parent ID of the category. A value of `0` indicates a root-level category.
+ * @returns {Array<Object>} - An array of root-level categories, each containing a `children` array with its descendants.
+ */
+  categories.forEach((category) => {
+    if (category.parent !== 0) {
+      const parent = categoryMap.get(category.parent);
+
+      if (parent) {
+        // Ensure no duplicate children are added to a parent
+        if (!parentToChildrenSet.has(parent.term_id)) {
+          parentToChildrenSet.set(parent.term_id, new Set());
+        }
+
+        const childrenSet = parentToChildrenSet.get(parent.term_id);
+        if (!childrenSet.has(category.term_id)) {
+          parent.children.push(categoryMap.get(category.term_id));
+          childrenSet.add(category.term_id);
+        }
+      }
+    }
+  });
+
+  // Sort each parent's children alphabetically by name
+  categoryMap.forEach((category) => {
+    category.children.sort((a, b) => a.name.localeCompare(b.name));
+  });
+
+  // Return only top-level categories (parent === 0), sorted alphabetically
+  return [...categoryMap.values()]
+    .filter(category => category.parent === 0)
+    .sort((a, b) => a.name.localeCompare(b.name));
+};
+
+/**
+ * Function assembles a URL with query string parameters for the selected type, program, and location.
+ *
+ * @returns {string} - The assembled URL with query string parameters.
+ */
+ const assembleUrl = () => {
+  const baseUrl = window.location.origin + window.location.pathname;
+
+  const urlParams = new URLSearchParams();
+
+  // Add tool identifier
+  urlParams.set('tool', 'faqs');
+
+  // Add textSearch
+  if (textSearch.value && textSearch.value !== '') {
+    urlParams.set('filterText', encodeURIComponent(textSearch.value));
+  }
+  // Add category filter if not default
+  if (selectedCategory.value && selectedCategory.value !== 'all') {
+    urlParams.set('category', encodeURIComponent(selectedCategory.value));
+  }
+
+  // Add program filter if not default
+  if (selectedAdditionalFilter.value && selectedAdditionalFilter.value !== 'all') {
+    urlParams.set('additional', encodeURIComponent(selectedAdditionalFilter.value));
+  }
+
+  // Combine base URL with query string
+  return `${baseUrl}?${urlParams.toString()}`;
+};
+
+/**
+ * Copies the dynamically assembled URL with filters to the clipboard.
+ *
+ * This function generates a URL containing query string parameters based on
+ * the selected type, program, and location, and copies it to the clipboard.
+ * It provides feedback via a success or error message.
+ *
+ * @function
+ * @returns {void}
+ *
+ * @example
+ * // Example usage:
+ * addLinkToClipboard();
+ * // Copies a URL like:
+ * // https://betterhomesbc.ca?tool=contractors&type=Heat%20Pump&program=Energy%20Savings&region=Vancouver
+ */
+ const addLinkToClipboard = (event) => {
+  
+  const url = assembleUrl();
+
+  navigator.clipboard
+    .writeText(url)
+    .then(() => {
+      handleLinkCopiedMessageContent(event, '.filter-container', 'Settings link to copied to clipboard!');
+    })
+    .catch((err) => {
+      console.error('Failed to copy URL:', err);
+      alert('Failed to copy the link. Please try again.');
+    });
+};
 
 /**
  * Function to navigate to the previous page in paginated results.
@@ -483,7 +652,7 @@ const paginatedFaqs = computed(() => {
 const prevPage = () => {
   closeAllAccordions();
 
-	return currentPage.value > 1 ? currentPage.value-- : null;
+  return currentPage.value > 1 ? currentPage.value-- : null;
 };
 
 /**
@@ -496,7 +665,7 @@ const prevPage = () => {
 const nextPage = () => {
   closeAllAccordions();
 
-	return currentPage.value < totalPages.value ? currentPage.value++ : null;
+  return currentPage.value < totalPages.value ? currentPage.value++ : null;
 };
 
 /**
@@ -506,34 +675,34 @@ const nextPage = () => {
  * @type {Array} - An array containing unique EA Project Types sorted alphabetically.
  */
 const categories = computed(() => {
-	const uniqueCategories = new Set();
+  const uniqueCategories = new Set();
 
-	// Iterate through FAQs to collect distinct project type names.
-	faqs.value.forEach(faq => {
-		if (faq.categories) {
-			if (typeof faq.categories === 'string') {
-				uniqueCategories.add(faq.categories);
-			} else if (Array.isArray(faq.categories)) {
-				faq.categories.forEach(category => {
-					uniqueCategories.add(category.name);
-				});
-			}
-		}
+  // Iterate through FAQs to collect distinct project type names.
+  faqs.value.forEach(faq => {
+    if (faq.categories) {
+      if (typeof faq.categories === 'string') {
+        uniqueCategories.add(faq.categories);
+      } else if (Array.isArray(faq.categories)) {
+        faq.categories.forEach(category => {
+          uniqueCategories.add(category.name);
+        });
+      }
+    }
     if (faq.product_categories) {
       if (typeof faq.product_categories === 'string') {
-				uniqueCategories.add(faq.product_categories);
-			} else if (Array.isArray(faq.product_categories)) {
-				faq.product_categories.forEach(category => {
-					uniqueCategories.add(category.name);
-				});
-			}
+        uniqueCategories.add(faq.product_categories);
+      } else if (Array.isArray(faq.product_categories)) {
+        faq.product_categories.forEach(category => {
+          uniqueCategories.add(category.name);
+        });
+      }
     }
-	});
+  });
 
-	// Convert Set to array and sort alphabetically.
-	const sortedCategories = Array.from(uniqueCategories).sort((a, b) => a.localeCompare(b));
-	// const sortedCategories = Array.from(uniqueCategories);
-	return [...sortedCategories];
+  // Convert Set to array and sort alphabetically.
+  const sortedCategories = Array.from(uniqueCategories).sort((a, b) => a.localeCompare(b));
+  // const sortedCategories = Array.from(uniqueCategories);
+  return [...sortedCategories];
 });
 
 /**
@@ -544,26 +713,26 @@ const categories = computed(() => {
  *
  * @type {Array} - An array containing unique additional filter types extracted from FAQs.
  */
- const additional_filters = computed(() => {
-    const uniqueTypes = new Set();
+const additional_filters = computed(() => {
+  const uniqueTypes = new Set();
 
-    // Iterate through FAQs to collect distinct additional filter types.
-    faqs.value.forEach(faq => {
-        if (faq.additional_filters) {
-            if (typeof faq.additional_filters === 'string') {
-                uniqueTypes.add(faq.additional_filters);
-            } else if (Array.isArray(faq.additional_filters)) {
-                faq.additional_filters.forEach(filter => {
-                    if (filter && filter.name) {
-                        uniqueTypes.add(filter.name);
-                    }
-                });
-            }
-        }
-    });
+  // Iterate through FAQs to collect distinct additional filter types.
+  faqs.value.forEach(faq => {
+    if (faq.additional_filters) {
+      if (typeof faq.additional_filters === 'string') {
+        uniqueTypes.add(faq.additional_filters);
+      } else if (Array.isArray(faq.additional_filters)) {
+        faq.additional_filters.forEach(filter => {
+          if (filter && filter.name) {
+            uniqueTypes.add(filter.name);
+          }
+        });
+      }
+    }
+  });
 
-    // Convert Set to array and return unique additional filter types.
-    return [...uniqueTypes];
+  // Convert Set to array and return unique additional filter types.
+  return [...uniqueTypes];
 });
 
 /**
@@ -575,13 +744,13 @@ const categories = computed(() => {
 const currentTypeFilterMessage = computed(() => {
   let messageText = ref('');
 
-  if ( defaultSelectedCategory.value === selectedCategory.value ) {
+  if (defaultSelectedCategory.value === selectedCategory.value) {
     messageText.value += "in all categories ";
   } else {
     messageText.value += "in the category: " + selectedCategory.value + " ";
   }
 
-  if ( "" !== textSearch.value ) {
+  if ("" !== textSearch.value) {
     messageText.value += "filtered by the text search: " + textSearch.value + " ";
   }
 
@@ -595,28 +764,28 @@ const currentTypeFilterMessage = computed(() => {
  * @returns {void}
  */
 const clearFilters = () => {
-	const allActiveFilters = document.querySelectorAll(`.${isCheckedClass.value}`);
-	const filterAll = document.querySelectorAll('.all');
+  const allActiveFilters = document.querySelectorAll(`.${isCheckedClass.value}`);
+  const filterAll = document.querySelectorAll('.all');
 
-	resetSelectsActiveState();
+  resetSelectsActiveState();
 
-	selectedCategory.value = defaultSelectedCategory.value;
-	textSearch.value = defaultTextSearch.value;
-	selectedAdditionalFilter.value = defaultSelectedAdditionalFilter.value;
+  selectedCategory.value = defaultSelectedCategory.value;
+  textSearch.value = defaultTextSearch.value;
+  selectedAdditionalFilter.value = defaultSelectedAdditionalFilter.value;
 
-	allActiveFilters.length ? allActiveFilters.forEach((activeFilter) => {
-		activeFilter.classList.remove(isCheckedClass.value)
-	}) : null;
-	filterAll.checked = true;
-	filterAll.forEach((checkbox) => {
-		checkbox.classList.add(isCheckedClass.value)
-	});
+  allActiveFilters.length ? allActiveFilters.forEach((activeFilter) => {
+    activeFilter.classList.remove(isCheckedClass.value)
+  }) : null;
+  filterAll.checked = true;
+  filterAll.forEach((checkbox) => {
+    checkbox.classList.add(isCheckedClass.value)
+  });
 
-	handleResetAppState();
+  handleResetAppState();
   closeAllAccordions();
 
-	currentPage.value !== 1 ? handleUpdatingAnimationClass('.control.pagination .pages') : null;
-	currentPage.value = 1;
+  currentPage.value !== 1 ? handleUpdatingAnimationClass('.control.pagination .pages') : null;
+  currentPage.value = 1;
 };
 
 /**
@@ -627,15 +796,15 @@ const clearFilters = () => {
  *
  * @returns {void}
  */
- const handleResetAppState = () => {
-    // Reset selectedCategory value to defaultSelectedCategory value in browser history.
-    history.replaceState(selectedCategory.value, defaultSelectedCategory.value);
+const handleResetAppState = () => {
+  // Reset selectedCategory value to defaultSelectedCategory value in browser history.
+  history.replaceState(selectedCategory.value, defaultSelectedCategory.value);
 
-    // Reset textSearch value to defaultTextSearch value in browser history.
-    history.replaceState(textSearch.value, defaultTextSearch.value);
+  // Reset textSearch value to defaultTextSearch value in browser history.
+  history.replaceState(textSearch.value, defaultTextSearch.value);
 
-    // Reset selectedAdditionalFilter value to defaultSelectedAdditionalFilter value in browser history.
-    history.replaceState(selectedAdditionalFilter.value, defaultSelectedAdditionalFilter.value);
+  // Reset selectedAdditionalFilter value to defaultSelectedAdditionalFilter value in browser history.
+  history.replaceState(selectedAdditionalFilter.value, defaultSelectedAdditionalFilter.value);
 };
 
 /**
@@ -649,41 +818,41 @@ const clearFilters = () => {
  * @param {Event} event - The event triggered by selecting the input filter.
  * @returns {void}
  */
- const handleSelectAllInputFilter = (event) => {
-    // Find the container element containing the filter list.
-    const container = event.target.closest('.filter__list');
+const handleSelectAllInputFilter = (event) => {
+  // Find the container element containing the filter list.
+  const container = event.target.closest('.filter__list');
 
-    // Find the "All" filter element within the container.
-    const filterAll = container.querySelector('.all');
+  // Find the "All" filter element within the container.
+  const filterAll = container.querySelector('.all');
 
-    // Find all active filters with the isCheckedClass value within the container.
-    const allActiveFilters = container ? container.querySelectorAll(`.${isCheckedClass.value}`) : null;
+  // Find all active filters with the isCheckedClass value within the container.
+  const allActiveFilters = container ? container.querySelectorAll(`.${isCheckedClass.value}`) : null;
 
-    // Update selectedAdditionalFilter value to 'all' if the event target ID matches.
-    if ( event.target.id === "typeAll" || event.target.id === "typeAll--mobile" ) {
-        selectedAdditionalFilter.value = 'all';
+  // Update selectedAdditionalFilter value to 'all' if the event target ID matches.
+  if (event.target.id === "typeAll" || event.target.id === "typeAll--mobile") {
+    selectedAdditionalFilter.value = 'all';
+  }
+
+  // Remove isCheckedClass from all active filters except for the "All" filter.
+  allActiveFilters.forEach((activeFilter) => {
+    if (activeFilter !== filterAll) {
+      activeFilter.classList.remove(isCheckedClass.value);
     }
+  });
 
-    // Remove isCheckedClass from all active filters except for the "All" filter.
-    allActiveFilters.forEach((activeFilter) => {
-        if (activeFilter !== filterAll) {
-            activeFilter.classList.remove(isCheckedClass.value);
-        }
-    });
+  // Add isCheckedClass to the parent node of the event target if it's not already added.
+  if (!event.target.parentNode.classList.contains(isCheckedClass.value)) {
+    event.target.parentNode.classList.add(isCheckedClass.value);
+  }
 
-    // Add isCheckedClass to the parent node of the event target if it's not already added.
-    if (!event.target.parentNode.classList.contains(isCheckedClass.value)) {
-        event.target.parentNode.classList.add(isCheckedClass.value);
-    }
+  // Check the "All" filter checkbox to select it.
+  filterAll.checked = true;
 
-    // Check the "All" filter checkbox to select it.
-    filterAll.checked = true;
-
-    // Reset the current pagination page to 1 and trigger a UI animation if necessary.
-    if (currentPage.value !== 1) {
-        handleUpdatingAnimationClass('.control.pagination .pages');
-    }
-    currentPage.value = 1;
+  // Reset the current pagination page to 1 and trigger a UI animation if necessary.
+  if (currentPage.value !== 1) {
+    handleUpdatingAnimationClass('.control.pagination .pages');
+  }
+  currentPage.value = 1;
 };
 
 /**
@@ -695,17 +864,17 @@ const clearFilters = () => {
  *
  * @returns {void}
  */
- const resetSelectsActiveState = () => {
-    // Select all custom select elements that are currently active within the specified container.
-    let activeSelects = document.querySelectorAll('#faqFilterApp .custom-select.is-active');
+const resetSelectsActiveState = () => {
+  // Select all custom select elements that are currently active within the specified container.
+  let activeSelects = document.querySelectorAll('#faqFilterApp .custom-select.is-active');
 
-    // Check if there are any active custom select elements.
-    if (activeSelects.length > 0) {
-        // Iterate over each active custom select element and remove the 'is-active' class.
-        activeSelects.forEach((item) => {
-            item.classList.remove('is-active');
-        });
-    }
+  // Check if there are any active custom select elements.
+  if (activeSelects.length > 0) {
+    // Iterate over each active custom select element and remove the 'is-active' class.
+    activeSelects.forEach((item) => {
+      item.classList.remove('is-active');
+    });
+  }
 };
 
 /**
@@ -716,7 +885,7 @@ const clearFilters = () => {
  * @returns {void}
  */
 const selectIsActive = (event) => {
-	return 'click' !== event.type ? event.target.parentNode.classList.remove(activeClass.value) : event.target.parentNode.classList.toggle(activeClass.value);
+  return 'click' !== event.type ? event.target.parentNode.classList.remove(activeClass.value) : event.target.parentNode.classList.toggle(activeClass.value);
 }
 
 /**
@@ -729,64 +898,64 @@ const selectIsActive = (event) => {
  * @param {string} thisFilter - The filter used to narrow down FAQ posts.
  * @returns {number} The count of FAQ posts that match the filter and search criteria.
  */
- const handleFilterPostCount = (thisFilter) => {
-    const app = document.querySelector('#faqFilterApp');
-    // Get the lowercase trimmed search value.
-    const searchValue = textSearch.value.toLowerCase().trim();
-    const filterContainers = app ? app.querySelectorAll('.filter--types') : null;
+const handleFilterPostCount = (thisFilter) => {
+  const app = document.querySelector('#faqFilterApp');
+  // Get the lowercase trimmed search value.
+  const searchValue = textSearch.value.toLowerCase().trim();
+  const filterContainers = app ? app.querySelectorAll('.filter--types') : null;
 
-    // Create a copy of filtered FAQs by category to perform additional filtering.
-    let altFilteredFaqs = [...filteredFaqsByCategory.value];
-    // Initialize the count based on the current number of filtered FAQs.
-    let count = altFilteredFaqs.length;
+  // Create a copy of filtered FAQs by category to perform additional filtering.
+  let altFilteredFaqs = [...filteredFaqsByCategory.value];
+  // Initialize the count based on the current number of filtered FAQs.
+  let count = altFilteredFaqs.length;
 
-    // Perform search filtering if search value is provided.
-    if (searchValue) {
-        const searchWords = searchValue.split(/\s+/);
-        altFilteredFaqs = altFilteredFaqs.filter(faq => {
-            const titleWords = faq.title.toLowerCase().split(/\s+/);
-            const keywordWords = faq.keywords.toLowerCase().split(/\s+/);
-            const uniqueWords = [...new Set([...titleWords, ...keywordWords])];
-            const combinedText = uniqueWords.join(' ');
-            return searchWords.every(word => combinedText.includes(word));
-        });
-    }
+  // Perform search filtering if search value is provided.
+  if (searchValue) {
+    const searchWords = searchValue.split(/\s+/);
+    altFilteredFaqs = altFilteredFaqs.filter(faq => {
+      const titleWords = faq.title.toLowerCase().split(/\s+/);
+      const keywordWords = faq.keywords.toLowerCase().split(/\s+/);
+      const uniqueWords = [...new Set([...titleWords, ...keywordWords])];
+      const combinedText = uniqueWords.join(' ');
+      return searchWords.every(word => combinedText.includes(word));
+    });
+  }
 
-    // Apply additional filter if it's not set to 'all'.
-    if ('all' !== thisFilter) {
-        altFilteredFaqs = altFilteredFaqs.filter(faq => faq.additional_filters && faq.additional_filters.some(filter => filter.name === thisFilter));
-    }
+  // Apply additional filter if it's not set to 'all'.
+  if ('all' !== thisFilter) {
+    altFilteredFaqs = altFilteredFaqs.filter(faq => faq.additional_filters && faq.additional_filters.some(filter => filter.name === thisFilter));
+  }
 
-    // Update the count based on the filtered FAQs.
-    count = altFilteredFaqs.length;
+  // Update the count based on the filtered FAQs.
+  count = altFilteredFaqs.length;
 
-    if ( filterContainers.length ) {
-      filterContainers.forEach((filterContainer) => {
-        // Find the radio input element corresponding to the specified filter.
-        const radioInput = filterContainer ? filterContainer.querySelector('.radio input[value=\"' + thisFilter + '\"]') : null;
+  if (filterContainers.length) {
+    filterContainers.forEach((filterContainer) => {
+      // Find the radio input element corresponding to the specified filter.
+      const radioInput = filterContainer ? filterContainer.querySelector('.radio input[value=\"' + thisFilter + '\"]') : null;
 
-        // Disable the radio input and update DOM if no FAQ posts match the criteria.
-        if ( radioInput ) {
-          if ( 0 === count ) {
-            // Manage helper CSS classes.
-            radioInput.parentNode.classList.remove(isCheckedClass.value);
-            radioInput.parentNode.classList.add('is-disabled');
+      // Disable the radio input and update DOM if no FAQ posts match the criteria.
+      if (radioInput) {
+        if (0 === count) {
+          // Manage helper CSS classes.
+          radioInput.parentNode.classList.remove(isCheckedClass.value);
+          radioInput.parentNode.classList.add('is-disabled');
 
-            // If this item is currently selected, reset the additional filters.
-            if ( selectedAdditionalFilter.value === radioInput.name ) {
-              // Single-select input, so just reset filter configuration.
-              selectedAdditionalFilter.value = defaultSelectedAdditionalFilter.value;
-            }
-          } else {
-            // Remove CSS helper class.
-            radioInput.parentNode.classList.remove('is-disabled');
+          // If this item is currently selected, reset the additional filters.
+          if (selectedAdditionalFilter.value === radioInput.name) {
+            // Single-select input, so just reset filter configuration.
+            selectedAdditionalFilter.value = defaultSelectedAdditionalFilter.value;
           }
+        } else {
+          // Remove CSS helper class.
+          radioInput.parentNode.classList.remove('is-disabled');
         }
-      });
-    }
+      }
+    });
+  }
 
-    // Return the count of FAQ posts that match the filter and search criteria.
-    return count;
+  // Return the count of FAQ posts that match the filter and search criteria.
+  return count;
 };
 
 
@@ -799,54 +968,54 @@ const selectIsActive = (event) => {
  * @throws {Error} - If there is an error fetching the data from the API.
  */
 const fetchData = async (offset = 0) => {
-	try {
-		// Set loading state to true.
-		isLoading.value = true;
+  try {
+    // Set loading state to true.
+    isLoading.value = true;
 
-		// Check if data exists in sessionStorage and if it's not expired.
-		const cachedData = sessionStorage.getItem('faqsData');
-		const cachedTimestamp = sessionStorage.getItem('faqsTimestamp');
-		if (cachedData && cachedTimestamp) {
-			const timeElapsed = Date.now() - parseInt(cachedTimestamp);
-			const hoursElapsed = timeElapsed / (1000 * 60 * 60);
-			if (hoursElapsed < 24) {
-				// Data exists in cache and it's not expired.
-				faqs.value = JSON.parse(cachedData);
-				showLoadingMessage.value = false;
-				// Set loading state to false after data is fetched.
-				isLoading.value = false;
-				return;
-			}
-		}
+    // Check if data exists in sessionStorage and if it's not expired.
+    const cachedData = sessionStorage.getItem('faqsData');
+    const cachedTimestamp = sessionStorage.getItem('faqsTimestamp');
+    if (cachedData && cachedTimestamp) {
+      const timeElapsed = Date.now() - parseInt(cachedTimestamp);
+      const hoursElapsed = timeElapsed / (1000 * 60 * 60);
+      if (hoursElapsed < 24) {
+        // Data exists in cache and it's not expired.
+        faqs.value = JSON.parse(cachedData);
+        showLoadingMessage.value = false;
+        // Set loading state to false after data is fetched.
+        isLoading.value = false;
+        return;
+      }
+    }
 
-		// Fetch data from API
-		fetch(faqsAPI, {
-				cache: 'no-store'
-			})
-			.then((r) => r.json())
-			.then((json) => {
-				// Purge old data from sessionStorage to make sure we don't
-				// exceed storage limits.
-				setTimeout(itemsToClearFromSessionStorage.value.forEach((item) => {
-					sessionStorage.removeItem(item);
-				}), 1000);
+    // Fetch data from API
+    fetch(faqsAPI, {
+      cache: 'no-store'
+    })
+      .then((r) => r.json())
+      .then((json) => {
+        // Purge old data from sessionStorage to make sure we don't
+        // exceed storage limits.
+        setTimeout(itemsToClearFromSessionStorage.value.forEach((item) => {
+          sessionStorage.removeItem(item);
+        }), 1000);
 
-				// Store data in sessionStorage.
-				sessionStorage.setItem('faqsData', JSON.stringify(json));
-				sessionStorage.setItem('faqsTimestamp', Date.now());
-				faqs.value = json;
-				showLoadingMessage.value = false;
-				// Set loading state to false after data is fetched.
-				isLoading.value = false;
-			})
-			.catch((error) => {
-				console.error('Error fetching data:', error);
-				throw error;
-			});
-	} catch (error) {
-		console.error('Error fetching data:', error);
-		throw error;
-	}
+        // Store data in sessionStorage.
+        sessionStorage.setItem('faqsData', JSON.stringify(json));
+        sessionStorage.setItem('faqsTimestamp', Date.now());
+        faqs.value = json;
+        showLoadingMessage.value = false;
+        // Set loading state to false after data is fetched.
+        isLoading.value = false;
+      })
+      .catch((error) => {
+        console.error('Error fetching data:', error);
+        throw error;
+      });
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    throw error;
+  }
 };
 
 /**
@@ -857,23 +1026,23 @@ const fetchData = async (offset = 0) => {
  * @returns {void}
  */
 watch(() => window.site?.domain, (newVal) => {
-	if (newVal) {
-		fetchData();
-	}
+  if (newVal) {
+    fetchData();
+  }
 });
 
 /**
  * Watches changes in the 'paginatedFaqs' reactive variable and triggers animations when the number of items changes.
  * This function watches the 'paginatedFaqs' variable and calls 'handleUpdatingAnimationClass' to animate changes in the UI.
  */
- watch(paginatedFaqs, () => {
-    // Check if the number of paginated FAQs has changed.
-    if (oldPaginatedFaqsCount.value !== paginatedFaqs.value.length) {
-        // Update the 'oldPaginatedFaqsCount' with the new length of 'paginatedFaqs'.
-        oldPaginatedFaqsCount.value = paginatedFaqs.value.length;
-        // Trigger animation by adding/removing CSS classes to elements matching the specified CSS selector.
-        handleUpdatingAnimationClass('.control.pagination .paginated-faqs');
-    }
+watch(paginatedFaqs, () => {
+  // Check if the number of paginated FAQs has changed.
+  if (oldPaginatedFaqsCount.value !== paginatedFaqs.value.length) {
+    // Update the 'oldPaginatedFaqsCount' with the new length of 'paginatedFaqs'.
+    oldPaginatedFaqsCount.value = paginatedFaqs.value.length;
+    // Trigger animation by adding/removing CSS classes to elements matching the specified CSS selector.
+    handleUpdatingAnimationClass('.control.pagination .paginated-faqs');
+  }
 });
 
 /**
@@ -881,14 +1050,14 @@ watch(() => window.site?.domain, (newVal) => {
  * This function watches the 'filteredFaqs' variable and calls 'handleUpdatingAnimationClass' to animate changes in the UI.
  */
 watch(filteredFaqs, () => {
-    // Check if the number of filtered FAQs has changed.
-    if (oldFilteredFaqsCount.value !== filteredFaqs.value.length) {
-        // Update the 'oldFilteredFaqsCount' with the new length of 'filteredFaqs'.
-        oldFilteredFaqsCount.value = filteredFaqs.value.length;
-        // Trigger animation by adding/removing CSS classes to elements matching the specified CSS selector.
-        handleUpdatingAnimationClass('.control.pagination .filtered-faqs');
-        handleUpdatingAnimationClass('.counter__value');
-    }
+  // Check if the number of filtered FAQs has changed.
+  if (oldFilteredFaqsCount.value !== filteredFaqs.value.length) {
+    // Update the 'oldFilteredFaqsCount' with the new length of 'filteredFaqs'.
+    oldFilteredFaqsCount.value = filteredFaqs.value.length;
+    // Trigger animation by adding/removing CSS classes to elements matching the specified CSS selector.
+    handleUpdatingAnimationClass('.control.pagination .filtered-faqs');
+    handleUpdatingAnimationClass('.counter__value');
+  }
 
   closeAllAccordions();
 });
@@ -897,9 +1066,9 @@ watch(filteredFaqs, () => {
  * Watches changes in the 'currentPage' reactive variable and triggers animations on the current page UI element.
  * This function watches the 'currentPage' variable and calls 'handleUpdatingAnimationClass' to animate changes in the UI.
  */
- watch(currentPage, () => {
-    // Trigger animation for the 'current-page' element when 'currentPage' changes.
-    handleUpdatingAnimationClass('.control.pagination .current-page');
+watch(currentPage, () => {
+  // Trigger animation for the 'current-page' element when 'currentPage' changes.
+  handleUpdatingAnimationClass('.control.pagination .current-page');
 });
 
 /**
@@ -907,8 +1076,8 @@ watch(filteredFaqs, () => {
  * This function watches the 'totalPages' variable and calls 'handleUpdatingAnimationClass' to animate changes in the UI.
  */
 watch(totalPages, () => {
-    // Trigger animation for the 'total-pages' element when 'totalPages' changes.
-    handleUpdatingAnimationClass('.control.pagination .total-pages');
+  // Trigger animation for the 'total-pages' element when 'totalPages' changes.
+  handleUpdatingAnimationClass('.control.pagination .total-pages');
 });
 
 /**
@@ -920,7 +1089,7 @@ watch(totalPages, () => {
  * @returns {void}
  */
 watch([selectedCategory, textSearch], () => {
-	currentPage.value = 1;
+  currentPage.value = 1;
 });
 
 /**
@@ -929,23 +1098,46 @@ watch([selectedCategory, textSearch], () => {
  * If no custom-select dropdown within the 'faqFilterApp' context is active, it resets all active custom-select elements.
  * @param {Event} event - The click event triggered on the window.
  */
- window.addEventListener('click', (event) => {
-    // Check if the clicked element is not within an active custom-select dropdown in the 'faqFilterApp' context.
-    if (!event.target.closest('.custom-select.is-active' || document.querySelectorAll('#faqFilterApp .custom-select.is-active').length)) {
-        // Reset all active custom-select elements.
-        resetSelectsActiveState();
-    }
+window.addEventListener('click', (event) => {
+  // Check if the clicked element is not within an active custom-select dropdown in the 'faqFilterApp' context.
+  if (!event.target.closest('.custom-select.is-active' || document.querySelectorAll('#faqFilterApp .custom-select.is-active').length)) {
+    // Reset all active custom-select elements.
+    resetSelectsActiveState();
+  }
 });
+
+/**
+ * Watches the length of `filteredFaqs` to determine if there's only one result.
+ * If so, it triggers a click event on the Expand or Collapse all button so that single results are auto-expanded.
+ */
+ watch(filteredFaqs, async () => {
+  const isSingle = filteredFaqs.value.length === 1;
+  isSingleResult.value = isSingle;
+
+  await nextTick(); // Ensure the DOM updates
+
+  const buttonSelector = isSingle
+    ? '#faqFilterApp .expand-accordions button'
+    : '#faqFilterApp .close-accordions button';
+
+  const actionButton = document.querySelector(buttonSelector);
+
+  if (actionButton) {
+    actionButton.click();
+    wasClicked.value = isSingle; // Track if button was clicked
+  }
+});
+
 
 /**
  * Initializes accordion components for a list of DOM elements.
  *
  * @param {Array<Element>} accordions - An array of DOM elements representing accordions.
  */
- function initAccordions(accordions) {
-    accordions.forEach((accordionEl) => {
-        new Accordion(accordionEl);
-    });
+function initAccordions(accordions) {
+  accordions.forEach((accordionEl) => {
+    new Accordion(accordionEl);
+  });
 }
 
 /**
@@ -953,14 +1145,14 @@ watch([selectedCategory, textSearch], () => {
  *
  * @param {Event} event - The event object triggered by the click action.
  */
- function addFaqLinkToClipboard(event) {
-    handleLinkCopiedMessageContent(event);
+function addFaqLinkToClipboard(event) {
+  handleLinkCopiedMessageContent(event, '.faq', 'FAQ link copied to clipboard!');
 
-    // Add to clipboard via Navigator API.
-    if (navigator.clipboard) {
-        // Copy FAQ link to clipboard
-        navigator.clipboard.writeText(event.target.href);
-    }
+  // Add to clipboard via Navigator API.
+  if (navigator.clipboard) {
+    // Copy FAQ link to clipboard
+    navigator.clipboard.writeText(event.target.href);
+  }
 }
 
 /**
@@ -968,12 +1160,12 @@ watch([selectedCategory, textSearch], () => {
  *
  * @param {Event} event - The event object triggered by the click action.
  */
-function handleLinkCopiedMessageContent(event) {
-  const item = event.target.closest('.faq');
-  const messageToUser = ref('Link to FAQ copied to clipboard!');
+function handleLinkCopiedMessageContent(event, target = '.faq', msg) {
+  const item = event.target.closest(target);
+  const messageToUser = ref(msg);
   const messageArea = item ? item.querySelector('.copy-message') : null;
 
-  if ( messageArea && messageArea.classList.contains('isFadedOut') ) {
+  if (messageArea && messageArea.classList.contains('isFadedOut')) {
     // Inject message to user, triggering ARIA live region.
     messageArea.innerText = messageToUser.value;
 
@@ -982,9 +1174,11 @@ function handleLinkCopiedMessageContent(event) {
     // Wait before re-adding the opacity class.
     setTimeout(() => { messageArea.classList.add('isFadedOut'); }, 1000);
     // Check again, in case of double-click.
-    setTimeout(() => { if ( messageArea.classList.contains('isFadedOut') ) {
-      messageArea.innerText = '';
-    } }, 1600);
+    setTimeout(() => {
+      if (messageArea.classList.contains('isFadedOut')) {
+        messageArea.innerText = '';
+      }
+    }, 1600);
 
   }
 }
@@ -997,100 +1191,159 @@ function handleLinkCopiedMessageContent(event) {
  * @returns {void}
  */
 onMounted(() => {
-	fetchData();
+  fetchData();
 
-	const appElement = document.getElementById('faqFilterApp');
-	showLoadingMessage.value = true;
+  const appElement = document.getElementById('faqFilterApp');
 
-	if (window.site?.domain) {}
+  if (window.site?.domain) { }
 
-	if (undefined === navigator) {
-		appElement.classList.add('noNavigator');
-	}
+  if (undefined === navigator) {
+    appElement.classList.add('noNavigator');
+  }
 });
+
+
+watchEffect(() => {
+  // Check if FAQs and related data are loaded before proceeding
+  if (faqs.value.length && categories.value.length && additional_filters.value.length) {
+    // Get query string parameters
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // Check for visibility toggle
+    const showParam = urlParams.get('show');
+    if (showParam === 'off') {
+      isVisible.value = false;
+      return; // No further processing if the tool is hidden
+    } else {
+      isVisible.value = true;
+    }
+
+    // Check for the tool parameter
+    if (null !== urlParams.get('tool') && urlParams.get('tool') !== 'faqs') {
+      console.warn('Tool parameter does not match "faqs". Initialization skipped.');
+      return;
+    }
+
+    // Initialize selected filters from query string
+    const category = urlParams.get('category');
+    const additional = urlParams.get('additional');
+    const searchText = urlParams.get('filterText');
+
+    // Decode and set the category filter
+    if (category) {
+      const decodedCategory = decodeURIComponent(category);
+      if (categories.value.includes(decodedCategory)) {
+        selectedCategory.value = decodedCategory;
+      } else {
+        console.warn(`Invalid category: ${decodedCategory}`);
+      }
+    }
+
+    // Decode and set the additional filter
+    if (additional) {
+      const decodedAdditionalFilter = decodeURIComponent(additional);
+      if (additional_filters.value.includes(decodedAdditionalFilter)) {
+        selectedAdditionalFilter.value = decodedAdditionalFilter;
+      } else {
+        console.warn(`Invalid additional filter: ${decodedAdditionalFilter}`);
+      }
+    } else {
+      selectedAdditionalFilter.value = 'all';
+    }
+
+    // Decode and set the text search
+    if (searchText) {
+      textSearch.value = decodeURIComponent(searchText);
+    }
+
+    // Stop showing the loading message once data is initialized
+    showLoadingMessage.value = false;
+  }
+});
+
 
 /**
  * Watches for updates and initializes accordions for FAQ elements after updates.
  */
- onUpdated(() => {
-    // Select all FAQ accordions
-    const accordions = document.querySelectorAll('.faq.accordion h3');
-    const mobileAccordions = document.querySelectorAll('.additional-filters--mobile h2');
+onUpdated(() => {
+  // Select all FAQ accordions
+  const accordions = document.querySelectorAll('.faq.accordion h3');
+  const mobileAccordions = document.querySelectorAll('.additional-filters--mobile h2');
 
-    // Initialize accordions if found
-    accordions.length ? initAccordions(accordions) : null;
-    mobileAccordions.length ? initAccordions(mobileAccordions) : null;
+  // Initialize accordions if found
+  accordions.length ? initAccordions(accordions) : null;
+  mobileAccordions.length ? initAccordions(mobileAccordions) : null;
 });
 
 /**
  * Represents an accordion component that manages the opening and closing of content sections.
  */
- class Accordion {
-    /**
-     * Creates an instance of Accordion.
-     *
-     * @param {HTMLElement} domNode - The root element of the accordion.
-     */
-    constructor(domNode) {
-        this.rootEl = domNode;
-        this.buttonEl = this.rootEl.querySelector('button[aria-expanded]');
+class Accordion {
+  /**
+   * Creates an instance of Accordion.
+   *
+   * @param {HTMLElement} domNode - The root element of the accordion.
+   */
+  constructor(domNode) {
+    this.rootEl = domNode;
+    this.buttonEl = this.rootEl.querySelector('button[aria-expanded]');
 
-        if (this.rootEl && this.buttonEl) {
-            const controlsId = this.buttonEl.getAttribute('aria-controls');
-            this.contentEl = document.getElementById(controlsId);
+    if (this.rootEl && this.buttonEl) {
+      const controlsId = this.buttonEl.getAttribute('aria-controls');
+      this.contentEl = document.getElementById(controlsId);
 
-            this.open = this.buttonEl.getAttribute('aria-expanded') === 'true';
+      this.open = this.buttonEl.getAttribute('aria-expanded') === 'true';
 
-            // Add event listener to handle button click
-            this.buttonEl.addEventListener('click', this.onButtonClick.bind(this));
-        }
+      // Add event listener to handle button click
+      this.buttonEl.addEventListener('click', this.onButtonClick.bind(this));
+    }
+  }
+
+  /**
+   * Toggles the state of the accordion (open or closed) based on the specified 'open' parameter.
+   *
+   * @param {boolean} open - The desired open state of the accordion.
+   */
+  toggle(open) {
+    // Don't do anything if the open state doesn't change
+    if (open === this.open) {
+      return;
     }
 
-    /**
-     * Toggles the state of the accordion (open or closed) based on the specified 'open' parameter.
-     *
-     * @param {boolean} open - The desired open state of the accordion.
-     */
-    toggle(open) {
-        // Don't do anything if the open state doesn't change
-        if (open === this.open) {
-            return;
-        }
+    // Update the internal state
+    this.open = open;
 
-        // Update the internal state
-        this.open = open;
-
-        // Handle DOM updates
-        this.buttonEl.setAttribute('aria-expanded', `${open}`);
-        if (open) {
-            this.contentEl.removeAttribute('hidden');
-        } else {
-            this.contentEl.setAttribute('hidden', '');
-        }
+    // Handle DOM updates
+    this.buttonEl.setAttribute('aria-expanded', `${open}`);
+    if (open) {
+      this.contentEl.removeAttribute('hidden');
+    } else {
+      this.contentEl.setAttribute('hidden', '');
     }
+  }
 
-    /**
-     * Event handler for the button click event.
-     * Toggles the open state of the accordion and updates the corresponding CSS class.
-     */
-    onButtonClick() {
-        this.toggle(!this.open);
-        this.open ? this.rootEl.closest('.accordion').classList.add('isOpen') : this.rootEl.closest('.accordion').classList.remove('isOpen');
-    }
+  /**
+   * Event handler for the button click event.
+   * Toggles the open state of the accordion and updates the corresponding CSS class.
+   */
+  onButtonClick() {
+    this.toggle(!this.open);
+    this.open ? this.rootEl.closest('.accordion').classList.add('isOpen') : this.rootEl.closest('.accordion').classList.remove('isOpen');
+  }
 
-    /**
-     * Opens the accordion.
-     */
-    open() {
-        this.toggle(true);
-    }
+  /**
+   * Opens the accordion.
+   */
+  open() {
+    this.toggle(true);
+  }
 
-    /**
-     * Closes the accordion.
-     */
-    close() {
-        this.toggle(false);
-    }
+  /**
+   * Closes the accordion.
+   */
+  close() {
+    this.toggle(false);
+  }
 }
 
 function openAllAccordions() {
@@ -1126,5 +1379,14 @@ function collapseThisFaq(event) {
 
 <style lang='scss' scoped>
 // See bcgov-plugin-cleanbc/styles/public/betterhomes/_vue-apps.scss
-#faqFilterApp {}
+#faqFilterApp {
+  .select option {
+    font-weight: normal;
+  }
+
+  .select option.child {
+    padding-left: 0;
+    font-weight: normal;
+  }
+}
 </style>
