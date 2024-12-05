@@ -1,3 +1,6 @@
+## 1.8.2 December 5, 2024
+- Add custom post types to search context based on site domain.
+
 ## 1.8.1 December 2, 2024
 - Re-initialize the definitions links after using the Category filtering on CleanBC Actons Vue tool.
 
