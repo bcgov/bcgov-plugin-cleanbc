@@ -20,8 +20,22 @@ class SearchContext {
 	 * @return void
 	 */
 	public function bcgov_included_post_types_in_search( $query ) {
+		// Default post types.
+		$post_types = [ 'page', 'post' ];
+
+		$site_url = home_url(); // Base URL (e.g., https://test.vanity.blog.gov.bc.ca).
+        $path     = untrailingslashit( $_SERVER['REQUEST_URI'] ); // Path (e.g., /betterbuildingsbc).
+
+		if ( strpos( $site_url, 'betterhomesbc.ca' ) !== false || strpos( $path, 'betterhomesbc' ) !== false ) {
+		    $post_types = array_merge( $post_types, [ 'faqs', 'incentives', 'project', 'products' ] );
+		}
+
+		if ( strpos( $site_url, 'betterbuildingsbc.ca' ) !== false || strpos( $path, 'betterbuildingsbc' ) !== false ) {
+		    $post_types = array_merge( $post_types, [ 'definitions', 'faqs', 'incentives', 'project', 'products' ] );
+		}
+
 		if ( $query->is_search() && ! is_admin() && $query->is_main_query() ) {
-			$query->set( 'post_type', [ 'page', 'post' ] );
+			$query->set( 'post_type', $post_types );
 		}
 	}
 
