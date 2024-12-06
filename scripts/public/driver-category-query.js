@@ -1,4 +1,3 @@
-import { addSafeEventListenerPlugin } from '../utils';
 /**
  * General CleanBC Drivers page Query Loop manipulation.
  */
@@ -197,9 +196,7 @@ const bcgovBlockThemePluginDriverCategoryQuery = () => {
 if ('complete' === document.readyState) {
     bcgovBlockThemePluginDriverCategoryQuery();
 } else {
-    addSafeEventListenerPlugin(
-        document,
-        'DOMContentLoaded',
-        bcgovBlockThemePluginDriverCategoryQuery()
+    document.addEventListener('DOMContentLoaded',
+        bcgovBlockThemePluginDriverCategoryQuery
     );
 }

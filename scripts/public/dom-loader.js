@@ -1,5 +1,3 @@
-import { addSafeEventListenerPlugin } from '../utils';
-
 /**
  * General CleanBC DOM manipulation.
  */
@@ -72,9 +70,7 @@ const bcgovBlockThemePluginDomLoader = () => {
 if ( 'complete' === document.readyState ) {
 	bcgovBlockThemePluginDomLoader();
 } else {
-	addSafeEventListenerPlugin(
-		document,
-		'DOMContentLoaded',
-		bcgovBlockThemePluginDomLoader()
+	document.addEventListener('DOMContentLoaded',
+		bcgovBlockThemePluginDomLoader
 	);
 }
