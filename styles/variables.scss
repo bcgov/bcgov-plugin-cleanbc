@@ -1,18 +1,25 @@
+$xxs: 0;
+$xs: 479px;
+$sm: 782px;
+$md: 991px;
+$lg: 1199px;
+
 /* @media Breakpoints */
-$breakpoint-xxs: 0;
-$breakpoint-xs: 479px;
+$breakpoint-xxs: $xxs;
+$breakpoint-xs: $xs;
 $breakpoint-xs-sm: 600px;
 $breakpoint-wp-block-sm: $breakpoint-xs-sm;
-$breakpoint-sm: 782px;
+$breakpoint-sm: $sm;
 $breakpoint-sm-md: 840px;
 $breakpoint-wp-content-sm: $breakpoint-sm-md;
-$breakpoint-md: 991px;
+$breakpoint-md: $md;
 $breakpoint-md-lg: 1024px;
-$breakpoint-lg: 1199px;
+$breakpoint-lg: $lg;
 $breakpoint-xl: 1440px;
 $breakpoint-wp-content-wide: $breakpoint-xl;
 
 // General colours
+$black: #000;
 $white: #fff;
 $mineshaft: #222;
 $scorpiongrey: #585858;
@@ -25,7 +32,7 @@ $porcelain: #f3f4f5;
 $crimsonred: #d71d24; // was: #e01f26
 
 // Government web colours
-$midnightblue: #036;
+$midnightblue: #002a4e; // was: #036
 $menuBlue: #1c2d64;
 $generallink: #1a5a96;
 $sanmarinoblue: #496ea7;
@@ -33,6 +40,7 @@ $headeryellow: #f4bb2d;
 $curiousblue: #1e9dd3;
 $highlightblue: #d3e1e8;
 $lighthighlightblue: #f3f9fb;
+
 
 * {
 	// Shadows from https://getcssscan.com/css-box-shadow-examples
