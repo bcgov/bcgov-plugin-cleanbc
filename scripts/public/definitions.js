@@ -1,5 +1,3 @@
-import { addSafeEventListenerPlugin } from '../utils';
-
 /**
  * General CleanBC Definitons dialog generator.
  */
@@ -141,9 +139,7 @@ const bcgovBlockThemePluginDefnitions = () => {
 if ('complete' === document.readyState) {
     bcgovBlockThemePluginDefnitions();
 } else {
-    addSafeEventListenerPlugin(
-        document,
-        'DOMContentLoaded',
-        bcgovBlockThemePluginDefnitions()
+    document.addEventListener('DOMContentLoaded',
+        bcgovBlockThemePluginDefnitions
     );
 }

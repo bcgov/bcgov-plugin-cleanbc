@@ -1,5 +1,3 @@
-import { qsa, addSafeEventListenerPlugin } from '../utils';
-
 /**
  * Landing banners manipulation.
  */
@@ -12,8 +10,8 @@ const bcgovBlockThemePluginLandingBanners = () => {
 		 * Add a clip path SVG to create a mask on landing banner ::before elements.
 		 * Works in conjuction with .landing-cover-banner styles in _cleanbc--patterns-banners.scss.
 		 */
-		const isHomeBanner = qsa( '.home-cover-banner' );
-		const isLandingBanner = qsa( '.landing-cover-banner' );
+		const isHomeBanner = document.querySelectorAll( '.home-cover-banner' );
+		const isLandingBanner = document.querySelectorAll( '.landing-cover-banner' );
 
 		if ( isHomeBanner.length || isLandingBanner.length ) {
 			const svgNamespace = 'http://www.w3.org/2000/svg';
@@ -65,9 +63,7 @@ const bcgovBlockThemePluginLandingBanners = () => {
 if ( 'complete' === document.readyState ) {
 	bcgovBlockThemePluginLandingBanners();
 } else {
-	addSafeEventListenerPlugin(
-		document,
-		'DOMContentLoaded',
-		bcgovBlockThemePluginLandingBanners()
+	document.addEventListener('DOMContentLoaded',
+		bcgovBlockThemePluginLandingBanners
 	);
 }
