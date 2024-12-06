@@ -1,3 +1,6 @@
+## 1.9.1 December 6, 2024
+- Refined CSS by site. Cleaned up SCSS variables and removed mixins.
+
 ## 1.9.0 December 6, 2024
 - Added definitions post glossary query loop (.glossary-results) aggregation processing to add separation headlines by letter of the alphabet.
 - Updated site styles to accomodate general styling for Better Homes and Better Buildings.
