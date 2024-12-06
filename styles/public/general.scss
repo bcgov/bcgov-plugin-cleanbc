@@ -17,8 +17,21 @@
 	gap: 1rem;
 }
 
+
+.is-mobile-only {
+	display: block !important;
+}
+
+@media (min-width: 750px) {
+
+	.is-mobile-only {
+		display: none !important;
+	}
+}
+
 html {
 	--scroll-padding: 6.5rem !important;
+	overflow-x: clip;
 }
 
 body {
@@ -37,6 +50,10 @@ body:not(body.wp-admin):not(body.editor-styles-wrapper):not(body.error404) {
 	place-items: center;
 	min-height: 100vh;
 	overflow-x: hidden;
+}
+
+.wp-site-blocks {
+	width: 100%;
 }
 
 .custom-cleanbc .hidden {
@@ -63,6 +80,26 @@ body:not(body.wp-admin):not(body.editor-styles-wrapper):not(body.error404) {
 input,
 textarea {
 	color-scheme: light;
+}
+
+.gap-0 {
+	gap: 0;
+}
+
+.gap-narrow {
+	gap: 0.25rem;
+}
+
+.gap-half {
+	gap: 0.5rem;
+}
+
+.gap-1 {
+	gap: 1rem;
+}
+
+.gap-2 {
+	gap: 2rem;
 }
 
 .gform_button[type="submit"] {

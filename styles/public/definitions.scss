@@ -95,3 +95,7 @@ body:has(#dialog[open]) {
 		}
 	}
 }
+
+.glossary-content *:first-child {
+	margin-block-start: 0;
+}
