@@ -1,4 +1,4 @@
-html:has(body.betterhomesbc) {
+html:has(body.betterhomesbc, body.betterbuildingsbc) {
 	scroll-padding: 6.5rem !important;
 
 	.wp-block-site-logo img {

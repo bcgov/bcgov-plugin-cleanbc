@@ -36,7 +36,37 @@ const bcgovBlockThemePluginDomLoader = () => {
 				}
 			} );
 		}
-	} );
+
+		// Glossary query loop processing to add separation headlines by letter of the alphabet.
+		const glossaryList = document.querySelector('.glossary-results ul');
+		if (glossaryList) {
+			const items = Array.from(glossaryList.querySelectorAll('li'));
+			let currentLetter = '';
+		
+			items.forEach(item => {
+				const titleElement = item.querySelector('h3');
+				if (titleElement) {
+					const titleText = titleElement.textContent.trim();
+					const firstLetter = titleText.charAt(0).toUpperCase();
+		
+					if (firstLetter !== currentLetter) {
+						currentLetter = firstLetter;
+		
+						// Create and wrap the <h2>
+						const h2 = document.createElement('h2');
+						h2.textContent = currentLetter;
+		
+						const h2Wrapper = document.createElement('li');
+						h2Wrapper.classList.add('glossary-letter-headline');
+						h2Wrapper.appendChild(h2);
+		
+						// Insert the new <li> with <h2> before the current item
+						glossaryList.insertBefore(h2Wrapper, item);
+					}
+				}
+			});
+		}
+	});
 };
 
 if ( 'complete' === document.readyState ) {
