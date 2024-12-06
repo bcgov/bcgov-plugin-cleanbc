@@ -18,7 +18,7 @@ const bcgovBlockThemePluginAccessibility = () => {
 
 				// Loop through each sibling and push to the array
 				while ( sibling ) {
-					if ( sibling.nodeType === 1 && sibling !== elem ) {
+					if ( 1 === sibling.nodeType && sibling !== elem ) {
 						siblings.push( sibling );
 					}
 					if ( null !==  sibling.nextSibling ) {
