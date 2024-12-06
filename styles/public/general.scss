@@ -13,6 +13,10 @@
 	-webkit-text-size-adjust: 100%;
 }
 
+* {
+	box-sizing: border-box;
+}
+
 :where(.is-layout-flex) {
 	gap: 1rem;
 }

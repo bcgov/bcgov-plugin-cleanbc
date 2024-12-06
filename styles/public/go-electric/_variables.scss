@@ -1,98 +1,4 @@
-/* Media Queries Mixins */
-
-@mixin mq-xxs {
-
-	@media (max-width: 320px) {
-		@content;
-	}
-}
-
-@mixin mq-xs {
-
-	@media (max-width: 479px) {
-		@content;
-	}
-}
-
-@mixin mq-sm {
-
-	@media (max-width: 767px) {
-		@content;
-	}
-}
-
-@mixin mq-md {
-
-	@media (max-width: 991px) {
-		@content;
-	}
-}
-
-@mixin mq-md-lg {
-
-	@media (max-width: 1080px) {
-		@content;
-	}
-}
-
-@mixin mq-lg {
-
-	@media (max-width: 1199px) {
-		@content;
-	}
-}
-
-@mixin mq-max($size) {
-
-	@media (max-width: $size) {
-		@content;
-	}
-}
-
-@mixin breakpoint-max($size) {
-
-	@media (max-width: $size) {
-		@content;
-	}
-}
-
-@mixin mq-min($size) {
-
-	@media (min-width: $size) {
-		@content;
-	}
-}
-
-$xxs: 0;
-$xs: 479px;
-$sm: 767px;
-$md: 991px;
-$lg: 1199px;
-$breakpoint-xxs: 0;
-$breakpoint-xs: 479px;
-$breakpoint-sm: 767px;
-$breakpoint-md: 991px;
-$breakpoint-md-lg: 1024px;
-$breakpoint-lg: 1199px;
-
-// General colours
-$black: #000;
-$white: #fff;
-$woodsmoke: #111;
-$mineshaft: #313132;
-$scorpiongrey: #484747;
-$dovegrey: #656565;
-$dustygrey: #9a9a9a;
-$porcelain: #dcdcdc;
-
-// Government web blues
-$midnightblue: #002a4e;
-$generallink: #1a5a96;
-$sanmarinoblue: #496ea7;
-$curiousblue: #1e9dd3;
-$menublue: #1f2f60;
-
-// Project colours
+// Go Electric Project colours
 $headeryellow: #ecc51d;
 $highlightyellow: #fcf6dd;
 $gofootergrey: #1f2639;
@@ -107,6 +13,7 @@ $vehiclegrey: #ccc;
 $snow: $white;
 $bcgov-red-primary: #d71d24;
 
+
 // Go Electric v1 Project colours
 $sushigreen: #61a744;
 $eucalyptus: #1d8045;
@@ -119,10 +26,7 @@ $anchororange: #eb7d3b;
 $dawngray: #a49e99;
 $gallerygray: #edebeb;
 
-$gutter: 10%;
-$footer-background-color: $midnightblue;
 $header-background-color: $snow;
-$menu-background-color: $midnightblue;
 
 // SVG Images
 $home-banner-overlay: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDI2LjAuMiwgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPgo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiCgl4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCgl4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeD0iMHB4IiB5PSIwcHgiIHZpZXdCb3g9IjAgMCA4OTAgNzQzIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA4OTAgNzQzOyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+Cgk8c3R5bGUgdHlwZT0idGV4dC9jc3MiPgoJLnN0MHtmaWxsOnVybCgjU1ZHSURfMV8pO30KCS5zdDF7ZmlsbDp1cmwoI1NWR0lEXzAwMDAwMDk5NjMwMzkwOTYzMzE5MzA1MTcwMDAwMDA5OTQ0MDI4NDI1Njc2MTA1MTM0Xyk7fQoJPC9zdHlsZT4KCTxsaW5lYXJHcmFkaWVudCBpZD0iU1ZHSURfMV8iIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iLTQxMC4wNjA2IiB5MT0iNTA1LjExNjIiIHgyPSIzNDUuNjMwMSIgeTI9IjcyMi4xMDkzIiBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDEgMCAwIC0xIDQwNCA5NjQuNzE1MikiPgoJCTxzdG9wIG9mZnNldD0iMCIgc3R5bGU9InN0b3AtY29sb3I6IzAwNUM5NyIvPgoJCTxzdG9wIG9mZnNldD0iMSIgc3R5bGU9InN0b3AtY29sb3I6IzAwOEZCNCIvPgoJPC9saW5lYXJHcmFkaWVudD4KCTxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik0wLDBoODkwTDYwMS41LDc0M0gwVjB6Ii8+Cgk8Zz4KCgkJPGxpbmVhckdyYWRpZW50IGlkPSJTVkdJRF8wMDAwMDEzNjM3NzI1Nzk0NzQ5MTYxMTgyMDAwMDAxNjExMzc5ODE5NDgyNzMyMjc3MF8iIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iMTgwLjQxMTMiIHkxPSI0MTkuMjgwOCIgeDI9Ii0zODYuMDg4NSIgeTI9IjI0MC43ODA5IiBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDEgMCAwIC0xIDQwNCA5NjQuNzE1MikiPgoJCQk8c3RvcCBvZmZzZXQ9IjAiIHN0eWxlPSJzdG9wLWNvbG9yOiM3RkJDNDIiLz4KCQkJPHN0b3Agb2Zmc2V0PSIxIiBzdHlsZT0ic3RvcC1jb2xvcjojNjFBNzQ0Ii8+CgkJPC9saW5lYXJHcmFkaWVudD4KCQk8cGF0aCBzdHlsZT0iZmlsbDp1cmwoI1NWR0lEXzAwMDAwMTM2Mzc3MjU3OTQ3NDkxNjExODIwMDAwMDE2MTEzNzk4MTk0ODI3MzIyNzcwXyk7IiBkPSJNODMyLDc0M0wwLDQ1NHYyODlIODMyeiIvPgoJPC9nPgo8L3N2Zz4K);
