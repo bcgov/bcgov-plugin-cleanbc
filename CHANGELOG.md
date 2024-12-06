@@ -1,5 +1,11 @@
+## 1.9.2 December 6, 2024
+- Removed custom qs (querySelector) /qsa (querySelectorAll) / addSafeEventListenerPlugin (addEventListener) wrapper methods.
+- Passes the function reference for all DOMContentLoaded event listeners rather than invoking.
+- Scoped Go Electric styles to body.custom-goelectricbc.
+
 ## 1.9.1 December 6, 2024
 - Refined CSS by site. Cleaned up SCSS variables and removed mixins.
+- Additional style updates.
 
 ## 1.9.0 December 6, 2024
 - Added definitions post glossary query loop (.glossary-results) aggregation processing to add separation headlines by letter of the alphabet.
