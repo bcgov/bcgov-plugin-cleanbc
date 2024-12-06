@@ -25,6 +25,9 @@
 @import "./public/betterhomes/mixins";
 @import "./public/betterhomes/rebates";
 @import "./public/betterhomes/vue-apps";
+@import "./public/betterhomes/bh-general";
+// BetterBuildings
+@import "./public/betterbuildings/bb-general";
 
 :root {
 	color-scheme: light dark;

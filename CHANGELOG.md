@@ -1,3 +1,8 @@
+## 1.9.0 December 6, 2024
+- Added definitions post glossary query loop (.glossary-results) aggregation processing to add separation headlines by letter of the alphabet.
+- Updated site styles to accomodate general styling for Better Homes and Better Buildings.
+- Modified search highlighting.
+
 ## 1.8.2 December 5, 2024
 - Add custom post types to search context based on site domain.
 - Highlight search result page matches with mark tags.
