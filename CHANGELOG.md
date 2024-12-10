@@ -1,3 +1,6 @@
+## 1.9.3 December 10, 2024
+- Modified default PQEA choice to "Renovating a home".
+
 ## 1.9.2 December 6, 2024
 - Removed custom qs (querySelector) /qsa (querySelectorAll) / addSafeEventListenerPlugin (addEventListener) wrapper methods.
 - Passes the function reference for all DOMContentLoaded event listeners rather than invoking.
