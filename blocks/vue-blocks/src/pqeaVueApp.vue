@@ -11,7 +11,7 @@
           <label for="categorySelect" class="">Choose between home construction and home renovation</label>
           <div class="custom-select">
               <select @change="selectIsActive" @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive" tabindex="0" id="categorySelect" class="select select--category" v-model="selectedCategory" :required="true" data-active="false">
-                  <option v-if="isLoading" value="Constructing a home">Constructing a home</option>
+                  <option v-if="isLoading" value="Renovating a home">Renovating a home</option>
                   <option v-if="!isLoading" v-for="(category, index) in categories" :key="category" :value="category">{{ category }}</option>
               </select>
           </div>
@@ -246,8 +246,8 @@ const pqeas = ref([]);
  *
  * @type {Ref<String>} - Reference to the selected category.
  */
-const defaultSelectedCategory = ref('Constructing a home');
-const selectedCategory = ref('Constructing a home');
+const defaultSelectedCategory = ref('Renovating a home');
+const selectedCategory = ref('Renovating a home');
 
 /**
  * Ref for controlling the visibility of loading messages.
