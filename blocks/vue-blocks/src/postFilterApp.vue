@@ -513,7 +513,7 @@ const checkDefinitions = () => {
         definitionLinks.forEach(function (link) {
             if (!link.classList.contains('icon-definition')) {
                 link.classList.add('icon-definition');
-                link.setAttribute('aria-label', 'opens definition dialog for: ' + link.text);
+                link.setAttribute('aria-label', 'opens definition dialog for this concept');
     
                 // Adding event listeners for both click and keypress events
                 addEventListeners(link);
