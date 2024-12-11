@@ -9,7 +9,7 @@ const bcgovBlockThemePluginAccessibility = () => {
 
 		const actionsAccordionHeader = document.querySelector('.actions-accordion-header');
 		if (null !== actionsAccordionHeader) {
-			const getSiblings = function (elem) {
+			const getSiblings = (elem) => {
 				// Setup siblings array and get the first sibling
 				const siblings = [];
 				let sibling = elem.parentNode.firstChild;

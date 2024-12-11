@@ -21,7 +21,7 @@ class SearchContext {
 	 */
 	public function bcgov_included_post_types_in_search( $query ) {
 		// Default post types.
-		$post_types = [ 'page', 'post' ];
+		$post_types = [ 'page', 'post', 'definitions' ];
 
 		$site_url = home_url(); // Base URL (e.g., https://test.vanity.blog.gov.bc.ca).
         $path     = untrailingslashit( $_SERVER['REQUEST_URI'] ); // Path (e.g., /betterbuildingsbc).

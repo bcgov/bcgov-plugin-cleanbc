@@ -10,10 +10,6 @@ const bcgovBlockThemePluginDriverCategoryQuery = () => {
             '.wp-block-query.vue-card-container'
         );
 
-        if (queryLoopDriverCardContainer.length) {
-            fetchDataAndReplaceLinks();
-        }
-
         /**
          * Fetches data from a specified API endpoint, processes categories, replaces links with images,
          * and caches the data to optimize subsequent calls. Cache expires afetr 1 day.
@@ -26,7 +22,7 @@ const bcgovBlockThemePluginDriverCategoryQuery = () => {
          * @throws {Error} Throws an error if there's an issue during data fetching and processing.
          * @return {Promise<void>} A Promise that resolves after fetching, processing, and replacing links.
          */
-        async function fetchDataAndReplaceLinks(page = 1) {
+        const fetchDataAndReplaceLinks = async (page = 1) => {
             try {
                 const perPage = 100;
                 const cachedData = window.localStorage.getItem('apiData');
@@ -102,7 +98,7 @@ const bcgovBlockThemePluginDriverCategoryQuery = () => {
          * @param {Object[]} data - An array of project items from the API response.
          * @return {void} The function does not return a value, but it logs the unique categories and calls replaceLinks with the processed data.
          */
-        function processCategories(data) {
+        const processCategories = (data) => {
             const categories = [];
             const uniqueCategoryNames = new Set();
 
@@ -145,7 +141,7 @@ const bcgovBlockThemePluginDriverCategoryQuery = () => {
          * @param {string}   [categories[].acf.category_image] - The URL of the category image.
          * @return {void} The function does not return a value, but it modifies the DOM by replacing links with images.
          */
-        function replaceLinks(categories) {
+        const replaceLinks = (categories) => {
             document
                 .querySelectorAll('div.taxonomy-category')
                 .forEach((categoryDiv) => {
@@ -189,6 +185,10 @@ const bcgovBlockThemePluginDriverCategoryQuery = () => {
 
                     categoryDiv.style.opacity = '1';
                 });
+        }
+
+        if (queryLoopDriverCardContainer.length) {
+            fetchDataAndReplaceLinks();
         }
     });
 };

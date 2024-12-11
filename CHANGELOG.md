@@ -1,3 +1,7 @@
+## 1.10.0 December 11, 2024
+- Fixed search results marking header link href and ARIA labels bug.
+- Refactored various javascript to use es6 arrow functions and expand on JSDoc comments.
+
 ## 1.9.3 December 10, 2024
 - Modified default PQEA choice to "Renovating a home".
 
