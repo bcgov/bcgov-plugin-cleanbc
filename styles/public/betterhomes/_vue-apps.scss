@@ -471,6 +471,7 @@
 		&:hover,
 		&:focus {
 			background-color: darken($bahamablue, 7.5%);
+			display: inline-block;
 			transition: all $default_transition_timing_fn $default_transition_duration;
 			outline: $default_outline_offset solid darken($bondiblue, 7.5%);
 		}

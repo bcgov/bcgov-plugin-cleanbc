@@ -60,12 +60,16 @@
 				margin-left: 0.5rem;
 			}
 		}
+
+		&:not(.wp-block-social-link-anchor) svg {
+			display: none;
+		}
 	}
 
 	li {
 
 		> a {
-			display: block;
+			box-decoration-break: clone;
 		}
 	}
 
@@ -154,12 +158,15 @@
 	.bcgov-body-content {
 		position: relative;
 
-		nav {
+		#side-nav-container {
 
 			@media (min-width: $breakpoint-md) {
 				position: sticky;
 				top: 8rem;
 			}
+		}
+
+		nav {
 
 			.wp-block-navigation {
 
