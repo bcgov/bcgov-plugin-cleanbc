@@ -24,7 +24,7 @@ class BasicBlocks {
      */
     public function init() {
         add_action( 'init', [ $this, 'register_blocks' ] );
-        add_action( 'init', [ $this, 'register_custom_incentive_page_pattern' ] );
+        add_action( 'wp_loaded', [ $this, 'register_custom_incentive_page_pattern' ] );
         add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_scripts' ], 10 );
     }
 
@@ -256,16 +256,18 @@ class BasicBlocks {
         <!-- /wp:group --></div>
         <!-- /wp:group -->';
 
-        register_block_pattern(
-            'buybc-plugin/single-recipe-page',
-            [
-                'title'      => __( 'Single incentive page', 'bcgov-plugin-cleanbc' ),
-                'blockTypes' => [ 'core/post-content' ],
-                'content'    => $pattern_content,
-                'postTypes'  => [ 'incentives', 'rebates' ],
-                'categories' => [ 'featured' ],
+        if ( post_type_exists( 'incentives' ) ) {
+            register_block_pattern(
+                'bcgov-plugin-cleanbc/single-incentive-page',
+                [
+                    'title'      => __( 'Single incentive page', 'bcgov-plugin-cleanbc' ),
+                    'blockTypes' => [ 'core/post-content' ],
+                    'content'    => $pattern_content,
+                    'postTypes'  => [ 'incentives', 'rebates' ],
+                    'categories' => [ 'featured' ],
 
-            ]
-        );
+                ]
+            );
+        }
     }
 }
