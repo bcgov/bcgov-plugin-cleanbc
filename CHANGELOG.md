@@ -1,3 +1,8 @@
+## 1.11.0 December 13, 2024
+- Incentives/rebates new page "choose a pattern" option for multi-column Single incentives page starter layout. Pattern template included in 'register_custom_incentive_page_pattern' function in Hooks/BasicBlocks.php.
+- Added in-page side scrolling menu generation for incentives layout pattern based on headlines used in content.
+- Cleaned up unscoped or undefined body styles and resolved sticky side menu bug.
+
 ## 1.10.0 December 11, 2024
 - Fixed search results marking header link href and ARIA labels bug.
 - Refactored various javascript to use es6 arrow functions and expand on JSDoc comments.

@@ -1218,11 +1218,6 @@ DUMP
   letter-spacing: 0.2px;
 }
 
-body {
-  overflow-x: hidden;
-  overflow-y: scroll;
-}
-
 .body-wrap,
 div.bcgov-marketing-page,
 .no-scroll {

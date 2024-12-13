@@ -53,7 +53,7 @@ body:not(body.wp-admin):not(body.editor-styles-wrapper):not(body.error404) {
 	// display: flex;
 	place-items: center;
 	min-height: 100vh;
-	overflow-x: hidden;
+	overflow-x: clip;
 }
 
 .wp-site-blocks {
@@ -137,11 +137,12 @@ textarea {
 	isolation: isolate;
 
 	a {
+		box-decoration-break: clone;
 		text-underline-offset: 4px;
 		text-decoration-color: color-mix(in srgb, currentcolor 33%, transparent);
 
 		&:is(:hover, :focus-visible) {
-			display: inline-block;
+			display: inline;
 			outline: 2px solid currentcolor;
 			outline-offset: 2px;
 			border-radius: 3px;
