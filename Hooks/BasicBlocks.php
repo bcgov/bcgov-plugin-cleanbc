@@ -145,9 +145,6 @@ class BasicBlocks {
      */
     public function register_custom_incentive_page_pattern() {
 
-        $asset_path = \Bcgov\Plugin\CleanBC\Setup::$plugin_dir . '/bcgov-plugin-cleanbc';
-        // $asset_url  = plugins_url( '', $asset_path ) . '/blocks/assets/';
-
         $pattern_content = '<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"right":"2rem","left":"2rem"}}},"layout":{"type":"constrained"},"metadata":{"name":"Incentive Pattern Container"}} -->
         <div class="wp-block-group alignfull" style="padding-right:2rem;padding-left:2rem"><!-- wp:group {"align":"wide","layout":{"type":"default"}} -->
         <div class="wp-block-group alignwide"><!-- wp:columns -->
