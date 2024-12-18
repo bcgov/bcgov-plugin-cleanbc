@@ -1,3 +1,10 @@
+## 1.11.1 December 18, 2024
+- Side navigation scroll generator scrupts and styles updated to work with Better Buildings/Homes functional styling conflict.
+- Updated Single Incentive page pattern.
+- Added admin and visitor facing patterns.scss for admin editor pattern styling.
+- Disabled sourcemap generation in Vite config.
+- Refactored styles structure to merge Better Homes and Better Building SCSS into BHBB combination.
+
 ## 1.11.0 December 13, 2024
 - Incentives/rebates new page "choose a pattern" option for multi-column Single incentives page starter layout. Pattern template included in 'register_custom_incentive_page_pattern' function in Hooks/BasicBlocks.php.
 - Added in-page side scrolling menu generation for incentives layout pattern based on headlines used in content.
