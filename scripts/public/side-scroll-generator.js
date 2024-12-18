@@ -7,9 +7,7 @@ const bcgovBlockThemePluginSideNav = () => {
 	 */
 	window.requestAnimationFrame(() => {
 		const detailsContainer = document.querySelector('#incentive-details-container');
-		console.log('detailsContainer', detailsContainer)
 		const sideNav = document.querySelector('#incentive-side-nav');
-		console.log('sideNav', sideNav)
 
 		if (detailsContainer && sideNav) {
 			// Clear the existing content of #incentive-side-nav
@@ -20,10 +18,10 @@ const bcgovBlockThemePluginSideNav = () => {
 
 			// Create a new list for navigation
 			const navListContainer = document.createElement('nav');
-			navListContainer.classList.add('side-nav', 'wp-block-navigation', 'is-vertical', 'wp-container-core-navigation-layout-2');
+			navListContainer.classList.add('side-nav', 'bb-nav', 'wp-block-navigation', 'is-vertical', 'wp-container-core-navigation-layout-2');
 			
 			const navList = document.createElement('ul');
-			navList.classList.add('side-nav', 'wp-block-navigation', 'is-vertical', 'wp-block-navigation__container');
+			navList.classList.add('side-nav', 'bb-nav', 'wp-block-navigation', 'is-vertical', 'wp-block-navigation__container');
 
 			// Loop through the H2 elements to create links
 			headings.forEach(heading => {
@@ -50,6 +48,7 @@ const bcgovBlockThemePluginSideNav = () => {
 			// Append the navigation list to the side navigation
 			navListContainer.appendChild(navList);
 			sideNav.appendChild(navListContainer);
+			sideNav.classList.remove('admin-instructions');
 		}
 
 	});
