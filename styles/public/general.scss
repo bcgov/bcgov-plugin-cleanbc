@@ -1,10 +1,13 @@
 /* stylelint-disable no-descending-specificity */
 /* stylelint-disable selector-class-pattern */
+/* stylelint-disable property-no-unknown */
 
 :root {
 	color-scheme: light dark;
 	color: $white;
 	background-color: $mineshaft;
+
+	interpolate-size: allow-keywords;
 
 	font-synthesis: none;
 	text-rendering: optimizelegibility;
@@ -140,9 +143,10 @@ textarea {
 		box-decoration-break: clone;
 		text-underline-offset: 4px;
 		text-decoration-color: color-mix(in srgb, currentcolor 33%, transparent);
+		text-wrap: balance;
 
 		&:is(:hover, :focus-visible) {
-			display: inline;
+			display: inherit;
 			outline: 2px solid currentcolor;
 			outline-offset: 2px;
 			border-radius: 3px;

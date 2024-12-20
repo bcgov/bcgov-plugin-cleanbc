@@ -5,7 +5,7 @@
     <!-- Skip to results link -->
     <a href="#pqeasResults" class="sr-only skip-to-results">Skip to results</a>
     <!-- Filter Controls -->
-    <div id="pqeasFilterControls" class="pqeasFilterControls filter-container">
+    <div  v-if="isVisible || (1 < totalPages && !isVisible)"  id="pqeasFilterControls" class="pqeasFilterControls filter-container">
         <!-- Category Select -->
         <div v-if='isVisible' class="control category-select">
           <label for="categorySelect" class="">Choose between home construction and home renovation</label>
@@ -52,7 +52,7 @@
         </div>
 
         <!-- Pagination Controls -->
-        <div class="pqeasFilterPagination control pagination pagination--top">
+        <div v-if="(isVisible && 1 !== totalPages) || (1 < totalPages && !isVisible)" class="pqeasFilterPagination control pagination pagination--top">
             <!-- Previous Page Button -->
             <button class="prev-page" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0" type="button">Previous Page</button>
             <!-- Current Page & Totals -->
@@ -73,7 +73,7 @@
     </div>
 
     <!-- PQEAs Results Table -->
-    <h2 class="results__title">Find an Energy Advisor results (<span class="counter__value">{{ filteredPqeas.length }}</span>)</h2>
+    <h2 class="results__title">Find an Energy Advisor (<span class="counter__value">{{ filteredPqeas.length }}</span> results)</h2>
     <table id="pqeasResults" class="pqeasResults results table table--striped">
         <caption class="sr-only">Program Qualified Energy Advisors</caption>
         <!-- Table Columns -->
@@ -192,7 +192,7 @@
     </table>
   </div>
 
-  <div v-if="isVisible && filteredPqeas.length !== 0 && 1 !== totalPages" class="pqeasFilterControls filter-container filter-container--bottom">
+  <div v-if="filteredPqeas.length !== 0 && 1 !== totalPages" class="pqeasFilterControls filter-container filter-container--bottom">
     <!-- Lower Pagination Controls -->
     <div class="pqeasFilterPagination control pagination pagination--bottom">
             <!-- Previous Page Button -->
@@ -832,13 +832,20 @@ watch([selectedCategory, selectedLocation], () => {
  *
  * @returns {void}
  */
-onMounted(() => {
-	fetchData();
+ onMounted(() => {
+    const appElement = document.getElementById('pqeaFilterApp');
+    const showControls = appElement.getAttribute('data-show-controls') === 'false';
+    isVisible.value = showControls;
 
-	const appElement = document.getElementById('pqeaFilterApp');
-	showLoadingMessage.value = true;
+    fetchData();
+    showLoadingMessage.value = true;
 
-	if (window.site?.domain) {}
+    const urlParams = new URLSearchParams(window.location.search);
+    const showParam = urlParams.get('show');
+
+    if (showParam === 'off') {
+        isVisible.value = true;
+    }
 });
 
 watchEffect(() => {
