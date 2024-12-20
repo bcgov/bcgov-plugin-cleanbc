@@ -1,5 +1,7 @@
 /* stylelint-disable scss/no-global-function-names */
 /* stylelint-disable no-duplicate-selectors */
+/* stylelint-disable property-no-unknown */
+/* stylelint-disable scss/at-rule-no-unknown */
 
 /**
  * Master SCSS file for all 4 Vue 3 app's deployed as part of plugin
@@ -20,6 +22,10 @@
 #faqFilterApp,
 #pqeaFilterApp,
 #rebateFilterApp {
+
+	.filter-container.empty {
+		display: none;
+	}
 
 	// Accomodation for browsers < 2018.
 	&.noNavigator {
@@ -125,6 +131,15 @@
 			margin: 0 0 1rem;
 			padding: 0;
 			text-align: center;
+			height: auto;
+			opacity: 1;
+			transition: all 0.3s ease-in-out;
+			transition-behavior: allow-discrete;
+
+			@starting-style {
+				height: 0;
+				opacity: 0;
+			}
 
 			@media (min-width: $breakpoint-md) {
 				flex-direction: row;
@@ -714,6 +729,14 @@
 				background-color: darken($bahamablue, 7.5%);
 				transition: all $default_transition_timing_fn $default_transition_duration;
 				outline: $default_outline_offset solid darken($bondiblue, 7.5%);
+			}
+		}
+
+		&:is(.copy-link) {
+
+			&:hover,
+			&:focus {
+				display: inherit;
 			}
 		}
 	}

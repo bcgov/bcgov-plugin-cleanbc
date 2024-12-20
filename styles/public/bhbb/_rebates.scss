@@ -158,7 +158,8 @@
 	.bcgov-body-content {
 		position: relative;
 
-		#side-nav-container {
+		#side-nav-container,
+		.side-nav-container {
 
 			@media (min-width: $breakpoint-md) {
 				position: sticky;

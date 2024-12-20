@@ -221,10 +221,11 @@ class EnableVueApp {
 		}
 
 		// Set up the attributes passed to the Vue frontend, with defaults.
-		$class_name = isset( $attributes['className'] ) ? $attributes['className'] : '';
+		$class_name    = isset( $attributes['className'] ) ? $attributes['className'] : '';
+		$hide_controls = isset( $attributes['hideControls'] ) && $attributes['hideControls'] ? 'true' : 'false';
 
 		// Return the PQEA Filter App's container with appropriate class names.
-		return '<div id="pqeaFilterApp" class="' . esc_attr( $class_name ) . '">Loading...</div>';
+		return '<div id="pqeaFilterApp" class="' . esc_attr( $class_name ) . '" data-show-controls="' . esc_attr( $hide_controls ) . '">Loading...</div>';
 	}
 
 	/**
@@ -256,10 +257,11 @@ class EnableVueApp {
 		}
 
 		// Set up the attributes passed to the Vue frontend, with defaults.
-		$class_name = isset( $attributes['className'] ) ? $attributes['className'] : '';
+		$class_name    = isset( $attributes['className'] ) ? $attributes['className'] : '';
+		$hide_controls = isset( $attributes['hideControls'] ) && $attributes['hideControls'] ? 'true' : 'false';
 
 		// Return the Contractor Filter App's container with appropriate class names.
-		return '<div id="contractorFilterApp" class="' . esc_attr( $class_name ) . '">Loading...</div>';
+		return '<div id="contractorFilterApp" class="' . esc_attr( $class_name ) . '" data-show-controls="' . esc_attr( $hide_controls ) . '">Loading...</div>';
 	}
 
 	/**
