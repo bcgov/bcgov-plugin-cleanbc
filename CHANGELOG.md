@@ -1,5 +1,9 @@
+## 1.12.0 December 20, 2024
+- Modified Contractor and PQEA tool to allow for hiding controls in WordPress admin settings.
+- Improved pagination display to work with controls when hidden or when pagination is not needed.
+
 ## 1.11.1 December 18, 2024
-- Side navigation scroll generator scrupts and styles updated to work with Better Buildings/Homes functional styling conflict.
+- Side navigation scroll generator scripts and styles updated to work with Better Buildings/Homes functional styling conflict.
 - Updated Single Incentive page pattern.
 - Added admin and visitor facing patterns.scss for admin editor pattern styling.
 - Disabled sourcemap generation in Vite config.

@@ -87,7 +87,7 @@ class BetterHomesPQEAVueAppEditorComponent extends wp.element.Component {
         }
     }
 
-      /**
+    /**
      * Initializes the Vue app assuming 'initVueApp' is a function in the Vue JavaScript that starts the Vue app.
      *
      * @memberof BetterHomesPQEAVueAppEditorComponent
@@ -107,9 +107,8 @@ class BetterHomesPQEAVueAppEditorComponent extends wp.element.Component {
      * @returns {JSX.Element} The JSX element representing the BetterHomesPQEAVueAppEditorComponent.
      */
     render() {
-        // todo: make this into jsx and introduce build process for the block
-        const { className } = this.props.attributes;
-
+        const { className, hideControls } = this.props.attributes;
+        const { setAttributes } = this.props;
 
         return createElement(
             Fragment,
@@ -117,17 +116,26 @@ class BetterHomesPQEAVueAppEditorComponent extends wp.element.Component {
             createElement(
                 InspectorControls,
                 null,
+                createElement(
+                    PanelBody,
+                    { title: 'Settings', initialOpen: true },
+                    createElement(ToggleControl, {
+                        label: 'Hide the controls',
+                        checked: hideControls,
+                        onChange: (value) => setAttributes({ hideControls: value }),
+                    })
+                )
             ),
             createElement('div', {
                 id: 'pqeaFilterApp',
                 class: className,
+                'data-show-controls': !hideControls, // Pass the attribute to the Vue app
             }, [
                 createElement('span', {
                     class: 'dashicon dashicons dashicons-tag'
                 }),
                 `PQEA Filter Block Placeholder `,
             ])
-            
         );
     }
 }
@@ -155,6 +163,10 @@ registerBlockType('cleanbc-plugin/betterhomes-pqea-filter-block', {
         className: {
             type: 'string',
             default: '',
+        },
+        hideControls: {
+            type: 'boolean',
+            default: false,
         },
     },
     edit: BetterHomesPQEAVueAppEditorComponent,
