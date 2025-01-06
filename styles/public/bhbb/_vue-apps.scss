@@ -122,6 +122,21 @@
 			}
 		}
 
+		.fader-enter-active,
+		.fader-leave-active {
+			transition: opacity 5s; /* Adjust duration as needed */
+		}
+
+		/* The element's opacity when entering */
+		.fader-enter {
+			opacity: 0;
+		}
+
+		/* The element's opacity when leaving */
+		.fader-leave-to {
+			opacity: 0;
+		}
+
 		&.pagination {
 			display: flex;
 			flex-direction: column;

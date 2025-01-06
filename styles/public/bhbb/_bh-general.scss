@@ -116,7 +116,6 @@ html:has(body.betterhomesbc, body.betterbuildingsbc) {
 
 	#post-content#post-content a:not(.wp-block-button__link, .button):is(:hover, :focus-visible),
 	.post-content.post-content a:not(.wp-block-button__link, .button):is(:hover, :focus-visible) {
-		display: initial;
 		border-bottom: 2px solid currentcolor;
 		outline: none;
 		outline-offset: 0;

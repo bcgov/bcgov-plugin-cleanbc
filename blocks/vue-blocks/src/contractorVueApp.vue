@@ -156,7 +156,7 @@
                     <td data-label="Contact Email and Phone" class="contractor__email-and-phone">
                         <address>
                             <!-- Email Link -->
-                            <a v-if="contractor.email" class="contractor__email" :href="'mailto:' + contractor.email">{{ contractor.email }}</a>
+                            <a v-if="contractor.email" class="contractor__email" :href="'mailto:' + contractor.email"><span v-html="insertBreakableChar(contractor.email)"></span></a>
                             <p class="contractor__email" v-else>No email provided</p>
 
                             <!-- Phone Link -->
@@ -679,6 +679,15 @@ const clearFilters = () => {
 
 	currentPage.value !== 1 ? handleUpdatingAnimationClass('.control.pagination .pages') : null;
 	currentPage.value = 1;
+};
+
+/**
+ * Function to add invisible html entity as breakpoints for email address as label.
+ *
+ * @returns {string} - The updated current page value or null if already on the first page.
+ */
+ const insertBreakableChar = (email) => {
+    return email.replace(/@/g, '&#8203;@').replace(/\./g, '&#8203;.');
 };
 
 /**
