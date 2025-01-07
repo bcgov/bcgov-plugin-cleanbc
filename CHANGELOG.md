@@ -1,6 +1,7 @@
-## 1.12.1 January 6, 2025
+## 1.12.1 January 7, 2025
 - Added invisible html entity as breakpoints for email address as labels when output in filtering tables for PQEAs and Contractors.
 - Tweaked focus and hover style for links in filtered tables.
+- Modified base WP font sizing options.
 
 ## 1.12.0 December 20, 2024
 - Modified Contractor and PQEA tool to allow for hiding controls in WordPress admin settings.
