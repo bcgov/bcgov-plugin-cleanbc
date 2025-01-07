@@ -5,6 +5,7 @@
     <!-- Skip to results link -->
     <a href="#pqeasResults" class="sr-only skip-to-results">Skip to results</a>
     <!-- Filter Controls -->
+    <transition name="fader">
     <div  v-if="isVisible || (1 < totalPages && !isVisible)"  id="pqeasFilterControls" class="pqeasFilterControls filter-container">
         <!-- Category Select -->
         <div v-if='isVisible' class="control category-select">
@@ -71,6 +72,7 @@
             </span>
         </div>
     </div>
+</transition>
 
     <!-- PQEAs Results Table -->
     <h2 class="results__title">Find an Energy Advisor (<span class="counter__value">{{ filteredPqeas.length }}</span> results)</h2>
@@ -139,7 +141,7 @@
                     <td data-label="Contact Email and Phone" class="pqea__email-and-phone">
                         <address>
                             <!-- Email Link -->
-                            <a v-if="pqea.details.email" class="pqea__email" :href="'mailto:' + pqea.details.email">{{ pqea.details.email }}</a>
+                            <a v-if="pqea.details.email" class="pqea__email" :href="'mailto:' + pqea.details.email"> <span v-html="insertBreakableChar(pqea.details.email)"></span></a>
                             <p class="pqea__email" v-else>No email provided</p>
 
                             <!-- Phone Link -->
@@ -499,6 +501,15 @@ const paginatedPqeas = computed(() => {
 
   }
 }
+
+/**
+ * Function to add invisible html entity as breakpoints for email address as label.
+ *
+ * @returns {string} - The updated current page value or null if already on the first page.
+ */
+const insertBreakableChar = (email) => {
+    return email.replace(/@/g, '&#8203;@').replace(/\./g, '&#8203;.');
+};
 
 /**
  * Function to navigate to the previous page in paginated results.
