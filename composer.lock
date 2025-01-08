@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "62ef9e28472ad8065cce2f0b5484f0e9",
+    "content-hash": "763f7b8a6d7f99b2e368add54fa7828f",
     "packages": [
         {
             "name": "composer/installers",
@@ -2851,16 +2851,16 @@
         },
         {
             "name": "yoast/phpunit-polyfills",
-            "version": "2.0.2",
+            "version": "2.0.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Yoast/PHPUnit-Polyfills.git",
-                "reference": "562f449a2ec8ab92fe7b30d94da9622c7b1345fe"
+                "reference": "f202832368f16ef2dc486678ac7569ee85c5fc6a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Yoast/PHPUnit-Polyfills/zipball/562f449a2ec8ab92fe7b30d94da9622c7b1345fe",
-                "reference": "562f449a2ec8ab92fe7b30d94da9622c7b1345fe",
+                "url": "https://api.github.com/repos/Yoast/PHPUnit-Polyfills/zipball/f202832368f16ef2dc486678ac7569ee85c5fc6a",
+                "reference": "f202832368f16ef2dc486678ac7569ee85c5fc6a",
                 "shasum": ""
             },
             "require": {
@@ -2949,7 +2949,7 @@
                 "source": "https://github.com/Yoast/PHPUnit-Polyfills",
                 "security": "https://github.com/Yoast/PHPUnit-Polyfills/security/policy"
             },
-            "time": "2024-09-06T22:38:28+00:00"
+            "time": "2025-01-08T17:29:31+00:00"
         }
     ],
     "aliases": [],

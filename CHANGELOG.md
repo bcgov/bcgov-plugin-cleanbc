@@ -1,3 +1,7 @@
+## 1.12.2 January 8, 2025
+- Revising link styles across the sites.
+- Added element wrappers to keep definitions links from wrapping end-of-line icons to next line on their own.
+
 ## 1.12.1 January 7, 2025
 - Added invisible html entity as breakpoints for email address as labels when output in filtering tables for PQEAs and Contractors.
 - Tweaked focus and hover style for links in filtered tables.
