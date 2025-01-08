@@ -111,16 +111,17 @@ html:has(body.betterhomesbc, body.betterbuildingsbc) {
 
 	#post-content#post-content a:not(.wp-block-button__link, .button),
 	.post-content.post-content a:not(.wp-block-button__link, .button) {
-		border-bottom: 2px solid transparent;
+		// border-bottom: 2px solid transparent;
+		text-decoration: currentcolor underline 2px solid;
 	}
 
 	#post-content#post-content a:not(.wp-block-button__link, .button):is(:hover, :focus-visible),
 	.post-content.post-content a:not(.wp-block-button__link, .button):is(:hover, :focus-visible) {
-		border-bottom: 2px solid currentcolor;
+		// border-bottom: 2px solid currentcolor;
 		outline: none;
 		outline-offset: 0;
 		border-radius: 3px;
-		text-decoration: none;
+		text-decoration: currentcolor underline 2px solid;
 	}
 
 	.wp-block-template-part .bcgov-header-group .bcgov-site-header nav.wp-block-navigation button,

@@ -135,18 +135,34 @@ textarea {
 	margin-top: auto;
 }
 
+a:where(:not(.wp-element-button)) {
+	color: currentcolor;
+	text-underline-offset: 3px;
+	text-decoration: currentcolor underline 1px solid;
+
+	&:is(:hover) {
+		text-underline-offset: 2px;
+		text-decoration: currentcolor underline 2px solid;
+	}
+}
+
 #post-content,
 .post-content {
 	isolation: isolate;
 
-	a {
+	a:not(.wp-element-button, .icon-definition) {
 		box-decoration-break: clone;
+		color: currentcolor;
 		text-underline-offset: 4px;
-		text-decoration-color: color-mix(in srgb, currentcolor 33%, transparent);
+		text-decoration: currentcolor underline 1px solid;
 		text-wrap: balance;
 
-		&:is(:hover, :focus-visible) {
-			display: inherit;
+		&:is(:hover) {
+			text-underline-offset: 3px;
+			text-decoration: currentcolor underline 2px solid;
+		}
+
+		&:is(:focus-visible) {
 			outline: 2px solid currentcolor;
 			outline-offset: 2px;
 			border-radius: 3px;
