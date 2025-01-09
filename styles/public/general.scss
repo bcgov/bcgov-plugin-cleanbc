@@ -139,7 +139,7 @@ textarea {
 	white-space: nowrap;
 }
 
-a:where(:not(.wp-element-button)) {
+a:where(:not(.wp-element-button, .wp-block-navigation-item__content)) {
 	text-underline-offset: 3px;
 	text-decoration: currentcolor underline 1px solid;
 
@@ -153,7 +153,7 @@ a:where(:not(.wp-element-button)) {
 .post-content {
 	isolation: isolate;
 
-	a:not(.wp-element-button, .icon-definition) {
+	a:not(.wp-element-button, .icon-definition, .wp-block-navigation-item__content) {
 		box-decoration-break: clone;
 		text-underline-offset: 4px;
 		text-decoration: currentcolor underline 1px solid;
