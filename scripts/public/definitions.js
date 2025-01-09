@@ -177,7 +177,7 @@ const bcgovBlockThemePluginDefnitions = () => {
 
                     // Create a span element for the last word
                     const span = document.createElement('span');
-                    span.classList.add('last-word');
+                    span.classList.add('last-word', 'no-wrap');
                     span.textContent = lastWord;
 
                     link.innerHTML = `${restOfText} `;
