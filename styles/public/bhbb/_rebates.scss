@@ -24,12 +24,10 @@
 
 	h2:has(:not(footer)) {
 		padding-bottom: 0.5rem;
-		font-size: clamp(var(--wp--preset--font-size--large), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
 		border-bottom: 0.125rem solid $prussianblue;
 	}
 
 	h3 {
-		font-size: clamp(var(--wp--preset--font-size--medium), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
 		margin-bottom: 0.5rem;
 
 		@media (min-width: $breakpoint-md) {
@@ -39,7 +37,6 @@
 
 	p {
 		margin-top: 0;
-		font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
 
 		&:last-of-type {
 			margin-bottom: 0;
@@ -109,20 +106,13 @@
 		}
 	}
 
-	tbody {
-
-		h3 {
-			font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.125rem);
-		}
-	}
-
 	th,
 	td {
 		padding: 1rem;
 	}
 
 	th {
-		font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
+		font-size: var(--wp--preset--font-size--small);
 		text-align: left;
 		background-color: $bahamablue;
 		// border-left: 0.125rem solid $prussianblue;
@@ -146,7 +136,7 @@
 	}
 
 	td {
-		font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
+		font-size: var(--wp--preset--font-size--small);
 		vertical-align: top;
 	}
 
@@ -188,7 +178,7 @@
 					a {
 						width: inherit;
 						padding: 0.5rem 1rem;
-						font-size: clamp(var(--wp--preset--font-size--medium), 0.75rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
+						font-size: var(--wp--preset--font-size--medium);
 						// Remove default outline.
 						outline: none !important;
 						border-radius: 0;
@@ -223,10 +213,6 @@
 
 			@media (min-width: $breakpoint-md) {
 				margin-bottom: 2rem;
-			}
-
-			h3 {
-				font-size: clamp(var(--wp--preset--font-size--normal), 1.125rem + ((1vw - 0.48rem) * 0.481), 1.5rem);
 			}
 		}
 
@@ -507,13 +493,6 @@
 		}
 	}
 
-	.collapse-header {
-
-		h3 {
-			font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
-		}
-	}
-
 	.block_contact_list {
 
 		address {
@@ -521,7 +500,6 @@
 
 			h3 {
 				font-family: BCSans, "Noto Sans", Verdana, Arial, sans-serif;
-				font-size: clamp(var(--wp--preset--font-size--normal), 1.125rem + ((1vw - 0.48rem) * 0.481), 1.5rem);
 				font-weight: normal;
 			}
 

@@ -292,7 +292,7 @@ class BasicBlocks {
 
         <!-- wp:group {"metadata":{"name":"CleanBC"},"style":{"spacing":{"margin":{"top":"1rem","bottom":"1rem"}}},"layout":{"type":"default"}} -->
         <div class="wp-block-group" style="margin-top:1rem;margin-bottom:1rem"><!-- wp:paragraph -->
-        <p>CleanBC Small Buildings Energy Coach&nbsp;<a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;tf=1&amp;to=smallbuildings@betterbuildingsbc.ca" target="_blank" rel="noreferrer noopener">smallbuildings@betterbuildingsbc.ca</a>.</p>
+        <p>CleanBC Small Buildings Energy Coach&nbsp;<a href="mailto:smallbuildings@betterbuildingsbc.ca" target="_blank" rel="noreferrer noopener">smallbuildings@betterbuildingsbc.ca</a>.</p>
         <!-- /wp:paragraph --></div>
         <!-- /wp:group -->
 
@@ -302,13 +302,13 @@ class BasicBlocks {
         <!-- /wp:paragraph -->
 
         <!-- wp:paragraph -->
-        <p>BC Hydro Energy Savings Business Help Desk&nbsp;<a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;tf=1&amp;to=incentives@bchydro.com" target="_blank" rel="noreferrer noopener">incentives@bchydro.com</a>&nbsp;<a href="tel:+18665224713" title="">1-866-522-4713</a> Lower Mainland&nbsp;<a href="tel:+16045224713" title="">604-522-4713</a>.</p>
+        <p>BC Hydro Energy Savings Business Help Desk&nbsp;<a href="mailto:incentives@bchydro.com" target="_blank" rel="noreferrer noopener">incentives@bchydro.com</a>&nbsp;<a href="tel:+18665224713" title="">1-866-522-4713</a> Lower Mainland&nbsp;<a href="tel:+16045224713" title="">604-522-4713</a>.</p>
         <!-- /wp:paragraph --></div>
         <!-- /wp:group -->
 
         <!-- wp:group {"metadata":{"name":"CMHC"},"style":{"spacing":{"margin":{"top":"1rem","bottom":"1rem"}}},"layout":{"type":"default"}} -->
         <div class="wp-block-group" style="margin-top:1rem;margin-bottom:1rem"><!-- wp:paragraph -->
-        <p>CMHC Contact Centre&nbsp;<a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;tf=1&amp;to=contactcentre@cmhc.ca" target="_blank" rel="noreferrer noopener">contactcentre@cmhc.ca</a>&nbsp;<a href="tel:604-737-4035">604-737-4035</a>.</p>
+        <p>CMHC Contact Centre&nbsp;<a href="mailto:contactcentre@cmhc.ca" target="_blank" rel="noreferrer noopener">contactcentre@cmhc.ca</a>&nbsp;<a href="tel:604-737-4035">604-737-4035</a>.</p>
         <!-- /wp:paragraph --></div>
         <!-- /wp:group -->
 
@@ -318,11 +318,11 @@ class BasicBlocks {
         <!-- /wp:paragraph -->
 
         <!-- wp:paragraph -->
-        <p>FortisBC&nbsp;<a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;tf=1&amp;to=businessrebates@fortisbc.com" target="_blank" rel="noreferrer noopener">businessrebates@fortisbc.com</a>&nbsp;<a href="tel:+18558577411" title="">1-866-436-7847</a>.</p>
+        <p>FortisBC&nbsp;<a href="mailto:businessrebates@fortisbc.com" target="_blank" rel="noreferrer noopener">businessrebates@fortisbc.com</a>&nbsp;<a href="tel:+18558577411" title="">1-866-436-7847</a>.</p>
         <!-- /wp:paragraph -->
 
         <!-- wp:paragraph -->
-        <p>FortisBC <a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;tf=1&amp;to=commercialrebates@fortisbc.com" target="_blank" rel="noreferrer noopener">commercialrebates@fortisbc.com</a> &nbsp;<a href="tel:+18558577411" title="">1-866-436-7847</a>.</p>
+        <p>FortisBC <a href="mailto:commercialrebates@fortisbc.com" target="_blank" rel="noreferrer noopener">commercialrebates@fortisbc.com</a> &nbsp;<a href="tel:+18558577411" title="">1-866-436-7847</a>.</p>
         <!-- /wp:paragraph --></div>
         <!-- /wp:group -->
 
@@ -334,7 +334,7 @@ class BasicBlocks {
 
         <!-- wp:group {"metadata":{"name":"PNG"},"style":{"spacing":{"margin":{"top":"1rem","bottom":"1rem"}}},"layout":{"type":"default"}} -->
         <div class="wp-block-group" style="margin-top:1rem;margin-bottom:1rem"><!-- wp:paragraph -->
-        <p>Pacific Northern Gas&nbsp;<a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;tf=1&amp;to=savingenergy@png.ca" target="_blank" rel="noreferrer noopener">savingenergy@png.ca</a>&nbsp;<a href="tel:+18006672297" title="">1-800-667-2297</a>.</p>
+        <p>Pacific Northern Gas&nbsp;<a href="mailto:savingenergy@png.ca" target="_blank" rel="noreferrer noopener">savingenergy@png.ca</a>&nbsp;<a href="tel:+18006672297" title="">1-800-667-2297</a>.</p>
         <!-- /wp:paragraph --></div>
         <!-- /wp:group --></div>
         <!-- /wp:group --></div>

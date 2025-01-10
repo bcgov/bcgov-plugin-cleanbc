@@ -1,3 +1,7 @@
+## 1.12.4 January 10, 2025
+- Font size adjustments to better work with site settings.
+- Minor adjustment to incentives template pattern.
+
 ## 1.12.3 January 9, 2025
 - Added Search escape suppression for keyboard accessibility.
 - Added a mutation observer to handle link wrapping of external icons injected by the Block Theme. 
