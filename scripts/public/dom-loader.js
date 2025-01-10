@@ -84,11 +84,21 @@ const bcgovBlockThemePluginDomLoader = () => {
 		const processExternalLinks = () => {
 			const observer = new MutationObserver((mutationsList, observer) => {
 				// Check if any links have been given the 'external' class.
-				const externalLinks = document.querySelectorAll('a.external:not(#postFilterApp a)');
+				const externalLinks = document.querySelectorAll('a.external:not(#postFilterApp a, #pqeasResults a, #contractorFilterApp a)');
 				if (externalLinks.length > 0) {
 					// Externally updated classes identified. Processing links.
 					observer.disconnect(); // Stop observing once links are found.
 					externalLinks.forEach((link) => {
+						// Skip links with mailto: or tel:
+						if (link.href.startsWith('mailto:') || link.href.startsWith('tel:')) {
+							// Special handling for mailto links: replace @ and . with &#8203;
+							if (link.href.startsWith('mailto:')) {
+								const email = link.href.slice(7); // Remove "mailto:" part
+								link.innerHTML = link.innerHTML.replace(email, email.replace(/@/g, '&#8203;@').replace(/\./g, '&#8203;.'));
+							}
+							return; // Skip further processing for mailto or tel links
+						}
+		
 						const svg = link.querySelector('svg');
 						if (svg) {
 							const linkText = link.textContent;
@@ -120,7 +130,7 @@ const bcgovBlockThemePluginDomLoader = () => {
 		
 			// Fallback: Stop observing after a timeout to avoid endless observation.
 			setTimeout(() => observer.disconnect(), 10000); 
-		}
+		};		
 		
 		// Start watching for external links.
 		processExternalLinks();

@@ -89,6 +89,19 @@ textarea {
 	color-scheme: light;
 }
 
+.external {
+
+	&:where([href^="tel"]),
+	&:where([href^="mailto"]) {
+
+		svg,
+		&::after {
+			display: none;
+			content: none;
+		}
+	}
+}
+
 .gap-0 {
 	gap: 0;
 }

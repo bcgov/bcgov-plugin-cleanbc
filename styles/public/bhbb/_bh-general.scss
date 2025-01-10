@@ -110,10 +110,16 @@ html:has(body.betterhomesbc, body.betterbuildingsbc) {
 	/* Navigation */
 
 
-	#post-content#post-content a:not(.wp-block-button__link, .button):is(:hover, :focus-visible),
-	.post-content.post-content a:not(.wp-block-button__link, .button):is(:hover, :focus-visible) {
+	#post-content#post-content a:not(.wp-block-button__link, .button):is(:hover),
+	.post-content.post-content a:not(.wp-block-button__link, .button):is(:hover) {
 		outline: none;
 		outline-offset: 0;
+	}
+
+	#post-content#post-content a:not(.wp-block-button__link, .button):is(:focus-visible),
+	.post-content.post-content a:not(.wp-block-button__link, .button):is(:focus-visible) {
+		outline: 1.5px solid;
+		outline-offset: 3.5px;
 		border-radius: 3px;
 	}
 
@@ -324,10 +330,6 @@ html:has(body.betterhomesbc, body.betterbuildingsbc) {
 	.single-incentives.single-incentives .block_contact_list address li:focus {
 		outline: 0;
 		outline-offset: 0;
-	}
-
-	body.single-incentives a:not(.wp-block-social-link-anchor) svg {
-		display: none;
 	}
 
 	body.single-incentives a.wp-block-social-link-anchor:is(:hover, :focus-visible) {
