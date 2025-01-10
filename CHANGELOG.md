@@ -3,6 +3,7 @@
 - Added a mutation observer to handle link wrapping of external icons injected by the Block Theme. 
 - Modified styles to accomodate nowrap/no-wrap classing outside of the definitions links 'last-word' span.
 - Incentives layout adjuments for BetterBuildings.
+- Removed external link icons from mailto and tel links. Excluded last-word span maipulation from such links.
 
 ## 1.12.2 January 8, 2025
 - Revising link styles across the sites.
