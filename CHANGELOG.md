@@ -1,3 +1,6 @@
+## 1.12.5 January 15, 2025
+- Improved FAQ pagination display to hide controls when pagination is not needed.
+
 ## 1.12.4 January 10, 2025
 - Font size adjustments to better work with site settings.
 - Minor adjustment to incentives template pattern.

@@ -100,16 +100,17 @@
 
       <!-- Pagination Controls -->
       <div class="faqsFilterPagination control pagination pagination--top">
-        <!-- Previous Page Button -->
-        <button class="prev-page" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0"
-          type="button">Previous Page</button>
-        <!-- Current Page & Totals -->
-        <span class="pages">Page <span class="numValue current-page">{{ currentPage }}</span> of <span
-            class="numValue total-pages">{{ totalPages }}</span></span>
-        <!-- Next Page Button -->
-        <button class="next-page" @click.prevent="nextPage" :disabled="currentPage === totalPages" tabindex="0"
-          type="button">Next Page</button>
-
+        <template  v-if="(isVisible && 1 !== totalPages) || (1 < totalPages && !isVisible)">
+          <!-- Previous Page Button -->
+          <button class="prev-page" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0"
+            type="button">Previous Page</button>
+          <!-- Current Page & Totals -->
+          <span class="pages">Page <span class="numValue current-page">{{ currentPage }}</span> of <span
+              class="numValue total-pages">{{ totalPages }}</span></span>
+          <!-- Next Page Button -->
+          <button class="next-page" @click.prevent="nextPage" :disabled="currentPage === totalPages" tabindex="0"
+            type="button">Next Page</button>
+        </template>
         <!-- Results Information -->
         <span class="totals">
           Showing <span class="results-count"><span class="numValue paginated-faqs">{{ paginatedFaqs.length }}</span> of

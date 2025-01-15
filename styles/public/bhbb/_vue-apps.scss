@@ -530,6 +530,10 @@
 			}
 		}
 
+		&.next-page {
+			margin-right: 1rem;
+		}
+
 		&.accordion-trigger {
 			position: relative;
 			width: 100%;
@@ -682,9 +686,9 @@
 		margin: 0;
 		padding: 0;
 
-		@media (min-width: $breakpoint-sm) {
-			margin: 0 1rem;
-		}
+		// @media (min-width: $breakpoint-sm) {
+		// 	margin: 0 1rem;
+		// }
 	}
 
 	.pages {
