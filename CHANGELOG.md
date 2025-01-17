@@ -1,3 +1,6 @@
+## 1.12.7 January 17, 2025
+- Contractor/PQEA table style updates to add sticky thead row.
+
 ## 1.12.6 January 17, 2025
 - Go Electric vehicle filter option settings to remove federal rebate information from output.
 - The vehicle type key dynamically reflects the available results hiding EV Types not in the current list.
