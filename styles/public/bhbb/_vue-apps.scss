@@ -1097,6 +1097,11 @@
 		width: 100%;
 	}
 
+	thead {
+		position: sticky;
+		top: 5.5rem;
+	}
+
 	tbody {
 
 		tr {
