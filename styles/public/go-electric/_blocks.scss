@@ -216,7 +216,6 @@ body.custom-goelectricbc {
 		margin: 0;
 
 		table {
-			border: 1px solid rgba($mineshaft, 0.33);
 			border-collapse: separate !important;
 			border-spacing: 0;
 			border-radius: 0.66rem;
@@ -226,14 +225,8 @@ body.custom-goelectricbc {
 
 			td,
 			th {
-				border-left: 1px solid rgba($mineshaft, 0.33);
-				border-top: 1px solid rgba($mineshaft, 0.33);
 				padding: 10px;
 				word-break: normal;
-
-				@media (max-width: $breakpoint-sm) {
-					font-size: 4vw;
-				}
 			}
 
 			th {

@@ -185,10 +185,11 @@ class EnableVueApp {
 		}
 
 		// Set up the attributes passed to the Vue frontend, with defaults.
-		$class_name = isset( $attributes['className'] ) ? $attributes['className'] : '';
+		$class_name           = isset( $attributes['className'] ) ? $attributes['className'] : '';
+		$hide_federal_rebates = isset( $attributes['hideFederalRebate'] ) && $attributes['hideFederalRebate'] ? 'true' : 'false';
 
 		// Return the Vehicle Filter App's container with appropriate class names.
-		return '<div id="vehicleFilterApp" class="' . esc_attr( $class_name ) . '">Loading...</div>';
+		return '<div id="vehicleFilterApp" class="' . esc_attr( $class_name ) . '" data-show-federal-rebates="' . esc_attr( $hide_federal_rebates ) . '">Loading...</div>';
 	}
 
 

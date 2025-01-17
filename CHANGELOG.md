@@ -1,3 +1,9 @@
+## 1.12.6 January 17, 2025
+- Go Electric vehicle filter option settings to remove federal rebate information from output.
+- The vehicle type key dynamically reflects the available results hiding EV Types not in the current list.
+- New classes and data attributes are implemented without breaking existing styles.
+- Minor style updates for improved responsive output.
+
 ## 1.12.5 January 15, 2025
 - Improved FAQ pagination display to hide controls when pagination is not needed.
 
