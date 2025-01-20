@@ -1,5 +1,6 @@
 ## 1.12.8 January 20, 2025
-- QA testing: disabled GoEV sort filtering buttons when selected.
+- QA testing: disabled GoEV sort filtering buttons when selected (removed for time being).
+- Disabled span wrapping of SVG on vue-card-content.
 
 ## 1.12.7 January 17, 2025
 - Contractor/PQEA table style updates to add sticky thead row.
