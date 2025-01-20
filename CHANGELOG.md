@@ -1,3 +1,6 @@
+## 1.12.8 January 20, 2025
+- QA testing: disabled GoEV sort filtering buttons when selected.
+
 ## 1.12.7 January 17, 2025
 - Contractor/PQEA table style updates to add sticky thead row.
 

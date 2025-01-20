@@ -30,39 +30,47 @@
                 <button type="button" class="btn btn-default btn-33" 
                   :class="{ active: isMake }" 
                   :aria-pressed="isMake"
+                  :disabled='isMake ? true : false'
                   @click="changeOrder('make')" aria-label="sort available vehicles by Make">Make</button>
                 <button type="button" class="btn btn-default btn-33" 
                   :class="{ active: isModel }" 
                   :aria-pressed="isModel"
+                  :disabled='isModel ? true : false'
                   @click="changeOrder('model')" aria-label="sort available vehicles by Model">Model</button>
                 <button type="button" class="btn btn-default btn-33" 
                   :class="{ active: isYear }" 
                   :aria-pressed="isYear"
+                  :disabled='isYear ? true : false'
                   @click="changeOrder('year')" aria-label="sort available vehicles by Year">Year</button>
               </div>
               <div class="btn-group-horizontal" role="group">
                 <button type="button" class="btn btn-default btn-33" 
                   :class="{ active: isType }" 
                   :aria-pressed="isType"
+                  :disabled='isType ? true : false'
                   @click="changeOrder('type')" aria-label="sort available vehicles by Type">EV Type</button>
                 <button type="button" class="btn btn-default btn-33" 
                   :class="{ active: isMSRP }" 
                   :aria-pressed="isMSRP"
+                  :disabled='isMSRP ? true : false'
                   @click="changeOrder('msrp')" aria-label="sort available vehicles by MSRP">MSRP<sup> *</sup></button>
                 <button type="button" class="btn btn-default btn-33" 
                   :class="{ active: isRebate }" 
                   :aria-pressed="isRebate"
+                  :disabled='isRebate ? true : false'
                   @click="changeOrder('rebate')" aria-label="sort vehicles by Rebate">Rebate Amt.</button>
               </div>
               <div class="btn-group-horizontal" role="group">
                 <button type="button" class="btn btn-default btn-50" 
                   :class="{ active: isElectricRange }" 
                   :aria-pressed="isElectricRange"
+                  :disabled='isElectricRange ? true : false'
                   @click="changeOrder('rangeElectric')" aria-label="sort vehicles by Electric Range">Elec.
                   Range</button>
                 <button type="button" class="btn btn-default btn-50" 
                   :class="{ active: isFullRange }" 
                   :aria-pressed="isFullRange"
+                  :disabled='isFullRange ? true : false'
                   @click="changeOrder('rangeFull')" aria-label="sort vehicles by Full Range">Full Range</button>
               </div>
             </div>
