@@ -353,6 +353,8 @@ const getEVArray = () => {
 
 const changeOrder = (val) => {
   let selection = val;
+  
+  // Update reactive references based on selection
   isMake.value = selection === 'make';
   isModel.value = selection === 'model';
   isMSRP.value = selection === 'msrp';
@@ -365,23 +367,26 @@ const changeOrder = (val) => {
 
   // Hash map of sorting functions
   const sortFunctions = {
-    make: (a, b) => (a.make > b.make ? 1 : -1),
+    make: (a, b) => a.make.localeCompare(b.make),
     model: (a, b) => a.model.toLowerCase().localeCompare(b.model.toLowerCase()),
-    msrp: (a, b) => (a.minMsrp > b.minMsrp ? -1 : 1),
-    class: (a, b) => (a.vehicle_class > b.vehicle_class ? 1 : -1),
-    rebate: (a, b) => (a.rebate_provincial + a.rebate_federal > b.rebate_provincial + b.rebate_federal ? -1 : 1),
-    type: (a, b) => (a.type > b.type ? 1 : -1),
-    year: (a, b) => (a.year < b.year ? 1 : -1),
-    rangeElectric: (a, b) => (parseInt(a.rangeElectricKm) > parseInt(b.rangeElectricKm) ? -1 : 1),
+    msrp: (a, b) => b.minMsrp - a.minMsrp,
+    class: (a, b) => a.vehicle_class.localeCompare(b.vehicle_class),
+    rebate: (a, b) =>
+      (b.rebate_provincial + b.rebate_federal) -
+      (a.rebate_provincial + a.rebate_federal),
+    type: (a, b) => a.type.localeCompare(b.type),
+    year: (a, b) => b.year - a.year,
+    rangeElectric: (a, b) =>
+      parseInt(b.rangeElectricKm) - parseInt(a.rangeElectricKm),
     rangeFull: (a, b) => {
-      let aIntToParse = null === a.rangeFullKm || 0 === a.rangeFullKm ? a.rangeElectricKm : a.rangeFullKm;
-      let bIntToParse = null === b.rangeFullKm || 0 === b.rangeFullKm ? b.rangeElectricKm : b.rangeFullKm;
-      return parseInt(aIntToParse) > parseInt(bIntToParse) ? -1 : 1;
-    }
+      const aRange = a.rangeFullKm || a.rangeElectricKm;
+      const bRange = b.rangeFullKm || b.rangeElectricKm;
+      return parseInt(bRange) - parseInt(aRange);
+    },
   };
 
-  // Sort vehicles based on the selection
-  if (sortFunctions.hasOwnProperty(selection)) {
+  // Validate selection and apply sorting
+  if (sortFunctions[selection]) {
     vehicles.value.sort(sortFunctions[selection]);
   }
 };
