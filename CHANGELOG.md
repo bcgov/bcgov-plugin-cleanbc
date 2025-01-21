@@ -1,3 +1,7 @@
+## 1.12.9 January 21, 2025
+- Modified vehicle sorting algorithm to use direct subtraction rather than ternary operations. 
+- Check the selection exists in sortFunctions before attempting to sort to avoid invalid selection.
+
 ## 1.12.8 January 20, 2025
 - QA testing: disabled GoEV sort filtering buttons when selected (removed for time being).
 - Disabled span wrapping of SVG on vue-card-content.
