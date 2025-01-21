@@ -6,14 +6,14 @@
     <div id="vue-app" class="row scrollable">
       <div class="filter-container filter-container-desktop d-none d-md-block">
         <div class="filter-flex-container">
-          <div class="flex-group">
+          <div class="flex-group input-field-group">
             <h4 id="make-header-mobile">By make, model or year</h4>
             <div class="mb-2"><input type="text" v-model="filterValue" class="form-control"
                 placeholder="filter by name..."
                 aria-label="enter a vehicle make or model to filter the options below" /></div>
-            <p class="msrp-link text-dark">...or by EV type eg: BEV, PHEV, etc.</p>
+            <p class="msrp-link text-dark">...or by EV type eg: BEV or PHEV</p>
           </div>
-          <div class="flex-group">
+          <div class="flex-group price-range-group">
             <h4>Price Range</h4>
             <vue-slider ref="slider" v-model="rangeValue" v-bind="rangeOptions" tabindex="0"
               aria-label="This slider allows you to set a minimum and maximum price range – the low end begins at the minimum amount of 28,000 and the high end is set to the maximum amount of 70,000"></vue-slider>
@@ -23,7 +23,7 @@
                 aria-label="navigate to the M.S.R.P. disclaimer information below">Price range as shown is based on
                 automaker <nobr>MSRP<sup> *</sup></nobr></a></p>
           </div>
-          <div class="flex-group">
+          <div class="flex-group sort-by-group">
             <div class="flex-group-filters">
               <h4 style='margin-bottom: 0.25rem;'>Sort by</h4>
               <div class="btn-group-horizontal" role="group">
@@ -67,21 +67,21 @@
               </div>
             </div>
           </div>
-          <div class="flex-group d-none d-lg-block">
-            <h4>Electric Vehicle Types</h4>
-            <p class="type-key"><span><strong>BEV</strong> – Battery Electric Vehicle</span><br />
-              <span><strong>ER-EV</strong> – Extended Range EV</span><br />
-              <span><strong>FCEV</strong> – Fuel Cell Electric Vehicle</span><br />
-              <span><strong>PHEV</strong> – Plug-in Hybrid EV</span>
+          <div class="flex-group d-none d-lg-block type-key-group">
+            <h4>Available EV Types</h4>
+            <p class="type-key"><span v-if='vehicleTypes && vehicleTypes.includes("BEV")'><strong>BEV</strong> – Battery Electric Vehicle<br /></span>
+              <span v-if='vehicleTypes && vehicleTypes.includes("ER-EV")'><strong>ER-EV</strong> – Extended Range EV<br /></span>
+              <span v-if='vehicleTypes && vehicleTypes.includes("FCEV")'><strong>FCEV</strong> – Fuel Cell Electric Vehicle<br /></span>
+              <span v-if='vehicleTypes && vehicleTypes.includes("PHEV")'><strong>PHEV</strong> – Plug-in Hybrid EV</span>
             </p>
           </div>
         </div>
-        <h4 class="type-key d-none d-md-block d-lg-none text-center">Electric Vehicle Types:<br />
+        <h4 class="type-key d-none d-md-block d-lg-none text-center">Available EV Types:<br />
           <span class="mt-2 d-block">
-            <nobr><strong>BEV</strong> – Battery Electric Vehicle</nobr> |
-            <nobr><strong>ER-EV</strong> – Extended Range EV</nobr> |
-            <nobr><strong>FCEV</strong> – Fuel Cell Electric Vehicle </nobr> |
-            <nobr><strong>PHEV</strong> – Plug-in Hybrid EV</nobr>
+            <nobr v-if='vehicleTypes && vehicleTypes.includes("BEV")'><strong>BEV</strong> – Battery Electric Vehicle | </nobr>
+            <nobr v-if='vehicleTypes && vehicleTypes.includes("ER-EV")'><strong>ER-EV</strong> – Extended Range EV | </nobr>
+            <nobr v-if='vehicleTypes && vehicleTypes.includes("FCEV")'><strong>FCEV</strong> – Fuel Cell Electric Vehicle | </nobr>
+            <nobr v-if='vehicleTypes && vehicleTypes.includes("PHEV")'><strong>PHEV</strong> – Plug-in Hybrid EV</nobr>
           </span>
         </h4>
       </div>
@@ -93,7 +93,7 @@
         <h4 id="make-header">By make or model or type</h4>
         <p class="mb-2"><input type="text" v-model="filterValue" class="form-control" placeholder="filter by name..."
             aria-label="enter a vehicle make or model to filter the options below" /></p>
-        <p class="msrp-link text-dark">...or by EV type eg: BEV, PHEV, etc.</p>
+        <p class="msrp-link text-dark">...or by EV type eg: BEV or PHEV</p>
         <div class="filter-flex-container">
           <div class="flex-group">
             <h4>MSRP Range</h4>
@@ -138,17 +138,17 @@
               </div>
             </div>
           </div>
-          <p class="type-key hidden-lg hidden-md">Electric Vehicle Types <br />
-            <span>
+          <p class="type-key hidden-lg hidden-md">Available EV Types <br />
+            <span v-if='vehicleTypes && vehicleTypes.includes("BEV")'>
               <nobr><strong>BEV</strong> – Battery Electric Vehicle</nobr> <br />
             </span>
-            <span>
+            <span v-if='vehicleTypes && vehicleTypes.includes("ER-EV")'>
               <nobr><strong>ER-EV</strong> – Extended Range EV</nobr><br />
             </span>
-            <span>
+            <span v-if='vehicleTypes && vehicleTypes.includes("FCEV")'>
               <nobr><strong>FCEV</strong> – Fuel Cell Electric Vehicle</nobr> <br />
             </span>
-            <span>
+            <span v-if='vehicleTypes && vehicleTypes.includes("PHEV")'>
               <nobr><strong>PHEV</strong> – Plug-in Hybrid EV</nobr>
             </span>
           </p>
@@ -160,48 +160,39 @@
           <div>
             <div class="ev-img"><img class="img-fluid" :src="vehicle.image ? vehicle.image : placeholderImg"
                 :alt="'photo of a ' + vehicle.make + ' ' + vehicle.model" /></div>
-            <p style='margin-bottom: 1rem;'><span class="highlight"> {{ vehicle.make }}</span> <span><strong>| {{
-    vehicle.type }}</strong></span>
-              <span class="model">{{ vehicle.model }}</span>
-              <span class="year" v-if='0 !== vehicle.year.length' style='margin-top: 0;'>20{{ vehicle.year.map(year => year - 2000).join('/') }}</span>
-              <span v-if="vehicle.maxMsrp === 0" class="msrp"><strong>MSRP<sup v-if="index === 0"> *</sup> ${{
-    vehicle.minMsrp.toLocaleString() }}</strong></span>
-              <span v-else class="msrp"><strong>MSRP<sup v-if="index === 0">*</sup>: ${{
-    vehicle.minMsrp.toLocaleString()
-  }}–${{ vehicle.maxMsrp.toLocaleString() }}</strong></span>
+            <p style='margin-bottom: 1rem;'><span class="highlight vehicle-make-container" :data-make='vehicle.make'> {{ vehicle.make }}</span> <span class='divider-container'><strong>|</strong></span> <span class='vehicle-type-container' :data-type='vehicle.type'><strong>{{ vehicle.type }}</strong></span>
+              <span class="model vehicle-model-container" :data-model='vehicle.model'>{{ vehicle.model }}</span>
+              <span class="year vehicle-year-container" :data-year='20 + vehicle.year.map(year => year - 2000).join("/")' v-if='0 !== vehicle.year.length' style='margin-top: 0;'>20{{ vehicle.year.map(year => year - 2000).join('/') }}</span>
+              <span v-if="vehicle.maxMsrp === 0" class="msrp vehicle-msrp-container" :data-msrp='"$" + vehicle.minMsrp.toLocaleString()'><strong>MSRP<sup v-if="index === 0"> *</sup> ${{ vehicle.minMsrp.toLocaleString() }}</strong></span>
+              <span v-else class="msrp vehicle-msrp-container" :data-msrp-range='"$" + vehicle.minMsrp.toLocaleString() + "-$" + vehicle.maxMsrp.toLocaleString()'><strong>MSRP<sup v-if="index === 0">*</sup>: ${{ vehicle.minMsrp.toLocaleString() }}–${{ vehicle.maxMsrp.toLocaleString() }}</strong></span>
               <hr class="hr" size="1" />
-              <span class="d-block"><strong>Range:</strong></span>
-              <span class="d-block mt-2 mb-1">{{ vehicle.rangeElectricKm.toLocaleString() }}km Electric</span>
-              <span v-if="vehicle.rangeFullKm !== 0" class="d-block">{{ vehicle.rangeFullKm.toLocaleString()
-                }}km Full</span>
-              <span v-if="vehicle.rangeFullKm === 0" class="d-block">{{ vehicle.rangeElectricKm }}km Full</span>
-              <span v-if="false" class="d-block mt-2 mb-1">Type:
+              <span class="d-block heading-range"><strong>Range:</strong></span>
+              <span class="d-block mt-2 mb-1 range-electric">{{ vehicle.rangeElectricKm.toLocaleString() }}km Electric</span>
+              <span v-if="vehicle.rangeFullKm !== 0" class="d-block range-full">{{ vehicle.rangeFullKm.toLocaleString() }}km Full</span>
+              <span v-if="vehicle.rangeFullKm === 0" class="d-block range-full">{{ vehicle.rangeElectricKm }}km Full</span>
+              <span v-if="false" class="d-block mt-2 mb-1 vehicle-type">Type:
                 <span v-if="vehicle.type === 'BEV'">Battery Electric Vehicle</span>
                 <span v-if="vehicle.type === 'ER-EV'">Extended Range EV</span>
                 <span v-if="vehicle.type === 'FCEV'">Fuel Cell Electric Vehicle</span>
                 <span v-if="vehicle.type === 'PHEV'">Plug-in Hybrid EV</span>
               </span>
-              <span v-if="false" class="d-block">Class: {{ vehicle.vehicle_class }}</span>
-              <hr class="hr" size="1" />
-              <span class="d-block"><strong>Rebates up to:</strong></span>
-              <span class="d-block mt-2 mb-1" v-if="vehicle.rebate_provincial !== 0">${{
-    vehicle.rebate_provincial.toLocaleString() }} Provincial</span>
-              <span v-else class="d-block mt-2 mb-1">No Provincial rebate</span>
-              <span v-if="vehicle.rebate_federal !== 0 && vehicle.rebate_federal_status === 'processed'"
-                class="d-block">${{
-    vehicle.rebate_federal.toLocaleString() }} Federal</span>
-              <span v-else-if="vehicle.rebate_federal_status === 'pending'" class="d-block">Federal rebate
-                pending</span>
-              <span v-else class="d-block">No Federal rebate</span>
+              <template v-if='isFederalRebate'>
+                <span v-if="false" class="d-block vehicle-class">Class: {{ vehicle.vehicle_class }}</span>
+                <hr class="hr" size="1" />
+                <span class="d-block heading-rebates"><strong>Rebates up to:</strong></span>
+                <span v-if="vehicle.rebate_provincial !== 0" class="d-block mt-2 mb-1 rebate-provincial">${{ vehicle.rebate_provincial.toLocaleString() }} Provincial</span>
+                <span v-else class="d-block mt-2 mb-1 rebate-provincial">No Provincial rebate</span>
+                <span v-if="isFederalRebate && vehicle.rebate_federal !== 0 && vehicle.rebate_federal_status === 'processed'" class="d-block rebate-federal">${{ vehicle.rebate_federal.toLocaleString() }} Federal</span>
+                <span v-else-if="vehicle.rebate_federal_status === 'pending'" class="d-block rebate-federal">Federal rebate pending</span>
+                <span v-else-if='isFederalRebate' class="d-block rebate-federal">No Federal rebate</span>
+              </template>
               <hr class="hr" size="1" />
               <span class="d-block"><a class="external accessibleFocusItem" :href="vehicle.url"
                   :aria-label="'Go to the ' + vehicle.make + ' ' + vehicle.model + ' website.'" :key="index">Visit
                   manufacturer website</a></span>
             </p>
-            <p v-if="vehicle.rebate_federal_status === 'processed'" class="rebate-content">Combined rebates up to ${{
-    (vehicle.rebate_provincial +
-      vehicle.rebate_federal).toLocaleString() }}</p>
-            <p v-else class="rebate-content">Combined rebates up to ${{ (vehicle.rebate_provincial).toLocaleString() }}
+            <p v-if="isFederalRebate && vehicle.rebate_federal_status === 'processed'" class="rebate-content">Combined rebates up to ${{ (vehicle.rebate_provincial + vehicle.rebate_federal).toLocaleString() }}</p>
+            <p v-else-if='!isFederalRebate' class="rebate-content">Provincial rebate up&nbsp;to ${{ (vehicle.rebate_provincial).toLocaleString() }}
             </p>
           </div>
         </div>
@@ -228,6 +219,7 @@ const publicDomain = 'https://goelectricbc.goc.bc.ca';
 const vehiclesAPI = `${window.site?.domain ? window.site.domain : publicDomain}/wp-json/custom/v1/vehicles`;
 
 const vehicles = ref([]);
+const vehicleTypes = ref([]);
 const filterValue = ref('');
 const priceAmount = ref(70000);
 const isMake = ref(false);
@@ -236,6 +228,7 @@ const isModel = ref(true);
 const isMSRP = ref(false);
 const isClass = ref(false);
 const isRebate = ref(false);
+const isFederalRebate = ref(false);
 const isYear = ref(false);
 const typeLabel = ref('');
 const isElectricRange = ref(false);
@@ -351,6 +344,7 @@ const getEVArray = () => {
     .then((json) => {
       vehicles.value = json;
       vehicles.value.sort((a, b) => a.model.toLowerCase().localeCompare(b.model.toLowerCase()));
+      vehicleTypes.value = [...new Set(vehicles.value.map(vehicle => vehicle.type))]; // array of unique EV types.
     })
     .catch((error) => {
       console.error('Error fetching vehicle data:', error);
@@ -359,6 +353,8 @@ const getEVArray = () => {
 
 const changeOrder = (val) => {
   let selection = val;
+  
+  // Update reactive references based on selection
   isMake.value = selection === 'make';
   isModel.value = selection === 'model';
   isMSRP.value = selection === 'msrp';
@@ -371,28 +367,35 @@ const changeOrder = (val) => {
 
   // Hash map of sorting functions
   const sortFunctions = {
-    make: (a, b) => (a.make > b.make ? 1 : -1),
+    make: (a, b) => a.make.localeCompare(b.make),
     model: (a, b) => a.model.toLowerCase().localeCompare(b.model.toLowerCase()),
-    msrp: (a, b) => (a.minMsrp > b.minMsrp ? -1 : 1),
-    class: (a, b) => (a.vehicle_class > b.vehicle_class ? 1 : -1),
-    rebate: (a, b) => (a.rebate_provincial + a.rebate_federal > b.rebate_provincial + b.rebate_federal ? -1 : 1),
-    type: (a, b) => (a.type > b.type ? 1 : -1),
-    year: (a, b) => (a.year < b.year ? 1 : -1),
-    rangeElectric: (a, b) => (parseInt(a.rangeElectricKm) > parseInt(b.rangeElectricKm) ? -1 : 1),
+    msrp: (a, b) => b.minMsrp - a.minMsrp,
+    class: (a, b) => a.vehicle_class.localeCompare(b.vehicle_class),
+    rebate: (a, b) =>
+      (b.rebate_provincial + b.rebate_federal) -
+      (a.rebate_provincial + a.rebate_federal),
+    type: (a, b) => a.type.localeCompare(b.type),
+    year: (a, b) => b.year - a.year,
+    rangeElectric: (a, b) =>
+      parseInt(b.rangeElectricKm) - parseInt(a.rangeElectricKm),
     rangeFull: (a, b) => {
-      let aIntToParse = null === a.rangeFullKm || 0 === a.rangeFullKm ? a.rangeElectricKm : a.rangeFullKm;
-      let bIntToParse = null === b.rangeFullKm || 0 === b.rangeFullKm ? b.rangeElectricKm : b.rangeFullKm;
-      return parseInt(aIntToParse) > parseInt(bIntToParse) ? -1 : 1;
-    }
+      const aRange = a.rangeFullKm || a.rangeElectricKm;
+      const bRange = b.rangeFullKm || b.rangeElectricKm;
+      return parseInt(bRange) - parseInt(aRange);
+    },
   };
 
-  // Sort vehicles based on the selection
-  if (sortFunctions.hasOwnProperty(selection)) {
+  // Validate selection and apply sorting
+  if (sortFunctions[selection]) {
     vehicles.value.sort(sortFunctions[selection]);
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
+  const appElement = document.getElementById('vehicleFilterApp');
+  const showFederalRebates = appElement.getAttribute('data-show-federal-rebates') === 'false';
+  isFederalRebate.value = !showFederalRebates;
+  
   getEVArray();
 });
 </script>
@@ -452,7 +455,7 @@ $external_link_icon_dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
   padding: 2rem 1rem 0;
   color: $prussianblue;
   line-height: 1.5;
-  text-align: center;
+  text-align: flex-start;
   width: 100%;
 
   span {
@@ -651,6 +654,7 @@ $external_link_icon_dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
           width: 25%;
           max-width: 25%;
           padding: 0 2rem;
+          height: fit-content;
 
           @media (max-width: $breakpoint-lg) {
             width: 33%;
@@ -666,6 +670,7 @@ $external_link_icon_dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
 
         h4 {
           text-align: left;
+          margin-bottom: 1rem;
 
           .type-key {
             font-weight: 400;
@@ -713,6 +718,7 @@ $external_link_icon_dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
           color: $prussianblue;
           text-align: left;
           width: 100%;
+          margin-block: 0;
 
           span {
             color: $bahamablue;
@@ -962,7 +968,7 @@ $external_link_icon_dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
           cursor: pointer;
           margin: 0;
           padding: 0.5rem 0 calc(0.5rem + 4px);
-          white-space: nowrap;
+          white-space: wrap;
           width: 35%;
 
           &:hover,
@@ -1216,11 +1222,6 @@ DUMP
   font-size: 1rem;
   text-decoration: none !important;
   letter-spacing: 0.2px;
-}
-
-body {
-  overflow-x: hidden;
-  overflow-y: scroll;
 }
 
 .body-wrap,

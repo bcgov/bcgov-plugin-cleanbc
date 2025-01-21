@@ -6,6 +6,8 @@
 @import "./public/definitions";
 @import "./public/driver-category-query";
 @import "./public/header-and-navigation";
+@import "./public/patterns";
+@import "./public/block-theme-overrides";
 // Go Electric BC
 @import "./public/go-electric/variables";
 @import "./public/go-electric/quiz";
@@ -20,14 +22,14 @@
 @import "./public/go-electric/header";
 @import "./public/go-electric/patterns";
 @import "./public/go-electric/goev-general";
-// BetterHomesBC
-@import "./public/betterhomes/variables";
-@import "./public/betterhomes/mixins";
-@import "./public/betterhomes/rebates";
-@import "./public/betterhomes/vue-apps";
-@import "./public/betterhomes/bh-general";
-// BetterBuildingsBC
-@import "./public/betterbuildings/bb-general";
+// BetterHomesBC and BetterBuildingsBC
+@import "./public/bhbb/variables";
+@import "./public/bhbb/mixins";
+@import "./public/bhbb/rebates";
+@import "./public/bhbb/vue-apps";
+@import "./public/bhbb/bh-general";
+@import "./public/bhbb/bb-general";
+@import "./public/bhbb/side-nav-generator";
 
 :root {
 	color-scheme: light dark;

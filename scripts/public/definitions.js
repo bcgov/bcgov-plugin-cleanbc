@@ -167,6 +167,23 @@ const bcgovBlockThemePluginDefnitions = () => {
                     'opens definition dialog for this concept'
                 );
 
+                const linkText = link.textContent;
+
+                if (linkText && linkText.trim().length > 0) {
+
+                    const words = linkText.trim().split(' ');
+                    const lastWord = words.pop(); 
+                    const restOfText = words.join(' '); 
+
+                    // Create a span element for the last word
+                    const span = document.createElement('span');
+                    span.classList.add('last-word', 'no-wrap');
+                    span.textContent = lastWord;
+
+                    link.innerHTML = `${restOfText} `;
+                    link.appendChild(span);
+                }
+
                 addEventListeners(link);
             });
 

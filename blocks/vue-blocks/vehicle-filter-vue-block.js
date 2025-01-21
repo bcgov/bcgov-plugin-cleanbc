@@ -108,7 +108,8 @@ class VehicleFilterVueAppEditorComponent extends wp.element.Component {
      */
     render() {
         // todo: make this into jsx and introduce build process for the block
-        const { className } = this.props.attributes;
+        const { className, hideFederalRebate = false } = this.props.attributes;
+        const { setAttributes } = this.props;
 
 
         return createElement(
@@ -117,16 +118,27 @@ class VehicleFilterVueAppEditorComponent extends wp.element.Component {
             createElement(
                 InspectorControls,
                 null,
+                createElement(
+                    PanelBody,
+                    {
+                        title: 'Settings',
+                        initialOpen: true,
+                    },
+                    createElement(ToggleControl, {
+                        label: 'Enable Federal Rebate',
+                        checked: !!hideFederalRebate,  // Double negation ensures it's always a boolean
+                        onChange: (value) => setAttributes({ hideFederalRebate: value }),
+                        help: hideFederalRebate ? 'Federal rebate is enabled.' : 'Federal rebate is disabled.',
+                    })
+                )
             ),
             createElement('div', {
                 id: 'vehicleFilterApp',
-                class: className,
+                className: className,
             }, [
-                `Vehicle Filter Block Placeholder ( =`,
-                createElement('span', {
-                    class: 'dashicon dashicons dashicons-car'
-                }),
-                ` vroom vroom )`,
+                createElement('span', { key: 'text-1' }, `Vehicle Filter Block Placeholder ( =`),
+                createElement('span', { key: 'icon', className: 'dashicon dashicons dashicons-car' }),
+                createElement('span', { key: 'text-2' }, ` vroom vroom )`),
             ])
             
         );
@@ -156,6 +168,10 @@ registerBlockType('cleanbc-plugin/vehicle-filter-block', {
         className: {
             type: 'string',
             default: '',
+        },
+        hideFederalRebate: {
+            type: 'boolean',
+            default: false,
         },
     },
     edit: VehicleFilterVueAppEditorComponent,

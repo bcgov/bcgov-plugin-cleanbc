@@ -3,24 +3,34 @@ a.icon-definition.icon-definition {
 	text-decoration-style: dashed;
 	text-decoration-color: var(--wp--preset--color--secondary-brand);
 
-	&::after {
-		border: 1.5px solid var(--wp--preset--color--secondary-brand);
-		border-radius: 50%;
-		content: "?";
-		color: var(--wp--preset--color--secondary-brand);
-		display: inline-flex;
-		justify-content: center;
-		align-items: center;
-		line-height: 1;
-		font-weight: bold;
-		font-style: normal;
-		width: 0.85rem;
-		height: 0.85rem;
-		font-size: 0.66rem;
-		vertical-align: middle;
-		margin-left: 0.25rem;
-		position: relative;
-		top: -0.1rem;
+	span.last-word {
+
+		&::after {
+			border: 1.5px solid currentcolor;
+			border-radius: 50%;
+			content: "?";
+			color: currentcolor;
+			display: inline-flex;
+			justify-content: center;
+			align-items: center;
+			line-height: 1;
+			font-weight: bold;
+			font-style: normal;
+			width: 0.85rem;
+			height: 0.85rem;
+			font-size: 0.66rem;
+			vertical-align: middle;
+			margin-left: 0.25rem;
+			position: relative;
+			top: -0.1rem;
+		}
+	}
+
+	&:is(:hover, :focus-visible) {
+		text-decoration: currentcolor underline 2px dotted;
+		outline: 2px solid currentcolor;
+		outline-offset: 2px;
+		border-radius: 3px;
 	}
 }
 

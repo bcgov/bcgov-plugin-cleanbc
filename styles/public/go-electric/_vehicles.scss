@@ -511,8 +511,8 @@
 						border-radius: 0;
 						cursor: pointer;
 						margin: 0;
-						padding: 0.8rem 0 calc(0.5rem + 4px);
-						white-space: nowrap;
+						padding: 0.8rem 0.25rem calc(0.5rem + 4px);
+						white-space: wrap;
 						width: 35%;
 						min-height: 44px;
 
@@ -766,11 +766,6 @@ DUMP
 	font-size: 1rem;
 	text-decoration: none !important;
 	letter-spacing: 0.2px;
-}
-
-body {
-	overflow-x: hidden;
-	overflow-y: scroll;
 }
 
 .body-wrap,

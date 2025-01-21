@@ -1,5 +1,7 @@
 /* stylelint-disable scss/no-global-function-names */
 /* stylelint-disable no-duplicate-selectors */
+/* stylelint-disable property-no-unknown */
+/* stylelint-disable scss/at-rule-no-unknown */
 
 /**
  * Master SCSS file for all 4 Vue 3 app's deployed as part of plugin
@@ -20,6 +22,10 @@
 #faqFilterApp,
 #pqeaFilterApp,
 #rebateFilterApp {
+
+	.filter-container.empty {
+		display: none;
+	}
 
 	// Accomodation for browsers < 2018.
 	&.noNavigator {
@@ -116,6 +122,21 @@
 			}
 		}
 
+		.fader-enter-active,
+		.fader-leave-active {
+			transition: opacity 5s; /* Adjust duration as needed */
+		}
+
+		/* The element's opacity when entering */
+		.fader-enter {
+			opacity: 0;
+		}
+
+		/* The element's opacity when leaving */
+		.fader-leave-to {
+			opacity: 0;
+		}
+
 		&.pagination {
 			display: flex;
 			flex-direction: column;
@@ -125,6 +146,15 @@
 			margin: 0 0 1rem;
 			padding: 0;
 			text-align: center;
+			height: auto;
+			opacity: 1;
+			transition: all 0.3s ease-in-out;
+			transition-behavior: allow-discrete;
+
+			@starting-style {
+				height: 0;
+				opacity: 0;
+			}
 
 			@media (min-width: $breakpoint-md) {
 				flex-direction: row;
@@ -181,7 +211,7 @@
 			display: inline-block;
 			margin-bottom: 0.5rem;
 			text-align: center;
-			font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1rem);
+			font-size: var(--wp--preset--font-size--small);
 			color: $bahamablue;
 
 			@media (min-width: $breakpoint-sm) {
@@ -338,7 +368,7 @@
 			label {
 				text-wrap: balance;
 				align-content: center;
-				font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
+				font-size: var(--wp--preset--font-size--small);
 				color: $shark;
 
 				@media (min-width: $breakpoint-md) {
@@ -443,7 +473,7 @@
 	input,
 	span,
 	p {
-		font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
+		font-size: var(--wp--preset--font-size--small);
 	}
 
 	button,
@@ -453,7 +483,7 @@
 		min-width: $default_button_min_width;
 		min-height: $default_interactable_min_height;
 		padding: $default_button_padding_vert $default_button_padding_horz;
-		font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
+		font-size: var(--wp--preset--font-size--small);
 		font-weight: bold;
 		border: none;
 		box-shadow: none;
@@ -471,6 +501,7 @@
 		&:hover,
 		&:focus {
 			background-color: darken($bahamablue, 7.5%);
+			display: inline-block;
 			transition: all $default_transition_timing_fn $default_transition_duration;
 			outline: $default_outline_offset solid darken($bondiblue, 7.5%);
 		}
@@ -497,6 +528,10 @@
 			@media (min-width: $breakpoint-md) {
 				margin-bottom: 0;
 			}
+		}
+
+		&.next-page {
+			margin-right: 1rem;
 		}
 
 		&.accordion-trigger {
@@ -651,9 +686,9 @@
 		margin: 0;
 		padding: 0;
 
-		@media (min-width: $breakpoint-sm) {
-			margin: 0 1rem;
-		}
+		// @media (min-width: $breakpoint-sm) {
+		// 	margin: 0 1rem;
+		// }
 	}
 
 	.pages {
@@ -713,6 +748,14 @@
 				background-color: darken($bahamablue, 7.5%);
 				transition: all $default_transition_timing_fn $default_transition_duration;
 				outline: $default_outline_offset solid darken($bondiblue, 7.5%);
+			}
+		}
+
+		&:is(.copy-link) {
+
+			&:hover,
+			&:focus {
+				display: inherit;
 			}
 		}
 	}
@@ -935,7 +978,7 @@
 
 				button {
 					min-width: unset;
-					font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1rem);
+					font-size: var(--wp--preset--font-size--small);
 					background-color: transparent;
 					color: $bahamablue;
 					border-radius: 0;
@@ -1054,6 +1097,11 @@
 		width: 100%;
 	}
 
+	thead {
+		position: sticky;
+		top: 5.5rem;
+	}
+
 	tbody {
 
 		tr {
@@ -1117,7 +1165,7 @@
 	}
 
 	th {
-		font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
+		font-size: var(--wp--preset--font-size--small);
 		text-align: left;
 		background-color: $bahamablue;
 		color: $white;
@@ -1144,7 +1192,7 @@
 	}
 
 	td {
-		font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
+		font-size: var(--wp--preset--font-size--small);
 		word-wrap: break-word;
 
 		&::before {
@@ -1165,7 +1213,7 @@
 		ul {
 			display: block;
 			margin-top: 0;
-			font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
+			font-size: var(--wp--preset--font-size--small);
 		}
 
 		ul {
@@ -1173,7 +1221,7 @@
 		}
 
 		li {
-			font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1.25rem);
+			font-size: var(--wp--preset--font-size--small);
 		}
 	}
 
@@ -1563,7 +1611,6 @@
 			margin-bottom: 1rem;
 
 			h3 {
-				font-size: clamp(var(--wp--preset--font-size--normal), 1.25rem + ((1vw - 0.48rem) * 0.481), 1.5rem);
 				margin-top: 0;
 				color: $bahamablue;
 			}
@@ -1670,7 +1717,7 @@
 
 			span {
 				color: $bahamablue;
-				font-size: clamp(var(--wp--preset--font-size--normal), 1rem + ((1vw - 0.48rem) * 0.481), 1rem);
+				font-size: var(--wp--preset--font-size--small);
 				font-weight: normal;
 			}
 		}
@@ -1823,7 +1870,6 @@
 			margin-bottom: 1rem;
 
 			h3 {
-				font-size: clamp(var(--wp--preset--font-size--normal), 1.25rem + ((1vw - 0.48rem) * 0.481), 1.5rem);
 				margin-top: 0;
 				color: $bahamablue;
 			}

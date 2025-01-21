@@ -1,3 +1,60 @@
+## 1.12.9 January 21, 2025
+- Modified vehicle sorting algorithm to use direct subtraction rather than ternary operations. 
+- Check the selection exists in sortFunctions before attempting to sort to avoid invalid selection.
+
+## 1.12.8 January 20, 2025
+- QA testing: disabled GoEV sort filtering buttons when selected (removed for time being).
+- Disabled span wrapping of SVG on vue-card-content.
+
+## 1.12.7 January 17, 2025
+- Contractor/PQEA table style updates to add sticky thead row.
+
+## 1.12.6 January 17, 2025
+- Go Electric vehicle filter option settings to remove federal rebate information from output.
+- The vehicle type key dynamically reflects the available results hiding EV Types not in the current list.
+- New classes and data attributes are implemented without breaking existing styles.
+- Minor style updates for improved responsive output.
+
+## 1.12.5 January 15, 2025
+- Improved FAQ pagination display to hide controls when pagination is not needed.
+
+## 1.12.4 January 10, 2025
+- Font size adjustments to better work with site settings.
+- Minor adjustment to incentives template pattern.
+
+## 1.12.3 January 9, 2025
+- Added Search escape suppression for keyboard accessibility.
+- Added a mutation observer to handle link wrapping of external icons injected by the Block Theme. 
+- Modified styles to accomodate nowrap/no-wrap classing outside of the definitions links 'last-word' span.
+- Incentives layout adjuments for BetterBuildings.
+- Removed external link icons from mailto and tel links. Excluded last-word span maipulation from such links.
+
+## 1.12.2 January 8, 2025
+- Revising link styles across the sites.
+- Added element wrappers to keep definitions links from wrapping end-of-line icons to next line on their own.
+- Removed currentColor variable where the color value is not excepted.
+
+## 1.12.1 January 7, 2025
+- Added invisible html entity as breakpoints for email address as labels when output in filtering tables for PQEAs and Contractors.
+- Tweaked focus and hover style for links in filtered tables.
+- Modified base WP font sizing options.
+
+## 1.12.0 December 20, 2024
+- Modified Contractor and PQEA tool to allow for hiding controls in WordPress admin settings.
+- Improved pagination display to work with controls when hidden or when pagination is not needed.
+
+## 1.11.1 December 18, 2024
+- Side navigation scroll generator scrupts and styles updated to work with Better Buildings/Homes functional styling conflict.
+- Updated Single Incentive page pattern.
+- Added admin and visitor facing patterns.scss for admin editor pattern styling.
+- Disabled sourcemap generation in Vite config.
+- Refactored styles structure to merge Better Homes and Better Building SCSS into BHBB combination.
+
+## 1.11.0 December 13, 2024
+- Incentives/rebates new page "choose a pattern" option for multi-column Single incentives page starter layout. Pattern template included in 'register_custom_incentive_page_pattern' function in Hooks/BasicBlocks.php.
+- Added in-page side scrolling menu generation for incentives layout pattern based on headlines used in content.
+- Cleaned up unscoped or undefined body styles and resolved sticky side menu bug.
+
 ## 1.10.0 December 11, 2024
 - Fixed search results marking header link href and ARIA labels bug.
 - Refactored various javascript to use es6 arrow functions and expand on JSDoc comments.

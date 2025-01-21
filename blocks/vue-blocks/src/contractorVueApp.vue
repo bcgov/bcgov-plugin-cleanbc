@@ -5,7 +5,7 @@
     <!-- Skip to results link -->
     <a href="#contractorsResults" class="sr-only skip-to-results">Skip to results</a>
     <!-- Filter Controls -->
-    <div id="contractorsFilterControls" class="contractorsFilterControls filter-container">
+    <div v-if="isVisible || (1 < totalPages && !isVisible)" id="contractorsFilterControls" class="contractorsFilterControls filter-container">
         <!-- Type Select -->
         <div v-if='isVisible' class="control type-select">
           <label for="typeSelect" class="">Choose a type of upgrade</label>
@@ -72,7 +72,7 @@
         </div>
 
         <!-- Pagination Controls -->
-        <div class="contractorsFilterPagination control pagination pagination--top">
+        <div v-if="(isVisible && 1 !== totalPages) || (1 < totalPages && !isVisible)" class="contractorsFilterPagination control pagination pagination--top">
             <!-- Previous Page Button -->
             <button class="prev-page" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0" type="button">Previous Page</button>
             <!-- Current Page & Totals -->
@@ -94,7 +94,7 @@
     </div>
 
     <!-- Contractors Results Table -->
-    <h2 class="results__title">Find a registered contractor results (<span class="counter__value">{{ filteredContractors.length }}</span>)</h2>
+    <h2 class="results__title">Find a registered contractor (<span class="counter__value">{{ filteredContractors.length }}</span> results)</h2>
     <table id="contractorsResults" class="contractorsResults results table table--striped">
         <caption class="sr-only">Registered Contractors</caption>
         <!-- Table Columns -->
@@ -156,7 +156,7 @@
                     <td data-label="Contact Email and Phone" class="contractor__email-and-phone">
                         <address>
                             <!-- Email Link -->
-                            <a v-if="contractor.email" class="contractor__email" :href="'mailto:' + contractor.email">{{ contractor.email }}</a>
+                            <a v-if="contractor.email" class="contractor__email" :href="'mailto:' + contractor.email"><span v-html="insertBreakableChar(contractor.email)"></span></a>
                             <p class="contractor__email" v-else>No email provided</p>
 
                             <!-- Phone Link -->
@@ -183,7 +183,7 @@
         </tbody>
     </table>
   </div>
-  <div v-if="isVisible && filteredContractors.length !== 0 && 1 !== totalPages" class="contractorsFilterControls filter-container filter-container--bottom">
+  <div  v-if="filteredContractors.length !== 0 && 1 !== totalPages" class="contractorsFilterControls filter-container filter-container--bottom">
     <!-- Lower Pagination Controls -->
     <div class="contractorsFilterPagination control pagination pagination--bottom">
             <!-- Previous Page Button -->
@@ -682,6 +682,15 @@ const clearFilters = () => {
 };
 
 /**
+ * Function to add invisible html entity as breakpoints for email address as label.
+ *
+ * @returns {string} - The updated current page value or null if already on the first page.
+ */
+ const insertBreakableChar = (email) => {
+    return email.replace(/@/g, '&#8203;@').replace(/\./g, '&#8203;.');
+};
+
+/**
  * Function to reset the active state of custom-select dropdowns.
  *
  * This function queries and resets the active state (`is-active` class) of custom-select dropdowns within the `#contractorFilterApp` container.
@@ -948,8 +957,19 @@ window.addEventListener('click', (event) => {
  * @returns {void}
  */
  onMounted(() => {
+  const appElement = document.getElementById('contractorFilterApp');
+  const showControls = appElement.getAttribute('data-show-controls') === 'false';
+  isVisible.value = showControls;
+
   fetchData(); // Start fetching data
   showLoadingMessage.value = true;
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const showParam = urlParams.get('show');
+
+  if (showParam === 'off') {
+      isVisible.value = true;
+  }
 });
 
 watchEffect(() => {

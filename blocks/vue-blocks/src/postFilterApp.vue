@@ -514,6 +514,23 @@ const checkDefinitions = () => {
             if (!link.classList.contains('icon-definition')) {
                 link.classList.add('icon-definition');
                 link.setAttribute('aria-label', 'opens definition dialog for this concept');
+
+                const linkText = link.textContent;
+
+                if (linkText && linkText.trim().length > 0) {
+
+                    const words = linkText.trim().split(' ');
+                    const lastWord = words.pop(); 
+                    const restOfText = words.join(' '); 
+
+                    // Create a span element for the last word
+                    const span = document.createElement('span');
+                    span.classList.add('last-word');
+                    span.textContent = lastWord;
+
+                    link.innerHTML = `${restOfText} `;
+                    link.appendChild(span);
+                }
     
                 // Adding event listeners for both click and keypress events
                 addEventListeners(link);
@@ -734,7 +751,8 @@ onMounted(() => {
         }
 
         &:focus-visible {
-            outline: 2px solid currentColor !important;
+            outline-width: 2px !important;
+            outline-style: solid !important;
             outline-offset: 4px !important;
         }
     }

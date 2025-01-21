@@ -1,10 +1,13 @@
 /* stylelint-disable no-descending-specificity */
 /* stylelint-disable selector-class-pattern */
+/* stylelint-disable property-no-unknown */
 
 :root {
 	color-scheme: light dark;
 	color: $white;
 	background-color: $mineshaft;
+
+	interpolate-size: allow-keywords;
 
 	font-synthesis: none;
 	text-rendering: optimizelegibility;
@@ -53,7 +56,7 @@ body:not(body.wp-admin):not(body.editor-styles-wrapper):not(body.error404) {
 	// display: flex;
 	place-items: center;
 	min-height: 100vh;
-	overflow-x: hidden;
+	overflow-x: clip;
 }
 
 .wp-site-blocks {
@@ -86,6 +89,19 @@ textarea {
 	color-scheme: light;
 }
 
+.external {
+
+	&:where([href^="tel"]),
+	&:where([href^="mailto"]) {
+
+		svg,
+		&::after {
+			display: none;
+			content: none;
+		}
+	}
+}
+
 .gap-0 {
 	gap: 0;
 }
@@ -107,11 +123,10 @@ textarea {
 }
 
 .gform_button[type="submit"] {
-	border: 2px solid currentcolor;
+	border-width: 2px;
+	border-stayle: solid;
 	background-color: var(--wp--preset--color--background);
-	border-color: currentcolor;
 	border-radius: 0.33rem;
-	color: currentcolor;
 	font-family: inherit;
 	font-size: inherit;
 	line-height: inherit;
@@ -120,11 +135,11 @@ textarea {
 
 	&:hover,
 	&:focus {
-		outline: 2px solid currentcolor;
+		outline-width: 2px;
+		outline-style: solid;
 		outline-offset: 2px;
 	}
 }
-
 
 .mtauto,
 .mt-auto,
@@ -132,17 +147,39 @@ textarea {
 	margin-top: auto;
 }
 
+.no-wrap,
+.nowrap {
+	white-space: nowrap;
+}
+
+a:where(:not(.wp-element-button, .wp-block-navigation-item__content)) {
+	text-underline-offset: 3px;
+	text-decoration: currentcolor underline 1px solid;
+
+	&:is(:hover) {
+		text-underline-offset: 2px;
+		text-decoration: currentcolor underline 2px solid;
+	}
+}
+
 #post-content,
 .post-content {
 	isolation: isolate;
 
-	a {
+	a:not(.wp-element-button, .icon-definition, .wp-block-navigation-item__content) {
+		box-decoration-break: clone;
 		text-underline-offset: 4px;
-		text-decoration-color: color-mix(in srgb, currentcolor 33%, transparent);
+		text-decoration: currentcolor underline 1px solid;
+		text-wrap: balance;
 
-		&:is(:hover, :focus-visible) {
-			display: inline-block;
-			outline: 2px solid currentcolor;
+		&:is(:hover) {
+			text-underline-offset: 3px;
+			text-decoration: currentcolor underline 2px solid;
+		}
+
+		&:is(:focus-visible) {
+			outline-width: 2px;
+			outline-style: solid;
 			outline-offset: 2px;
 			border-radius: 3px;
 		}
