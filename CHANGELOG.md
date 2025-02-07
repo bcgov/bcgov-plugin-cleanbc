@@ -1,3 +1,11 @@
+## 1.13.0 February 6, 2025
+- Added search excerpt filtering to remove incentive side menu navigation based on class names.
+- Fixed screen reader output for vehicle rebates total to account for active/inactive Federal rebates.
+- Removed external link icon from vehicle results in screen reader rotor/link lists.
+- Added corrected ARIA live announcements to the "Find a vehicle (showing x of y)" details that are updated with activation of filter options.
+– Modified slider controls to better announce live region changes politely, with vehicle count being more assertive.
+– Vehicle items now behave as layout grid elements for screen readers per the APG (https://www.w3.org/WAI/ARIA/apg/patterns/grid/).
+
 ## 1.12.9 January 21, 2025
 - Modified vehicle sorting algorithm to use direct subtraction rather than ternary operations. 
 - Check the selection exists in sortFunctions before attempting to sort to avoid invalid selection.
