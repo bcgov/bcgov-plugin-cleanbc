@@ -60,9 +60,8 @@ class SearchContext {
 
 	/**
      * Removes content inside elements with specific classes from search results excerpts.
-     *
-     * This function ensures that search results do not include text inside elements with
-     * the specified classes, while still providing a valid excerpt from the rest of the content.
+	 *
+	 * @since 1.13.0
      *
      * @param string $content The post content.
      * @return string The filtered content with hidden elements removed.
@@ -90,15 +89,17 @@ class SearchContext {
 	/**
 	 * Ensures the search excerpt is generated from filtered content.
 	 *
-	 * This function intercepts the excerpt before it is displayed in search results,
-	 * ensuring it comes from cleaned content with hidden elements removed.
+	 * @since 1.13.0
 	 *
 	 * @param string  $excerpt The post excerpt.
 	 * @param WP_Post $post The post object.
 	 * @return string The cleaned excerpt.
 	 */
 	public function bcgov_filter_excerpt_for_search( $excerpt, $post ) {
-		if ( is_search() ) {
+
+		$post = get_post( $post );
+
+		if ( is_search() && $post && isset( $post->post_content ) ) {
 			$cleaned_content = apply_filters( 'the_content', $post->post_content );
 
 			return wp_trim_words( $cleaned_content, 40, '...' );

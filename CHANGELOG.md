@@ -1,3 +1,6 @@
+## 1.13.1 February 7, 2025
+- Fixed PHP notice "Trying to get property 'post_content' of non-object" on search results page.
+
 ## 1.13.0 February 6, 2025
 - Added search excerpt filtering to remove incentive side menu navigation based on class names.
 - Fixed screen reader output for vehicle rebates total to account for active/inactive Federal rebates.
