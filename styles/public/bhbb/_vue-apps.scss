@@ -464,6 +464,25 @@
 		line-height: 1.5;
 	}
 
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		font-size-adjust: 0.66;
+	}
+
+	@media (min-width: $breakpoint-md) {
+
+		h2,
+		h3,
+		h4,
+		h5,
+		h6 {
+			font-size-adjust: none;
+		}
+	}
+
 	a,
 	button,
 	.button,

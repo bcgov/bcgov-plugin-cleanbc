@@ -1,7 +1,8 @@
 <template>
-  <h3 class="mb-2 d-none d-md-block" aria-live='polite'>Find a vehicle <span v-if="vehicles.length !== undefined">(<span class='sr-only'>showing</span>{{
-    searchvehicles.length }} of {{ vehicles.length }})</span> <span v-else>(no vehicles currently available)</span> 
+  <h3 id="vehicleGridHeading" class="mb-2 d-none d-md-block">Find a vehicle <span v-if="vehicles.length">({{ ariaLiveMessage }})</span> <span v-else>(no vehicles currently available)</span>
   </h3>
+  <p id="vehicleGridDescription" class="sr-only" v-if="true">A grid of available vehicles filtered by selected options.</p>
+  <span aria-live='assertive' class='sr-only'>Find a vehicle is showing {{ ariaLiveMessage }}</span>
   <div class="container-fluid flex-container" v-if="vehicles.length">
     <div id="vue-app" class="row scrollable">
       <div class="filter-container filter-container-desktop d-none d-md-block">
@@ -19,9 +20,13 @@
               aria-label="This slider allows you to set a minimum and maximum price range – the low end begins at the minimum amount of 28,000 and the high end is set to the maximum amount of 70,000"></vue-slider>
               <p class="msrp-range" aria-live='polite'>${{ rangeValue[0] | addComma }} <span class='sr-only'>minimum price to </span><span class="max-msrp">${{ rangeValue[1] |
     addComma }}<span class='sr-only'>maximum price</span></span></p>
-            <p class="msrp-link mt-3"><a href="#disclaimer"
-                aria-label="navigate to the M.S.R.P. disclaimer information below">Price range as shown is based on
-                automaker <nobr>MSRP<sup> *</sup></nobr></a></p>
+                <details class="wp-block-details has-gray-80-color has-text-color has-link-color is-layout-flow wp-block-details-is-layout-flow" style="text-align: left;font-size:clamp(0.875rem, 0.875rem + ((1vw - 0.2rem) * 0.036), 0.9rem);"><summary>Price range as shown is based on
+                  automaker <nobr>MSRP<sup> *</sup></nobr></summary>
+                  <div class="wp-block-group is-layout-flow wp-block-group-is-layout-flow">
+                    <p>* Automakers provide a manufacturer's suggested retail price (MSRP) when they apply to make their vehicles eligible for rebates. MSRPs listed do not include any fees that are part of the sale of a vehicle. They also do not include the cost of any optional accessories. Vehicle prices change often. Refer to automaker or dealer website for up-to-date prices. Vehicle information is about the most recent model listed. Other model years may vary.</p>
+                  </div>
+                </details>
+                
           </div>
           <div class="flex-group sort-by-group">
             <div class="flex-group-filters">
@@ -69,10 +74,10 @@
           </div>
           <div class="flex-group d-none d-lg-block type-key-group">
             <h4>Available EV Types</h4>
-            <p class="type-key"><span v-if='vehicleTypes && vehicleTypes.includes("BEV")'><strong>BEV</strong> – Battery Electric Vehicle<br /></span>
-              <span v-if='vehicleTypes && vehicleTypes.includes("ER-EV")'><strong>ER-EV</strong> – Extended Range EV<br /></span>
-              <span v-if='vehicleTypes && vehicleTypes.includes("FCEV")'><strong>FCEV</strong> – Fuel Cell Electric Vehicle<br /></span>
-              <span v-if='vehicleTypes && vehicleTypes.includes("PHEV")'><strong>PHEV</strong> – Plug-in Hybrid EV</span>
+            <p class="type-key"><span v-if='vehicleTypes && vehicleTypes.includes("BEV")'><span><strong>B<span class="sr-only">.</span>E<span class="sr-only">.</span>V<span class="sr-only">.</span></strong></span> – Battery Electric Vehicle<br /></span>
+              <span v-if='vehicleTypes && vehicleTypes.includes("ER-EV")'><span><strong>E<span class="sr-only">.</span>R<span class="sr-only">.</span>-E<span class="sr-only">.</span>V<span class="sr-only">.</span></strong></span> – Extended Range EV<br /></span>
+              <span v-if='vehicleTypes && vehicleTypes.includes("FCEV")'><span><strong>F<span class="sr-only">.</span>C<span class="sr-only">.</span>E<span class="sr-only">.</span>V<span class="sr-only">.</span></strong></span> – Fuel Cell Electric Vehicle<br /></span>
+              <span v-if='vehicleTypes && vehicleTypes.includes("PHEV")'><span><strong>P<span class="sr-only">.</span>H<span class="sr-only">.</span>E<span class="sr-only">.</span>V<span class="sr-only">.</span></strong></span> – Plug-in Hybrid EV<br /></span>
             </p>
           </div>
         </div>
@@ -154,9 +159,17 @@
           </p>
         </div>
       </div>
-      <template v-if="searchvehicles.length > 0" v-for="(vehicle, index) in searchvehicles">
-        <div class="vehicle-details" tabindex="0"
-          :aria-label="'Make: ' + vehicle.make + '. Model: ' + vehicle.model + '. Price starts at: $' + vehicle.minMsrp + '. Electric Range: ' + vehicle.rangeElectricKm + ' kilometers. Vehicle rebates up to: $' + (vehicle.rebate_provincial + vehicle.rebate_federal).toLocaleString() + '.'">
+      <div role="grid" aria-labelledby="vehicleGridDescription" :data-column-count="columnCount" :aria-colcount="columnCount" :aria-rowcount="Math.ceil(searchvehicles.length / columnCount)" style='display: contents;'>
+      <div role="row"  style='display: contents;'>
+        <template v-if="searchvehicles.length > 0" v-for="(vehicle, index) in searchvehicles">
+        <div  class="vehicle-details" 
+              role="gridcell" 
+              :tabindex="index === focusedCellIndex ? 0 : -1"
+              @keydown="onGridKeydown($event, index)"
+              @focus="focusedCellIndex = index" 
+              :aria-label="'Vehicle ' + (index + 1) + ' of ' + searchvehicles.length + '. Make: ' + vehicle.make + '. Model: ' + vehicle.model + '.'"
+              :data-additional-info="'Price starts at: $' + vehicle.minMsrp  + '. Electric Range: ' + vehicle.rangeElectricKm + ' kilometers. Vehicle rebates up to: $' 
+                + ( isFederalRebate ? vehicle.rebate_provincial + vehicle.rebate_federal : vehicle.rebate_provincial ).toLocaleString() + '.' ">
           <div>
             <div class="ev-img"><img class="img-fluid" :src="vehicle.image ? vehicle.image : placeholderImg"
                 :alt="'photo of a ' + vehicle.make + ' ' + vehicle.model" /></div>
@@ -187,9 +200,8 @@
                 <span v-else-if='isFederalRebate' class="d-block rebate-federal">No Federal rebate</span>
               </template>
               <hr class="hr" size="1" />
-              <span class="d-block"><a class="external accessibleFocusItem" :href="vehicle.url"
-                  :aria-label="'Go to the ' + vehicle.make + ' ' + vehicle.model + ' website.'" :key="index">Visit
-                  manufacturer website</a></span>
+              <span class="d-block"><a class="accessibleFocusItem" :href="vehicle.url"
+                  :aria-label="'Go to the ' + vehicle.make + ' ' + vehicle.model + ' website.'" :key="index">Visit manufacturer website <span aria-hidden="true" v-html="externalSVGImage" style="object-fit: contain;width: 16px;height: 16px;" ></span></a></span>
             </p>
             <p v-if="isFederalRebate && vehicle.rebate_federal_status === 'processed'" class="rebate-content">Combined rebates up to ${{ (vehicle.rebate_provincial + vehicle.rebate_federal).toLocaleString() }}</p>
             <p v-else-if='!isFederalRebate' class="rebate-content">Provincial rebate up&nbsp;to ${{ (vehicle.rebate_provincial).toLocaleString() }}
@@ -197,6 +209,8 @@
           </div>
         </div>
       </template>
+    </div>
+      </div>
       <div class="vehicle-details" v-if='searchvehicles.length === 0'>
         <div class="no-content"><img :src="cleanBCLeaf" /></div>
         <h3 class="no-content">We're unable to find any Electric Vehicles that match your criteria</h3>
@@ -211,7 +225,7 @@
 /**
  * Vue component script for the Go Electric BC Vehicle Filter.
  */
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import VueSlider from 'vue-slider-component';
 
 const publicDomain = 'https://goelectricbc.goc.bc.ca';
@@ -221,6 +235,7 @@ const vehiclesAPI = `${window.site?.domain ? window.site.domain : publicDomain}/
 const vehicles = ref([]);
 const vehicleTypes = ref([]);
 const filterValue = ref('');
+const focusedCellIndex = ref(0);
 const priceAmount = ref(70000);
 const isMake = ref(false);
 const isType = ref('');
@@ -234,6 +249,9 @@ const typeLabel = ref('');
 const isElectricRange = ref(false);
 const isFullRange = ref(false);
 const rangeValue = ref([28000, 70000]);
+const ariaLiveMessage = ref("");
+
+const columnCount = ref(4); // default
 
 let globalPluginDirFlag = false;
 let cleanBCLogo = ref('');
@@ -276,6 +294,139 @@ const rangeOptions = {
   labelStyle: undefined,
   labelActiveStyle: undefined,
 };
+
+const externalSVGImage = '<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 18 18" style="fill: #1d8045; object-fit: contain; width: 1rem; height: 1rem;" xml:space="preserve"><path d="M9.7,3.9c0-0.1-0.1-0.3-0.2-0.4C9.4,3.4,9.3,3.4,9.2,3.4H1.7c-0.4,0-0.9,0.2-1.2,0.5C0.2,4.2,0,4.6,0,5.1v11.2	c0,0.4,0.2,0.9,0.5,1.2C0.8,17.8,1.2,18,1.7,18h11.2c0.4,0,0.9-0.2,1.2-0.5c0.3-0.3,0.5-0.7,0.5-1.2V8.8c0-0.1-0.1-0.3-0.2-0.4 c-0.1-0.1-0.2-0.2-0.4-0.2c-0.1,0-0.3,0.1-0.4,0.2c-0.1,0.1-0.2,0.2-0.2,0.4v7.5c0,0.1-0.1,0.3-0.2,0.4c-0.1,0.1-0.2,0.2-0.4,0.2	H1.7c-0.1,0-0.3-0.1-0.4-0.2c-0.1-0.1-0.2-0.2-0.2-0.4V5.1c0-0.1,0.1-0.3,0.2-0.4c0.1-0.1,0.2-0.2,0.4-0.2h7.5 c0.1,0,0.3-0.1,0.4-0.2C9.7,4.2,9.7,4.1,9.7,3.9z"/><path d="M18,0.6c0-0.1-0.1-0.3-0.2-0.4C17.7,0.1,17.6,0,17.4,0h-5.6c-0.1,0-0.3,0.1-0.4,0.2c-0.1,0.1-0.2,0.2-0.2,0.4 s0.1,0.3,0.2,0.4c0.1,0.1,0.2,0.2,0.4,0.2h4.3l-9.2,9.2c-0.1,0.1-0.1,0.1-0.1,0.2c0,0.1,0,0.1,0,0.2s0,0.1,0,0.2 c0,0.1,0.1,0.1,0.1,0.2C7,11.1,7,11.2,7.1,11.2c0.1,0,0.1,0,0.2,0c0.1,0,0.1,0,0.2,0s0.1-0.1,0.2-0.1l9.2-9.2v4.3 c0,0.1,0.1,0.3,0.2,0.4c0.1,0.1,0.2,0.2,0.4,0.2c0.1,0,0.3-0.1,0.4-0.2C17.9,6.5,18,6.3,18,6.2V0.6z"/></svg>';
+
+function handleResize() {
+  const width = window.innerWidth;
+
+  if (width <= 479) {
+    columnCount.value = 1;  
+  } else if (width <= 991) {
+    columnCount.value = 2;
+  } else if (width <= 1024) {
+    columnCount.value = 3;
+  } else {
+    columnCount.value = 4;
+  }
+}
+
+/**
+ * Keydown handler. 
+ * Moves focus among grid cells based on the key pressed.
+ */
+ function onGridKeydown(event, index) {
+  const { key, ctrlKey } = event;
+  let newIndex = focusedCellIndex.value;
+
+  // Number of items in the grid
+  const itemCount = searchvehicles.value.length;
+
+  // Use columnCount.value for math
+  const cols = columnCount.value;
+
+  const row = Math.floor(index / cols);
+  const col = index % cols;
+  const maxRow = Math.floor((itemCount - 1) / cols);
+
+  switch (key) {
+    case 'ArrowRight':
+      event.preventDefault();
+      if (col < cols - 1 && newIndex < itemCount - 1) {
+        newIndex = index + 1;
+      }
+      break;
+
+    case 'ArrowLeft':
+      event.preventDefault();
+      if (col > 0) {
+        newIndex = index - 1;
+      }
+      break;
+
+    case 'ArrowDown':
+      event.preventDefault();
+      if (row < maxRow) {
+        const downIndex = index + cols;
+        if (downIndex < itemCount) {
+          newIndex = downIndex;
+        }
+      }
+      break;
+
+    case 'ArrowUp':
+      event.preventDefault();
+      if (row > 0) {
+        newIndex = index - cols;
+      }
+      break;
+
+    case 'Home':
+      event.preventDefault();
+      if (ctrlKey) {
+        newIndex = 0;
+      } else {
+        // Move focus to the first cell in *this* row
+        newIndex = row * cols;
+      }
+      break;
+
+    case 'End':
+      event.preventDefault();
+      if (ctrlKey) {
+        newIndex = itemCount - 1;
+      } else {
+        // last cell in the current row (but do not exceed itemCount)
+        const endOfRowIndex = row * cols + (cols - 1);
+        newIndex = Math.min(endOfRowIndex, itemCount - 1);
+      }
+      break;
+
+    case 'PageDown':
+      event.preventDefault();
+      {
+        const skipRows = 3;
+        const pageDownIndex = index + cols * skipRows;
+        newIndex = Math.min(pageDownIndex, itemCount - 1);
+      }
+      break;
+
+    case 'PageUp':
+      event.preventDefault();
+      {
+        const skipRows = 3;
+        const pageUpIndex = index - cols * skipRows;
+        newIndex = Math.max(pageUpIndex, 0);
+      }
+      break;
+
+    default:
+      return; // let other keys pass
+  }
+
+  moveFocusToCell(newIndex);
+}
+
+
+/**
+ * Programmatically sets focus on the chosen index and 
+ * updates `focusedCellIndex` so only that cell has tabindex=0.
+ */
+function moveFocusToCell(newIndex) {
+  if (newIndex < 0) newIndex = 0;
+  if (newIndex >= searchvehicles.value.length) {
+    newIndex = searchvehicles.value.length - 1;
+  }
+  focusedCellIndex.value = newIndex;
+
+  // Next tick ensures DOM is updated so the cell with tabindex=0 is present
+  nextTick(() => {
+    const cells = document.querySelectorAll('.vehicle-details[role="gridcell"]');
+    if (cells[focusedCellIndex.value]) {
+      cells[focusedCellIndex.value].focus();
+    }
+  });
+}
 
 /**
  * Watches the `window.site?.domain` variable and invokes `fetchData` when it becomes truthy.
@@ -391,12 +542,27 @@ const changeOrder = (val) => {
   }
 };
 
+// Watch for changes and update aria-live only when searchvehicles changes
+watch(searchvehicles, async () => {
+  await nextTick(); // Wait for DOM updates
+  ariaLiveMessage.value = `${searchvehicles.value.length} of ${vehicles.value.length}`;
+});
+
 onMounted(async () => {
+
+  window.addEventListener('resize', handleResize);
+  // Call once to set initial columnCount
+  handleResize();
+
   const appElement = document.getElementById('vehicleFilterApp');
   const showFederalRebates = appElement.getAttribute('data-show-federal-rebates') === 'false';
   isFederalRebate.value = !showFederalRebates;
   
   getEVArray();
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize);
 });
 </script>
 
@@ -739,20 +905,24 @@ $external_link_icon_dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
       border-top: 1px solid rgba($bondiblue, 0.15);
       max-width: 25%;
       width: 25%;
+      --column-count: 4;
 
       @media (max-width: $breakpoint-md-lg) {
         max-width: 33%;
         width: 33%;
+        --column-count: 3;
       }
 
       @media (max-width: $breakpoint-md) {
         max-width: 50%;
         width: 50%;
+        --column-count: 2;
       }
 
       @media (max-width: $breakpoint-xs) {
         max-width: 100%;
         width: 100%;
+        --column-count: 1;
       }
 
       display: flex;
@@ -792,12 +962,12 @@ $external_link_icon_dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4w
 
         }
 
-        &::after {
-          content: $external_link_icon_dark !important;
-          display: inline-block;
-          width: 1rem;
-          margin-left: 0.5rem;
-        }
+        // &::after {
+        //   content: $external_link_icon_dark !important;
+        //   display: inline-block;
+        //   width: 1rem;
+        //   margin-left: 0.5rem;
+        // }
       }
 
       .btn-primary {
