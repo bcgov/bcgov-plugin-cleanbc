@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "75908d2c61f688cd4425582e4fd0d7d3",
+    "content-hash": "b0b539cc20b02ade4b198bc9330ee811",
     "packages": [
         {
             "name": "composer/installers",
@@ -209,16 +209,16 @@
         },
         {
             "name": "bcgov/wordpress-utils",
-            "version": "2.4.0",
+            "version": "2.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/bcgov/wordpress-utils.git",
-                "reference": "8568e48a035774d929f2047da2f0b8dadf57ed59"
+                "reference": "08eee71456fd35af988e67a7135524f8d65b89b0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/bcgov/wordpress-utils/zipball/8568e48a035774d929f2047da2f0b8dadf57ed59",
-                "reference": "8568e48a035774d929f2047da2f0b8dadf57ed59",
+                "url": "https://api.github.com/repos/bcgov/wordpress-utils/zipball/08eee71456fd35af988e67a7135524f8d65b89b0",
+                "reference": "08eee71456fd35af988e67a7135524f8d65b89b0",
                 "shasum": ""
             },
             "require": {
@@ -232,6 +232,9 @@
             "require-dev": {
                 "phpcsstandards/phpcsutils": "^1.0"
             },
+            "bin": [
+                "bin/scan-wp-patterns.php"
+            ],
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -257,10 +260,10 @@
                 ]
             },
             "support": {
-                "source": "https://github.com/bcgov/wordpress-utils/tree/2.4.0",
+                "source": "https://github.com/bcgov/wordpress-utils/tree/2.5.0",
                 "issues": "https://github.com/bcgov/wordpress-utils/issues"
             },
-            "time": "2024-12-02T19:22:08+00:00"
+            "time": "2025-01-30T00:11:41+00:00"
         },
         {
             "name": "brain/monkey",
@@ -2607,16 +2610,16 @@
         },
         {
             "name": "squizlabs/php_codesniffer",
-            "version": "3.11.2",
+            "version": "3.11.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHPCSStandards/PHP_CodeSniffer.git",
-                "reference": "1368f4a58c3c52114b86b1abe8f4098869cb0079"
+                "reference": "ba05f990e79cbe69b9f35c8c1ac8dca7eecc3a10"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHPCSStandards/PHP_CodeSniffer/zipball/1368f4a58c3c52114b86b1abe8f4098869cb0079",
-                "reference": "1368f4a58c3c52114b86b1abe8f4098869cb0079",
+                "url": "https://api.github.com/repos/PHPCSStandards/PHP_CodeSniffer/zipball/ba05f990e79cbe69b9f35c8c1ac8dca7eecc3a10",
+                "reference": "ba05f990e79cbe69b9f35c8c1ac8dca7eecc3a10",
                 "shasum": ""
             },
             "require": {
@@ -2681,9 +2684,13 @@
                 {
                     "url": "https://opencollective.com/php_codesniffer",
                     "type": "open_collective"
+                },
+                {
+                    "url": "https://thanks.dev/phpcsstandards",
+                    "type": "thanks_dev"
                 }
             ],
-            "time": "2024-12-11T16:04:26+00:00"
+            "time": "2025-01-23T17:04:15+00:00"
         },
         {
             "name": "theseer/tokenizer",
