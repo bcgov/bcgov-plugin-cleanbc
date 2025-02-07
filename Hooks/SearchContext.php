@@ -98,7 +98,7 @@ class SearchContext {
 	 * @return string The cleaned excerpt.
 	 */
 	public function bcgov_filter_excerpt_for_search( $excerpt, $post ) {
-		if ( is_search() ) {
+		if ( is_search() && $post->post_content ) {
 			$cleaned_content = apply_filters( 'the_content', $post->post_content );
 
 			return wp_trim_words( $cleaned_content, 40, '...' );
