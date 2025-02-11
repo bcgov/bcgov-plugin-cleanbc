@@ -59,7 +59,47 @@ const domNavReady = () => {
 		/**
 		 * Interrupt the default submenu close behaviour for keyboard navigation.
 		 */
+		const topLevelToggles = document.querySelectorAll(
+			'.wp-block-navigation__container > .wp-block-navigation-submenu > .wp-block-navigation-submenu__toggle'
+		);
 		const submenuContainers = document.querySelectorAll('.wp-block-navigation-submenu');
+		const nestedToggles = document.querySelectorAll('ul ul .wp-block-navigation-submenu__toggle');
+
+		if (topLevelToggles) {
+			topLevelToggles.forEach((toggle) => {
+
+				toggle.addEventListener('click', (event) => {
+					event.stopImmediatePropagation(); // block WP click handler.
+					event.preventDefault();           // block default link/button behavior.
+
+					const wasOpen = ('true' === toggle.getAttribute('aria-expanded'));
+
+					if (!wasOpen) {
+						toggle.setAttribute('aria-expanded', 'true');
+					} else {
+						toggle.setAttribute('aria-expanded', 'false');
+					}
+				}, true);
+
+				toggle.addEventListener('focus', (event) => {
+
+					// Close all toggles.
+					topLevelToggles.forEach((other) => {
+						if (other.getAttribute('aria-expanded')) {
+							other.setAttribute('aria-expanded', 'false');
+						}
+						if (nestedToggles) {
+							nestedToggles.forEach((other) => {
+								other.setAttribute('aria-expanded', 'false');
+							});
+						}
+					});
+
+					event.stopImmediatePropagation(); // block WP focus logic.
+				}, true);
+			});
+		}
+
 		if (submenuContainers) {
 			submenuContainers.forEach((submenu) => {
 				submenu.addEventListener('focusout', (event) => {
@@ -70,20 +110,22 @@ const domNavReady = () => {
 					const navContainer = document.querySelector('header nav');
 					if (navContainer && !navContainer.contains(event.relatedTarget)) {
 						// Focus has gone outside the nav, so close all toggles:
-						topLevelToggles.forEach((toggle) => {
-							toggle.setAttribute('aria-expanded', 'false');
-						});
-						nestedToggles.forEach((toggle) => {
-							toggle.setAttribute('aria-expanded', 'false');
-						});
-
+						if (topLevelToggles) {
+							topLevelToggles.forEach((toggle) => {
+								toggle.setAttribute('aria-expanded', 'false');
+							});
+						}
+						if (nestedToggles) {
+							nestedToggles.forEach((toggle) => {
+								toggle.setAttribute('aria-expanded', 'false');
+							});
+						}
 					}
 					event.stopImmediatePropagation();
 				}, true); // capture phase.
 			});
 		}
 
-		const nestedToggles = document.querySelectorAll('ul ul .wp-block-navigation-submenu__toggle');
 		if (nestedToggles) {
 			nestedToggles.forEach((toggle) => {
 
@@ -116,45 +158,6 @@ const domNavReady = () => {
 					nestedToggles.forEach((other) => {
 						other.setAttribute('aria-expanded', 'false');
 					});
-				}, true);
-
-			});
-
-		}
-
-
-		const topLevelToggles = document.querySelectorAll(
-			'.wp-block-navigation__container > .wp-block-navigation-submenu > .wp-block-navigation-submenu__toggle'
-		);
-		if (topLevelToggles) {
-			topLevelToggles.forEach((toggle) => {
-
-				toggle.addEventListener('click', (event) => {
-					event.stopImmediatePropagation(); // block WP click handler.
-					event.preventDefault();           // block default link/button behavior.
-
-					const wasOpen = ('true' === toggle.getAttribute('aria-expanded'));
-
-					if (!wasOpen) {
-						toggle.setAttribute('aria-expanded', 'true');
-					} else {
-						toggle.setAttribute('aria-expanded', 'false');
-					}
-				}, true);
-
-				toggle.addEventListener('focus', (event) => {
-
-					// Close all toggles.
-					topLevelToggles.forEach((other) => {
-						if (other.getAttribute('aria-expanded')) {
-							other.setAttribute('aria-expanded', 'false');
-						}
-						nestedToggles.forEach((other) => {
-							other.setAttribute('aria-expanded', 'false');
-						});
-					});
-
-					event.stopImmediatePropagation(); // block WP focus logic.
 				}, true);
 			});
 		}
