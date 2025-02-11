@@ -59,6 +59,7 @@ const domNavReady = () => {
 		/**
 		 * Interrupt the default submenu close behaviour for keyboard navigation.
 		 */
+		const navContainer = document.querySelector('header nav');
 		const topLevelToggles = document.querySelectorAll(
 			'.wp-block-navigation__container > .wp-block-navigation-submenu > .wp-block-navigation-submenu__toggle'
 		);
@@ -161,6 +162,38 @@ const domNavReady = () => {
 				}, true);
 			});
 		}
+
+		
+
+		if (navContainer) {
+			navContainer.addEventListener('keydown', (event) => {
+				if (event.key !== 'Escape') {
+					return;
+				}
+
+				const openToggles = [
+					...document.querySelectorAll('.wp-block-navigation-submenu__toggle[aria-expanded="true"]'),
+				];
+
+				if (!openToggles.length) {
+					return;
+				}
+
+				openToggles.forEach((toggle) => {
+					toggle.setAttribute('aria-expanded', 'false');
+
+					// If focus is currently inside this submenu, move focus back to the toggle.
+					const submenu = toggle.closest('.wp-block-navigation-submenu');
+					if (submenu && submenu.contains(document.activeElement)) {
+						toggle.focus();
+					}
+				});
+
+				event.preventDefault();
+				event.stopPropagation();
+			});
+		}
+
 	});
 };
 

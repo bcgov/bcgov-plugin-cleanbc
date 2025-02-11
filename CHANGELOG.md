@@ -1,3 +1,6 @@
+## 1.14.1 February 11, 2025
+- Added escape key handling to the navigation control.
+
 ## 1.14.0 February 11, 2025
 - Added WordPress 6.5+ keyboard navigation overrides for dropdown menus.
 
