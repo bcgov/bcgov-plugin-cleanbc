@@ -88,9 +88,11 @@ const domNavReady = () => {
 						if (other.getAttribute('aria-expanded')) {
 							other.setAttribute('aria-expanded', 'false');
 						}
-						nestedToggles.forEach((other) => {
-							other.setAttribute('aria-expanded', 'false');
-						});
+						if (nestedToggles) {
+							nestedToggles.forEach((other) => {
+								other.setAttribute('aria-expanded', 'false');
+							});
+						}
 					});
 
 					event.stopImmediatePropagation(); // block WP focus logic.
@@ -108,13 +110,16 @@ const domNavReady = () => {
 					const navContainer = document.querySelector('header nav');
 					if (navContainer && !navContainer.contains(event.relatedTarget)) {
 						// Focus has gone outside the nav, so close all toggles:
-						topLevelToggles.forEach((toggle) => {
-							toggle.setAttribute('aria-expanded', 'false');
-						});
-						nestedToggles.forEach((toggle) => {
-							toggle.setAttribute('aria-expanded', 'false');
-						});
-
+						if (topLevelToggles) {
+							topLevelToggles.forEach((toggle) => {
+								toggle.setAttribute('aria-expanded', 'false');
+							});
+						}
+						if (nestedToggles) {
+							nestedToggles.forEach((toggle) => {
+								toggle.setAttribute('aria-expanded', 'false');
+							});
+						}
 					}
 					event.stopImmediatePropagation();
 				}, true); // capture phase.
