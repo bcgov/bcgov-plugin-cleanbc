@@ -1,3 +1,6 @@
+## 1.14.0 February 11, 2025
+- Added WordPress 6.5+ keyboard navigation overrides for dropdown menus.
+
 ## 1.13.1 February 7, 2025
 - Fixed PHP notice "Trying to get property 'post_content' of non-object" on search results page.
 
