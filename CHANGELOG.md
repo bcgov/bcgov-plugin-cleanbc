@@ -1,5 +1,6 @@
-## 1.14.2 February 11, 2025
+## 1.14.2 February 14, 2025
 - Added APG Menubar Pattern support to navigation menu.
+– Removed top level 'enter' handling. 
 
 ## 1.14.1 February 11, 2025
 - Added escape key handling to the navigation control.
