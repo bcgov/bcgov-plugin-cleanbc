@@ -1,3 +1,6 @@
+## 1.14.3 February 18, 2025
+– Modified ARIA roles and settings to facilitate better Screen Reader.
+
 ## 1.14.2 February 14, 2025
 - Added APG Menubar Pattern support to navigation menu.
 – Removed top level 'enter' handling. 
