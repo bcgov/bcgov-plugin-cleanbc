@@ -1184,11 +1184,11 @@ const getOfferTotalTagCount = computed(() => {
 
 		const json = await response.json();
 
-        // Purge old data from sessionStorage to make sure we don't exceed storage quota.
-        // setTimeout(itemsToClearFromSessionStorage.value.forEach((item) => {
-        //     sessionStorage.removeItem(item);
-        // }), 1000);
-        sessionStorage.clear();
+		// Purge old data from sessionStorage to make sure we don't exceed storage quota.
+		// setTimeout(itemsToClearFromSessionStorage.value.forEach((item) => {
+		//     sessionStorage.removeItem(item);
+		// }), 1000);
+		sessionStorage.clear();
 
 		// Store new data in sessionStorage
 		sessionStorage.setItem('rebatesData', JSON.stringify(json));
