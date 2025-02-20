@@ -1,3 +1,7 @@
+## 1.14.4 February 20, 2025
+– Revised sessionStorage and fetch of custom API data for Better Homes/Buildings tools.
+– Removed additiona filters count from Rebates side menu title to reduce confusion.
+
 ## 1.14.3 February 18, 2025
 – Modified ARIA roles and settings to facilitate better Screen Reader.
 

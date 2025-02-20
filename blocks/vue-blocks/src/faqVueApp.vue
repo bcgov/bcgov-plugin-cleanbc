@@ -626,7 +626,7 @@ const buildCategoryHierarchy = (categories) => {
  * // Example usage:
  * addLinkToClipboard();
  * // Copies a URL like:
- * // https://betterhomesbc.ca?tool=contractors&type=Heat%20Pump&program=Energy%20Savings&region=Vancouver
+ * // https://betterhomesbc.ca?tool=faqs&type=Heat%20Pump&program=Energy%20Savings&region=Vancouver
  */
  const addLinkToClipboard = (event) => {
   
@@ -964,59 +964,58 @@ const handleFilterPostCount = (thisFilter) => {
  * Fetches faq data either from sessionStorage cache (if available and not expired) or from the WordPress API.
  * If data is fetched from the API, it is stored in sessionStorage for caching purposes.
  *
- * @param {number} [offset=0] - The offset for paginating results (default is 0).
- * @returns {Promise<void>} - A promise that resolves when the data is fetched and updated.
- * @throws {Error} - If there is an error fetching the data from the API.
+* @async
+ * @function fetchData
+ * @param {number} [offset=0] - Offset parameter (currently unused, but reserved for future pagination).
+ * @throws {Error} Throws an error if the API request fails.
  */
-const fetchData = async (offset = 0) => {
-  try {
-    // Set loading state to true.
-    isLoading.value = true;
+ const fetchData = async (offset = 0) => {
+	try {
+		// Set loading state to true.
+		isLoading.value = true;
 
-    // Check if data exists in sessionStorage and if it's not expired.
-    const cachedData = sessionStorage.getItem('faqsData');
-    const cachedTimestamp = sessionStorage.getItem('faqsTimestamp');
-    if (cachedData && cachedTimestamp) {
-      const timeElapsed = Date.now() - parseInt(cachedTimestamp);
-      const hoursElapsed = timeElapsed / (1000 * 60 * 60);
-      if (hoursElapsed < 24) {
-        // Data exists in cache and it's not expired.
-        faqs.value = JSON.parse(cachedData);
-        showLoadingMessage.value = false;
-        // Set loading state to false after data is fetched.
-        isLoading.value = false;
-        return;
-      }
-    }
+		// Check if data exists in sessionStorage and if it's not expired.
+		const cachedData = sessionStorage.getItem('faqsData');
+		const cachedTimestamp = sessionStorage.getItem('faqsTimestamp');
+		if (cachedData && cachedTimestamp) {
+			const timeElapsed = Date.now() - parseInt(cachedTimestamp);
+			const hoursElapsed = timeElapsed / (1000 * 60 * 60);
+			if (hoursElapsed < 24) {
+				// Data exists in cache and it's not expired.
+				faqs.value = JSON.parse(cachedData);
+				showLoadingMessage.value = false;
+				// Set loading state to false after data is fetched.
+				isLoading.value = false;
+        // Loaded faqsData from cache.
+				return;
+			}
+		}
 
-    // Fetch data from API
-    fetch(faqsAPI, {
-      cache: 'no-store'
-    })
-      .then((r) => r.json())
-      .then((json) => {
-        // Purge old data from sessionStorage to make sure we don't
-        // exceed storage limits.
-        setTimeout(itemsToClearFromSessionStorage.value.forEach((item) => {
-          sessionStorage.removeItem(item);
-        }), 1000);
+		// Fetch data from API using async/await
+		const response = await fetch(faqsAPI, { cache: 'no-store' });
+		if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
-        // Store data in sessionStorage.
-        sessionStorage.setItem('faqsData', JSON.stringify(json));
-        sessionStorage.setItem('faqsTimestamp', Date.now());
-        faqs.value = json;
-        showLoadingMessage.value = false;
-        // Set loading state to false after data is fetched.
-        isLoading.value = false;
-      })
-      .catch((error) => {
-        console.error('Error fetching data:', error);
-        throw error;
-      });
-  } catch (error) {
-    console.error('Error fetching data:', error);
-    throw error;
-  }
+		const json = await response.json();
+
+		// Purge old data from sessionStorage to make sure we don't exceed storage quota.
+		// setTimeout(itemsToClearFromSessionStorage.value.forEach((item) => {
+		//     sessionStorage.removeItem(item);
+		// }), 1000);
+		sessionStorage.clear();
+
+		// Store new data in sessionStorage
+		sessionStorage.setItem('faqsData', JSON.stringify(json));
+		sessionStorage.setItem('faqsTimestamp', Date.now());
+
+		// Update state
+		faqs.value = json;
+		showLoadingMessage.value = false;
+		isLoading.value = false;
+
+	} catch (error) {
+		console.error('Error fetching faqs data:', error);
+		throw error;
+	}
 };
 
 /**
