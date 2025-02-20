@@ -222,7 +222,7 @@
         <div id="rebatesSidebar" class="rebatesSidebar sidebar" role="complementary">
             <!-- Secondary Filter: Offers -->
             <div class="filter filter--other-offers">
-                <h2>Additional filters ({{ getOfferTotalTagCount }})</h2>
+                <h2>Additional filters <!--({{ getOfferTotalTagCount }})--></h2>
                 <fieldset class="filter__list" v-if="!isLoading && offers">
                     <legend class="sr-only">Additional Filters:</legend>
                     <div :class="`filter__item radio all ${ 'all' === selectedOtherOffers ? isCheckedClass : '' }`">
@@ -1151,11 +1151,12 @@ const getOfferTotalTagCount = computed(() => {
  * Fetches rebate data either from sessionStorage cache (if available and not expired) or from the WordPress API.
  * If data is fetched from the API, it is stored in sessionStorage for caching purposes.
  *
- * @param {number} [offset=0] - The offset for paginating results (default is 0).
- * @returns {Promise<void>} - A promise that resolves when the data is fetched and updated.
- * @throws {Error} - If there is an error fetching the data from the API.
+ * @async
+ * @function fetchData
+ * @param {number} [offset=0] - Offset parameter (currently unused, but reserved for future pagination).
+ * @throws {Error} Throws an error if the API request fails.
  */
-const fetchData = async (offset = 0) => {
+ const fetchData = async (offset = 0) => {
 	try {
 		// Set loading state to true.
 		isLoading.value = true;
@@ -1172,36 +1173,34 @@ const fetchData = async (offset = 0) => {
 				showLoadingMessage.value = false;
 				// Set loading state to false after data is fetched.
 				isLoading.value = false;
+        // Loaded rebatesData from cache.
 				return;
 			}
 		}
 
-		// Fetch data from API
-		fetch(rebatesAPI, {
-				cache: 'no-store'
-			})
-			.then((r) => r.json())
-			.then((json) => {
-				// Purge old data from sessionStorage to make sure we don't
-				// exceed storage limits.
-				setTimeout(itemsToClearFromSessionStorage.value.forEach((item) => {
-					sessionStorage.removeItem(item);
-				}), 1000);
+		// Fetch data from API using async/await
+		const response = await fetch(rebatesAPI, { cache: 'no-store' });
+		if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
-				// Store data in sessionStorage.
-				sessionStorage.setItem('rebatesData', JSON.stringify(json));
-				sessionStorage.setItem('rebatesTimestamp', Date.now());
-				rebates.value = json;
-				showLoadingMessage.value = false;
-				// Set loading state to false after data is fetched.
-				isLoading.value = false;
-			})
-			.catch((error) => {
-				console.error('Error fetching data:', error);
-				throw error;
-			});
+		const json = await response.json();
+
+        // Purge old data from sessionStorage to make sure we don't exceed storage quota.
+        // setTimeout(itemsToClearFromSessionStorage.value.forEach((item) => {
+        //     sessionStorage.removeItem(item);
+        // }), 1000);
+        sessionStorage.clear();
+
+		// Store new data in sessionStorage
+		sessionStorage.setItem('rebatesData', JSON.stringify(json));
+		sessionStorage.setItem('rebatesTimestamp', Date.now());
+
+		// Update state
+		rebates.value = json;
+		showLoadingMessage.value = false;
+		isLoading.value = false;
+
 	} catch (error) {
-		console.error('Error fetching data:', error);
+		console.error('Error fetching rebates data:', error);
 		throw error;
 	}
 };
