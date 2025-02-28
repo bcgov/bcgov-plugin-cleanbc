@@ -761,61 +761,125 @@ const isDOMReady = () => {
 };
 
 /**
- * Fetches contractor data either from sessionStorage cache (if available and not expired) or from the WordPress API.
+ * Fetches rebate data either from sessionStorage cache (if available and not expired) or from the WordPress API.
  * If data is fetched from the API, it is stored in sessionStorage for caching purposes.
+ */
+
+ /**
+ * Determines if the provided error indicates that storage quota has been exceeded.
+ *
+ * @param {any} error - The error object to test.
+ * @returns {boolean} `true` if the error is a QuotaExceededError; otherwise, `false`.
+ */
+ const isQuotaExceededError = (error) => {
+  if (!error) return false;
+  return (
+    error.code === 22 ||
+    error.code === 1014 ||
+    error.name === 'QuotaExceededError' ||
+    error.name === 'NS_ERROR_DOM_QUOTA_REACHED'
+  );
+};
+
+/**
+ * Helper function to check whether the provided timestamp is within the past 24 hours.
+ *
+ * @param {string|number} timestamp - The timestamp to evaluate (in milliseconds).
+ * @returns {boolean} `true` if the timestamp is less than 24 hours old, otherwise `false`.
+ */
+const isDataValid = (timestamp) => {
+  const timeElapsed = Date.now() - parseInt(timestamp, 10);
+  const hoursElapsed = timeElapsed / (1000 * 60 * 60);
+  return hoursElapsed < 24;
+};
+
+/**
+ * Fetches rebate data from session or local storage if valid; otherwise fetches from the API.
+ * Updates `contractors.value` with the fetched data and toggles loading indicators accordingly.
+ * Tries to store the data in sessionStorage, falling back to localStorage on quota errors.
  *
  * @async
  * @function fetchData
- * @param {number} [offset=0] - Offset parameter (currently unused, but reserved for future pagination).
- * @throws {Error} Throws an error if the API request fails.
+ * @returns {Promise<void>} Resolves when the fetch and state updates complete.
+ * @throws {Error} Throws an error if the network request fails or data parsing fails.
  */
- const fetchData = async (offset = 0) => {
-	try {
-		// Set loading state to true.
-		isLoading.value = true;
+const fetchData = async () => {
+  try {
+    // Set loading indicators.
+    isLoading.value = true;
+    showLoadingMessage.value = true;
+    
+    // Check sessionStorage.
+    let data = sessionStorage.getItem('contractorsData');
+    let timestamp = sessionStorage.getItem('contractorsTimestamp');
+    let cachedData = null;
 
-		// Check if data exists in sessionStorage and if it's not expired.
-		const cachedData = sessionStorage.getItem('contractorsData');
-		const cachedTimestamp = sessionStorage.getItem('contractorsTimestamp');
-		if (cachedData && cachedTimestamp) {
-			const timeElapsed = Date.now() - parseInt(cachedTimestamp);
-			const hoursElapsed = timeElapsed / (1000 * 60 * 60);
-			if (hoursElapsed < 24) {
-				// Data exists in cache and it's not expired.
-				contractors.value = JSON.parse(cachedData);
-				showLoadingMessage.value = false;
-				// Set loading state to false after data is fetched.
-				isLoading.value = false;
-        // Loaded contractorsData from cache.
-				return;
-			}
-		}
+    if (data && timestamp && isDataValid(timestamp)) {
+      // data in sessionStorage is valid.
+      cachedData = JSON.parse(data);
+    } else {
+      // Check localStorage.
+      data = localStorage.getItem('contractorsData');
+      timestamp = localStorage.getItem('contractorsTimestamp');
+      if (data && timestamp && isDataValid(timestamp)) {
+        // data in localStorage is valid.
+        cachedData = JSON.parse(data);
+      }
+    }
 
-		// Fetch data from API using async/await
-		const response = await fetch(contractorsAPI, { cache: 'no-store' });
-		if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+    // If cachedData is found (from either storage), use it and return early.
+    if (cachedData) {
+      contractors.value = cachedData;
+      showLoadingMessage.value = false;
+      isLoading.value = false;
+      return;  // <-- stop here, we have valid cache.
+    }
 
-		const json = await response.json();
+    // Fetch from API if no valid cache found.
+    const response = await fetch(contractorsAPI, { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
 
-		// Purge old data from sessionStorage to make sure we don't exceed storage quota.
-		// setTimeout(itemsToClearFromSessionStorage.value.forEach((item) => {
-		//     sessionStorage.removeItem(item);
-		// }), 1000);
-		sessionStorage.clear();
+    const json = await response.json();
 
-		// Store new data in sessionStorage
-		sessionStorage.setItem('contractorsData', JSON.stringify(json));
-		sessionStorage.setItem('contractorsTimestamp', Date.now());
+    // Optionally clear sessionStorage to avoid piling up.
+    try {
+      itemsToClearFromSessionStorage.value.forEach((item) => {
+        sessionStorage.removeItem(item);
+      });
+      sessionStorage.clear();
+    } catch (clearError) {
+      console.warn('Error clearing sessionStorage:', clearError);
+    }
 
-		// Update state
-		contractors.value = json;
-		showLoadingMessage.value = false;
-		isLoading.value = false;
+    // Save to sessionStorage; fall back to localStorage on quota error.
+    try {
+      sessionStorage.setItem('contractorsData', JSON.stringify(json));
+      sessionStorage.setItem('contractorsTimestamp', Date.now().toString());
+    } catch (storageError) {
+      if (isQuotaExceededError(storageError)) {
+        console.warn('SessionStorage quota exceeded. Falling back to localStorage.');
+        try {
+          localStorage.setItem('contractorsData', JSON.stringify(json));
+          localStorage.setItem('contractorsTimestamp', Date.now().toString());
+        } catch (lsError) {
+          console.error('Error setting data in localStorage:', lsError);
+        }
+      } else {
+        console.error('Error setting data in sessionStorage:', storageError);
+        throw storageError; // or handle differently.
+      }
+    }
 
-	} catch (error) {
-		console.error('Error fetching contractors data:', error);
-		throw error;
-	}
+    // Update state.
+    contractors.value = json;
+    showLoadingMessage.value = false;
+    isLoading.value = false;
+  } catch (error) {
+    console.error('Error fetching contractors data:', error);
+    throw error;
+  }
 };
 
 /**

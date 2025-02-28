@@ -1,3 +1,6 @@
+## 1.14.5 February 27, 2025
+- Safari quota handling added a fall back to localStorage on quota errors.
+
 ## 1.14.4 February 20, 2025
 – Revised sessionStorage and fetch of custom API data for Better Homes/Buildings tools.
 – Removed additiona filters count from Rebates side menu title to reduce confusion.
