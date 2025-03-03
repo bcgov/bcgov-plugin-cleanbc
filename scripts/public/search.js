@@ -62,7 +62,57 @@ const bcgovBlockThemePluginSearch = () => {
         if ( null !== searchInput && null !== resultDetails ) {
             highlightMatches();
         }
-});
+
+	    
+        const toggleSearchBtn = document.querySelector('.toggle-search-btn a');
+        const searchFieldContainer = document.querySelector('#search-field-container');
+
+        if (!toggleSearchBtn || !searchFieldContainer) return;
+
+        const searchField = searchFieldContainer.querySelector('input');
+        const searchBtn = searchFieldContainer.querySelector('button');
+        const searchFieldLink = searchFieldContainer.querySelector('a');
+
+        // Flag to indicate that the link was interacted with
+        let linkInteraction = false;
+
+        searchBtn.addEventListener('mousedown', () => {
+            console.log('button mousedown')
+            linkInteraction = true;
+        });
+
+        searchBtn.addEventListener('focusout', () => {
+            console.log('button focusout')
+            linkInteraction = true;
+        });
+
+        searchFieldLink.addEventListener('mousedown', () => {
+            console.log('link mousedown')
+            linkInteraction = true;
+        });
+
+        searchFieldLink.addEventListener('focusin', () => {
+            console.log('link focused')
+            linkInteraction = true;
+        });
+
+        
+        const overrideBlurIfLinkClicked = (event) => {
+            
+            if (linkInteraction) {
+                // Stop the existing blur events from firing
+                event.stopImmediatePropagation();
+
+                // Reset the flag so next blur behaves normally
+                linkInteraction = false;
+            }
+        }
+
+        searchField.addEventListener('blur', overrideBlurIfLinkClicked, true);
+        searchBtn.addEventListener('blur', overrideBlurIfLinkClicked, true);
+
+
+    });
 }
 
 if ('complete' === document.readyState) {

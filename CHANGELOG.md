@@ -1,3 +1,6 @@
+## 1.14.6 March 2, 2025
+- Fixed mouse related loss of focus interaction issue with search bar.
+
 ## 1.14.5 February 27, 2025
 - Safari quota handling added a fall back to localStorage on quota errors.
 
