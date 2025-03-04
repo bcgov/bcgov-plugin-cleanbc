@@ -1,3 +1,6 @@
+## 1.14.7 March 4, 2025
+- Added null check on search components.
+
 ## 1.14.6 March 2, 2025
 - Fixed mouse related loss of focus interaction issue with search bar.
 
@@ -13,7 +16,7 @@
 
 ## 1.14.2 February 14, 2025
 - Added APG Menubar Pattern support to navigation menu.
-– Removed top level 'enter' handling. 
+– Rmoeved top level 'enter' handling. 
 
 ## 1.14.1 February 11, 2025
 - Added escape key handling to the navigation control.
