@@ -10,12 +10,12 @@ const bcgovBlockThemePluginSearch = () => {
         const resultDetails = document.querySelector('.result-details');
     
         const extractWordsAndPhrases = (input) => {
-            // Match quoted phrases or standalone words
+            // Match quoted phrases or standalone words.
             const regex = /"([^"]+)"|\b(\w+)\b/g;
             const matches = [];
             let match;
             while ((match = regex.exec(input)) !== null) {
-                matches.push(match[1] || match[2]); // Add quoted phrases or single words
+                matches.push(match[1] || match[2]); // Add quoted phrases or single words.
             }
             return matches;
         }
@@ -33,7 +33,7 @@ const bcgovBlockThemePluginSearch = () => {
                     if (regex.test(node.nodeValue)) {
                         const parent = node.parentNode;
         
-                        // Apply highlights only to the visible text (not attributes)
+                        // Apply highlights only to the visible text (not attributes).
                         const fragments = node.nodeValue.split(regex);
                         const fragmentContainer = document.createDocumentFragment();
         
@@ -50,12 +50,12 @@ const bcgovBlockThemePluginSearch = () => {
                         parent.replaceChild(fragmentContainer, node);
                     }
                 } else if (node.nodeType === Node.ELEMENT_NODE) {
-                    // Recurse into child nodes
+                    // Recurse into child nodes.
                     node.childNodes.forEach(walkNodes);
                 }
             };
         
-            // Start walking through the children of resultDetails
+            // Start walking through the children of resultDetails.
             resultDetails.childNodes.forEach(walkNodes);
         };
         
@@ -63,7 +63,6 @@ const bcgovBlockThemePluginSearch = () => {
             highlightMatches();
         }
 
-	    
         const toggleSearchBtn = document.querySelector('.toggle-search-btn a');
         const searchFieldContainer = document.querySelector('#search-field-container');
 
@@ -75,27 +74,23 @@ const bcgovBlockThemePluginSearch = () => {
 
         if (!searchField || !searchBtn) return;
 
-        // Flag to indicate that the link was interacted with
+        // Flag to indicate that the link was interacted with.
         let linkInteraction = false;
 
         searchBtn.addEventListener('mousedown', () => {
-            console.log('button mousedown')
             linkInteraction = true;
         });
 
         searchBtn.addEventListener('focusout', () => {
-            console.log('button focusout')
             linkInteraction = true;
         });
 
         if (searchFieldLink) {
             searchFieldLink.addEventListener('mousedown', () => {
-                console.log('link mousedown')
                 linkInteraction = true;
             });
     
             searchFieldLink.addEventListener('focusin', () => {
-                console.log('link focused')
                 linkInteraction = true;
             });
         }
@@ -104,10 +99,10 @@ const bcgovBlockThemePluginSearch = () => {
         const overrideBlurIfLinkClicked = (event) => {
             
             if (linkInteraction) {
-                // Stop the existing blur events from firing
+                // Stop the existing blur events from firing.
                 event.stopImmediatePropagation();
 
-                // Reset the flag so next blur behaves normally
+                // Reset the flag so next blur behaves normally.
                 linkInteraction = false;
             }
         }
