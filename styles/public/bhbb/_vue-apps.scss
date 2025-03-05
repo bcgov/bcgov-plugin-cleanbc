@@ -509,6 +509,11 @@
 		border-radius: $default_border_radius;
 	}
 
+	select:active,
+	.select:active {
+		font-weight: normal;
+	}
+
 	.button,
 	button {
 		background-color: $bahamablue;

@@ -1,6 +1,7 @@
-## 1.14.7 March 4, 2025
+## 1.14.7 March 5, 2025
 - Added null check on search components.
 - Removed unnecessary console logging.
+- Modified active state on tool selects to adjust font weight.
 
 ## 1.14.6 March 2, 2025
 - Fixed mouse related loss of focus interaction issue with search bar.
