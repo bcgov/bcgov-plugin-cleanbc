@@ -1,3 +1,23 @@
+let debugState = false; // Change to true for debug logs
+
+/**
+ * Logs a message to the console when debug mode is enabled.
+ *
+ * @param {string} msg - The debug message to display in the console.
+ * @param {'log' | 'error'} [status='log'] - Determines which console method to use. 
+ *   Use "error" to log with `console.error`, otherwise `console.log`.
+ */
+export const debug = (msg, status = 'log') => {
+	if (debugState) {
+		if (status === 'error') {
+			console.error(msg);
+		} else {
+			console.log(msg);
+		}
+	}
+};
+
+
 /**
  * Decodes HTML character entities in a given string.
  *
