@@ -119,7 +119,7 @@
                     <!-- Company Name and Head Office -->
                     <td data-label="Company Name and Head Office" class="pqea__company-and-location">
                         <!-- Company Website Link -->
-                        <a v-if="pqea.details.company_website" class="pqea__company external" :href="pqea.details.company_website" target="_blank" :aria-label="decodeHtmlEntities(pqea.details.company_name) + ' website, opens in a new tab/window.'">
+                        <a v-if="pqea.details.company_website" class="pqea__company external" :href="pqea.details.company_website" target="_blank" @click="onProviderLinkClick(pqea)" :aria-label="decodeHtmlEntities(pqea.details.company_name) + ' website, opens in a new tab/window.'">
                             {{ pqea.details.company_name ? decodeHtmlEntities(pqea.details.company_name) : 'Website' }}
                         </a>
                         <!-- Company Name if No Website -->
@@ -141,11 +141,11 @@
                     <td data-label="Contact Email and Phone" class="pqea__email-and-phone">
                         <address>
                             <!-- Email Link -->
-                            <a v-if="pqea.details.email" class="pqea__email" :href="'mailto:' + pqea.details.email"> <span v-html="insertBreakableChar(pqea.details.email)"></span></a>
+                            <a v-if="pqea.details.email" class="pqea__email" :href="'mailto:' + pqea.details.email" @click.prevent="onEmailPhoneClick(pqea, 'email')"> <span v-html="insertBreakableChar(pqea.details.email)"></span></a>
                             <p class="pqea__email" v-else>No email provided</p>
 
                             <!-- Phone Link -->
-                            <a v-if="pqea.details.phone" class="pqea__telephone" :href="'tel:+1' + pqea.details.phone.replace(/-/g, '')">{{ pqea.details.phone }}</a>
+                            <a v-if="pqea.details.phone" class="pqea__telephone" :href="'tel:+1' + pqea.details.phone.replace(/-/g, '')" @click.prevent="onEmailPhoneClick(pqea, 'phone')">{{ pqea.details.phone }}</a>
                             <p class="pqea__telephone" v-else>No phone number provided</p>
                         </address>
                     </td>
@@ -156,7 +156,7 @@
                             <!-- Service Organization Name 1 -->
                             <li v-if="pqea.details.service_organization_name" class="pqea__service-organization-name">
                                 <!-- Link if Website Provided -->
-                                <a v-if="pqea.details.service_organization_website" :href="pqea.details.service_organization_website" class="external-app-link" target="_blank" :aria-label="pqea.details.service_organization_name + ' website, opens in a new tab/window.'">{{ pqea.details.service_organization_name }}</a>
+                                <a v-if="pqea.details.service_organization_website" :href="pqea.details.service_organization_website" class="external-app-link" target="_blank"  @click="onProviderLinkClick(pqea)" :aria-label="pqea.details.service_organization_name + ' website, opens in a new tab/window.'">{{ pqea.details.service_organization_name }}</a>
                                 <!-- Plain Text if No Website -->
                                 <span v-else>{{ pqea.details.service_organization_name }}</span>
                             </li>
@@ -228,6 +228,8 @@
 } from 'vue';
 
 import { decodeHtmlEntities, shuffleArray, scrollToElementID } from '../shared-functions.js';
+import { trackProviderFilterChange, trackProviderClick } from '../analytics-schemas.js';
+import { localAnalyticsReady } from '../standalone-snowplow.js';
 
 /**
  * Ref for storing an array of Program Qualified Energy Advisors (PQEAs).
@@ -785,6 +787,70 @@ const fetchData = async () => {
 };
 
 /**
+ * Watchers
+ * https://vuejs.org/guide/essentials/watchers.html
+ */
+
+watch(selectedCategory, (newVal, oldVal) => {
+  if (newVal !== oldVal) {
+    trackProviderFilterChange({
+      filterName: 'pqea',
+      upgradeType: newVal,
+      location: selectedLocation.value,
+      label: `Program changed to: ${newVal}`
+    });
+  }
+});
+watch(selectedLocation, (newVal, oldVal) => {
+  if (newVal !== oldVal) {
+    trackProviderFilterChange({
+      filterName: 'pqea',
+      upgradeType: selectedCategory.value,
+      location: newVal,
+      label: `Location changed to: ${newVal}`
+    });
+  }
+});
+
+/**
+ * Called when the user clicks a pqea link.
+ * We pass in the link’s data plus the current selected filters,
+ * so the analytics function has everything it needs.
+ */
+const onProviderLinkClick = (pqea) => {
+  trackProviderClick({
+    filterName: 'pqea',
+    upgradeType: selectedCategory.value,
+    location: selectedLocation.value,
+    companyName: pqea.details.company_name || '',
+    destination: pqea.details.company_website || ''
+  });
+}
+
+const onEmailPhoneClick = (pqea, linkType) => {
+  let label = '';
+  let destination = '';
+
+  if (linkType === 'email') {
+    label = pqea.email ? `Email: ${pqea.details.email}` : 'Email link';
+    destination = `mailto:${pqea.details.email}`;
+  } else {
+    // linkType === 'phone'
+    label = pqea.phone ? `Phone: ${pqea.details.phone}` : 'Phone link';
+    destination = `tel:+1${pqea.details.phone?.replace(/-/g, '')}`;
+  }
+
+  trackProviderClick({
+    upgradeType: selectedCategory.value,
+    location: selectedLocation.value,
+    companyName: pqea.details.company_name || '',
+    destination,
+    label
+  });
+}
+
+
+/**
  * Watcher for changes in the window.site?.domain variable.
  * Invokes the fetchData() function when the window.site?.domain becomes truthy.
  *
@@ -907,6 +973,9 @@ watch([selectedCategory, selectedLocation], () => {
  * @returns {void}
  */
  onMounted(() => {
+    
+    localAnalyticsReady();
+
     const appElement = document.getElementById('pqeaFilterApp');
     const showControls = appElement.getAttribute('data-show-controls') === 'false';
     isVisible.value = showControls;

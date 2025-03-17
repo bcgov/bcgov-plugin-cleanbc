@@ -1,6 +1,7 @@
-## 1.15.0 March 7, 2025
+## 1.15.0 March 17, 2025
 - Preliminary integration of Snowplow analytics event tracking in Rebates tool.
 - Tracks Rebates/Incentives button clicks, filter type/region/system changes and upgrade type selection/deselection.
+- Initial pass at FAQ and Providers tracking utilising non-existent schemas.
 
 ## 1.14.7 March 5, 2025
 - Added null check on search components.

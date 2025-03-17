@@ -313,7 +313,7 @@ import {
 } from 'vue';
 
 import { decodeHtmlEntities, scrollToElementID } from '../shared-functions.js';
-import { trackRebateClick, trackFilterChange, trackUpgradeTypeChange } from '../analytics-schemas.js';
+import { trackRebateClick, trackRebateFilterChange, trackRebateUpgradeTypeChange } from '../analytics-schemas.js';
 import { localAnalyticsReady } from '../standalone-snowplow.js';
 
 /**
@@ -1272,7 +1272,7 @@ const upgradeTypesAccordionTitle = (selectedUpgradeTypes) => {
 };
 
 /**
- * SNOWPLOW EVENTS: Clcik handlers and watcher for events that fire analytics.
+ * SNOWPLOW EVENTS: Click handlers and watcher for events that fire analytics.
  */
 
 /**
@@ -1299,7 +1299,7 @@ const upgradeTypesAccordionTitle = (selectedUpgradeTypes) => {
  */
  watch(selectedBuildType, (newVal, oldVal) => {
   if (newVal !== oldVal) {
-    trackFilterChange({
+    trackRebateFilterChange({
       projectType: newVal,
       location: selectedLocation.value,
       heatingType: selectedHeatingSystem.value,
@@ -1312,7 +1312,7 @@ const upgradeTypesAccordionTitle = (selectedUpgradeTypes) => {
 
 watch(selectedHeatingSystem, (newVal, oldVal) => {
   if (newVal !== oldVal) {
-    trackFilterChange({
+    trackRebateFilterChange({
       projectType: selectedBuildType.value,
       location: selectedLocation.value,
       heatingType: newVal,
@@ -1325,7 +1325,7 @@ watch(selectedHeatingSystem, (newVal, oldVal) => {
 
 watch(selectedLocation, (newVal, oldVal) => {
   if (newVal !== oldVal) {
-    trackFilterChange({
+    trackRebateFilterChange({
       projectType: selectedBuildType.value,
       location: newVal,
       heatingType: selectedHeatingSystem.value,
@@ -1345,7 +1345,7 @@ watch(
 
     // For each newly selected upgrade
     newlySelected.forEach(upgrade => {
-      trackUpgradeTypeChange({
+      trackRebateUpgradeTypeChange({
         action: 'select',
         projectType: selectedBuildType.value,
         location: selectedLocation.value,
@@ -1357,7 +1357,7 @@ watch(
 
     // For each deselected upgrade
     removed.forEach(upgrade => {
-      trackUpgradeTypeChange({
+      trackRebateUpgradeTypeChange({
         action: 'deselect',
         projectType: selectedBuildType.value,
         location: selectedLocation.value,
