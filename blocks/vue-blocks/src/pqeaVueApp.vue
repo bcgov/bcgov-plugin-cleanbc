@@ -841,6 +841,7 @@ const onEmailPhoneClick = (pqea, linkType) => {
   }
 
   trackProviderClick({
+    filterName: 'pqea',
     upgradeType: selectedCategory.value,
     location: selectedLocation.value,
     companyName: pqea.details.company_name || '',

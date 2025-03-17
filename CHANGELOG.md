@@ -1,3 +1,6 @@
+## 1.15.1 March 17, 2025
+- Fixed undefined filterName issue.
+
 ## 1.15.0 March 17, 2025
 - Preliminary integration of Snowplow analytics event tracking in Rebates tool.
 - Tracks Rebates/Incentives button clicks, filter type/region/system changes and upgrade type selection/deselection.
