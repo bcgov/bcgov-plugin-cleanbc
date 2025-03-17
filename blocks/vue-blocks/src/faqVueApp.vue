@@ -84,14 +84,11 @@
           Reset selection
         </button>
       </div>
-      
+
       <!-- Add Link to Clipboard Button -->
       <div class="control copy-link-btn">
-        <button class="copy-link" 
-          @click.prevent="addLinkToClipboard"
-          @touchend="addLinkToClipboard"
-          @keydown.enter.prevent="addLinkToClipboard"
-          :disabled="'' === textSearch && selectedCategory === 'all'"
+        <button class="copy-link" @click.prevent="addLinkToClipboard" @touchend="addLinkToClipboard"
+          @keydown.enter.prevent="addLinkToClipboard" :disabled="'' === textSearch && selectedCategory === 'all'"
           type="button">
           Copy link
         </button>
@@ -100,7 +97,7 @@
 
       <!-- Pagination Controls -->
       <div class="faqsFilterPagination control pagination pagination--top">
-        <template  v-if="(isVisible && 1 !== totalPages) || (1 < totalPages && !isVisible)">
+        <template v-if="(isVisible && 1 !== totalPages) || (1 < totalPages && !isVisible)">
           <!-- Previous Page Button -->
           <button class="prev-page" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0"
             type="button">Previous Page</button>
@@ -123,7 +120,7 @@
             Frequently Asked Questions {{
               currentTypeFilterMessage }}.</span>
           <span class="pages" role="status" aria-live="polite">Page <span class="numValue current-page">{{ currentPage
-              }}</span> of <span class="numValue total-pages">{{ totalPages }}</span></span>
+          }}</span> of <span class="numValue total-pages">{{ totalPages }}</span></span>
         </span>
       </div>
     </div>
@@ -145,7 +142,7 @@
                 :checked="'all' === selectedAdditionalFilter ? true : false" @click="handleSelectAllInputFilter"
                 @touchend="handleSelectAllInputFilter">
               <label for="typeAll">Show All <span class="sr-only">Results: </span> ({{ handleFilterPostCount('all')
-                }})</label>
+              }})</label>
             </div>
             <!-- Filter element loop -->
             <div v-for="(filter, index) in additional_filters" :key="index"
@@ -205,7 +202,7 @@
               :data-keywords="faq.keywords">
               <h3>
                 <button :id="`faqAccordionTrigger--${faq.id}`" class="accordion-trigger" aria-expanded="false"
-                  :aria-controls="`faqAccordionPanel--${faq.id}`" type="button">
+                  :aria-controls="`faqAccordionPanel--${faq.id}`" type="button" @click="toggleFaqAccordion(faq)">
                   <span class="accordion-title">{{ decodeHtmlEntities(faq.title) }}</span>
                   <span class="accordion-icon"></span>
                 </button>
@@ -243,10 +240,10 @@
                       </div>
                     </div>
                   </div>
-                  <div class="faq__body" v-html="faq.body"></div>
+                  <div class="faq__body" v-html="faq.body" @click.capture="onFaqBodyClick($event, faq)"></div>
                   <div class="faq__close">
-                    <button :id="`faqAccordionTrigger--${faq.id}--close`" class="" @click.stop.prevent="collapseThisFaq"
-                      @touchend.stop.prevent="collapseThisFaq" :aria-controls="`faqAccordionPanel--${faq.id}`"
+                    <button :id="`faqAccordionTrigger--${faq.id}--close`" class="" @click.stop.prevent="collapseThisFaq($event, faq)"
+                      @touchend.stop.prevent="collapseThisFaq($event, faq)" :aria-controls="`faqAccordionPanel--${faq.id}`"
                       type="button">
                       <span class="accordion-title">Collapse this FAQ</span>
                     </button>
@@ -257,7 +254,8 @@
           </template>
         </div>
 
-        <div v-if="isVisible && filteredFaqs.length !== 0 && 1 !== totalPages" class="faqsFilterControls filter-container">
+        <div v-if="isVisible && filteredFaqs.length !== 0 && 1 !== totalPages"
+          class="faqsFilterControls filter-container">
           <!-- Lower Pagination Controls -->
           <div class="faqsFilterPagination control pagination pagination--bottom">
             <!-- Previous Page Button -->
@@ -270,7 +268,8 @@
             <!-- Next Page Button -->
             <button class="next-page" @click.prevent="nextPage" :disabled="currentPage === totalPages" tabindex="0"
               type="button">Next Page</button>
-            <button class="go-to-top" tabindex="0" type="button" :disabled="filteredFaqs.length === 0" @click="scrollToElementID('faqsResults', '11rem')">Go to top of results</button>
+            <button class="go-to-top" tabindex="0" type="button" :disabled="filteredFaqs.length === 0"
+              @click="scrollToElementID('faqsResults', '11rem')">Go to top of results</button>
           </div>
         </div>
       </div>
@@ -298,6 +297,8 @@ import {
 } from 'vue';
 
 import { decodeHtmlEntities, scrollToElementID } from '../shared-functions.js';
+import { trackFaqSearch, trackFaqFilterChange, trackFaqAccordionToggle, trackFaqLinkClick } from '../analytics-schemas.js';
+import { localAnalyticsReady } from '../standalone-snowplow.js';
 
 /**
  * Ref for storing an array of FAQs.
@@ -325,7 +326,7 @@ const wasClicked = ref(false);
  *
  * @type {Ref<Bool>} - A reference to the current visibility.
  */
- const isVisible = ref(true);
+const isVisible = ref(true);
 
 /**
  * Ref for the current text search input.
@@ -333,6 +334,10 @@ const wasClicked = ref(false);
 const defaultTextSearch = ref('');
 const textSearch = ref('');
 const defaultSelectedAdditionalFilter = ref('all');
+
+// clear any previous timers
+let debounceTimer = null; // text input timer
+let expandTimer = null;   // expand FAQ timer
 
 /**
  * Ref for the default selected category.
@@ -539,18 +544,18 @@ const buildCategoryHierarchy = (categories) => {
     }
   });
 
-/**
- * Builds a hierarchical structure of categories from a flat array.
- *
- * This function organizes a flat array of categories into a hierarchical structure based on parent-child 
- * relationships. Each category is represented as an object with a `children` array containing its child categories.
- *
- * @param {Array<Object>} categories - The flat array of category objects.
- * @param {number} categories[].term_id - The unique identifier for the category.
- * @param {string} categories[].name - The name of the category.
- * @param {number} categories[].parent - The parent ID of the category. A value of `0` indicates a root-level category.
- * @returns {Array<Object>} - An array of root-level categories, each containing a `children` array with its descendants.
- */
+  /**
+   * Builds a hierarchical structure of categories from a flat array.
+   *
+   * This function organizes a flat array of categories into a hierarchical structure based on parent-child 
+   * relationships. Each category is represented as an object with a `children` array containing its child categories.
+   *
+   * @param {Array<Object>} categories - The flat array of category objects.
+   * @param {number} categories[].term_id - The unique identifier for the category.
+   * @param {string} categories[].name - The name of the category.
+   * @param {number} categories[].parent - The parent ID of the category. A value of `0` indicates a root-level category.
+   * @returns {Array<Object>} - An array of root-level categories, each containing a `children` array with its descendants.
+   */
   categories.forEach((category) => {
     if (category.parent !== 0) {
       const parent = categoryMap.get(category.parent);
@@ -586,7 +591,7 @@ const buildCategoryHierarchy = (categories) => {
  *
  * @returns {string} - The assembled URL with query string parameters.
  */
- const assembleUrl = () => {
+const assembleUrl = () => {
   const baseUrl = window.location.origin + window.location.pathname;
 
   const urlParams = new URLSearchParams();
@@ -628,8 +633,8 @@ const buildCategoryHierarchy = (categories) => {
  * // Copies a URL like:
  * // https://betterhomesbc.ca?tool=faqs&type=Heat%20Pump&program=Energy%20Savings&region=Vancouver
  */
- const addLinkToClipboard = (event) => {
-  
+const addLinkToClipboard = (event) => {
+
   const url = assembleUrl();
 
   navigator.clipboard
@@ -965,13 +970,13 @@ const handleFilterPostCount = (thisFilter) => {
  * If data is fetched from the API, it is stored in sessionStorage for caching purposes.
  */
 
- /**
- * Determines if the provided error indicates that storage quota has been exceeded.
- *
- * @param {any} error - The error object to test.
- * @returns {boolean} `true` if the error is a QuotaExceededError; otherwise, `false`.
- */
- const isQuotaExceededError = (error) => {
+/**
+* Determines if the provided error indicates that storage quota has been exceeded.
+*
+* @param {any} error - The error object to test.
+* @returns {boolean} `true` if the error is a QuotaExceededError; otherwise, `false`.
+*/
+const isQuotaExceededError = (error) => {
   if (!error) return false;
   return (
     error.code === 22 ||
@@ -1008,7 +1013,7 @@ const fetchData = async () => {
     // Set loading indicators.
     isLoading.value = true;
     showLoadingMessage.value = true;
-    
+
     // Check sessionStorage.
     let data = sessionStorage.getItem('faqsData');
     let timestamp = sessionStorage.getItem('faqsTimestamp');
@@ -1082,6 +1087,93 @@ const fetchData = async () => {
   }
 };
 
+/**
+ * SNOWPLOW EVENTS: Click handlers and watcher for events that fire analytics.
+ */
+
+const toggleFaqAccordion = (faq, isOpen = false) => {
+  const panelId = `faqAccordionPanel--${faq.id}`;
+  const panel = document.getElementById(panelId);
+  const isHidden = panel.hasAttribute('hidden');
+
+  // Expand or collapse
+  if (isHidden && !isOpen) {
+    panel.removeAttribute('hidden');
+    // Call analytics
+    onToggleFaq(faq, true);  // isExpanding = true
+  } else {
+    panel.setAttribute('hidden', '');
+    // Call analytics
+    onToggleFaq(faq, false); // isExpanding = false
+  }
+}
+
+
+// Example function for toggling a single FAQ's accordion
+const onToggleFaq = (faq, isExpanding) => {
+  trackFaqAccordionToggle({
+    action: isExpanding ? 'expand' : 'collapse',
+    faqId: faq.id,
+    faqTitle: faq.title
+  });
+}
+
+// Example function for intercepting clicks on internal links
+const onFaqBodyClick = (event, faq) => {
+  const anchor = event.target.closest('a');
+  if (anchor) {
+    // It's a link inside the FAQ body
+    event.preventDefault(); // optional, or open in new window, etc.
+    trackFaqLinkClick({
+      faqId: faq.id,
+      faqTitle: faq.title,
+      href: anchor.href || '',
+      linkText: anchor.textContent || ''
+    });
+    // If you want the user to still navigate after logging:
+    window.open(anchor.href, '_blank');
+  }
+}
+
+// Watch the search input changes
+watch(textSearch, (newVal, oldVal) => {
+  // Clear any existing timer
+  if (debounceTimer) {
+    clearTimeout(debounceTimer);
+  }
+  // Wait 300ms before tracking
+  debounceTimer = setTimeout(() => {
+    if (newVal !== oldVal) {
+      trackFaqSearch({ newValue: newVal, oldValue: oldVal });
+    }
+  }, 1000);
+});
+
+// Watch the category select changes
+watch(selectedCategory, (newVal, oldVal) => {
+  if (newVal !== oldVal) {
+    trackFaqFilterChange({
+      filterName: 'category',
+      newValue: newVal,
+      oldValue: oldVal
+    });
+  }
+});
+
+// Watch the additional filter changes
+watch(selectedAdditionalFilter, (newVal, oldVal) => {
+  if (newVal !== oldVal) {
+    trackFaqFilterChange({
+      filterName: 'additionalFilter',
+      newValue: newVal,
+      oldValue: oldVal
+    });
+  }
+});
+
+/**
+ * END: SNOWPLOW EVENTS.
+ */
 
 /**
  * Watcher for changes in the window.site?.domain variable.
@@ -1175,22 +1267,33 @@ window.addEventListener('click', (event) => {
  * Watches the length of `filteredFaqs` to determine if there's only one result.
  * If so, it triggers a click event on the Expand or Collapse all button so that single results are auto-expanded.
  */
- watch(filteredFaqs, async () => {
-  const isSingle = filteredFaqs.value.length === 1;
-  isSingleResult.value = isSingle;
-
-  await nextTick(); // Ensure the DOM updates
-
-  const buttonSelector = isSingle
-    ? '#faqFilterApp .expand-accordions button'
-    : '#faqFilterApp .close-accordions button';
-
-  const actionButton = document.querySelector(buttonSelector);
-
-  if (actionButton) {
-    actionButton.click();
-    wasClicked.value = isSingle; // Track if button was clicked
+watch(filteredFaqs, async () => {
+  // Clear any previously scheduled auto-expand
+  if (expandTimer) {
+    clearTimeout(expandTimer);
   }
+
+  // Debounce
+  expandTimer = setTimeout(async () => {
+    const isSingle = filteredFaqs.value.length === 1;
+    isSingleResult.value = isSingle;
+
+    await nextTick(); // Ensure the DOM updates
+
+    const buttonSelector = isSingle
+      ? '#faqFilterApp .expand-accordions button'
+      : '#faqFilterApp .close-accordions button';
+
+    const actionButton = document.querySelector(buttonSelector);
+
+    if (actionButton) {
+      actionButton.click();
+      wasClicked.value = isSingle; // Track if button was clicked
+      if (isSingle) {
+        onToggleFaq(filteredFaqs.value[0], true);
+      }
+    }
+  }, 300);
 });
 
 
@@ -1256,6 +1359,9 @@ function handleLinkCopiedMessageContent(event, target = '.faq', msg) {
  * @returns {void}
  */
 onMounted(() => {
+
+  localAnalyticsReady();
+
   fetchData();
 
   const appElement = document.getElementById('faqFilterApp');
@@ -1432,13 +1538,14 @@ function closeAllAccordions() {
   });
 }
 
-function collapseThisFaq(event) {
-  const faq = event.target.closest('.accordion');
-  const accordion = new Accordion(faq);
+const collapseThisFaq = (event , faq) => {
+  const currentFaq = event.target.closest('.accordion');
+  const accordion = new Accordion(currentFaq);
 
   accordion.rootEl.classList.remove('isOpen');
   accordion.toggle(false);
   accordion.rootEl.focus();
+  toggleFaqAccordion(faq, true);
 }
 </script>
 

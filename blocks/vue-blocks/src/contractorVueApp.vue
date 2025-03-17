@@ -138,7 +138,7 @@
                     <!-- Company Name and Head Office -->
                     <td data-label="Company Name and Head Office" class="contractor__company-and-location">
                         <!-- Company Website Link -->
-                        <a v-if="contractor.company_website" class="contractor__company external-app-link" :href="contractor.company_website" target="_blank" :aria-label="decodeHtmlEntities(contractor.company_name) + ' website, opens in a new tab/window.'">
+                        <a v-if="contractor.company_website" class="contractor__company external-app-link" :href="contractor.company_website" target="_blank" @click="onProviderLinkClick(contractor)" :aria-label="decodeHtmlEntities(contractor.company_name) + ' website, opens in a new tab/window.'">
                             {{ contractor.company_name ? decodeHtmlEntities(contractor.company_name) : 'Website' }}
                         </a>
                         <!-- Company Name if No Website -->
@@ -156,11 +156,11 @@
                     <td data-label="Contact Email and Phone" class="contractor__email-and-phone">
                         <address>
                             <!-- Email Link -->
-                            <a v-if="contractor.email" class="contractor__email" :href="'mailto:' + contractor.email"><span v-html="insertBreakableChar(contractor.email)"></span></a>
+                            <a v-if="contractor.email" class="contractor__email" :href="'mailto:' + contractor.email" @click.prevent="onEmailPhoneClick(contractor, 'email')"><span v-html="insertBreakableChar(contractor.email)"></span></a>
                             <p class="contractor__email" v-else>No email provided</p>
 
                             <!-- Phone Link -->
-                            <a v-if="contractor.phone" class="contractor__telephone" :href="'tel:+1' + contractor.phone.replace(/-/g, '')">{{ contractor.phone }}</a>
+                            <a v-if="contractor.phone" class="contractor__telephone" :href="'tel:+1' + contractor.phone.replace(/-/g, '')" @click.prevent="onEmailPhoneClick(contractor, 'phone')">{{ contractor.phone }}</a>
                             <p class="contractor__telephone" v-else>No phone number provided</p>
                         </address>
                     </td>
@@ -217,6 +217,8 @@
 } from 'vue';
 
 import { decodeHtmlEntities, shuffleArray, scrollToElementID } from '../shared-functions.js';
+import { trackProviderFilterChange, trackProviderClick } from '../analytics-schemas.js';
+import { localAnalyticsReady } from '../standalone-snowplow.js';
 
 /**
  * Ref for storing an array of Contractors.
@@ -887,6 +889,79 @@ const fetchData = async () => {
  * https://vuejs.org/guide/essentials/watchers.html
  */
 
+ watch(selectedUpgradeType, (newVal, oldVal) => {
+  if (newVal !== oldVal) {
+    trackProviderFilterChange({
+      filterName: 'contractor',
+      upgradeType: newVal,
+      program: selectedProgram.value,
+      location: selectedLocation.value,
+      label: `Upgrade Type changed to: ${newVal}`
+    });
+  }
+});
+watch(selectedProgram, (newVal, oldVal) => {
+  if (newVal !== oldVal) {
+    trackProviderFilterChange({
+      filterName: 'contractor',
+      upgradeType: selectedUpgradeType.value,
+      program: newVal,
+      location: selectedLocation.value,
+      label: `Program changed to: ${newVal}`
+    });
+  }
+});
+watch(selectedLocation, (newVal, oldVal) => {
+  if (newVal !== oldVal) {
+    trackProviderFilterChange({
+      filterName: 'contractor',
+      upgradeType: selectedUpgradeType.value,
+      program: selectedProgram.value,
+      location: newVal,
+      label: `Location changed to: ${newVal}`
+    });
+  }
+});
+
+/**
+ * Called when the user clicks a contractor link.
+ * We pass in the link’s data plus the current selected filters,
+ * so the analytics function has everything it needs.
+ */
+const onProviderLinkClick = (contractor) => {
+  trackProviderClick({
+    filterName: 'contractor',
+    upgradeType: selectedUpgradeType.value,
+    program: selectedProgram.value,
+    location: selectedLocation.value,
+    companyName: contractor.company_name || '',
+    destination: contractor.company_website || ''
+  });
+}
+
+const onEmailPhoneClick = (contractor, linkType) => {
+  let label = '';
+  let destination = '';
+
+  if (linkType === 'email') {
+    label = contractor.email ? `Email: ${contractor.email}` : 'Email link';
+    destination = `mailto:${contractor.email}`;
+  } else {
+    // linkType === 'phone'
+    label = contractor.phone ? `Phone: ${contractor.phone}` : 'Phone link';
+    destination = `tel:+1${contractor.phone?.replace(/-/g, '')}`;
+  }
+
+  trackProviderClick({
+    upgradeType: selectedUpgradeType.value,
+    program: selectedProgram.value,
+    location: selectedLocation.value,
+    companyName: contractor.company_name || '',
+    destination,
+    label
+  });
+}
+
 /**
  * Watcher for changes in the window.site?.domain variable.
  * Invokes the fetchData() function when the window.site?.domain becomes truthy.
@@ -1020,6 +1095,9 @@ window.addEventListener('click', (event) => {
  * @returns {void}
  */
  onMounted(() => {
+
+  localAnalyticsReady();
+
   const appElement = document.getElementById('contractorFilterApp');
   const showControls = appElement.getAttribute('data-show-controls') === 'false';
   isVisible.value = showControls;
