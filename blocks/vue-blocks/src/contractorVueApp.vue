@@ -953,6 +953,7 @@ const onEmailPhoneClick = (contractor, linkType) => {
   }
 
   trackProviderClick({
+    filterName: 'contractor',
     upgradeType: selectedUpgradeType.value,
     program: selectedProgram.value,
     location: selectedLocation.value,
