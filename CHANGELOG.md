@@ -1,3 +1,6 @@
+## 1.15.2 March 18, 2025
+– Removed duplicate for loop in rebates/incentives results table.
+
 ## 1.15.1 March 17, 2025
 - Fixed undefined filterName issue.
 

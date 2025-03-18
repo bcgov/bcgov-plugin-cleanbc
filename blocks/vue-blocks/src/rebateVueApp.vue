@@ -244,8 +244,7 @@
                     </div>
 
                     <!-- Results Loop -->
-                    <template v-if="rebates.length > 0 && !isLoading" v-for="(rebate, index) in paginatedRebates"
-                        :key="index">
+                    <template v-if="rebates.length > 0 && !isLoading">
                         <article v-for="(rebate, index) in paginatedRebates" :key="rebate.id || index"
                             :class="['rebate', 'result', index % 2 === 0 ? 'even' : 'odd']">
                             <div class="rebate__title">
