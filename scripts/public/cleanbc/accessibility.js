@@ -8,7 +8,7 @@ const cleanbcAccessibilityLoader = () => {
 	window.requestAnimationFrame( () => {
 
 		// Only run if CleanBC site.
-		if ('goelectricbc' === window.site.customBodyClass) {
+		if ('cleanbc' === window.site.customBodyClass) {
 
 			// Alt label header logo lockup correctly.
 			const headerLogo = document.querySelector('.custom-logo-link img');
