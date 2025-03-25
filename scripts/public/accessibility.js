@@ -301,6 +301,25 @@ const bcgovBlockThemePluginAccessibility = () => {
 			});
 		}
 
+		/**
+		 * Allow assitive technologies to move focus to the body after using the back to top link.
+		 */
+		const backToTop = document.querySelector('.back-to-top');
+
+		backToTop.addEventListener('click', (event) => {
+			event.preventDefault();
+
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+
+			const checkIfScrolledToTop = setInterval(() => {
+				if (0 === window.scrollY) {
+					clearInterval(checkIfScrolledToTop);
+					document.body.setAttribute('tabindex', '-1');
+					document.body.focus({ preventScroll: true });
+				}
+			}, 50);
+		});
+		
 	});
 };
 
