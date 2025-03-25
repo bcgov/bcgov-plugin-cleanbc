@@ -1,3 +1,6 @@
+## 1.15.4 March 25, 2025
+– Accessibility update for back to top. Allows assitive technology to pass the focus to the body when activated.
+
 ## 1.15.3 March 25, 2025
 – Site specific accessibility DOM updates scripts – alters header logo ALT attributes.
 - Accessibility remediation, includes: breadcrumb navigation pattern improvements, grid pattern setup on "detailsWithNumbersContainers".
