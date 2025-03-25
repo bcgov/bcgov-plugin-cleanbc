@@ -1,6 +1,6 @@
 ## 1.15.3 March 25, 2025
 – Site specific accessibility DOM updates scripts – alters header logo ALT attributes.
-- Accessibility remediation, includes: breadcrumb navigation pattern improvments, grid pattern setup on "detailsWithNumbersContainers".
+- Accessibility remediation, includes: breadcrumb navigation pattern improvements, grid pattern setup on "detailsWithNumbersContainers".
 
 ## 1.15.2 March 18, 2025
 – Removed duplicate for loop in rebates/incentives results table.
