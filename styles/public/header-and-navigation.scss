@@ -398,6 +398,18 @@ body.cleanbc {
 	}
 }
 
+// Override block theme highlighting defaults
+footer a.back-to-top.back-to-top {
+	border: 2px solid var(--wp--preset--color--white);
+	border-radius: 2px;
+
+	&:focus-visible,
+	&:focus {
+		outline: 2px solid var(--wp--preset--color--white);
+		outline-offset: 0;
+	}
+}
+
 // Override WordPress mobile breakpoint defaults
 @media (min-width: $breakpoint-sm) {
 
