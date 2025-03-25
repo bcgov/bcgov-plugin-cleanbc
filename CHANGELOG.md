@@ -1,5 +1,6 @@
 ## 1.15.4 March 25, 2025
 – Accessibility update for back to top. Allows assitive technology to pass the focus to the body when activated.
+– Fixed CleanBC accessibility site custom body class check for logo ALT.
 
 ## 1.15.3 March 25, 2025
 – Site specific accessibility DOM updates scripts – alters header logo ALT attributes.
