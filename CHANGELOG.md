@@ -1,5 +1,5 @@
 ## 1.15.5 March 26, 2025
-– Updated rebates API to skip published rebates/incentives if they include an exlusion conditional.
+– Updated rebates API to skip published rebates/incentives if they include an exclusion conditional.
 
 ## 1.15.4 March 25, 2025
 – Accessibility update for back to top. Allows assitive technology to pass the focus to the body when activated.
