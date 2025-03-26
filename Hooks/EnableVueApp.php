@@ -629,6 +629,14 @@ class EnableVueApp {
 
 		// Fetch associated meta and ACF fields on a per-post basis.
 		foreach ( $rebates->posts as $rebate ) {
+
+			// Retrieve exclude_from_tool field (may be `null`, `true`, or `false`).
+			$exclude = get_field( 'exclude_from_tool', $rebate->ID );
+
+			if ( $exclude ) {
+				continue;
+			}
+
 			// Setup post data for return at the endpoint.
 			$posts_data[] = (object) array(
 				'id'                  => $rebate->ID,
