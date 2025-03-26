@@ -640,7 +640,7 @@ const addLinkToClipboard = (event) => {
   navigator.clipboard
     .writeText(url)
     .then(() => {
-      handleLinkCopiedMessageContent(event, '.filter-container', 'Settings link to copied to clipboard!');
+      handleLinkCopiedMessageContent(event, '.filter-container', 'Link copied to clipboard successfully!');
     })
     .catch((err) => {
       console.error('Failed to copy URL:', err);
