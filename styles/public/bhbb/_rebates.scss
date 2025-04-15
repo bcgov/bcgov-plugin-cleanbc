@@ -495,7 +495,8 @@
 
 	.block_contact_list {
 
-		address {
+		address,
+		.address {
 			font-style: normal;
 
 			h3 {
