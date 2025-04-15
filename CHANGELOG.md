@@ -1,3 +1,7 @@
+## 1.16.0 April 2, 2025
+- Registered Better Homes Rebates page default layout pattern option for new Rebates pages.
+- Added complex table spanning through class pattern. eg: 'col-1-span-2', 'row-4-col-2-span-3', 'cell-2-3-span-2x3'
+
 ## 1.15.5 March 26, 2025
 – Updated rebates API to skip published rebates/incentives if they include an exclusion conditional.
 
