@@ -1,3 +1,6 @@
+## 1.16.1 May 2, 2025
+– Added accessibility features for visual rebates content: ARIA labels to inline contact links and stripping legacy links targeting new tab/windows.
+
 ## 1.16.0 April 2, 2025
 - Registered Better Homes Rebates page default layout pattern option for new Rebates pages.
 - Added complex table spanning through class pattern. eg: 'col-1-span-2', 'row-4-col-2-span-3', 'cell-2-3-span-2x3'
