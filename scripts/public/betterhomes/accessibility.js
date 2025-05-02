@@ -61,7 +61,8 @@ const betterhomesAccessibilityLoader = () => {
 									if ('site' === liClass) {
 										labelType = 'website';
 									} else if ('phone' === liClass) {
-										labelType = 'telephone';
+										const phoneNumber = link.textContent.trim();
+  										labelType = `telephone ${phoneNumber}`;
 									} else if ('form' === liClass) {
 										labelType = 'contact form';
 									} else {

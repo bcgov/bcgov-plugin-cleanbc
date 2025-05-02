@@ -11,6 +11,7 @@ namespace Bcgov\Plugin\CleanBC\Hooks;
  */
 class BasicBlocks {
 
+
     /**
      * Constructor.
      */
@@ -411,8 +412,8 @@ class BasicBlocks {
         <!-- /wp:columns -->
 
         <!-- wp:group {"tagName":"section","metadata":{"name":"Overview"},"style":{"spacing":{"padding":{"right":"2rem","left":"2rem","top":"1rem","bottom":"1rem"},"margin":{"bottom":"3rem"}},"border":{"width":"1px","color":"#aca6a2","radius":"1rem"}},"backgroundColor":"transparent","layout":{"type":"default"}} -->
-        <section class="wp-block-group has-border-color has-transparent-background-color has-background" style="border-color:#aca6a2;border-width:1px;border-radius:1rem;margin-bottom:3rem;padding-top:1rem;padding-right:2rem;padding-bottom:1rem;padding-left:2rem"><!-- wp:heading {"align":"wide","className":"is-style-default"} -->
-        <h2 class="wp-block-heading alignwide is-style-default" id="overview">Overview</h2>
+        <section id="overview" class="wp-block-group has-border-color has-transparent-background-color has-background" style="border-color:#aca6a2;border-width:1px;border-radius:1rem;margin-bottom:3rem;padding-top:1rem;padding-right:2rem;padding-bottom:1rem;padding-left:2rem"><!-- wp:heading {"align":"wide","className":"is-style-default"} -->
+        <h2 class="wp-block-heading alignwide is-style-default" id="overview-headline">Overview</h2>
         <!-- /wp:heading -->
 
         <!-- wp:columns {"metadata":{"name":"Rebate amount"},"className":"item amount"} -->
@@ -486,25 +487,45 @@ class BasicBlocks {
         <!-- /wp:columns -->
 
         <!-- wp:group {"metadata":{"name":"Info alert"},"className":"info has-icon","style":{"border":{"radius":"0.5rem","width":"2px"},"spacing":{"padding":{"top":"0.5rem","bottom":"0.5rem","left":"1rem","right":"1rem"},"margin":{"top":"1rem","bottom":"1rem"}}},"backgroundColor":"custom-info-bg","borderColor":"custom-info-border","layout":{"type":"default"}} -->
-        <div class="wp-block-group info has-icon has-border-color has-custom-info-border-border-color has-custom-info-bg-background-color has-background" style="border-width:2px;border-radius:0.5rem;margin-top:1rem;margin-bottom:1rem;padding-top:0.5rem;padding-right:1rem;padding-bottom:0.5rem;padding-left:1rem"><!-- wp:paragraph {"style":{"spacing":{"padding":{"top":"0.5rem","bottom":"0.5rem"}}}} -->
-        <p style="padding-top:0.5rem;padding-bottom:0.5rem"></p>
+        <div class="wp-block-group info has-icon has-border-color has-custom-info-border-border-color has-custom-info-bg-background-color has-background" style="border-width:2px;border-radius:0.5rem;margin-top:1rem;margin-bottom:1rem;padding-top:0.5rem;padding-right:1rem;padding-bottom:0.5rem;padding-left:1rem"><!-- wp:paragraph {"style":{"spacing":{"padding":{"top":"0.5rem","bottom":"0.5rem"}}},"fontSize":"extra-small"} -->
+        <p class="has-extra-small-font-size" style="padding-top:0.5rem;padding-bottom:0.5rem"></p>
+        <!-- /wp:paragraph --></div>
+        <!-- /wp:group -->
+
+        <!-- wp:group {"metadata":{"name":"Warning alert"},"className":"warning has-icon","style":{"border":{"radius":"0.5rem","width":"2px"},"spacing":{"padding":{"top":"0.5rem","bottom":"0.5rem","left":"1rem","right":"1rem"},"margin":{"top":"1rem","bottom":"1rem"}}},"backgroundColor":"custom-warning-bg","borderColor":"custom-warning-border","layout":{"type":"default"}} -->
+        <div class="wp-block-group warning has-icon has-border-color has-custom-warning-border-border-color has-custom-warning-bg-background-color has-background" style="border-width:2px;border-radius:0.5rem;margin-top:1rem;margin-bottom:1rem;padding-top:0.5rem;padding-right:1rem;padding-bottom:0.5rem;padding-left:1rem"><!-- wp:paragraph {"style":{"spacing":{"padding":{"top":"0.5rem","bottom":"0.5rem"}}},"fontSize":"extra-small"} -->
+        <p class="has-extra-small-font-size" style="padding-top:0.5rem;padding-bottom:0.5rem"></p>
         <!-- /wp:paragraph --></div>
         <!-- /wp:group --></section>
         <!-- /wp:group -->
 
         <!-- wp:group {"tagName":"section","metadata":{"name":"Rebate Amount"},"style":{"spacing":{"margin":{"bottom":"3rem"}}},"layout":{"type":"default"}} -->
         <section class="wp-block-group" style="margin-bottom:3rem"><!-- wp:heading {"style":{"spacing":{"margin":{"top":"2rem"}}}} -->
-        <h2 class="wp-block-heading" id="rebate-section" style="margin-top:2rem">Rebate Amount</h2>
+        <h2 class="wp-block-heading" id="rebate-section" style="margin-top:2rem">Rebate amount</h2>
         <!-- /wp:heading -->
 
-        <!-- wp:table {"hasFixedLayout":false,"className":"is-style-regular","style":{"border":{"width":"1px"}},"borderColor":"quadenary"} -->
-        <figure class="wp-block-table is-style-regular"><table class="has-border-color has-quadenary-border-color" style="border-width:1px"><thead><tr><th class="has-text-align-left" data-align="left">Requirements</th><th class="has-text-align-left" data-align="left">Other</th><th class="has-text-align-left" data-align="left">Rebate</th></tr></thead><tbody><tr><td class="has-text-align-left" data-align="left">Info</td><td class="has-text-align-left" data-align="left">description</td><td class="has-text-align-left" data-align="left">amount</td></tr></tbody></table></figure>
-        <!-- /wp:table --></section>
+        <!-- wp:table {"className":"is-style-stripes","style":{"border":{"width":"1px"}},"borderColor":"quadenary"} -->
+        <figure class="wp-block-table is-style-stripes"><table class="has-border-color has-quadenary-border-color has-fixed-layout" style="border-width:1px"><thead><tr><th class="has-text-align-left" data-align="left">Requirements</th><th class="has-text-align-left" data-align="left">Primary fuel before upgrade</th><th class="has-text-align-left" data-align="left">Rebate</th></tr></thead><tbody><tr><td class="has-text-align-left" data-align="left">description</td><td class="has-text-align-left" data-align="left">Fossil Fuel (oil, propane, or natural gas)</td><td class="has-text-align-left" data-align="left">$500</td></tr></tbody></table></figure>
+        <!-- /wp:table -->
+
+        <!-- wp:group {"metadata":{"name":"Info alert"},"className":"info has-icon","style":{"border":{"radius":"0.5rem","width":"2px"},"spacing":{"padding":{"top":"0.5rem","bottom":"0.5rem","left":"1rem","right":"1rem"},"margin":{"top":"1rem","bottom":"1rem"}}},"backgroundColor":"custom-info-bg","borderColor":"custom-info-border","layout":{"type":"default"}} -->
+        <div class="wp-block-group info has-icon has-border-color has-custom-info-border-border-color has-custom-info-bg-background-color has-background" style="border-width:2px;border-radius:0.5rem;margin-top:1rem;margin-bottom:1rem;padding-top:0.5rem;padding-right:1rem;padding-bottom:0.5rem;padding-left:1rem"><!-- wp:paragraph {"style":{"spacing":{"padding":{"top":"0.5rem","bottom":"0.5rem"}}},"fontSize":"extra-small"} -->
+        <p class="has-extra-small-font-size" style="padding-top:0.5rem;padding-bottom:0.5rem"></p>
+        <!-- /wp:paragraph --></div>
+        <!-- /wp:group --></section>
         <!-- /wp:group -->
 
         <!-- wp:group {"tagName":"section","metadata":{"name":"Eligibility Requirements"},"style":{"spacing":{"margin":{"bottom":"3rem"}}},"layout":{"type":"default"}} -->
         <section class="wp-block-group" style="margin-bottom:3rem"><!-- wp:heading {"style":{"spacing":{"margin":{"top":"2rem"}}}} -->
         <h2 class="wp-block-heading" id="eligibility-requirements" style="margin-top:2rem">Eligibility requirements</h2>
+        <!-- /wp:heading -->
+
+        <!-- wp:paragraph -->
+        <p>In order to qualify for this rebate,&nbsp;<strong>all</strong>&nbsp;of the following requirements must be met. Please read them carefully. Contact an Energy Coach if you have questions.</p>
+        <!-- /wp:paragraph -->
+
+        <!-- wp:heading {"level":3,"style":{"spacing":{"margin":{"top":"2rem"}}}} -->
+        <h3 class="wp-block-heading" style="margin-top:2rem">Income qualification requirements</h3>
         <!-- /wp:heading -->
 
         <!-- wp:paragraph -->
@@ -575,13 +596,19 @@ class BasicBlocks {
         <p></p>
         <!-- /wp:paragraph -->
 
-        <!-- wp:table {"className":"is-style-regular","style":{"border":{"width":"1px"}},"borderColor":"quadenary"} -->
-        <figure class="wp-block-table is-style-regular"><table class="has-border-color has-quadenary-border-color has-fixed-layout" style="border-width:1px"><thead><tr><th class="has-text-align-left" data-align="left">I am...</th><th class="has-text-align-left" data-align="left">Apply here</th></tr></thead><tbody><tr><td class="has-text-align-left" data-align="left">A BC Hydro Electric customer that is converting to a heat pump from natural gas, propane, or oil.</td><td class="has-text-align-left" data-align="left"><a href="https://app.bchydro.com/hero">BC Hydro online application</a></td></tr></tbody></table></figure>
-        <!-- /wp:table --></section>
+        <!-- wp:table {"className":"is-style-stripes","style":{"border":{"width":"1px"}},"borderColor":"quadenary"} -->
+        <figure class="wp-block-table is-style-stripes"><table class="has-border-color has-quadenary-border-color has-fixed-layout" style="border-width:1px"><thead><tr><th class="has-text-align-left" data-align="left">I am...</th><th class="has-text-align-left" data-align="left">Apply here</th></tr></thead><tbody><tr><td class="has-text-align-left" data-align="left">A BC Hydro Electric customer that is converting to a heat pump from natural gas, propane, or oil.</td><td class="has-text-align-left" data-align="left"><a href="https://app.bchydro.com/hero">BC Hydro online application</a></td></tr></tbody></table></figure>
+        <!-- /wp:table -->
+
+        <!-- wp:group {"metadata":{"name":"Info alert"},"className":"info has-icon","style":{"border":{"radius":"0.5rem","width":"2px"},"spacing":{"padding":{"top":"0.5rem","bottom":"0.5rem","left":"1rem","right":"1rem"},"margin":{"top":"1rem","bottom":"1rem"}}},"backgroundColor":"custom-info-bg","borderColor":"custom-info-border","layout":{"type":"default"}} -->
+        <div class="wp-block-group info has-icon has-border-color has-custom-info-border-border-color has-custom-info-bg-background-color has-background" style="border-width:2px;border-radius:0.5rem;margin-top:1rem;margin-bottom:1rem;padding-top:0.5rem;padding-right:1rem;padding-bottom:0.5rem;padding-left:1rem"><!-- wp:paragraph {"style":{"spacing":{"padding":{"top":"0.5rem","bottom":"0.5rem"}}},"fontSize":"extra-small"} -->
+        <p class="has-extra-small-font-size" style="padding-top:0.5rem;padding-bottom:0.5rem"></p>
+        <!-- /wp:paragraph --></div>
+        <!-- /wp:group --></section>
         <!-- /wp:group -->
 
-        <!-- wp:group {"tagName":"section","metadata":{"name":"Who to Contact"},"style":{"spacing":{"margin":{"bottom":"3rem"}}},"layout":{"type":"default"}} -->
-        <section class="wp-block-group" style="margin-bottom:3rem"><!-- wp:heading {"style":{"spacing":{"margin":{"top":"2rem"}}}} -->
+        <!-- wp:group {"tagName":"section","metadata":{"name":"Who to Contact"},"className":"whotocontact-block block_contact_list","style":{"spacing":{"margin":{"bottom":"3rem"}}},"layout":{"type":"default"}} -->
+        <section class="wp-block-group whotocontact-block block_contact_list" style="margin-bottom:3rem"><!-- wp:heading {"style":{"spacing":{"margin":{"top":"2rem"}}}} -->
         <h2 class="wp-block-heading" id="whotocontact" style="margin-top:2rem">Who to contact</h2>
         <!-- /wp:heading -->
 
@@ -597,12 +624,34 @@ class BasicBlocks {
         <h3 class="wp-block-heading" style="margin-top:2rem">Questions about your application?</h3>
         <!-- /wp:heading -->
 
-        <!-- wp:heading {"level":4} -->
+        <!-- wp:group {"metadata":{"name":"Contact list"},"className":"address","layout":{"type":"default"}} -->
+        <div class="wp-block-group address"><!-- wp:heading {"level":4} -->
         <h4 class="wp-block-heading">BC Hydro customers</h4>
         <!-- /wp:heading -->
 
-        <!-- wp:group {"metadata":{"name":"Contact list"},"className":"address","layout":{"type":"default"}} -->
-        <div class="wp-block-group address"><!-- wp:list {"className":"block_contact_list"} -->
+        <!-- wp:list {"className":"block_contact_list"} -->
+        <ul class="wp-block-list block_contact_list"><!-- wp:list-item {"className":"phone"} -->
+        <li class="phone">phone</li>
+        <!-- /wp:list-item -->
+
+        <!-- wp:list-item {"className":"site"} -->
+        <li class="site">site</li>
+        <!-- /wp:list-item -->
+
+        <!-- wp:list-item {"className":"form"} -->
+        <li class="form">form</li>
+        <!-- /wp:list-item -->
+
+        <!-- wp:list-item {"className":"email"} -->
+        <li class="email">email</li>
+        <!-- /wp:list-item --></ul>
+        <!-- /wp:list -->
+
+        <!-- wp:heading {"level":4} -->
+        <h4 class="wp-block-heading">FortisBC customers</h4>
+        <!-- /wp:heading -->
+
+        <!-- wp:list {"className":"block_contact_list"} -->
         <ul class="wp-block-list block_contact_list"><!-- wp:list-item {"className":"phone"} -->
         <li class="phone">phone</li>
         <!-- /wp:list-item -->
@@ -627,9 +676,9 @@ class BasicBlocks {
         <h2 class="wp-block-heading" id="program-updates">Program updates</h2>
         <!-- /wp:heading -->
 
-        <!-- wp:bcgov-block-theme/collapse {"collapseId":"collapse-container-6b8d11c6-73e4-4dbe-b910-306ecca964db"} -->
-        <div id="collapse-container-6b8d11c6-73e4-4dbe-b910-306ecca964db" data-open-first-item="false" class="wp-block-bcgov-block-theme-collapse"><div class="collapse-container-nav"><span><button data-target="#collapse-container-6b8d11c6-73e4-4dbe-b910-306ecca964db" class="collapse-expand-all">Expand all</button></span><span><button data-target="#collapse-container-6b8d11c6-73e4-4dbe-b910-306ecca964db" class="collapse-collapse-all">Collapse all</button></span></div><!-- wp:bcgov-block-theme/collapse-item {"itemId":"collapse-item-5a18a2a6-30cd-4939-973c-716e3570d1eb","headingId":"heading-5a18a2a6-30cd-4939-973c-716e3570d1eb"} -->
-        <div class="wp-block-bcgov-block-theme-collapse-item"><div class="collapse-header" id="heading-5a18a2a6-30cd-4939-973c-716e3570d1eb"><h3><button data-toggle="collapse" data-target="#collapse-item-5a18a2a6-30cd-4939-973c-716e3570d1eb" aria-expanded="false" aria-controls="collapse-item-5a18a2a6-30cd-4939-973c-716e3570d1eb" class="collapsed"><span class="collapse-title"></span></button></h3></div><div class="collapse collapse-container hide" id="collapse-item-5a18a2a6-30cd-4939-973c-716e3570d1eb"><div class="collapse-body"><div class="collapse-close"><a data-toggle="collapse" data-target="#collapse-item-5a18a2a6-30cd-4939-973c-716e3570d1eb" href="#collapse-item-5a18a2a6-30cd-4939-973c-716e3570d1eb" role="button" aria-expanded="true" aria-controls="collapse-item-5a18a2a6-30cd-4939-973c-716e3570d1eb">Collapse</a></div></div></div></div>
+        <!-- wp:bcgov-block-theme/collapse {"collapseId":"collapse-container-5c41e676-cd0a-49a3-9e12-703c5824fff3"} -->
+        <div id="collapse-container-5c41e676-cd0a-49a3-9e12-703c5824fff3" data-open-first-item="false" class="wp-block-bcgov-block-theme-collapse"><div class="collapse-container-nav"><span><button data-target="#collapse-container-5c41e676-cd0a-49a3-9e12-703c5824fff3" class="collapse-expand-all">Expand all</button></span><span><button data-target="#collapse-container-5c41e676-cd0a-49a3-9e12-703c5824fff3" class="collapse-collapse-all">Collapse all</button></span></div><!-- wp:bcgov-block-theme/collapse-item {"itemId":"collapse-item-04f575e8-87f8-4ee5-9c40-f3d0d03a5b83","headingId":"heading-04f575e8-87f8-4ee5-9c40-f3d0d03a5b83"} -->
+        <div class="wp-block-bcgov-block-theme-collapse-item"><div class="collapse-header" id="heading-04f575e8-87f8-4ee5-9c40-f3d0d03a5b83"><h3><button data-toggle="collapse" data-target="#collapse-item-04f575e8-87f8-4ee5-9c40-f3d0d03a5b83" aria-expanded="false" aria-controls="collapse-item-04f575e8-87f8-4ee5-9c40-f3d0d03a5b83" class="collapsed"><span class="collapse-title"></span></button></h3></div><div class="collapse collapse-container hide" id="collapse-item-04f575e8-87f8-4ee5-9c40-f3d0d03a5b83"><div class="collapse-body"><div class="collapse-close"><a data-toggle="collapse" data-target="#collapse-item-04f575e8-87f8-4ee5-9c40-f3d0d03a5b83" href="#collapse-item-04f575e8-87f8-4ee5-9c40-f3d0d03a5b83" role="button" aria-expanded="true" aria-controls="collapse-item-04f575e8-87f8-4ee5-9c40-f3d0d03a5b83">Collapse</a></div></div></div></div>
         <!-- /wp:bcgov-block-theme/collapse-item --></div>
         <!-- /wp:bcgov-block-theme/collapse --></div>
         <!-- /wp:group -->
