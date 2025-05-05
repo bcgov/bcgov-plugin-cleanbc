@@ -1,5 +1,5 @@
 ## 1.16.2 May 2, 2025
-– Enahnced accessibility and mobile table display, works with styles/public/tables.scss styles. 
+– Enhanced accessibility and mobile table display, works with styles/public/tables.scss styles. 
 – Adds ARIA roles to all table elements. 
 – Copies the original cell content (`innerHTML`) and `data-label` into visually hidden cells. 
 – Adds `aria-hidden="true"` to hidden cells to improve screen reader behavior.
