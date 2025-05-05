@@ -1,3 +1,9 @@
+## 1.16.2 May 2, 2025
+– Enhanced accessibility and mobile table display, works with styles/public/tables.scss styles. 
+– Adds ARIA roles to all table elements. 
+– Copies the original cell content (`innerHTML`) and `data-label` into visually hidden cells. 
+– Adds `aria-hidden="true"` to hidden cells to improve screen reader behavior.
+
 ## 1.16.1 May 2, 2025
 – Added accessibility features for visual rebates content: ARIA labels to inline contact links and stripping legacy links targeting new tab/windows.
 - Modified the register_custom_rebates_page_pattern to inlude the latest layout.
