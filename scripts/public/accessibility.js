@@ -7,6 +7,12 @@ const bcgovBlockThemePluginAccessibility = () => {
 	 */
 	window.requestAnimationFrame(() => {
 
+		/**
+		 * Checks whether a given URL shares the same origin as the current page.
+		 *
+		 * @param {string} url - The URL to compare.
+		 * @returns {boolean} True if the URL is same-origin; otherwise false.
+		 */
 		const isSameOrigin = (url) => {
 			try {
 				return new URL(url, window.location.href).origin === window.location.origin;
@@ -15,6 +21,11 @@ const bcgovBlockThemePluginAccessibility = () => {
 			}
 		};
 		
+		/**
+		 * NodeList of all anchor elements linking to PDF files on the page.
+		 * 
+		 * @type {NodeListOf<HTMLAnchorElement>}
+		 */
 		const pdfLinks = document.querySelectorAll('a[href$=".pdf"]');
 		
 		if (pdfLinks) {
@@ -33,29 +44,27 @@ const bcgovBlockThemePluginAccessibility = () => {
 					});
 				} 
 				if (!isSameOrigin(url)) {
-					
-					// Cross-origin proxy with nonce in header
+					/**
+					 * Cross-origin: use proxy endpoint with nonce passed via header.
+					 */
 					fetch(`${window.location.origin}/index.php?pdf_size_proxy=1&url=${encodeURIComponent(url)}`, {
 						headers: {
 						  'X-WP-Nonce': window.pluginCleanbc.nonce
 						}
-					  })
-											
-						.then(res => res.text()) // Use .text() instead of .json() for debugging
-						.then(text => {
-							// Try to parse it manually
-							try {
-								const data = JSON.parse(text);
-								if (data.size) appendSizeLabel(link, data.size);
-							} catch (e) {
-								console.error('JSON parse error:', e);
-							}
-						})
-						.catch(error => {
-							console.error('Proxy fetch failed:', error);
-						});
-					
-					
+					})					
+					.then(res => res.text()) // Use .text() instead of .json() for debugging.
+					.then(text => {
+						// Try to parse it manually.
+						try {
+							const data = JSON.parse(text);
+							if (data.size) appendSizeLabel(link, data.size);
+						} catch (e) {
+							console.error('JSON parse error:', e);
+						}
+					})
+					.catch(error => {
+						console.error('Proxy fetch failed:', error);
+					});	
 				}
 			});
 		}
