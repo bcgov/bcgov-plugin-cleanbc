@@ -1,3 +1,7 @@
+## 1.17.0 May 2, 2025
+– Automated PDF link label augmentation with type and size identifiers. 
+– PDF link PDF size proxy request to avoid CORS issues with third party PDF linking.
+
 ## 1.16.2 May 2, 2025
 – Enhanced accessibility and mobile table display, works with styles/public/tables.scss styles. 
 – Adds ARIA roles to all table elements. 

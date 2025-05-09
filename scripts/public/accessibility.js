@@ -7,6 +7,77 @@ const bcgovBlockThemePluginAccessibility = () => {
 	 */
 	window.requestAnimationFrame(() => {
 
+		const isSameOrigin = (url) => {
+			try {
+				return new URL(url, window.location.href).origin === window.location.origin;
+			} catch {
+				return false;
+			}
+		};
+		
+		const pdfLinks = document.querySelectorAll('a[href$=".pdf"]');
+		
+		if (pdfLinks) {
+			pdfLinks.forEach(link => {
+
+				const url = link.href;
+		
+				// Skip if label already includes 'PDF', 'KB', or 'MB'
+				const label = link.textContent.toUpperCase();
+				if (label.includes('PDF') || label.includes('KB') || label.includes('MB')) return;
+				if (isSameOrigin(url)) {
+					// Same-origin request
+					fetch(url, { method: 'HEAD' }).then(response => {
+						const size = response.headers.get('Content-Length');
+						if (size) appendSizeLabel(link, size);
+					});
+				} 
+				if (!isSameOrigin(url)) {
+					
+					// Cross-origin proxy with nonce in header
+					fetch(`${window.location.origin}/index.php?pdf_size_proxy=1&url=${encodeURIComponent(url)}`, {
+						headers: {
+						  'X-WP-Nonce': window.pluginCleanbc.nonce
+						}
+					  })
+											
+						.then(res => res.text()) // Use .text() instead of .json() for debugging
+						.then(text => {
+							// Try to parse it manually
+							try {
+								const data = JSON.parse(text);
+								if (data.size) appendSizeLabel(link, data.size);
+							} catch (e) {
+								console.error('JSON parse error:', e);
+							}
+						})
+						.catch(error => {
+							console.error('Proxy fetch failed:', error);
+						});
+					
+					
+				}
+			});
+		}
+		
+		/**
+		 * Appends a human-readable file size label to a PDF link element.
+		 *
+		 * Converts the file size from bytes to either kilobytes or megabytes,
+		 * and updates the link text with the formatted size label.
+		 *
+		 * @param {HTMLAnchorElement} link - The anchor element pointing to a PDF.
+		 * @param {number} size - The file size in bytes.
+		 */
+		const appendSizeLabel = (link, size) => {
+			const kb = size / 1024;
+			const mb = kb / 1024;
+			const sizeLabel = mb >= 1
+				? `${mb.toFixed(1)}MB`
+				: `${kb.toFixed(0)}KB`;
+			link.textContent += ` [PDF ${sizeLabel}]`;
+		}
+
 		const actionsAccordionHeader = document.querySelector('.actions-accordion-header');
 		if (null !== actionsAccordionHeader) {
 			const getSiblings = (elem) => {

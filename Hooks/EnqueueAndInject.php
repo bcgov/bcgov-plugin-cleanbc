@@ -41,14 +41,21 @@ class EnqueueAndInject {
 			wp_enqueue_style( 'custom-public-' . basename( $file, '.css' ), $file_url, [], $latest_version );
 		}
 
+		// Important: localize after enqueuing the correct JS file.
 		foreach ( $public_js_files as $file ) {
 			$file_url = plugins_url( str_replace( $plugin_dir, '', $file ), __DIR__ );
-			wp_enqueue_script( 'custom-public-' . basename( $file, '.js' ), $file_url, [], $latest_version, true );
-		}
+			$handle   = 'custom-public-' . basename( $file, '.js' );
 
-		$javascript_variables = $this->bcgov_plugin_set_javascript_variables();
-		wp_localize_script( 'custom-public-' . basename( $file, '.js' ), 'pluginCleanbc', $javascript_variables );
+			wp_enqueue_script( $handle, $file_url, [], $latest_version, true );
+
+			// Set JS variables, including the nonce.
+			$javascript_variables          = $this->bcgov_plugin_set_javascript_variables();
+			$javascript_variables['nonce'] = wp_create_nonce( 'pdf_size_check' );
+
+			wp_localize_script( $handle, 'pluginCleanbc', $javascript_variables );
+		}
 	}
+
 
 	/**
 	 * Enqueue scripts and styles for admin.

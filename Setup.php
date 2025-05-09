@@ -6,7 +6,8 @@ use Bcgov\Plugin\CleanBC\Hooks\{
     EnqueueAndInject,
     EnableVueApp,
     SearchContext,
-    BasicBlocks
+    BasicBlocks,
+    Accessibility
 };
 
 /**
@@ -49,6 +50,7 @@ class Setup {
         $plugin_enable_vue_app     = new EnableVueApp();
         $plugin_search             = new SearchContext();
         $basic_blocks              = new BasicBlocks();
+        $accessibility             = new Accessibility();
 
         // Filters.
         add_filter( 'wp_theme_json_data_theme', [ $plugin_enqueue_and_inject, 'filter_theme_json_theme_plugin' ] );
@@ -70,6 +72,10 @@ class Setup {
         add_action( 'admin_enqueue_scripts', [ $plugin_enable_vue_app, 'vuejs_app_plugin' ] );
         add_action( 'init', [ $plugin_enable_vue_app, 'vuejs_app_block_init_plugin' ] );
         add_action( 'rest_api_init', [ $plugin_enable_vue_app, 'custom_api_posts_routes' ] );
+
+        add_action( 'init', [ $accessibility, 'pdf_proxy_rewrite' ] );
+        add_filter( 'query_vars', [ $accessibility, 'pdf_proxy_size' ] );
+        add_action( 'template_redirect', [ $accessibility, 'pdf_proxy' ] );
     }
 
     /**
