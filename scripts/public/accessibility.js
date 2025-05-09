@@ -47,7 +47,7 @@ const bcgovBlockThemePluginAccessibility = () => {
 					/**
 					 * Cross-origin: use proxy endpoint with nonce passed via header.
 					 */
-					fetch(`${window.location.origin}/index.php?pdf_size_proxy=1&url=${encodeURIComponent(url)}`, {
+					fetch(`${window.site.domain}/index.php?pdf_size_proxy=1&url=${encodeURIComponent(url)}`, {
 						headers: {
 						  'X-WP-Nonce': window.pluginCleanbc.nonce
 						}
