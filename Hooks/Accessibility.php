@@ -41,13 +41,16 @@ class Accessibility {
 	}
 
 	/**
-	 * Handles the PDF size proxy request and returns file size in JSON.
+	 * Handles the PDF size proxy request and returns the file size as JSON.
 	 *
-	 * Verifies the request nonce, checks for a valid PDF URL, and either
-	 * retrieves a cached file size or performs a HEAD request to fetch it.
-	 * Supports caching the size using transients to reduce remote requests.
+	 * Validates the request nonce and inspects the provided URL. If the URL does not
+	 * end in .pdf, the method follows HTTP 301/302 redirects (up to a limit) to determine
+	 * whether the final destination is a PDF file. If a valid PDF is found, it attempts
+	 * to retrieve the file size via a HEAD request. Results are cached using transients
+	 * to minimize repeated external calls.
 	 *
-	 * Responds with JSON containing the file size in bytes or an error message.
+	 * Responds with a JSON object that includes the file size (in bytes), final URL,
+	 * and HTTP status code—or an error message if the request fails or is invalid.
 	 *
 	 * @since 1.17.0
 	 * @return void
