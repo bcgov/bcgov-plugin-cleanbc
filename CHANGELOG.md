@@ -1,4 +1,7 @@
-## 1.17.0 May 2, 2025
+## 1.17.1 May 13, 2025
+– Augmented PDF link feature to insert PDF specific SVG into links including externally processed.
+
+## 1.17.0 May 9, 2025
 – Automated PDF link label augmentation with type and size identifiers. 
 – PDF link PDF size proxy request to avoid CORS issues with third party PDF linking.
 
