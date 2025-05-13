@@ -26,7 +26,7 @@ const bcgovBlockThemePluginAccessibility = () => {
 		 * 
 		 * @type {NodeListOf<HTMLAnchorElement>}
 		 */
-		const pdfLinks = document.querySelectorAll('a[href$=".pdf"]');
+		const pdfLinks = document.querySelectorAll('a[href$=".pdf" i], a[title*="pdf" i], a[class*="pdf" i]');
 
 		if (pdfLinks) {
 			setTimeout(() => { // Set a delay to avoid external link class race condition.
