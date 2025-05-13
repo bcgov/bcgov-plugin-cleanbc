@@ -11,7 +11,6 @@ namespace Bcgov\Plugin\CleanBC\Hooks;
  */
 class Accessibility {
 
-
 	/**
 	 * Registers a custom rewrite rule for the PDF size proxy endpoint.
 	 *
@@ -37,32 +36,32 @@ class Accessibility {
 	 * @return array Modified query variables including 'pdf_size_proxy'.
 	 */
 	public function pdf_proxy_size( $vars ) {
-
 		$vars[] = 'pdf_size_proxy';
 		return $vars;
 	}
 
 	/**
-	 * Handles the PDF size proxy request and returns file size in JSON.
+	 * Handles the PDF size proxy request and returns the file size as JSON.
 	 *
-	 * Verifies the request nonce, checks for a valid PDF URL, and either
-	 * retrieves a cached file size or performs a HEAD request to fetch it.
-	 * Supports caching the size using transients to reduce remote requests.
+	 * Validates the request nonce and inspects the provided URL. If the URL does not
+	 * end in .pdf, the method follows HTTP 301/302 redirects (up to a limit) to determine
+	 * whether the final destination is a PDF file. If a valid PDF is found, it attempts
+	 * to retrieve the file size via a HEAD request. Results are cached using transients
+	 * to minimize repeated external calls.
 	 *
-	 * Responds with JSON containing the file size in bytes or an error message.
+	 * Responds with a JSON object that includes the file size (in bytes), final URL,
+	 * and HTTP status code—or an error message if the request fails or is invalid.
 	 *
 	 * @since 1.17.0
 	 * @return void
 	 */
 	public function pdf_proxy() {
-
 		if ( ! isset( $_GET['pdf_size_proxy'] ) ) {
 			return;
 		}
 
 		header( 'Content-Type: application/json' );
 
-		// Nonce check (from header).
 		$nonce = $_SERVER['HTTP_X_WP_NONCE'] ?? '';
 		if ( ! wp_verify_nonce( $nonce, 'pdf_size_check' ) ) {
 			echo wp_json_encode( [ 'error' => 'Invalid or missing nonce' ] );
@@ -75,33 +74,84 @@ class Accessibility {
 		}
 
 		$url = esc_url_raw( $_GET['url'] );
-		if ( ! filter_var( $url, FILTER_VALIDATE_URL ) || ! preg_match( '/\.pdf(\?.*)?$/i', $url ) ) {
-			echo wp_json_encode( [ 'error' => 'Invalid or non-PDF URL' ] );
+		if ( ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
+			echo wp_json_encode( [ 'error' => 'Invalid URL' ] );
 			exit;
 		}
 
-		$cache_key = 'pdf_size_' . md5( $url );
+		// Follow redirects manually to check if final destination is a PDF.
+		$redirect_limit = 5;
+		$redirect_count = 0;
+		$final_url      = $url;
+		$status_code    = null;
+
+		do {
+			$response = wp_remote_request(
+                $final_url,
+                [
+					'method'      => 'HEAD',
+					'timeout'     => 10,
+					'headers'     => [ 'User-Agent' => 'WordPress PDF Proxy' ],
+					'redirection' => 0,
+				]
+            );
+
+			if ( is_wp_error( $response ) ) {
+				echo wp_json_encode( [ 'error' => 'Request failed' ] );
+				exit;
+			}
+
+			$status_code = wp_remote_retrieve_response_code( $response );
+
+			if ( in_array( $status_code, [ 301, 302 ], true ) ) {
+				$headers  = wp_remote_retrieve_headers( $response );
+				$location = $headers['location'] ?? '';
+				if ( empty( $location ) ) {
+					echo wp_json_encode( [ 'error' => 'Redirect without Location header' ] );
+					exit;
+				}
+				$final_url = esc_url_raw( $location );
+				++$redirect_count;
+			} else {
+				break;
+			}
+		} while ( $redirect_count < $redirect_limit );
+
+		if ( $redirect_count === $redirect_limit ) {
+			echo wp_json_encode( [ 'error' => 'Too many redirects' ] );
+			exit;
+		}
+
+		// Confirm final URL is a PDF.
+		if ( ! preg_match( '/\.pdf(\?.*)?$/i', $final_url ) ) {
+			echo wp_json_encode( [ 'error' => 'Final URL is not a PDF' ] );
+			exit;
+		}
+
+		$cache_key = 'pdf_size_' . md5( $final_url );
 		$cached    = get_transient( $cache_key );
 		if ( false !== $cached ) {
 			echo wp_json_encode(
-				[
+                [
 					'size'   => $cached,
 					'cached' => true,
+					'url'    => $final_url,
+					'status' => $status_code,
 				]
-			);
+            );
 			exit;
 		}
 
 		$response = wp_remote_request(
-			$url,
-			[
+            $final_url,
+            [
 				'method'  => 'HEAD',
 				'timeout' => 10,
 			]
-		);
+        );
 
 		if ( is_wp_error( $response ) ) {
-			echo wp_json_encode( [ 'error' => 'Request failed' ] );
+			echo wp_json_encode( [ 'error' => 'Final HEAD request failed' ] );
 			exit;
 		}
 
@@ -111,11 +161,13 @@ class Accessibility {
 		if ( $size > 0 ) {
 			set_transient( $cache_key, $size, DAY_IN_SECONDS );
 			echo wp_json_encode(
-				[
+                [
 					'size'   => $size,
 					'cached' => false,
+					'url'    => $final_url,
+					'status' => $status_code,
 				]
-			);
+            );
 		} else {
 			echo wp_json_encode( [ 'error' => 'Could not determine size' ] );
 		}

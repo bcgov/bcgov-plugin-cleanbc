@@ -1,5 +1,7 @@
 ## 1.17.1 May 13, 2025
 – Augmented PDF link feature to insert PDF specific SVG into links including externally processed.
+– Added 'pdf' in title or class name checks on links to pass to proxy to allow redirect checking.
+– Added following HTTP 301/302 redirects (up to a limit) for URLs passed into the proxy.
 
 ## 1.17.0 May 9, 2025
 – Automated PDF link label augmentation with type and size identifiers. 
