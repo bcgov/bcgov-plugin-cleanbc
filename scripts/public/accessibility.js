@@ -20,72 +20,104 @@ const bcgovBlockThemePluginAccessibility = () => {
 				return false;
 			}
 		};
-		
+
 		/**
 		 * NodeList of all anchor elements linking to PDF files on the page.
 		 * 
 		 * @type {NodeListOf<HTMLAnchorElement>}
 		 */
 		const pdfLinks = document.querySelectorAll('a[href$=".pdf"]');
-		
-		if (pdfLinks) {
-			pdfLinks.forEach(link => {
 
-				const url = link.href;
-		
-				// Skip if label already includes 'PDF', 'KB', or 'MB'
-				const label = link.textContent.toUpperCase();
-				if (label.includes('PDF') || label.includes('KB') || label.includes('MB')) return;
-				if (isSameOrigin(url)) {
-					// Same-origin request
-					fetch(url, { method: 'HEAD' }).then(response => {
-						const size = response.headers.get('Content-Length');
-						if (size) appendSizeLabel(link, size);
-					});
-				} 
-				if (!isSameOrigin(url)) {
-					/**
-					 * Cross-origin: use proxy endpoint with nonce passed via header.
-					 */
-					fetch(`${window.site.domain}/index.php?pdf_size_proxy=1&url=${encodeURIComponent(url)}`, {
-						headers: {
-						  'X-WP-Nonce': window.pluginCleanbc.nonce
-						}
-					})					
-					.then(res => res.text()) // Use .text() instead of .json() for debugging.
-					.then(text => {
-						// Try to parse it manually.
-						try {
-							const data = JSON.parse(text);
-							if (data.size) appendSizeLabel(link, data.size);
-						} catch (e) {
-							console.error('JSON parse error:', e);
-						}
-					})
-					.catch(error => {
-						console.error('Proxy fetch failed:', error);
-					});	
-				}
-			});
+		if (pdfLinks) {
+			setTimeout(() => { // Set a delay to avoid external link class race condition.
+				pdfLinks.forEach(link => {
+
+					const url = link.href;
+					// Skip if label already includes 'PDF', 'KB', or 'MB'
+					const label = link.textContent.toUpperCase();
+					if (label.includes('PDF') || label.includes('KB') || label.includes('MB')) return;
+					if (isSameOrigin(url)) {
+						// Same-origin request
+						fetch(url, { method: 'HEAD' }).then(response => {
+							const size = response.headers.get('Content-Length');
+							if (size) appendSizeLabel(link, size);
+						});
+					}
+					if (!isSameOrigin(url)) {
+						/**
+						 * Cross-origin: use proxy endpoint with nonce passed via header.
+						 */
+						fetch(`${window.site.domain}/index.php?pdf_size_proxy=1&url=${encodeURIComponent(url)}`, {
+							headers: {
+								'X-WP-Nonce': window.pluginCleanbc.nonce
+							}
+						})
+						.then(res => res.text()) // Use .text() instead of .json() for debugging.
+						.then(text => {
+							// Try to parse it manually.
+							try {
+								const data = JSON.parse(text);
+								if (data.size) appendSizeLabel(link, data.size);
+							} catch (e) {
+								console.error('JSON parse error:', e);
+							}
+						})
+						.catch(error => {
+							console.error('Proxy fetch failed:', error);
+						});
+					}
+				});
+			}, 150);
 		}
-		
+
 		/**
-		 * Appends a human-readable file size label to a PDF link element.
+		 * Appends a file size label to a PDF link, inserting it into a <span class="last-word no-wrap">
+		 * if present, and replacing or adding the <svg> icon as needed.
 		 *
-		 * Converts the file size from bytes to either kilobytes or megabytes,
-		 * and updates the link text with the formatted size label.
-		 *
-		 * @param {HTMLAnchorElement} link - The anchor element pointing to a PDF.
+		 * @param {HTMLAnchorElement} link - The anchor element linking to the PDF.
 		 * @param {number} size - The file size in bytes.
 		 */
 		const appendSizeLabel = (link, size) => {
 			const kb = size / 1024;
 			const mb = kb / 1024;
 			const sizeLabel = mb >= 1
-				? `${mb.toFixed(1)}MB`
-				: `${kb.toFixed(0)}KB`;
-			link.textContent += ` [PDF ${sizeLabel}]`;
-		}
+				? `${mb.toFixed(1)} MB`
+				: `${kb.toFixed(0)} KB`;
+
+			const labelText = ` [PDF ${sizeLabel}]`;
+
+			// Create the new PDF icon <svg>
+			const pdfSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+			pdfSvg.setAttribute('class', 'external-link-icon');
+			pdfSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+			pdfSvg.setAttribute('style', 'width: 20px; height: 20px; top: 4px; position: relative;');
+			pdfSvg.setAttribute('viewBox', '0 0 384 512');
+
+			const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+			path.setAttribute('d', 'M320 480L64 480c-17.7 0-32-14.3-32-32L32 64c0-17.7 14.3-32 32-32l128 0 0 112c0 26.5 21.5 48 48 48l112 0 0 256c0 17.7-14.3 32-32 32zM240 160c-8.8 0-16-7.2-16-16l0-111.5c2.8 .7 5.4 2.1 7.4 4.2L347.3 152.6c2.1 2.1 3.5 4.6 4.2 7.4L240 160zM64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-284.1c0-12.7-5.1-24.9-14.1-33.9L254.1 14.1c-9-9-21.2-14.1-33.9-14.1L64 0zM208 240c0-8.8-7.2-16-16-16s-16 7.2-16 16l0 121.4-52.7-52.7c-6.2-6.2-16.4-6.2-22.6 0s-6.2 16.4 0 22.6l80 80c6.2 6.2 16.4 6.2 22.6 0l80-80c6.2-6.2 6.2-16.4 0-22.6s-16.4-6.2-22.6 0L208 361.4 208 240z');
+			pdfSvg.appendChild(path);
+
+			const span = link.querySelector('span.last-word.no-wrap');
+
+			if (span) {
+				const existingSvg = span.querySelector('svg');
+				const labelNode = document.createTextNode(labelText);
+
+				if (existingSvg) {
+					span.insertBefore(labelNode, existingSvg);
+					existingSvg.replaceWith(pdfSvg);
+				} else {
+					span.appendChild(labelNode);
+					span.appendChild(pdfSvg);
+				}
+			} else {
+				// No special span — fall back to appending at end of link
+				link.classList.add('external');
+				link.appendChild(document.createTextNode(labelText));
+				link.appendChild(pdfSvg);
+			}
+		};
+
 
 		const actionsAccordionHeader = document.querySelector('.actions-accordion-header');
 		if (null !== actionsAccordionHeader) {
