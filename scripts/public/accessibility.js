@@ -67,7 +67,7 @@ const bcgovBlockThemePluginAccessibility = () => {
 						});
 					}
 				});
-			}, 150);
+			}, 500);
 		}
 
 		/**
