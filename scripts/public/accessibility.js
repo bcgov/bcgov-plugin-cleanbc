@@ -35,7 +35,7 @@ const bcgovBlockThemePluginAccessibility = () => {
 					const url = link.href;
 					// Skip if label already includes 'PDF', 'KB', or 'MB'
 					const label = link.textContent.toUpperCase();
-					if (label.includes('PDF') || label.includes('KB') || label.includes('MB')) return;
+					if (label.includes('[PDF') || label.includes('PDF]') || label.includes('KB]') || label.includes('MB]')) return;
 					if (isSameOrigin(url)) {
 						// Same-origin request
 						fetch(url, { method: 'HEAD' }).then(response => {
@@ -81,8 +81,8 @@ const bcgovBlockThemePluginAccessibility = () => {
 			const kb = size / 1024;
 			const mb = kb / 1024;
 			const sizeLabel = mb >= 1
-				? `${mb.toFixed(1)} MB`
-				: `${kb.toFixed(0)} KB`;
+				? `${mb.toFixed(1)}MB`
+				: `${kb.toFixed(0)}KB`;
 
 			const labelText = ` [PDF ${sizeLabel}]`;
 
