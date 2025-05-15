@@ -101,7 +101,8 @@ textarea {
 		}
 	}
 	// Remove external icon if present for PDF injections.
-	&:has(svg + svg) svg:first-of-type {
+	&:has(svg + svg) svg:first-of-type,
+	&:has(span + svg):has(span svg) span > svg {
 		display: none;
 	}
 }
