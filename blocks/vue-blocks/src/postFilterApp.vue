@@ -147,6 +147,10 @@ const fetchData = async (offset = 0) => {
         setTimeout(() => {
             doExternalLinkCheck();
             checkDefinitions();
+            // Process PDF labels using globally scoped loader.
+            if (typeof bcgovBlockThemePluginAccessibility === 'function') {
+                bcgovBlockThemePluginAccessibility();
+            }
         }, 150);
 
     } catch (error) {
@@ -182,6 +186,10 @@ const checkTag = (index) => {
     setTimeout(() => {
         doExternalLinkCheck();
         checkDefinitions();
+        // Process PDF labels using globally scoped loader.
+        if (typeof bcgovBlockThemePluginAccessibility === 'function') {
+            bcgovBlockThemePluginAccessibility();
+        }
     }, 150);
     
 };
@@ -228,6 +236,10 @@ const clearFilters = () => {
     setTimeout(() => {
         doExternalLinkCheck();
         checkDefinitions();
+        // Process PDF labels using globally scoped loader.
+        if (typeof bcgovBlockThemePluginAccessibility === 'function') {
+            bcgovBlockThemePluginAccessibility();
+        }
     }, 150);
 };
 

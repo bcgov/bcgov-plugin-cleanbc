@@ -1,3 +1,6 @@
+## 1.17.3 May 15, 2025
+– Add a check for PDF label injection inside Vue-based Better Homes/Buildings FAQs and CleanBC Actions.
+
 ## 1.17.2 May 14, 2025
 – Added GET check as fallback for PDF check as HEAD can be unreliable. Some servers (like IIS, older .NET apps) serve PDF content at non-.pdf URLs — like .ashx, .php, or extensionless URLs — while returning a valid PDF in the response. This attempts to resolve this issue.
 – Fixes PDF tag exclusion by adding typical brackets to the matching for PDF, MB and KB.
