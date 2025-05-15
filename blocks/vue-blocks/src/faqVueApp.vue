@@ -1098,6 +1098,12 @@ const toggleFaqAccordion = (faq, isOpen = false) => {
 
   // Expand or collapse
   if (isHidden && !isOpen) {
+    
+    // Process PDF labels using globally scoped loader run only on expanded FAQs.
+    if (typeof bcgovBlockThemePluginAccessibility === 'function') {
+      bcgovBlockThemePluginAccessibility();
+    }
+
     panel.removeAttribute('hidden');
     // Call analytics
     onToggleFaq(faq, true);  // isExpanding = true
