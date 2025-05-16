@@ -770,7 +770,12 @@ onMounted(() => {
         text-align: left;
         width: 100%;
 
-        &.tag-label {
+        &.tag-label.tag-label.tag-label {
+            background-color: var(--wp--preset--color--white);
+            border-radius: 0.25rem;
+            border: 1px solid #e7e7e7;
+            color: var(--wp--preset--color--primary-brand);
+            padding-block: 0.5rem;
 
             &:focus-visible,
             &:hover {
@@ -778,6 +783,7 @@ onMounted(() => {
                 color: var(--wp--preset--color--primary-brand);
                 outline: 2px solid var(--wp--preset--color--primary-brand);
                 outline-offset: 0px;
+                border-radius: 0.25rem;
             }
         }
     }
@@ -805,12 +811,15 @@ onMounted(() => {
 
 .taxonomy-common_component_category {
     display: block;
+    padding: 1rem;
+    box-shadow: 0 .25rem .7rem #31313240;
+    border-radius: .66rem;
 
     @media (min-width: 782px) {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-        column-gap: 2rem;
-        row-gap: 1rem;
+        column-gap: 1rem;
+        row-gap: 0.25rem;
         align-items: center;
     }
 }
