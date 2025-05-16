@@ -403,11 +403,13 @@ class EnableVueApp {
 
 			$categories_data = array();
 			foreach ( $categories as $category ) {
-				$categories_data[] = array(
-					'id'   => $category->term_id,
-					'name' => $category->name,
-					'slug' => $category->slug,
-				);
+				$image             = get_field( 'category_image', 'category_' . $category->term_id );
+				$categories_data[] = [
+					'id'    => $category->term_id,
+					'name'  => $category->name,
+					'slug'  => $category->slug,
+					'image' => $image ? $image : '', // return empty string if no image set.
+				];
 			}
 
 			$content = apply_filters( 'the_content', $post->post_content );

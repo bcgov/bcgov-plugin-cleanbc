@@ -14,7 +14,7 @@
         </div>
     </div>
 
-    <h3 v-if='filterPosts.length > 0' id='action-title'>
+    <h3 v-if='filterPosts.length > 0' id='action-title' tabindex="0">
         <span v-if='sortedFilteredPosts.length !== filterPosts.length'>Showing actions: {{ selectedTag ? selectedTag + ' ' :
             '' }} ({{ sortedFilteredPosts.length }}/{{
         filterPosts.length }})</span>
@@ -37,6 +37,16 @@
                     <div
                         class="vue-card-content is-layout-constrained wp-block-group common-component-group flex-card has-white-background-color has-background">
 
+                        <a v-if="'true' === headingLinkActive" :href='post.link'>
+                            <component :is="headingSize" style="margin-bottom:0;margin-top:var(--wp--preset--spacing--20);"
+                                class="has-text-color has-secondary-brand-color is-style-default wp-block-post-title card-title"
+                                v-html='post.title'></component>
+                        </a>
+                        <component v-else :is="headingSize"
+                            style="margin-bottom:0;margin-top:var(--wp--preset--spacing--20);"
+                            class="has-text-color has-secondary-brand-color is-style-default wp-block-post-title card-title"
+                            v-html='post.title'></component>
+
                         <div class='category-icon-container'>
                             <template v-for="img, index in post.category_image" :key="img">
                                 <span class="category-icon" v-if="img"><img :src="img"
@@ -45,18 +55,8 @@
                             </template>
                         </div>
 
-                        <a v-if="'true' === headingLinkActive" :href='post.link'>
-                            <component :is="headingSize" style="margin-bottom:0;margin-top:var(--wp--preset--spacing--20);"
-                                class="has-text-color has-secondary-brand-color is-style-default wp-block-post-title card-title"
-                                v-html='post.title.rendered'></component>
-                        </a>
-                        <component v-else :is="headingSize"
-                            style="margin-bottom:0;margin-top:var(--wp--preset--spacing--20);"
-                            class="has-text-color has-secondary-brand-color is-style-default wp-block-post-title card-title"
-                            v-html='post.title.rendered'></component>
-
                         <div style="font-size:1rem;"><span class="value"
-                                v-html='useExcerpt === "excerpt" ? post.excerpt.rendered : post.content.rendered'></span>
+                                v-html='useExcerpt === "excerpt" ? post.excerpt : post.content'></span>
                         </div>
                     </div>
                 </li>
@@ -122,26 +122,20 @@ watch(() => window.site?.domain, (newVal, oldVal) => {
 const fetchData = async (offset = 0) => {
     try {
 
-        const filterPostUrl = `${window.site?.domain ? window.site.domain : publicDomain}/wp-json/wp/v2/${filterPostType.value}?_embed&per_page=${perPage}&offset=${offset}&_category_image=true`;
+        const filterPostUrl = `${window.site?.domain ? window.site.domain : publicDomain}/wp-json/custom/v1/actions`;
         const filterPostResponse = await fetch(filterPostUrl);
         const filterPostsData = await filterPostResponse.json();
 
         const newFilterPosts = filterPostsData.map((post) => {
             return {
                 ...post,
-                item_tag: post._embedded?.['wp:term']?.flatMap((term) => term.filter((t) => t.taxonomy === 'category').map((t) => t.name)) || [],
-                category_image: post._embedded?.['wp:term']?.flatMap((term) => term.filter((t) => t.taxonomy === 'category').map((t) => t.acf['category_image'])) || [],
-                category_slug: post._embedded?.['wp:term']?.flatMap((term) => term.filter((t) => t.taxonomy === 'category').map((t) => t.slug)) || [],
+                item_tag: post.categories.map((cat) => cat.name) || [],
+                category_image: post.categories.map((cat) => cat.image) || [],
+                category_slug: post.categories.map((cat) => cat.slug) || [],
             }
         });
 
         filterPosts.value = [...filterPosts.value, ...newFilterPosts];
-
-        /** Check if there are more pages to fetch, and recursively call fetchData with the next offset */
-        if (filterPostsData.length >= perPage) {
-            fetchData(offset + filterPostsData.length);
-        }
-
         showLoadingMessage.value = false;
 
         setTimeout(() => {
@@ -181,6 +175,7 @@ const checkTag = (index) => {
     const actionTitleElement = document.getElementById('action-title');
     if (actionTitleElement) {
         actionTitleElement.scrollIntoView({ behavior: 'smooth' });
+        actionTitleElement.focus();
     }
 
     setTimeout(() => {
@@ -301,8 +296,8 @@ const getCategorySlug = (tag) => {
   * @returns {number} - The sorting order.
   */
 const sortByTitle = (a, b) => {
-    const titleA = a.title.rendered.toUpperCase();
-    const titleB = b.title.rendered.toUpperCase();
+    const titleA = a.title.toUpperCase();
+    const titleB = b.title.toUpperCase();
     return titleA.localeCompare(titleB);
 };
 
@@ -655,6 +650,7 @@ onMounted(() => {
 
 .category-icon-container {
     display: flex;
+    order: -1;
 
     .category-icon {
         max-width: 3rem;
@@ -721,10 +717,9 @@ onMounted(() => {
     text-align: center;
 
     &.loading {
-        border: 1px solid gray;
         border-radius: 1rem;
-        background-color: lightgray;
-        padding: 2rem;
+        background-color: #efefef;
+        padding: 1rem;
     }
 
     a {
@@ -773,6 +768,7 @@ onMounted(() => {
         font-size: 1rem;
         padding: 0 1rem;
         text-align: left;
+        width: 100%;
 
         &.tag-label {
 
@@ -811,10 +807,11 @@ onMounted(() => {
     display: block;
 
     @media (min-width: 782px) {
-        column-count: 2;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
         column-gap: 2rem;
-        column-width: auto;
-        height: max-content;
+        row-gap: 1rem;
+        align-items: center;
     }
 }
 
