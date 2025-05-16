@@ -1,6 +1,7 @@
 ## 1.18.0 May 16, 2025
 – Modified the CleanBC Actions tool to use a custom API endpoint.
 – Improved Actions card layout to accomodate new API structure and augment layout for screen reader readback.
+- Minor style adjustments for Actions tag checkboxes.
 
 ## 1.17.3 May 15, 2025
 – Add a check for PDF label injection inside Vue-based Better Homes/Buildings FAQs and CleanBC Actions.
