@@ -1,11 +1,12 @@
 <template>
     <div v-if="uniqueTags.categories.length > 0" id="tag-filter-container" class="tag-filter-container">
-        <div class="taxonomy-common_component_category wp-block-post-terms filter-container">
+        <p class="sr-only">The following is a category selector. Use the arrow keys to move between categories. Press the spacebar to select a category radio button and stay focused within the category options. Pressing the Enter key will select the category and move you directly to the list of actions.</p>
+        <div class="taxonomy-common_component_category wp-block-post-terms filter-container" role="radiogroup" tabindex="0">
             <div v-for="(category, index) in uniqueTags.categories" :key="category" class="tag-checkbox">
                 <input type="radio" :id="'tag-' + index" :value="category" v-model="selectedTag" class="tag-input" />
                 <label :for="'tag-' + index" class="tag-label tag" tabindex="0" @click="checkTag(index)"
                     :data-category-slug="getCategorySlug(category)" :id="getCategorySlug(category)"
-                    @keydown.enter.prevent="checkTag(index)" role="button" :aria-label="getTagAriaLabel(category)">
+                    @keydown.enter.prevent="checkTag(index)" role="radio" :aria-checked="selectedTag === category" :aria-label="category + ' category. Actions in this category: ' + getTagCount(category)">
                     <img v-if="getCategoryIconUrl(category)" :src="getCategoryIconUrl(category)" alt=""
                         class="category-icon" />
                     {{ category }} ({{ getTagCount(category) }})
@@ -14,19 +15,21 @@
         </div>
     </div>
 
-    <h3 v-if='filterPosts.length > 0' id='action-title' tabindex="0">
-        <span v-if='sortedFilteredPosts.length !== filterPosts.length'>Showing actions: {{ selectedTag ? selectedTag + ' ' :
-            '' }} ({{ sortedFilteredPosts.length }}/{{
-        filterPosts.length }})</span>
-        <span v-else>All actions ({{ sortedFilteredPosts.length }}/{{
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+        <h3 v-if='filterPosts.length > 0' id='action-title' tabindex="0" aria-live='polite'>
+            <span v-if='sortedFilteredPosts.length !== filterPosts.length'>Showing actions: {{ selectedTag ? selectedTag + ' ' :
+                '' }} ({{ sortedFilteredPosts.length }}/{{
             filterPosts.length }})</span>
+            <span v-else>All actions ({{ sortedFilteredPosts.length }}/{{
+                filterPosts.length }})</span>
+        </h3>
         <div class="filter-options">
             <button v-if='sortedFilteredPosts.length !== filterPosts.length' class="clear-filters" @click="clearFilters"
                 @keydown.enter.prevent="clearFilters">
                 Reset selection
             </button>
         </div>
-    </h3>
+    </div>
 
     <div v-if="sortedFilteredPosts.length > 0" class="alignfull wp-block-columns card-container">
         <div class="wp-block-query vue-card-container">
@@ -50,7 +53,7 @@
                         <div class='category-icon-container'>
                             <template v-for="img, index in post.category_image" :key="img">
                                 <span class="category-icon" v-if="img"><img :src="img"
-                                        :alt="getPostCategoryAlt(post, index)"
+                                        :alt="'In category ' + getPostCategoryAlt(post, index)"
                                         :title="getPostCategoryAlt(post, index)"></span>
                             </template>
                         </div>
@@ -171,14 +174,14 @@ const checkTag = (index) => {
         window.location.hash = categorySlug;
     }
 
-    // Scroll to the element with id 'action-title'
-    const actionTitleElement = document.getElementById('action-title');
-    if (actionTitleElement) {
-        actionTitleElement.scrollIntoView({ behavior: 'smooth' });
-        actionTitleElement.focus();
-    }
-
     setTimeout(() => {
+        // Scroll to the element with id 'action-title'
+        const actionTitleElement = document.getElementById('action-title');
+        if (actionTitleElement) {
+            actionTitleElement.scrollIntoView({ behavior: 'smooth' });
+            actionTitleElement.focus();
+        }
+    
         doExternalLinkCheck();
         checkDefinitions();
         // Process PDF labels using globally scoped loader.
@@ -196,8 +199,9 @@ const checkTag = (index) => {
  * @returns {string} - The ARIA label.
  */
 const getTagAriaLabel = (tag) => {
-    return `${tag} filter ${selectedTags.value.includes(tag) ? 'selected' : 'deselected'}`;
+    return `${tag} filter ${selectedTag.value === tag ? 'selected' : 'deselected'}`;
 };
+
 
 
 /**
