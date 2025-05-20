@@ -7,6 +7,15 @@ const bcgovBlockThemePluginDomLoader = () => {
 	 */
 	window.requestAnimationFrame( () => {
 		const body = document.querySelector( 'body' );
+		const siteHeader = document.querySelector( '.bcgov-site-header' );
+		
+		// Set scrollpadding.
+		if (siteHeader) {
+			setTimeout( () => {
+				document.documentElement.style.scrollPadding = `calc(${window.getComputedStyle( siteHeader ).getPropertyValue( 'height' )} + 30px)`;
+			}, 500);
+		}
+
 		body.classList.add( 'cleanbc-plugin' );
 		// CleanBC Icon Buttons
 		const iconButtons = document.querySelectorAll( 'a.icon' );

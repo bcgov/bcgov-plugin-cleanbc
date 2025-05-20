@@ -1,3 +1,8 @@
+## 1.18.1 May 20, 2025
+– Additional scroll padding check in plugin when DOM loaded.
+– More screen reader accessibility updates to Actions filter tool.
+
+
 ## 1.18.0 May 16, 2025
 – Modified the CleanBC Actions tool to use a custom API endpoint.
 – Improved Actions card layout to accomodate new API structure and augment layout for screen reader readback.
