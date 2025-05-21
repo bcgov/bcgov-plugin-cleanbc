@@ -31,11 +31,15 @@
         </div>
     </div>
 
-    <div v-if="sortedFilteredPosts.length > 0" class="alignfull wp-block-columns card-container">
-        <div class="wp-block-query vue-card-container">
-            <ul class="is-flex-container wp-block-post-template" :class="`columns-${columns}`">
+    <div v-if="sortedFilteredPosts.length > 0"  class="alignfull wp-block-columns card-container">
+        <div  role="grid" class="wp-block-query vue-card-container" :data-column-count="columnCount" :aria-colcount="columnCount" :aria-rowcount="Math.ceil(sortedFilteredPosts.length / columnCount)">
+            <ul role="row" class="is-flex-container wp-block-post-template" :class="`columns-${columns}`">
 
-                <li v-for="post in sortedFilteredPosts" :key="post.id" class="filter-card common-component">
+                <li v-for="(post, index) in sortedFilteredPosts"
+                    :key="post.id"
+                    role="gridcell"
+                    class="filter-card common-component"
+                    :aria-label="'card #' + (index + 1)">
 
                     <div
                         class="vue-card-content is-layout-constrained wp-block-group common-component-group flex-card has-white-background-color has-background">
@@ -80,10 +84,11 @@
 /**
  * Vue component script for the CleanBC Post Filter.
  */
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, nextTick, onMounted, onBeforeUnmount, computed, watch } from 'vue';
 
 const filterPostType = ref('');
 const filterPostTypeName = ref('');
+const focusedCellIndex = ref(0);
 const headingLinkActive = ref('false');
 const headingSize = ref('h3');
 const useExcerpt = ref('excerpt');
@@ -97,6 +102,7 @@ const showLoadingMessage = ref(true);
 const perPage = 100;
 /** Array of excluded tags/categories */
 const excludedTags = ['Actions we are taking'];
+const columnCount = ref(3); // default
 
 const publicDomain = 'https://cleanbc.goc.bc.ca'
 
@@ -188,8 +194,8 @@ const checkTag = (index) => {
         if (typeof bcgovBlockThemePluginAccessibility === 'function') {
             bcgovBlockThemePluginAccessibility();
         }
+
     }, 150);
-    
 };
 
 /**
@@ -239,6 +245,7 @@ const clearFilters = () => {
         if (typeof bcgovBlockThemePluginAccessibility === 'function') {
             bcgovBlockThemePluginAccessibility();
         }
+        document.querySelector('.filter-container .tag-checkbox:first-of-type .tag-label').focus();
     }, 150);
 };
 
@@ -604,6 +611,139 @@ function showVueDialog() {
     dialog.showModal();
 }
 
+function handleResize() {
+  const width = window.innerWidth;
+
+  if (width <= 781) {
+    columnCount.value = 1;  
+  } else {
+    columnCount.value = 3;
+  }
+}
+
+/**
+ * Keydown handler. 
+ * Moves focus among grid cells based on the key pressed.
+ */
+function onGridKeydown(event, index) {
+  const { key, ctrlKey } = event;
+  let newIndex = focusedCellIndex.value;
+
+  const itemCount = sortedFilteredPosts.value.length;
+  const cols = columnCount.value;
+
+  const row = Math.floor(index / cols);
+  const col = index % cols;
+  const maxRow = Math.floor((itemCount - 1) / cols);
+
+  switch (key) {
+    case 'ArrowRight':
+      event.preventDefault();
+      if (col < cols - 1 && newIndex < itemCount - 1) {
+        newIndex = index + 1;
+      }
+      break;
+
+    case 'ArrowLeft':
+      event.preventDefault();
+      if (col > 0) {
+        newIndex = index - 1;
+      }
+      break;
+
+    case 'ArrowDown':
+      event.preventDefault();
+      if (row < maxRow) {
+        const downIndex = index + cols;
+        if (downIndex < itemCount) {
+          newIndex = downIndex;
+        }
+      }
+      break;
+
+    case 'ArrowUp':
+      event.preventDefault();
+      if (row > 0) {
+        newIndex = index - cols;
+      }
+      break;
+
+    case 'Home':
+      event.preventDefault();
+      newIndex = ctrlKey ? 0 : row * cols;
+      break;
+
+    case 'End':
+      event.preventDefault();
+      newIndex = ctrlKey
+        ? itemCount - 1
+        : Math.min(row * cols + (cols - 1), itemCount - 1);
+      break;
+
+    case 'PageDown':
+      event.preventDefault();
+      newIndex = Math.min(index + cols * 3, itemCount - 1);
+      break;
+
+    case 'PageUp':
+      event.preventDefault();
+      newIndex = Math.max(index - cols * 3, 0);
+      break;
+
+    default:
+      return;
+  }
+
+  moveFocusToCell(newIndex);
+}
+
+/**
+ * Programmatically sets focus on the chosen index and 
+ * updates focusedCellIndex so only that cell has tabindex=0.
+ */
+function moveFocusToCell(newIndex) {
+  
+  const itemCount = sortedFilteredPosts.value.length;
+
+  if (newIndex < 0) newIndex = 0;
+  if (newIndex >= itemCount) newIndex = itemCount - 1;
+
+  focusedCellIndex.value = newIndex;
+
+  nextTick(() => {
+    const cells = document.querySelectorAll('.filter-card');
+    const target = cells[focusedCellIndex.value];
+
+    if (target) {
+      // Ensure tabindex is updated
+      cells.forEach((el, idx) => {
+        el.setAttribute('tabindex', idx === focusedCellIndex.value ? '0' : '-1');
+      });
+
+      target.focus();
+    }
+  });
+}
+
+
+watch(sortedFilteredPosts, async () => {
+  await nextTick();
+
+  const cards = document.querySelectorAll('.filter-card');
+  cards.forEach((card, index) => {
+    card.setAttribute('tabindex', index === focusedCellIndex.value ? '0' : '-1');
+
+    // Remove existing handler first to avoid duplicates
+    card.removeEventListener('keydown', card._keydownHandler);
+
+    // Create a handler and store it on the element to remove later
+    const handler = (event) => onGridKeydown(event, index);
+    card._keydownHandler = handler;
+    card.addEventListener('keydown', handler);
+  });
+}, { immediate: true });
+
+
 /**
  * A Vue lifecycle hook that is called after the instance has been mounted.
  * It retrieves various attributes from the 'postFilterApp' element and assigns them to reactive properties.
@@ -611,24 +751,40 @@ function showVueDialog() {
  *
  * @returns {void}
  */
-onMounted(() => {
+ onMounted(() => {
+  const appElement = document.getElementById('postFilterApp');
+  cssClass.value = appElement.getAttribute('class');
+  columns.value = parseInt(appElement.getAttribute('data-columns'));
+  filterPostType.value = appElement.getAttribute('data-post-type');
+  filterPostTypeName.value = appElement.getAttribute('data-post-type-label');
+  headingSize.value = appElement.getAttribute('data-heading-size');
+  headingLinkActive.value = appElement.getAttribute('data-heading-link-active');
+  useExcerpt.value = appElement.getAttribute('data-use-excerpt');
 
-    const appElement = document.getElementById('postFilterApp');
-    cssClass.value = appElement.getAttribute('class');
-    columns.value = parseInt(appElement.getAttribute('data-columns'));
-    filterPostType.value = appElement.getAttribute('data-post-type');
-    filterPostTypeName.value = appElement.getAttribute('data-post-type-label');
-    headingSize.value = appElement.getAttribute('data-heading-size');
-    headingLinkActive.value = appElement.getAttribute('data-heading-link-active');
-    useExcerpt.value = appElement.getAttribute('data-use-excerpt');
+  window.addEventListener('resize', handleResize);
+  // Call once to set initial columnCount
+  handleResize();
 
-    if (window.site?.domain) {
-        showLoadingMessage.value = true;
-        fetchData().then(() => {
-            handleHash();
+  if (window.site?.domain) {
+    showLoadingMessage.value = true;
+
+    fetchData().then(() => {
+      handleHash();
+
+      // After DOM updates with fetched posts
+      nextTick(() => {
+        const cards = document.querySelectorAll('.filter-card');
+        cards.forEach((card, index) => {
+          card.setAttribute('tabindex', index === focusedCellIndex.value ? '0' : '-1');
+          card.addEventListener('keydown', (event) => onGridKeydown(event, index));
         });
-    }
+      });
+    });
+  }
+});
 
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize);
 });
 </script>
 
@@ -637,6 +793,7 @@ onMounted(() => {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-around;
+    
 
     .card {
         border: 1px solid #ccc;
@@ -649,6 +806,7 @@ onMounted(() => {
         list-style-type: none !important;
         box-shadow: rgba(0, 0, 0, .1) 0 20px 25px -5px, rgba(0, 0, 0, .04) 0 10px 10px -5px;
         border-radius: 1rem;
+        overflow: clip;
     }
 }
 

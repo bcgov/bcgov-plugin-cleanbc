@@ -1,7 +1,9 @@
+## 1.18.2 May 21, 2025
+– Adding grid/gridcell interactions (keyboard support, roles and attributes) per AGP layout grid: https://www.w3.org/WAI/ARIA/apg/patterns/grid/examples/layout-grids/ for better accessibility in CleanBC filter mechanism.
+
 ## 1.18.1 May 20, 2025
 – Additional scroll padding check in plugin when DOM loaded.
 – More screen reader accessibility updates to Actions filter tool.
-
 
 ## 1.18.0 May 16, 2025
 – Modified the CleanBC Actions tool to use a custom API endpoint.
