@@ -1,16 +1,20 @@
 <template>
-    <div v-if="uniqueTags.categories.length > 0" id="tag-filter-container" class="tag-filter-container">
-        <p class="sr-only">The following is a category selector. Use the arrow keys to move between categories. Press the spacebar to select a category radio button and stay focused within the category options. Pressing the Enter key will select the category and move you directly to the list of actions.</p>
-        <div class="taxonomy-common_component_category wp-block-post-terms filter-container" role="radiogroup" tabindex="0">
+    <div v-if="uniqueTags?.categories?.length > 0" id="tag-filter-container" class="tag-filter-container">
+        <p class="sr-only" id="tag-filter-instructions">This is a list of category filter options presented as a radio group. Use the arrow keys to move between categories without changing the selection. Press the spacebar or Enter to select a category. Selection will update the list of available actions that come after this radio group and move focus to the results headline with a count indicator. Focus will remain within the selected category option when navigating back to change the current selection. If a selection is made, a reset selection button becomes available after the headline and count indicator. Choosing the reset will move the focus back to the first item in the radio group.</p>
+
+        <div class="taxonomy-common_component_category wp-block-post-terms filter-container" role="radiogroup" :aria-label="filterPostTypeName + ' categories'" aria-describedby="tag-filter-instructions" ref="radioGroup">
             <div v-for="(category, index) in uniqueTags.categories" :key="category" class="tag-checkbox">
-                <input type="radio" :id="'tag-' + index" :value="category" v-model="selectedTag" class="tag-input" />
-                <label :for="'tag-' + index" class="tag-label tag" tabindex="0" @click="checkTag(index)"
-                    :data-category-slug="getCategorySlug(category)" :id="getCategorySlug(category)"
-                    @keydown.enter.prevent="checkTag(index)" role="radio" :aria-checked="selectedTag === category" :aria-label="category + ' category. Actions in this category: ' + getTagCount(category)">
-                    <img v-if="getCategoryIconUrl(category)" :src="getCategoryIconUrl(category)" alt=""
-                        class="category-icon" />
-                    {{ category }} ({{ getTagCount(category) }})
-                </label>
+            <label class="tag-label tag" role="radio" :aria-checked="selectedTag === category ? 'true' : 'false'"
+                :tabindex="focusedRadioIndex === index ? '0' : '-1'"
+                :aria-label="category + ' category. Actions in this category: ' + getTagCount(category)"
+                :data-category-slug="getCategorySlug(category)"
+                :id="'tag-label-' + index"
+                @click="checkTag(index)"
+                @keydown="onRadioKeydown($event, index)"
+                ref="radioRefs">
+                <img v-if="getCategoryIconUrl(category)" :src="getCategoryIconUrl(category)" alt="" class="category-icon"/>
+                {{ category }} ({{ getTagCount(category) }})
+            </label>
             </div>
         </div>
     </div>
@@ -103,6 +107,9 @@ const perPage = 100;
 /** Array of excluded tags/categories */
 const excludedTags = ['Actions we are taking'];
 const columnCount = ref(3); // default
+const focusedRadioIndex = ref(0);
+const radioRefs = ref([]);
+const radioGroup = ref(null);
 
 const publicDomain = 'https://cleanbc.goc.bc.ca'
 
@@ -121,6 +128,7 @@ watch(() => window.site?.domain, (newVal, oldVal) => {
         fetchData();
     }
 });
+
 
 /**
  * Fetches post data from the WordPress API.
@@ -169,34 +177,39 @@ const fetchData = async (offset = 0) => {
  *
  * @param {number} index - The index of the tag in the uniqueTags array.
  */
-const checkTag = (index) => {
-    const tag = uniqueTags.value.categories[index];
+ const checkTag = (index) => {
+  const tag = uniqueTags.value?.categories?.[index];
+  if (!tag) return;
 
-    if (tag === 'Actions we are taking') return;
-    selectedTag.value = selectedTag.value === tag ? null : tag;
+  if (tag === 'Actions we are taking') return;
 
-    const categorySlug = getCategorySlug(tag);
-    if (categorySlug) {
-        window.location.hash = categorySlug;
+  // Sync focus state with selected index
+  focusedRadioIndex.value = index;
+
+  // Toggle selection
+  selectedTag.value = selectedTag.value === tag ? null : tag;
+
+  const categorySlug = getCategorySlug(tag);
+  if (categorySlug) {
+    window.location.hash = categorySlug;
+  }
+
+  setTimeout(() => {
+    const actionTitleElement = document.getElementById('action-title');
+    if (actionTitleElement) {
+      actionTitleElement.scrollIntoView({ behavior: 'smooth' });
+      actionTitleElement.focus();
     }
 
-    setTimeout(() => {
-        // Scroll to the element with id 'action-title'
-        const actionTitleElement = document.getElementById('action-title');
-        if (actionTitleElement) {
-            actionTitleElement.scrollIntoView({ behavior: 'smooth' });
-            actionTitleElement.focus();
-        }
-    
-        doExternalLinkCheck();
-        checkDefinitions();
-        // Process PDF labels using globally scoped loader.
-        if (typeof bcgovBlockThemePluginAccessibility === 'function') {
-            bcgovBlockThemePluginAccessibility();
-        }
+    doExternalLinkCheck();
+    checkDefinitions();
 
-    }, 150);
+    if (typeof bcgovBlockThemePluginAccessibility === 'function') {
+      bcgovBlockThemePluginAccessibility();
+    }
+  }, 150);
 };
+
 
 /**
  * Gets the ARIA label for a tag based on its selection state.
@@ -622,7 +635,47 @@ function handleResize() {
 }
 
 /**
- * Keydown handler. 
+ * Radio keydown handler. 
+ * Moves focus among grid cells based on the key pressed.
+ */
+function onRadioKeydown(event, index) {
+  const key = event.key;
+  const count = uniqueTags.value?.categories?.length || 0;
+  if (count === 0) return;
+
+  const moveFocus = (newIndex) => {
+    focusedRadioIndex.value = newIndex;
+    nextTick(() => {
+      radioRefs.value[newIndex]?.focus();
+    });
+  };
+
+  switch (key) {
+    case 'ArrowRight':
+    case 'ArrowDown':
+      event.preventDefault();
+      moveFocus((index + 1) % count);
+      break;
+
+    case 'ArrowLeft':
+    case 'ArrowUp':
+      event.preventDefault();
+      moveFocus((index - 1 + count) % count);
+      break;
+
+    case ' ':
+    case 'Enter':
+      event.preventDefault();
+      checkTag(index);
+      break;
+
+    default:
+      break;
+  }
+}
+
+/**
+ * Grid keydown handler. 
  * Moves focus among grid cells based on the key pressed.
  */
 function onGridKeydown(event, index) {
@@ -743,6 +796,14 @@ watch(sortedFilteredPosts, async () => {
   });
 }, { immediate: true });
 
+watch(() => uniqueTags.categories, () => {
+  nextTick(() => {
+    radioRefs.value = Array.from(
+      radioGroup.value?.querySelectorAll('[role="radio"]') || []
+    );
+  });
+});
+
 
 /**
  * A Vue lifecycle hook that is called after the instance has been mounted.
@@ -771,8 +832,12 @@ watch(sortedFilteredPosts, async () => {
     fetchData().then(() => {
       handleHash();
 
+    
       // After DOM updates with fetched posts
       nextTick(() => {
+        radioRefs.value = Array.from(
+          radioGroup.value?.querySelectorAll('[role="radio"]') || []
+        );
         const cards = document.querySelectorAll('.filter-card');
         cards.forEach((card, index) => {
           card.setAttribute('tabindex', index === focusedCellIndex.value ? '0' : '-1');
