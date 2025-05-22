@@ -1,3 +1,6 @@
+## 1.18.3 May 22, 2025
+– Adding radio group interactions (keyboard support, roles and attributes) per AGP radio group: https://www.w3.org/WAI/ARIA/apg/patterns/radio/ for better accessibility in CleanBC filter mechanism.
+
 ## 1.18.2 May 21, 2025
 – Adding grid/gridcell interactions (keyboard support, roles and attributes) per AGP layout grid: https://www.w3.org/WAI/ARIA/apg/patterns/grid/examples/layout-grids/ for better accessibility in CleanBC filter mechanism.
 
