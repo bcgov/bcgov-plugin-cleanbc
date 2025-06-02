@@ -1,3 +1,9 @@
+## 1.18.4 June 2, 2025
+– Improvements to PDF proxy.
+– Added 'hide-from-sr' class to enable aria-hidden=''true' to be added to elements.
+– Updated CleanBC drivers query loop category image link handling to point to custom API for Actions.
+– Modified breadcrumb navigation to meet AGP pattern: https://www.w3.org/WAI/ARIA/apg/patterns/breadcrumb/.
+
 ## 1.18.3 May 22, 2025
 – Adding radio group interactions (keyboard support, roles and attributes) per AGP radio group: https://www.w3.org/WAI/ARIA/apg/patterns/radio/ for better accessibility in CleanBC filter mechanism.
 

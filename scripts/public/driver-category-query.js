@@ -55,12 +55,13 @@ const bcgovBlockThemePluginDriverCategoryQuery = () => {
                 }
 
                 const response = await fetch(
-                    `${window.site?.domain}/wp-json/wp/v2/project?_embed&per_page=${perPage}&page=${page}&_category_image=true`
+                    // `${window.site?.domain}/wp-json/wp/v2/project?_embed&per_page=${perPage}&page=${page}&_category_image=true`
+                    `${window.site?.domain}/wp-json/custom/v1/actions`
                 );
 
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
-                }
+                } 
 
                 const newData = await response.json();
                 const mergedData = existingData.concat(newData);

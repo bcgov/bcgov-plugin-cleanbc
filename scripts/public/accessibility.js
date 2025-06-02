@@ -22,6 +22,48 @@ const bcgovBlockThemePluginAccessibility = () => {
 		};
 
 		/**
+		 * Sets 'aria-hidden="true"' attribute on elements with the class 'hide-from-sr'.
+		 * This attribute hides the elements from assistive technologies like screen readers.
+		 */
+		const hideFromSRContainers = document.querySelectorAll('.hide-from-sr');
+
+		if (hideFromSRContainers.length) {
+			hideFromSRContainers.forEach(el => el.setAttribute('aria-hidden', 'true'));
+		}
+
+
+		/**
+		 * Enhances breadcrumb navigation accessibility by adding ARIA attributes and roles.
+		 * https://www.w3.org/WAI/ARIA/apg/patterns/breadcrumb/examples/breadcrumb/
+		 *
+		 * Modifies the existing breadcrumb structure to:
+		 * - Define it explicitly as a navigation landmark using role="navigation".
+		 * - Provide a descriptive label with aria-label="Breadcrumb".
+		 * - Indicate the current page breadcrumb using aria-current="page".
+		 * - Prevent breadcrumb separators from being announced by screen readers using aria-hidden="true".
+		 */
+		const breadcrumbContainer = document.querySelector('.aioseo-breadcrumbs');
+
+		if (breadcrumbContainer) {
+			breadcrumbContainer.setAttribute('role', 'navigation');
+			breadcrumbContainer.setAttribute('aria-label', 'Breadcrumb');
+		  
+			const breadcrumbLinks = breadcrumbContainer.querySelectorAll('.aioseo-breadcrumb a');
+			if (breadcrumbLinks.length > 0) {
+			  const lastBreadcrumb = breadcrumbContainer.querySelector('.aioseo-breadcrumb:last-of-type');
+			  if (lastBreadcrumb && !lastBreadcrumb.querySelector('a')) {
+				lastBreadcrumb.setAttribute('aria-current', 'page');
+			  }
+			}
+		  
+			// Hide separators from screen readers
+			const separators = breadcrumbContainer.querySelectorAll('.aioseo-breadcrumb-separator');
+			separators.forEach(separator => separator.setAttribute('aria-hidden', 'true'));
+		};
+	  
+
+
+		/**
 		 * NodeList of all anchor elements linking to PDF files on the page.
 		 * 
 		 * @type {NodeListOf<HTMLAnchorElement>}
@@ -40,7 +82,7 @@ const bcgovBlockThemePluginAccessibility = () => {
 						// Same-origin request
 						fetch(url, { method: 'HEAD' }).then(response => {
 							const size = response.headers.get('Content-Length');
-							if (size) appendSizeLabel(link, size);
+							appendSizeLabel(link, size);
 						});
 					}
 					if (!isSameOrigin(url)) {
@@ -57,7 +99,7 @@ const bcgovBlockThemePluginAccessibility = () => {
 							// Try to parse it manually.
 							try {
 								const data = JSON.parse(text);
-								if (data.size) appendSizeLabel(link, data.size);
+								appendSizeLabel(link, data.size);
 							} catch (e) {
 								console.error('JSON parse error:', e);
 							}
@@ -78,15 +120,21 @@ const bcgovBlockThemePluginAccessibility = () => {
 		 * @param {number} size - The file size in bytes.
 		 */
 		const appendSizeLabel = (link, size) => {
-			const kb = size / 1024;
-			const mb = kb / 1024;
-			const sizeLabel = mb >= 1
-				? `${mb.toFixed(1)}MB`
-				: `${kb.toFixed(0)}KB`;
+			let labelText = ' [PDF]';
 
-			const labelText = ` [PDF ${sizeLabel}]`;
+			if (!size || size <= 0 || undefined === size) {
+				labelText = ' [PDF unknown size]';
+			} else {
+				const kb = size / 1024;
+				const mb = kb / 1024;
+				const sizeLabel = mb >= 1
+					? `${mb.toFixed(1)}MB`
+					: `${kb.toFixed(0)}KB`;
 
-			// Create the new PDF icon <svg>
+				labelText = ` [PDF ${sizeLabel}]`;
+			}
+
+			// Create the new PDF icon <svg>.
 			const pdfSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 			pdfSvg.setAttribute('class', 'external-link-icon');
 			pdfSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
@@ -111,7 +159,7 @@ const bcgovBlockThemePluginAccessibility = () => {
 					span.appendChild(pdfSvg);
 				}
 			} else {
-				// No special span — fall back to appending at end of link
+				// No special span — fall back to appending at end of link.
 				link.classList.add('external');
 				link.appendChild(document.createTextNode(labelText));
 				link.appendChild(pdfSvg);

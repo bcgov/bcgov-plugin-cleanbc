@@ -43,19 +43,19 @@ class Accessibility {
 	/**
 	 * Handles the PDF size proxy request and returns the file size as JSON.
 	 *
-	 * Validates the request nonce and inspects the provided URL. If the initial URL does not
-	 * end in .pdf, the method follows up to 5 HTTP 301/302 redirects to determine the final
-	 * destination. After resolving redirects, it attempts to confirm that the final URL returns
-	 * a PDF file, based on the Content-Type header.
+	 * Validates the request nonce and checks the provided URL. The method follows up to 5 HTTP 301/302 redirects
+	 * to determine the final destination URL. After redirects are resolved, it verifies that the final URL
+	 * points to a PDF file by inspecting the Content-Type header.
 	 *
-	 * If the HEAD request fails to return a usable content type, a fallback GET request
-	 * (with a byte-range header to avoid downloading the full file) is used to verify
-	 * the content. The file size is extracted from the Content-Length header and cached
-	 * using a transient based on the final URL.
+	 * If the initial HEAD request does not return a usable Content-Type or Content-Length header, the method
+	 * performs a fallback GET request with a byte-range header to confirm the PDF type and attempts to determine
+	 * the file size from the Content-Range header if Content-Length is unavailable.
 	 *
-	 * Responds with a JSON object including the file size in bytes, final URL,
-	 * redirect status code, and cache indicator. Returns an error object if the
-	 * URL is invalid, not a PDF, or if any request fails.
+	 * The determined file size is cached using a transient keyed by the final URL to optimize subsequent requests.
+	 *
+	 * Returns a JSON object containing the file size (in bytes), the final resolved URL, the HTTP status code,
+	 * and a cached indicator. If the URL is invalid, the content is not a PDF, or if any network request fails,
+	 * an error object is returned instead.
 	 *
 	 * @since 1.17.0
 	 * @return void
@@ -92,14 +92,14 @@ class Accessibility {
 
 		do {
 			$response = wp_remote_request(
-                $final_url,
-                [
+				$final_url,
+				[
 					'method'      => 'HEAD',
 					'timeout'     => 10,
 					'headers'     => [ 'User-Agent' => 'WordPress PDF Proxy' ],
 					'redirection' => 0,
 				]
-            );
+			);
 
 			if ( is_wp_error( $response ) ) {
 				echo wp_json_encode( [ 'error' => 'Request failed' ] );
@@ -129,25 +129,25 @@ class Accessibility {
 
 		$cache_key = 'pdf_size_' . md5( $final_url );
 		$cached    = get_transient( $cache_key );
-		if ( false !== $cached ) {
+		if ( false !== $cached && $cached > 0 ) {
 			echo wp_json_encode(
-                [
+				[
 					'size'   => $cached,
 					'cached' => true,
 					'url'    => $final_url,
 					'status' => $status_code,
 				]
-            );
+			);
 			exit;
 		}
 
 		$response = wp_remote_request(
-            $final_url,
-            [
+			$final_url,
+			[
 				'method'  => 'HEAD',
 				'timeout' => 10,
 			]
-        );
+		);
 
 		$headers      = wp_remote_retrieve_headers( $response );
 		$content_type = isset( $headers['content-type'] ) ? strtolower( $headers['content-type'] ) : '';
@@ -155,13 +155,13 @@ class Accessibility {
 		if ( empty( $content_type ) || strpos( $content_type, 'application/pdf' ) === false ) {
 			// Retry with GET if HEAD is not informative.
 			$response = wp_remote_request(
-                $final_url,
-                [
+				$final_url,
+				[
 					'method'  => 'GET',
 					'timeout' => 10,
-					'headers' => [ 'Range' => 'bytes=0-0' ], // Only request first byte.
+					'headers' => [ 'Range' => 'bytes=0-0' ],
 				]
-            );
+			);
 
 			if ( is_wp_error( $response ) ) {
 				echo wp_json_encode( [ 'error' => 'Final GET request failed' ] );
@@ -173,35 +173,55 @@ class Accessibility {
 
 			if ( strpos( $content_type, 'application/pdf' ) === false ) {
 				echo wp_json_encode(
-                    [
+					[
 						'error'        => 'Final URL is not a PDF',
 						'content_type' => $content_type,
 					]
-                );
+				);
 				exit;
 			}
 		}
 
-		if ( is_wp_error( $response ) ) {
-			echo wp_json_encode( [ 'error' => 'Final HEAD request failed' ] );
-			exit;
-		}
+		$size = isset( $headers['content-length'] ) ? (int) $headers['content-length'] : 0;
 
-		$headers = wp_remote_retrieve_headers( $response );
-		$size    = isset( $headers['content-length'] ) ? (int) $headers['content-length'] : 0;
+		// Enhanced fallback for missing Content-Length.
+		if ( empty( $size ) ) {
+			$response = wp_remote_request(
+				$final_url,
+				[
+					'method'  => 'GET',
+					'timeout' => 10,
+					'headers' => [ 'Range' => 'bytes=0-0' ],
+				]
+			);
+
+			if ( ! is_wp_error( $response ) ) {
+				$headers = wp_remote_retrieve_headers( $response );
+				if ( isset( $headers['content-range'] ) && preg_match( '/bytes 0-0\/(\d+)/', $headers['content-range'], $matches ) ) {
+					$size = (int) $matches[1];
+				}
+			}
+		}
 
 		if ( $size > 0 ) {
 			set_transient( $cache_key, $size, DAY_IN_SECONDS );
 			echo wp_json_encode(
-                [
+				[
 					'size'   => $size,
 					'cached' => false,
 					'url'    => $final_url,
 					'status' => $status_code,
 				]
-            );
+			);
 		} else {
-			echo wp_json_encode( [ 'error' => 'Could not determine size' ] );
+			set_transient( $cache_key, 0, 15 * MINUTE_IN_SECONDS );
+			echo wp_json_encode(
+				[
+					'error' => 'Could not determine size',
+					'note'  => 'The server did not provide a valid Content-Length header.',
+					'url'   => $final_url,
+				]
+			);
 		}
 
 		exit;
