@@ -1,3 +1,7 @@
+## 1.19.0 June 5, 2025
+– Added Multi-Query Content block for query string lookup table content insertion.
+– Removed v1 block render the Sections for the Rebates pages.
+
 ## 1.18.4 June 2, 2025
 – Improvements to PDF proxy.
 – Added 'hide-from-sr' class to enable aria-hidden=''true' to be added to elements.

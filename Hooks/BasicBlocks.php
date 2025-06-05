@@ -62,87 +62,60 @@ class BasicBlocks {
      * @return void
      */
     public function register_blocks(): void {
-        // rebates page info pieces.
-        register_block_type(
-            'bcgovcleanbc/rebates-page-info',
-            [
-                'render_callback' => [ $this, 'render_block_rebates_page_info' ],
-                'attributes'      => [
-                    'section_options' => [
-                        'default' => [
-                            [
-                                'value' => 'preamble',
-                                'label' => __( 'Preamble' ),
-                            ],
-                            [
-                                'value' => 'overview',
-                                'label' => __( 'Overview' ),
-                            ],
-                            [
-                                'value' => 'rebate_amount',
-                                'label' => __( 'Rebate Amount' ),
-                            ],
-                            [
-                                'value' => 'eligibility_requirements',
-                                'label' => __( 'Eligibility Requirements' ),
-                            ],
-                            [
-                                'value' => 'deadlines',
-                                'label' => __( 'Deadlines' ),
-                            ],
-                            [
-                                'value' => 'how_to_apply',
-                                'label' => __( 'How To Apply' ),
-                            ],
-                            [
-                                'value' => 'who_to_contact',
-                                'label' => __( 'Who To Contact' ),
-                            ],
-                            [
-                                'value' => 'program_updates',
-                                'label' => __( 'Program Updates' ),
-                            ],
-                            [
-                                'value' => 'faq',
-                                'label' => __( 'FAQ' ),
-                            ],
-                        ],
-                        'type'    => 'array',
-                    ],
-                    'section'         => [
-                        'type' => 'string',
-                    ],
+        // Path to block.json folder.
+        $block_dir = plugin_dir_path( __DIR__ ) . 'scripts/blocks/multi-query';
 
-                ],
+        register_block_type_from_metadata(
+            $block_dir,
+            [
+                'render_callback' => [ $this, 'render_multi_query_block' ],
             ]
         );
     }
 
 
-
-    /**
-     * Render the Sections for the Rebates pages
+	/**
+     * Render callback for the multi-query block.
      *
-     * @param array $attributes  The incoming attributes for the block from WP.
-     * @return string $output The rendered html content for the block.
+     * @param array $attributes Block attributes.
+     * @return string Rendered HTML output.
      */
-    public function render_block_rebates_page_info( $attributes ) {
-        $is_gb_editor = $this::check_is_gb_editor();
+	public function render_multi_query_block( $attributes ) {
+		$placeholder  = $attributes['placeholderText'] ?? '';
+		$fallback     = $attributes['fallbackText'] ?? '';
+		$keys         = $attributes['paramKeys'] ?? [];
+		$combinations = $attributes['combinations'] ?? [];
+		$use_or       = $attributes['useOrLogic'] ?? false;
 
-        $section_to_load = 'overview'; // Default to the overview section.
-        if ( isset( $attributes['section'] ) ) {
-            $section_to_load = $attributes['section'];
-        }
+		$current = [];
 
-        $template_to_load = \Bcgov\Plugin\CleanBC\Setup::$plugin_dir . 'templates/blocks/basic_rebates-' . $section_to_load . '.php';
-        if ( file_exists( $template_to_load ) ) {
-            ob_start();
-            require $template_to_load;
-            return ob_get_clean();
-        } else {
-            return 'Unable to find template (' . $section_to_load . ')';
-        }
-    }
+		foreach ( $keys as $key ) {
+			$current[ $key ] = sanitize_text_field( filter_input( INPUT_GET, $key ) ?? '' );
+		}
+
+		$match = null;
+
+		foreach ( $combinations as $combo ) {
+			$is_match = $use_or
+			? array_intersect_assoc( $combo, $current )
+			: ! array_diff_assoc( array_intersect_key( $combo, $current ), $current );
+
+			if ( $is_match && isset( $combo['value'] ) ) {
+				$match = $combo['value'];
+				break;
+			}
+		}
+
+		$output_value = $match ?? $fallback;
+
+		// Replace placeholder token with matched value.
+		$rendered = str_replace( '{{value}}', esc_html( $output_value ), $placeholder );
+
+		return sprintf(
+            '<div class="multi-query-content-block">%s</div>',
+            wp_kses_post( $rendered )
+		);
+	}
 
     /**
      * Register custom block pattern for Single Incentive (akak rebates) page.

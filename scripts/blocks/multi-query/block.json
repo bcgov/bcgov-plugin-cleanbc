@@ -1,0 +1,19 @@
+{
+  "apiVersion": 2,
+  "name": "bcgovcleanbc/multi-query-content",
+  "title": "Multi-Query Content",
+  "category": "plugin",
+  "icon": "update-alt",
+  "description": "Displays a value based on multiple URL query parameters. Use {{value}} to set the placeholder.",
+  "attributes": {
+    "placeholderText": { "type": "string", "default": "Your rebate is: {{value}}" },
+    "fallbackText": { "type": "string", "default": "No match found." },
+    "paramKeys": { "type": "array", "default": [] },
+    "combinations": { "type": "array", "default": [] },
+    "previewMode": { "type": "boolean", "default": false },
+    "previewValues": { "type": "object", "default": {} },
+    "useOrLogic": { "type": "boolean", "default": false }
+  },
+  "editorScript": "file:./index.js",
+  "script": "file:./frontend.js"
+}
