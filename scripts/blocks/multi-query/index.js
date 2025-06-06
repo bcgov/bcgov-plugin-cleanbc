@@ -1,23 +1,25 @@
 import { registerBlockType } from '@wordpress/blocks';
-import { useBlockProps, InspectorControls, RichText } from '@wordpress/block-editor';
+import { useBlockProps, InspectorControls, RichText, BlockControls, AlignmentToolbar } from '@wordpress/block-editor';
 import { PanelBody, TextControl, Button, ToggleControl } from '@wordpress/components';
 import { Fragment } from '@wordpress/element';
 
 registerBlockType('bcgovcleanbc/multi-query-content', {
-  edit: ( { attributes, setAttributes } ) => {
+  edit: ({ attributes, setAttributes }) => {
     const {
       placeholderText, fallbackText, paramKeys, combinations,
-      previewMode, previewValues, useOrLogic
+      previewMode, previewValues, useOrLogic, alignment = 'left',
     } = attributes;
+
+    const blockProps = useBlockProps({ style: { textAlign: alignment } });
 
     const updateKey = (index, value) => {
       const updatedKeys = [...paramKeys];
       updatedKeys[index] = value;
-    
+
       // Reset preview values and combinations to avoid stale state.
       const newPreview = {};
       const newCombinations = combinations.map(combo => ({ ...combo }));
-    
+
       // Rebuild combinations with new keys if possible.
       for (let i = 0; i < newCombinations.length; i++) {
         newCombinations[i] = Object.fromEntries(
@@ -25,14 +27,14 @@ registerBlockType('bcgovcleanbc/multi-query-content', {
         );
         newCombinations[i].value = combinations[i]?.value || '';
       }
-    
+
       setAttributes({
         paramKeys: updatedKeys,
         combinations: newCombinations,
         previewValues: newPreview,
       });
     };
-    
+
 
     const updatePreviewValue = (key, value) => {
       setAttributes({ previewValues: { ...previewValues, [key]: value } });
@@ -42,45 +44,45 @@ registerBlockType('bcgovcleanbc/multi-query-content', {
     const removeKey = (index) => {
       const updatedKeys = [...paramKeys];
       const removedKey = updatedKeys.splice(index, 1)[0];
-    
+
       // Remove the key from all combinations.
       const updatedCombinations = combinations.map(combo => {
         const newCombo = { ...combo };
         delete newCombo[removedKey];
         return newCombo;
       });
-    
+
       // Also clean up preview values.
       const updatedPreview = { ...previewValues };
       delete updatedPreview[removedKey];
-    
+
       setAttributes({
         paramKeys: updatedKeys,
         combinations: updatedCombinations,
         previewValues: updatedPreview,
       });
     };
-    
+
 
     const updateCombo = (index, field, value) => {
       const updated = combinations.map(combo => ({ ...combo }));
       updated[index][field] = value;
       setAttributes({ combinations: updated });
-    };    
+    };
 
     const addCombo = () => {
       const cloned = combinations.map(combo => ({ ...combo }));
-    
+
       const newCombo = Object.fromEntries(paramKeys.map(k => [k, '']));
       newCombo.value = '';
-    
+
       setAttributes({ combinations: [...cloned, newCombo] });
     };
-    
+
     const removeCombo = (index) => {
       const updated = combinations.map(combo => ({ ...combo }));
       updated.splice(index, 1);
-    
+
       setAttributes({ combinations: updated });
     };
 
@@ -93,17 +95,27 @@ registerBlockType('bcgovcleanbc/multi-query-content', {
     const simulatedOutput = placeholderText.replace(/{{\s*value\s*}}/g, match?.value || fallbackText);
 
     return (
+      <div {...blockProps}>
       <Fragment>
+        <BlockControls>
+          <AlignmentToolbar
+            value={alignment}
+            onChange={(newAlign) => setAttributes({ alignment: newAlign })}
+          />
+        </BlockControls>
+
         <InspectorControls>
           <PanelBody title="Query Parameters">
             {paramKeys.map((key, i) => (
-              <div key={i}>
+              <div key={i} style={{ marginBottom: '0' }}>
                 <TextControl
                   label={`Param Key #${i + 1}`}
                   value={key}
                   onChange={(val) => updateKey(i, val)}
                 />
-                <Button isLink isDestructive onClick={() => removeKey(i)}>Remove</Button>
+                <div style={{ textAlign: 'right' }}>
+                  <Button isLink isDestructive onClick={() => removeKey(i)}>Remove</Button>
+                </div>
               </div>
             ))}
             <Button isPrimary onClick={addKey}>Add Parameter</Button>
@@ -112,8 +124,8 @@ registerBlockType('bcgovcleanbc/multi-query-content', {
           <PanelBody title="Value Combinations" initialOpen={false}>
             {combinations.map((combo, i) => (
               <div key={i} style={{
-                marginBottom: '1em',
-                padding: '0.5em',
+                marginBottom: '1rem',
+                padding: '0.5rem',
                 border: i === matchIndex ? '2px solid green' : '1px solid #ccc',
                 background: i === matchIndex ? '#eaffea' : 'transparent'
               }}>
@@ -165,7 +177,7 @@ registerBlockType('bcgovcleanbc/multi-query-content', {
           </PanelBody>
         </InspectorControls>
 
-        <div {...useBlockProps()}>
+        <div {...useBlockProps({ style: { textAlign: alignment } })}>
           <RichText
             tagName="div"
             value={previewMode ? simulatedOutput : placeholderText}
@@ -174,6 +186,7 @@ registerBlockType('bcgovcleanbc/multi-query-content', {
           />
         </div>
       </Fragment>
+      </div>
     );
   },
   save: () => null,

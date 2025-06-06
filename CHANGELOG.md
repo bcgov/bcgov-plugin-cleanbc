@@ -1,3 +1,6 @@
+## 1.19.1 June 6, 2025
+– Multi-Query Content block styling options added.
+
 ## 1.19.0 June 5, 2025
 – Added Multi-Query Content block for query string lookup table content insertion.
 – Removed v1 block render the Sections for the Rebates pages.
