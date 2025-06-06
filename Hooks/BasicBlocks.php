@@ -81,41 +81,46 @@ class BasicBlocks {
      * @return string Rendered HTML output.
      */
 	public function render_multi_query_block( $attributes ) {
-		$placeholder  = $attributes['placeholderText'] ?? '';
-		$fallback     = $attributes['fallbackText'] ?? '';
-		$keys         = $attributes['paramKeys'] ?? [];
-		$combinations = $attributes['combinations'] ?? [];
-		$use_or       = $attributes['useOrLogic'] ?? false;
+        $placeholder  = $attributes['placeholderText'] ?? '';
+        $fallback     = $attributes['fallbackText'] ?? '';
+        $keys         = $attributes['paramKeys'] ?? [];
+        $combinations = $attributes['combinations'] ?? [];
+        $use_or       = $attributes['useOrLogic'] ?? false;
+        $alignment    = $attributes['alignment'] ?? 'left';
 
-		$current = [];
+        $current = [];
+        foreach ( $keys as $key ) {
+            $current[ $key ] = sanitize_text_field( filter_input( INPUT_GET, $key ) ?? '' );
+        }
 
-		foreach ( $keys as $key ) {
-			$current[ $key ] = sanitize_text_field( filter_input( INPUT_GET, $key ) ?? '' );
-		}
+        $match = null;
+        foreach ( $combinations as $combo ) {
+            $is_match = $use_or
+                ? array_intersect_assoc( $combo, $current )
+                : ! array_diff_assoc( array_intersect_key( $combo, $current ), $current );
 
-		$match = null;
+            if ( $is_match && isset( $combo['value'] ) ) {
+                $match = $combo['value'];
+                break;
+            }
+        }
 
-		foreach ( $combinations as $combo ) {
-			$is_match = $use_or
-			? array_intersect_assoc( $combo, $current )
-			: ! array_diff_assoc( array_intersect_key( $combo, $current ), $current );
+        $output_value = $match ?? $fallback;
+        $rendered     = str_replace( '{{value}}', esc_html( $output_value ), $placeholder );
 
-			if ( $is_match && isset( $combo['value'] ) ) {
-				$match = $combo['value'];
-				break;
-			}
-		}
+        $wrapper_attributes = get_block_wrapper_attributes(
+            [
+				'style' => sprintf( 'text-align: %s;', esc_attr( $alignment ) ),
+			]
+        );
 
-		$output_value = $match ?? $fallback;
-
-		// Replace placeholder token with matched value.
-		$rendered = str_replace( '{{value}}', esc_html( $output_value ), $placeholder );
-
-		return sprintf(
-            '<div class="multi-query-content-block">%s</div>',
+        return sprintf(
+            '<div %s>%s</div>',
+            $wrapper_attributes,
             wp_kses_post( $rendered )
-		);
-	}
+        );
+    }
+
 
     /**
      * Register custom block pattern for Single Incentive (akak rebates) page.
