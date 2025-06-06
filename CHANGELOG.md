@@ -1,4 +1,4 @@
-## 1.19.1 June 5, 2025
+## 1.19.1 June 6, 2025
 – Multi-Query Content block styling options added.
 
 ## 1.19.0 June 5, 2025
