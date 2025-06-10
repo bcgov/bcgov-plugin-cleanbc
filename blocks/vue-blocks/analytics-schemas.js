@@ -45,7 +45,7 @@ export function trackRebateClick({
 			}
 		});
 	} else {
-		debug('Snowplow analytics not loaded.', error)
+		debug('Snowplow analytics not loaded.');
 	}
 }
 
@@ -82,7 +82,7 @@ export const trackRebateFilterChange = ({
 		debug(`Snowplow filter changed: ${filterValues} => ${location}`);
 		debug('trackFilterChange data: {\n  action: change, \n  element_type: filter, \n  project_type: ' + projectType + ', \n  location: ' + location + ', \n  heating_type: ' + heatingType + ', \n  filter_values: ' + filterValues + ', \n  label: ' + label + ' \n}');
 	} else {
-		debug('Snowplow analytics not loaded.', error)
+		debug('Snowplow analytics not loaded.');
 	}
 }
 
@@ -120,7 +120,7 @@ export const trackRebateUpgradeTypeChange = ({
 		});
 		debug(`Snowplow upgrade type ${action}: ${label}`);
 	} else {
-		debug('Snowplow analytics not loaded.', error)
+		debug('Snowplow analytics not loaded.');
 	}
 }
 
@@ -154,7 +154,7 @@ export function trackFaqSearch({
 		}); 
 		debug(`Snowplow upgrade type 'search': ${newValue}`);
 	} else {
-		debug('Snowplow analytics not loaded.', error)
+		debug('Snowplow analytics not loaded.');
 	}
 }
 
@@ -179,7 +179,7 @@ export function trackFaqFilterChange({ filterName, newValue, oldValue }) {
 		}); 
 		debug(`Snowplow upgrade type 'change' ${filterName}: ${newValue}`);
 	} else {
-		debug('Snowplow analytics not loaded.', error)
+		debug('Snowplow analytics not loaded.');
 	}
 }
 
@@ -204,7 +204,7 @@ export function trackFaqAccordionToggle({ action, faqId, faqTitle }) {
 		}); 
 		debug(`Snowplow upgrade type ${action}: ${faqTitle}`);
 	} else {
-		debug('Snowplow analytics not loaded.', error)
+		debug('Snowplow analytics not loaded.');
 	}
 }
 
@@ -232,7 +232,7 @@ export function trackFaqLinkClick({ faqId, faqTitle, href, linkText }) {
 		}); 
 		debug(`Snowplow upgrade type 'click': ${linkText}`);
 	} else {
-		debug('Snowplow analytics not loaded.', error)
+		debug('Snowplow analytics not loaded.');
 	}
 }
 
