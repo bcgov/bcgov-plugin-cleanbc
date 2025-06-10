@@ -1,3 +1,6 @@
+## 1.19.2 June 10, 2025
+– Multi-Query Content block query string parameter passthrough as value options. Augmented preview and help information. Bolstered placeholder and fallback display.
+
 ## 1.19.1 June 6, 2025
 – Multi-Query Content block styling options added.
 

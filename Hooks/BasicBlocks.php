@@ -80,38 +80,76 @@ class BasicBlocks {
      * @param array $attributes Block attributes.
      * @return string Rendered HTML output.
      */
-	public function render_multi_query_block( $attributes ) {
-        $placeholder  = $attributes['placeholderText'] ?? '';
-        $fallback     = $attributes['fallbackText'] ?? '';
-        $keys         = $attributes['paramKeys'] ?? [];
-        $combinations = $attributes['combinations'] ?? [];
-        $use_or       = $attributes['useOrLogic'] ?? false;
-        $alignment    = $attributes['alignment'] ?? 'left';
+    public function render_multi_query_block( $attributes ) {
+        $placeholder      = $attributes['placeholderText'] ?? '';
+        $fallback         = $attributes['fallbackText'] ?? '';
+        $keys             = $attributes['paramKeys'] ?? [];
+        $combinations     = $attributes['combinations'] ?? [];
+        $use_or           = $attributes['useOrLogic'] ?? false;
+        $alignment        = $attributes['alignment'] ?? 'left';
+        $use_param_direct = $attributes['useParamValueDirect'] ?? false;
 
         $current = [];
         foreach ( $keys as $key ) {
             $current[ $key ] = sanitize_text_field( filter_input( INPUT_GET, $key ) ?? '' );
         }
 
-        $match = null;
-        foreach ( $combinations as $combo ) {
-            $is_match = $use_or
-                ? array_intersect_assoc( $combo, $current )
-                : ! array_diff_assoc( array_intersect_key( $combo, $current ), $current );
+        $rendered = '';
 
-            if ( $is_match && isset( $combo['value'] ) ) {
-                $match = $combo['value'];
-                break;
+        if ( $use_param_direct ) {
+            $rendered = $placeholder;
+
+            preg_match_all( '/{{\s*value(?:_(\d+))?\s*}}/', $placeholder, $matches, PREG_SET_ORDER );
+
+            $all_present = true;
+
+            foreach ( $matches as $match ) {
+                $index = isset( $match[1] ) ? intval( $match[1] ) - 1 : 0;
+                $key   = $keys[ $index ] ?? null;
+
+                if ( ! $key || '' === $current[ $key ] ) {
+                    $all_present = false;
+                    break;
+                }
             }
-        }
 
-        $output_value = $match ?? $fallback;
-        $rendered     = str_replace( '{{value}}', esc_html( $output_value ), $placeholder );
+            if ( $all_present ) {
+                foreach ( $matches as $match ) {
+                    $index = isset( $match[1] ) ? intval( $match[1] ) - 1 : 0;
+                    $token = $match[0];
+                    $key   = $keys[ $index ] ?? null;
+                    $value = $key ? esc_html( $current[ $key ] ) : '';
+
+                    $rendered = str_replace( $token, $value, $rendered );
+                }
+            } else {
+                $rendered = '' !== $fallback ? $fallback : 'No fallback text provided.';
+            }
+		} else {
+            $match = null;
+
+            foreach ( $combinations as $combo ) {
+                $is_match = $use_or
+                    ? array_intersect_assoc( $combo, $current )
+                    : ! array_diff_assoc( array_intersect_key( $combo, $current ), $current );
+
+                if ( $is_match && isset( $combo['value'] ) ) {
+                    $match = $combo['value'];
+                    break;
+                }
+			}
+
+            if ( null !== $match && '' !== $match ) {
+                $rendered = str_replace( '{{value}}', esc_html( $match ), $placeholder );
+			} else {
+                $rendered = '' !== $fallback ? $fallback : 'No fallback text provided.';
+			}
+        }
 
         $wrapper_attributes = get_block_wrapper_attributes(
             [
-				'style' => sprintf( 'text-align: %s;', esc_attr( $alignment ) ),
-			]
+                'style' => sprintf( 'text-align: %s;', esc_attr( $alignment ) ),
+            ]
         );
 
         return sprintf(
