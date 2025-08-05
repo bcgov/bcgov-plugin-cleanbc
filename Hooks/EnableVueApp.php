@@ -569,6 +569,139 @@ class EnableVueApp {
 	}
 
 	/**
+	 * Custom callback function for the PQEA filter in the API (new CPTs + ACF relationship).
+	 *
+	 * Returns the same top-level structure before, but now:
+	 * - pulls from the new CPTs (pqeas-renovation, pqeas-construction)
+	 * - uses the unified ACF field set
+	 * - includes a new `service_organizations` array inside `details`
+	 *
+	 * @return array
+	 */
+	public function custom_api_vnext_pqea_filter_callback() {
+
+		$args = array(
+			'post_type'      => array( 'pqeas-renovation', 'pqeas-construction' ),
+			'posts_per_page' => -1,
+			'post_status'    => 'publish',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$posts_data = array();
+
+		if ( ! $query->have_posts() ) {
+			return $posts_data;
+		}
+
+		while ( $query->have_posts() ) {
+			$query->the_post();
+			$post_id   = get_the_ID();
+			$post_type = get_post_type( $post_id );
+
+			// Map CPT → category label to match old API.
+			$category_label = ( 'pqeas-renovation' === $post_type )
+				? 'Renovating a home'
+				: 'Constructing a home';
+
+			// Pull taxonomy terms (ea-locations, ea-services).
+			$locations_terms = get_the_terms( $post_id, 'ea-locations' );
+			if ( ! is_array( $locations_terms ) ) {
+				$locations_terms = array();
+			}
+
+			$services_terms = get_the_terms( $post_id, 'ea-services' );
+			if ( ! is_array( $services_terms ) ) {
+				$services_terms = array();
+			}
+
+			// Normalize term objects to plain arrays (mirrors original JSON shape).
+			$locations = array_map(
+				static function ( $t ) {
+					return array(
+						'term_id'          => $t->term_id,
+						'name'             => $t->name,
+						'slug'             => $t->slug,
+						'term_group'       => $t->term_group,
+						'term_taxonomy_id' => $t->term_taxonomy_id,
+						'taxonomy'         => $t->taxonomy,
+						'description'      => $t->description,
+						'parent'           => $t->parent,
+						'count'            => $t->count,
+						'filter'           => $t->filter,
+					);
+				},
+				$locations_terms
+			);
+
+			$services = array_map(
+				static function ( $t ) {
+					return array(
+						'term_id'          => $t->term_id,
+						'name'             => $t->name,
+						'slug'             => $t->slug,
+						'term_group'       => $t->term_group,
+						'term_taxonomy_id' => $t->term_taxonomy_id,
+						'taxonomy'         => $t->taxonomy,
+						'description'      => $t->description,
+						'parent'           => $t->parent,
+						'count'            => $t->count,
+						'filter'           => $t->filter,
+					);
+				},
+				$services_terms
+			);
+
+			// Unified ACF field names.
+			$program_qualified = get_field( 'program_qualified', $post_id );
+			if ( ! is_array( $program_qualified ) ) {
+				$program_qualified = array();
+			}
+
+			$details = array(
+				'program_qualified' => $program_qualified,
+				'company_name'      => get_field( 'company_name', $post_id ),
+				'company_website'   => get_field( 'company_website', $post_id ),
+				'company_location'  => get_field( 'company_location', $post_id ),
+				'contact_name'      => get_field( 'contact_name', $post_id ),
+				'email'             => get_field( 'email', $post_id ),
+				'phone'             => get_field( 'phone', $post_id ),
+			);
+
+			// New: relationship field -> array of objects.
+			$service_org_posts                = get_field( 'service_organizations', $post_id ); // relationship, return_format "object".
+			$details['service_organizations'] = array();
+
+			if ( ! empty( $service_org_posts ) && is_array( $service_org_posts ) ) {
+				foreach ( $service_org_posts as $org ) {
+					$details['service_organizations'][] = array(
+						'id'        => (int) $org->ID,
+						'title'     => get_the_title( $org->ID ),
+						'website'   => get_field( 'website', $org->ID ),
+						'permalink' => get_permalink( $org->ID ),
+					);
+				}
+			}
+
+			$posts_data[] = (object) array(
+				'id'         => $post_id,
+				'title'      => get_the_title( $post_id ),
+				'url'        => '', // kept for parity with old output.
+				'post_url'   => get_permalink( $post_id ),
+				'categories' => $category_label,
+				'locations'  => $locations,
+				'services'   => $services,
+				'details'    => $details,
+			);
+		}
+
+		wp_reset_postdata();
+
+		return $posts_data;
+	}
+
+
+	/**
 	 * Custom callback function for the Contractor filter in the API.
 	 *
 	 * This function fetches and formats data for Contractors
@@ -768,7 +901,7 @@ class EnableVueApp {
 			'/pqeas',
 			array(
 				'methods'             => 'GET',
-				'callback'            => [ $this, 'custom_api_pqea_filter_callback' ],
+				'callback'            => [ $this, 'custom_api_vnext_pqea_filter_callback' ], // v1 was: custom_api_pqea_filter_callback.
 				'permission_callback' => '__return_true',
 			)
 		);

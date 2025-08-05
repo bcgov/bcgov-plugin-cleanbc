@@ -119,7 +119,7 @@
                     <!-- Company Name and Head Office -->
                     <td data-label="Company Name and Head Office" class="pqea__company-and-location">
                         <!-- Company Website Link -->
-                        <a v-if="pqea.details.company_website" class="pqea__company external" :href="pqea.details.company_website" target="_blank" @click="onProviderLinkClick(pqea)" :aria-label="decodeHtmlEntities(pqea.details.company_name) + ' website, opens in a new tab/window.'">
+                        <a v-if="pqea.details.company_website" class="pqea__company external external-app-link" :href="pqea.details.company_website" target="_blank" @click="onProviderLinkClick(pqea)" :aria-label="decodeHtmlEntities(pqea.details.company_name) + ' website, opens in a new tab/window.'">
                             {{ pqea.details.company_name ? decodeHtmlEntities(pqea.details.company_name) : 'Website' }}
                         </a>
                         <!-- Company Name if No Website -->
@@ -150,34 +150,54 @@
                         </address>
                     </td>
 
-                    <!-- Service Organizations -->
-                    <td data-label="Service Organization(s)" class="pqea__service-organizations">
+                    <!-- v1 Service Organizations -->
+                    <!-- <td data-label="Service Organization(s)" class="pqea__service-organizations">
                         <ul v-if="pqea.details.service_organization_name || pqea.details.service_organization_name_2">
                             <!-- Service Organization Name 1 -->
-                            <li v-if="pqea.details.service_organization_name" class="pqea__service-organization-name">
+                            <!-- <li v-if="pqea.details.service_organization_name" class="pqea__service-organization-name"> -->
                                 <!-- Link if Website Provided -->
-                                <a v-if="pqea.details.service_organization_website" :href="pqea.details.service_organization_website" class="external-app-link" target="_blank"  @click="onProviderLinkClick(pqea)" :aria-label="pqea.details.service_organization_name + ' website, opens in a new tab/window.'">{{ pqea.details.service_organization_name }}</a>
+                                <!-- <a v-if="pqea.details.service_organization_website" :href="pqea.details.service_organization_website" class="external-app-link" target="_blank"  @click="onProviderLinkClick(pqea)" :aria-label="pqea.details.service_organization_name + ' website, opens in a new tab/window.'">{{ pqea.details.service_organization_name }}</a> -->
                                 <!-- Plain Text if No Website -->
-                                <span v-else>{{ pqea.details.service_organization_name }}</span>
-                            </li>
+                                <!-- <span v-else>{{ pqea.details.service_organization_name }}</span> -->
+                            <!-- </li> -->
 
                             <!-- Service Organization Name 2 -->
-                            <li v-if="pqea.details.service_organization_name_2" class="pqea__service-organization-name--2">
+                            <!-- <li v-if="pqea.details.service_organization_name_2" class="pqea__service-organization-name--2"> -->
                                 <!-- Link if Website Provided -->
-                                <a v-if="pqea.details.service_organization_website_2" :href="pqea.details.service_organization_website_2" class="external-app-link" target="_blank" :aria-label="pqea.details.service_organization_name_2 + ' website, opens in a new tab/window.'">{{ pqea.details.service_organization_name_2 }}</a>
+                                <!-- <a v-if="pqea.details.service_organization_website_2" :href="pqea.details.service_organization_website_2" class="external-app-link" target="_blank" :aria-label="pqea.details.service_organization_name_2 + ' website, opens in a new tab/window.'">{{ pqea.details.service_organization_name_2 }}</a> -->
                                 <!-- Plain Text if No Website -->
-                                <span v-else>{{ pqea.details.service_organization_name_2 }}</span>
-                            </li>
+                                <!-- <span v-else>{{ pqea.details.service_organization_name_2 }}</span> -->
+                            <!-- </li> -->
 
                             <!-- Additional Service Organizations -->
-                            <li v-if="pqea.details.additional_service_organizations" v-for="(org, index) in pqea.details.additional_service_organizations" :key="index">
+                            <!-- <li v-if="pqea.details.additional_service_organizations" v-for="(org, index) in pqea.details.additional_service_organizations" :key="index"> -->
                                 <!-- Link if Website Provided -->
-                                <a v-if="org[1]" :href="org[1]" class="external-app-link" target="_blank" :aria-label="org[0] + ' website, opens in a new tab/window.'">{{ org[0] }}</a>
+                                <!-- <a v-if="org[1]" :href="org[1]" class="external-app-link" target="_blank" :aria-label="org[0] + ' website, opens in a new tab/window.'">{{ org[0] }}</a> -->
                                 <!-- Plain Text if No Website -->
-                                <span v-else>{{ org[0] }}</span>
+                                <!-- <span v-else>{{ org[0] }}</span>
+                            </li>
+                        </ul>
+                    </td> -->
+
+                    <!-- vNext Service Organizations -->
+                    <td data-label="Service Organization(s)" class="pqea__service-organizations">
+                        <ul v-if="pqea.details.service_organizations && pqea.details.service_organizations.length">
+                            <li v-for="org in pqea.details.service_organizations" :key="org.id" class="pqea__service-organization">
+                                <!-- Link if Website Provided -->
+                                <a v-if="org.website" 
+                                  :href="org.website" 
+                                  class="external-app-link" 
+                                  target="_blank" 
+                                  @click="onProviderLinkClick(pqea)" 
+                                  :aria-label="decodeHtmlEntities(org.title) + ' website, opens in a new tab/window.'">
+                                    {{ decodeHtmlEntities(org.title) }}
+                                </a>
+                                <!-- Plain Text if No Website -->
+                                <span v-else>{{ decodeHtmlEntities(org.title) }}</span>
                             </li>
                         </ul>
                     </td>
+
 
                     <!-- Program Qualified Services -->
                     <td data-label="Program Qualified Services" class="pqea__services">

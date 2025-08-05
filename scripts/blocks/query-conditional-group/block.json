@@ -1,0 +1,44 @@
+{
+  "apiVersion": 2,
+  "name": "bcgovcleanbc/query-conditional-group",
+  "title": "Query Conditional Group",
+  "category": "plugin",
+  "icon": "visibility",
+  "description": "Render this block’s inner content only when URL query params match the configured rules.",
+  "attributes": {
+    "rules": {
+      "type": "array",
+      "default": []
+    },
+    "logic": {
+      "type": "string",
+      "default": "AND"
+    },
+    "invert": {
+      "type": "boolean",
+      "default": false
+    },
+    "caseSensitive": {
+      "type": "boolean",
+      "default": false
+    },
+    "clientSideCheck": {
+      "type": "boolean",
+      "default": false
+    },
+    "hideUntilJs": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "supports": {
+    "anchor": true,
+    "spacing": {
+      "margin": true,
+      "padding": true
+    },
+    "html": false
+  },
+  "editorScript": "file:./index.js",
+  "script": "file:./frontend.js"
+}

@@ -12,6 +12,9 @@ namespace Bcgov\Plugin\CleanBC\Hooks;
 class BasicBlocks {
 
 
+
+
+
     /**
      * Constructor.
      */
@@ -63,18 +66,25 @@ class BasicBlocks {
      */
     public function register_blocks(): void {
         // Path to block.json folder.
-        $block_dir = plugin_dir_path( __DIR__ ) . 'scripts/blocks/multi-query';
+        $multiquery_block_dir            = plugin_dir_path( __DIR__ ) . 'scripts/blocks/multi-query';
+        $queryconditionalgroup_block_dir = plugin_dir_path( __DIR__ ) . 'scripts/blocks/query-conditional-group';
 
         register_block_type_from_metadata(
-            $block_dir,
+            $multiquery_block_dir,
             [
                 'render_callback' => [ $this, 'render_multi_query_block' ],
+            ]
+        );
+        register_block_type_from_metadata(
+            $queryconditionalgroup_block_dir,
+            [
+                'render_callback' => [ $this, 'render_query_conditional_group' ],
             ]
         );
     }
 
 
-	/**
+    /**
      * Render callback for the multi-query block.
      *
      * @param array $attributes Block attributes.
@@ -125,7 +135,7 @@ class BasicBlocks {
             } else {
                 $rendered = '' !== $fallback ? $fallback : 'No fallback text provided.';
             }
-		} else {
+        } else {
             $match = null;
 
             foreach ( $combinations as $combo ) {
@@ -137,13 +147,13 @@ class BasicBlocks {
                     $match = $combo['value'];
                     break;
                 }
-			}
+            }
 
             if ( null !== $match && '' !== $match ) {
                 $rendered = str_replace( '{{value}}', esc_html( $match ), $placeholder );
-			} else {
+            } else {
                 $rendered = '' !== $fallback ? $fallback : 'No fallback text provided.';
-			}
+            }
         }
 
         $wrapper_attributes = get_block_wrapper_attributes(
@@ -158,6 +168,115 @@ class BasicBlocks {
             wp_kses_post( $rendered )
         );
     }
+
+    /**
+     * Render the Query Conditional Group block.
+     *
+     * @param array  $attributes Block attributes.
+     * @param string $content    Block inner content.
+     *
+     * @return string HTML content or empty string.
+     */
+    public function render_query_conditional_group( $attributes, $content ) {
+        // Verify nonce to prevent tampering.
+        if ( isset( $_GET['_nonce'] ) && ! wp_verify_nonce( $_GET['_nonce'], 'query_conditional_group_nonce' ) ) {
+            return '';
+        }
+
+        $rules          = isset( $attributes['rules'] ) ? $attributes['rules'] : [];
+        $logic          = isset( $attributes['logic'] ) ? $attributes['logic'] : 'AND';
+        $invert         = ! empty( $attributes['invert'] );
+        $case_sensitive = ! empty( $attributes['caseSensitive'] );
+        $client_side    = ! empty( $attributes['clientSideCheck'] );
+        $hide_until_js  = ! empty( $attributes['hideUntilJs'] );
+
+        $params = $_GET;
+
+        $matches = $this->query_conditional_group_evaluate_rules( $rules, $params, $logic, $case_sensitive );
+
+        if ( $invert ) {
+            $matches = ! $matches;
+        }
+
+        if ( ! $matches && ! $client_side ) {
+            return '';
+        }
+
+        $wrapper_attrs = get_block_wrapper_attributes(
+            [
+                'class'       => 'query-conditional-group-block',
+                'data-rules'  => esc_attr( wp_json_encode( $rules ) ),
+                'data-logic'  => esc_attr( $logic ),
+                'data-invert' => $invert ? 'true' : 'false',
+                'data-case'   => $case_sensitive ? 'true' : 'false',
+                'style'       => ( $client_side && $hide_until_js ) ? 'display:none;' : '',
+            ]
+        );
+
+        return sprintf( '<div %1$s>%2$s</div>', $wrapper_attrs, $content );
+    }
+
+
+    /**
+     * Evaluate conditional rules against query parameters.
+     *
+     * @param array  $rules        Rules to evaluate.
+     * @param array  $params       $_GET parameters.
+     * @param string $logic        'AND' or 'OR'.
+     * @param bool   $global_case  Whether comparisons are case sensitive.
+     *
+     * @return bool Whether the rules match the params.
+     */
+    private function query_conditional_group_evaluate_rules( $rules, $params, $logic = 'AND', $global_case = false ) {
+        if ( empty( $rules ) ) {
+            return false;
+        }
+
+        $results = array_map(
+            function ( $rule ) use ( $params, $global_case ) {
+                $key            = $rule['key'] ?? '';
+                $value          = $rule['value'] ?? '';
+                $operator       = $rule['operator'] ?? 'equals';
+                $case_sensitive = $rule['caseSensitive'] ?? $global_case;
+
+                $param_value = $params[ $key ] ?? null;
+
+                if ( ! $case_sensitive && is_string( $param_value ) ) {
+                    $param_value = strtolower( $param_value );
+                    $value       = strtolower( $value );
+                }
+
+                switch ( $operator ) {
+                    case 'equals':
+                        return $param_value === $value;
+                    case 'notEquals':
+                        return $param_value !== $value;
+                    case 'contains':
+                        return is_string( $param_value ) && strpos( $param_value, $value ) !== false;
+                    case 'startsWith':
+                        return is_string( $param_value ) && str_starts_with( $param_value, $value );
+                    case 'endsWith':
+                        return is_string( $param_value ) && str_ends_with( $param_value, $value );
+                    case 'regex':
+                        if ( is_string( $param_value ) ) {
+                            $result = preg_match( $value, $param_value );
+                            return 1 === $result;
+                        }
+                        return false;
+                    case 'exists':
+                        return array_key_exists( $key, $params );
+                    case 'notExists':
+                        return ! array_key_exists( $key, $params );
+                    default:
+                        return false;
+                }
+            },
+            $rules
+        );
+
+        return 'OR' === $logic ? in_array( true, $results, true ) : ! in_array( false, $results, true );
+    }
+
 
 
     /**

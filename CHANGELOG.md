@@ -1,3 +1,7 @@
+## 1.20.0 August 5, 2025
+– Query Conditional Group custom block added support for conditionally displaying block content based on query string parameters. Rules can be configured with multiple operators (e.g., equals, contains, regex), logic types (AND/OR), and optional case sensitivity. Server-side and client-side evaluation is supported, with secure handling of request data via nonce verification.
+- Updated PQEA API filter callback to return data from new post types ('pqeas-renovation' and 'pqeas-construction') using a unified ACF field structure. The response now includes normalized taxonomy data for locations and services, and adds a 'service_organizations' array within 'details' for linked organizations (with IDs, titles, websites, and permalinks). Maintains parity with the previous API structure while extending data coverage.
+
 ## 1.19.2 June 10, 2025
 – Multi-Query Content block query string parameter passthrough as value options. Augmented preview and help information. Bolstered placeholder and fallback display.
 
@@ -49,8 +53,8 @@
 ## 1.16.2 May 2, 2025
 – Enhanced accessibility and mobile table display, works with styles/public/tables.scss styles. 
 – Adds ARIA roles to all table elements. 
-– Copies the original cell content (`innerHTML`) and `data-label` into visually hidden cells. 
-– Adds `aria-hidden="true"` to hidden cells to improve screen reader behavior.
+– Copies the original cell content ('innerHTML') and 'data-label' into visually hidden cells. 
+– Adds 'aria-hidden="true"' to hidden cells to improve screen reader behavior.
 
 ## 1.16.1 May 2, 2025
 – Added accessibility features for visual rebates content: ARIA labels to inline contact links and stripping legacy links targeting new tab/windows.
@@ -273,7 +277,7 @@
 - Added scaffolding for PQEA filter block.
 
 ## 1.4.0 February 16, 2024
-- Vite builder and composer/wp-scripts living in harmony – codebase now lints using the code standards eg: `composer production` now works as required. ([CLEANBC-189](https://apps.nrs.gov.bc.ca/int/jira/browse/CLEANBC-189))
+- Vite builder and composer/wp-scripts living in harmony – codebase now lints using the code standards eg: 'composer production' now works as required. ([CLEANBC-189](https://apps.nrs.gov.bc.ca/int/jira/browse/CLEANBC-189))
 
 ## 1.3.1 February 15, 2024
 - Updated definition link to enable session caching of content. ([CLEANBC-173](https://apps.nrs.gov.bc.ca/int/jira/browse/CLEANBC-173))
