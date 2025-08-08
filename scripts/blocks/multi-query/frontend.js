@@ -20,8 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
           );
           if (matchingOption) {
             const label = matchingOption.label || matchingOption.textContent;
-            const replaceKey = 1 === i ? 'value' : `value_${i}`;
-            const allowPassthrough = true === block.dataset.useParamDirect;
+            const replaceKey = (1 === i) ? 'value' : `value_${i}`;
+            const allowPassthrough = ('true' === block.dataset.useParamDirect);
+
             if (!allowPassthrough) {
               i++;
               continue;
