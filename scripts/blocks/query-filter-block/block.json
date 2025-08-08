@@ -1,0 +1,45 @@
+{
+	"apiVersion": 2,
+	"name": "bcgovcleanbc/query-filter-block",
+	"title": "Query Filter Block",
+	"category": "plugin",
+	"icon": "visibility",
+	"description": "Displays a filter select based on a chosen taxonomy and updates the query string.",
+	"keywords": [
+		"query",
+		"filter",
+		"rebates",
+		"taxonomy"
+	],
+	"editorScript": "file:./index.js",
+	"style": "file:./editor.css",
+	"script": "file:./frontend.js",
+	"supports": {
+		"html": false,
+		"typography": {
+			"fontSize": true,
+			"fontStyle": true,
+			"fontWeight": true,
+			"letterSpacing": true,
+			"lineHeight": true,
+			"textDecoration": true,
+			"textTransform": true
+		},
+		"color": {
+			"text": true
+		}
+	},
+	"attributes": {
+		"label": {
+			"type": "string",
+			"default": ""
+		},
+		"style": {
+			"type": "object"
+		},
+		"selectedTaxonomy": {
+			"type": "string",
+			"default": ""
+		}
+	}
+}

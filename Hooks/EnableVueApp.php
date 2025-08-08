@@ -870,6 +870,59 @@ class EnableVueApp {
 		return $posts_data;
 	}
 
+
+	/**
+     * Retrieves non-empty taxonomy terms for a given array of post types.
+     *
+     * For each post type, this method fetches the taxonomies associated with it, and
+     * retrieves all non-empty terms. Results are grouped by taxonomy slug.
+     *
+     * Duplicate taxonomy slugs (shared across post types) are merged under a single key.
+     *
+     * Example response:
+     * {
+     *   "regions": [
+     *     { "id": 3, "name": "Fraser Valley", "slug": "fraser-valley" },
+     *     { "id": 7, "name": "Interior", "slug": "interior" }
+     *   ]
+     * }
+     *
+     * @return \WP_REST_Response REST-formatted response containing prefixed taxonomy terms.
+     */
+	public function get_meta_taxonomy_terms() {
+		$post_types = [ 'contractors', 'incentives', 'pqeas-renovation' ]; // Add target post types here.
+
+		$response = [];
+
+		foreach ( $post_types as $post_type ) {
+			$taxonomies = get_object_taxonomies( $post_type, 'objects' );
+
+			foreach ( $taxonomies as $taxonomy_slug => $taxonomy_obj ) {
+				$terms = get_terms(
+                    [
+						'taxonomy'   => $taxonomy_slug,
+						'hide_empty' => true,
+                    ]
+				);
+
+				if ( is_wp_error( $terms ) ) {
+					continue;
+				}
+
+				foreach ( $terms as $term ) {
+					$response[ $taxonomy_slug ][] = [
+						'id'   => $term->term_id,
+						'name' => $term->name,
+						'slug' => $term->slug,
+					];
+				}
+			}
+		}
+
+		return rest_ensure_response( $response );
+	}
+
+
 	/**
 	 * Sets up route and callback for custom endpoint.
 	 *
@@ -932,6 +985,16 @@ class EnableVueApp {
 			array(
 				'methods'             => 'GET',
 				'callback'            => [ $this, 'custom_api_faq_filter_callback' ],
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		register_rest_route(
+			'custom/v1',
+			'/meta-categories',
+			array(
+				'methods'             => 'GET',
+				'callback'            => [ $this, 'get_meta_taxonomy_terms' ],
 				'permission_callback' => '__return_true',
 			)
 		);

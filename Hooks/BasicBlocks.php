@@ -11,10 +11,6 @@ namespace Bcgov\Plugin\CleanBC\Hooks;
  */
 class BasicBlocks {
 
-
-
-
-
     /**
      * Constructor.
      */
@@ -38,13 +34,51 @@ class BasicBlocks {
     /**
      * Register the stylesheets and JavaScript for the admin area.
      *
-     * @since    1.5.0
+     * @since 1.5.0
      */
     public function enqueue_admin_scripts() {
         $name       = 'admin';
         $asset_info = \Bcgov\Plugin\CleanBC\Setup::get_asset_information( $name, 'dist-basic' );
 
-        wp_enqueue_script( $asset_info['handle'], $asset_info['dist_url'] . $name . '.js', $asset_info['dependencies'], $asset_info['version'], false );
+        wp_enqueue_script(
+            $asset_info['handle'],
+            $asset_info['dist_url'] . $name . '.js',
+            $asset_info['dependencies'],
+            $asset_info['version'],
+            true
+        );
+
+        /**
+         * Safely extract and sanitize query parameters.
+         *
+         * Note: This is read-only, used solely for populating UI filters.
+         * No privileged actions or sensitive data are processed.
+         */
+        $current_query = [];
+
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        if ( ! empty( $_GET ) ) {
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            foreach ( $_GET as $key => $value ) {
+                // Skip any unexpected keys just to be cautious (optional hardening).
+                if ( str_starts_with( $key, '_' ) ) {
+                    continue;
+                }
+
+                $current_query[ sanitize_key( $key ) ] = is_array( $value )
+                    ? array_map( 'sanitize_text_field', $value )
+                    : [ sanitize_text_field( $value ) ];
+            }
+        }
+
+        wp_localize_script(
+            $asset_info['handle'],
+            'queryFilterBlockData',
+            [
+                'query' => $current_query,
+                'nonce' => wp_create_nonce( 'wp_rest' ), // For authenticated REST API usage.
+            ]
+        );
     }
 
     /**
@@ -65,9 +99,10 @@ class BasicBlocks {
      * @return void
      */
     public function register_blocks(): void {
-        // Path to block.json folder.
+        // Path to block.json folders.
         $multiquery_block_dir            = plugin_dir_path( __DIR__ ) . 'scripts/blocks/multi-query';
         $queryconditionalgroup_block_dir = plugin_dir_path( __DIR__ ) . 'scripts/blocks/query-conditional-group';
+        $queryfilter_block_dir           = plugin_dir_path( __DIR__ ) . 'scripts/blocks/query-filter-block';
 
         register_block_type_from_metadata(
             $multiquery_block_dir,
@@ -81,7 +116,14 @@ class BasicBlocks {
                 'render_callback' => [ $this, 'render_query_conditional_group' ],
             ]
         );
+        register_block_type_from_metadata(
+            $queryfilter_block_dir,
+            [
+                'render_callback' => [ $this, 'render_query_filter_block' ],
+            ]
+        );
     }
+
 
 
     /**
@@ -216,6 +258,51 @@ class BasicBlocks {
         return sprintf( '<div %1$s>%2$s</div>', $wrapper_attrs, $content );
     }
 
+    /**
+     * Render the Query Filter block.
+     *
+     * Outputs a placeholder div and localizes the current query string
+     * values to be available to frontend JavaScript for hydration.
+     *
+     * @param array $attributes Block attributes.
+     *
+     * @return string HTML content for frontend rendering.
+     */
+    public function render_query_filter_block( $attributes ) {
+		$taxonomy = sanitize_key( $attributes['selectedTaxonomy'] ?? '' );
+		$label    = sanitize_text_field( $attributes['label'] ?? 'Filter' );
+
+		if ( empty( $taxonomy ) ) {
+			return '<div class="query-filter-block error"> ⚠️ No taxonomy selected for filter block.</div>';
+		}
+
+		$current_query = [];
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only access to $_GET is safe in this context.
+		foreach ( $_GET as $key => $value ) {
+			if ( str_starts_with( $key, '_' ) ) {
+				continue;
+			}
+
+			$current_query[ sanitize_key( $key ) ] = is_array( $value )
+			? array_map( 'sanitize_text_field', $value )
+			: [ sanitize_text_field( $value ) ];
+		}
+
+		$wrapper_attributes = get_block_wrapper_attributes(
+            [
+				'class' => 'query-filter-block',
+            ]
+        );
+
+		return sprintf(
+            '<div %s data-taxonomy="%s" data-label="%s" data-query=\'%s\'>Loading filters…</div>',
+            $wrapper_attributes,
+            esc_attr( $taxonomy ),
+            esc_attr( $label ),
+            esc_js( wp_json_encode( $current_query ) )
+		);
+	}
+
 
     /**
      * Evaluate conditional rules against query parameters.
@@ -276,8 +363,6 @@ class BasicBlocks {
 
         return 'OR' === $logic ? in_array( true, $results, true ) : ! in_array( false, $results, true );
     }
-
-
 
     /**
      * Register custom block pattern for Single Incentive (akak rebates) page.

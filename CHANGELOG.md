@@ -1,3 +1,6 @@
+## 1.20.1 August 8, 2025
+– Query Filter Block for updating query string parameters. Inital pass for testing purposes.
+
 ## 1.20.0 August 5, 2025
 – Query Conditional Group custom block added support for conditionally displaying block content based on query string parameters. Rules can be configured with multiple operators (e.g., equals, contains, regex), logic types (AND/OR), and optional case sensitivity. Server-side and client-side evaluation is supported, with secure handling of request data via nonce verification.
 - Updated PQEA API filter callback to return data from new post types ('pqeas-renovation' and 'pqeas-construction') using a unified ACF field structure. The response now includes normalized taxonomy data for locations and services, and adds a 'service_organizations' array within 'details' for linked organizations (with IDs, titles, websites, and permalinks). Maintains parity with the previous API structure while extending data coverage.
