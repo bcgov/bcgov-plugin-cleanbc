@@ -8,3 +8,7 @@
 	text-transform: inherit;
 	text-decoration: inherit;
 }
+
+@view-transition {
+  navigation: auto;
+}

@@ -11,6 +11,7 @@ namespace Bcgov\Plugin\CleanBC\Hooks;
  */
 class BasicBlocks {
 
+
     /**
      * Constructor.
      */
@@ -133,28 +134,27 @@ class BasicBlocks {
      * @return string Rendered HTML output.
      */
     public function render_multi_query_block( $attributes ) {
-        $placeholder      = $attributes['placeholderText'] ?? '';
-        $fallback         = $attributes['fallbackText'] ?? '';
-        $keys             = $attributes['paramKeys'] ?? [];
-        $combinations     = $attributes['combinations'] ?? [];
-        $use_or           = $attributes['useOrLogic'] ?? false;
-        $alignment        = $attributes['alignment'] ?? 'left';
-        $use_param_direct = $attributes['useParamValueDirect'] ?? false;
+        $placeholder            = $attributes['placeholderText'] ?? '';
+        $fallback               = $attributes['fallbackText'] ?? '';
+        $keys                   = $attributes['paramKeys'] ?? [];
+        $combinations           = $attributes['combinations'] ?? [];
+        $use_or                 = $attributes['useOrLogic'] ?? false;
+        $alignment              = $attributes['alignment'] ?? 'left';
+        $use_param_value_direct = $attributes['useParamValueDirect'] ?? false;
 
+        // Collect current query param values.
         $current = [];
         foreach ( $keys as $key ) {
             $current[ $key ] = sanitize_text_field( filter_input( INPUT_GET, $key ) ?? '' );
         }
 
-        $rendered = '';
+        $rendered = $placeholder;
 
-        if ( $use_param_direct ) {
-            $rendered = $placeholder;
-
+        if ( $use_param_value_direct ) {
+            // Match all possible placeholders like {{value}}, {{value_2}}, etc.
             preg_match_all( '/{{\s*value(?:_(\d+))?\s*}}/', $placeholder, $matches, PREG_SET_ORDER );
 
             $all_present = true;
-
             foreach ( $matches as $match ) {
                 $index = isset( $match[1] ) ? intval( $match[1] ) - 1 : 0;
                 $key   = $keys[ $index ] ?? null;
@@ -167,19 +167,23 @@ class BasicBlocks {
 
             if ( $all_present ) {
                 foreach ( $matches as $match ) {
-                    $index = isset( $match[1] ) ? intval( $match[1] ) - 1 : 0;
-                    $token = $match[0];
-                    $key   = $keys[ $index ] ?? null;
-                    $value = $key ? esc_html( $current[ $key ] ) : '';
-
-                    $rendered = str_replace( $token, $value, $rendered );
+                    $index       = isset( $match[1] ) ? intval( $match[1] ) - 1 : 0;
+                    $key         = $keys[ $index ] ?? null;
+                    $value       = $key ? esc_html( $current[ $key ] ) : '';
+                    $token       = $match[0];
+                    $span_name   = 0 === $index ? 'value' : 'value_' . ( $index + 1 );
+                    $replacement = sprintf(
+                        '<span data-replace="%s">%s</span>',
+                        esc_attr( $span_name ),
+                        $value
+                    );
+                    $rendered    = str_replace( $token, $replacement, $rendered );
                 }
             } else {
-                $rendered = '' !== $fallback ? $fallback : 'No fallback text provided.';
+                $rendered = '' !== $fallback ? esc_html( $fallback ) : 'No fallback text provided.';
             }
         } else {
             $match = null;
-
             foreach ( $combinations as $combo ) {
                 $is_match = $use_or
                     ? array_intersect_assoc( $combo, $current )
@@ -192,21 +196,42 @@ class BasicBlocks {
             }
 
             if ( null !== $match && '' !== $match ) {
-                $rendered = str_replace( '{{value}}', esc_html( $match ), $placeholder );
+                $rendered = str_replace(
+                    '{{value}}',
+                    sprintf(
+                        '<span data-replace="value">%s</span>',
+                        esc_html( $match )
+                    ),
+                    $placeholder
+                );
             } else {
-                $rendered = '' !== $fallback ? $fallback : 'No fallback text provided.';
+                $rendered = '' !== $fallback ? esc_html( $fallback ) : 'No fallback text provided.';
             }
         }
 
-        $wrapper_attributes = get_block_wrapper_attributes(
-            [
-                'style' => sprintf( 'text-align: %s;', esc_attr( $alignment ) ),
-            ]
+        // Add data-key/data-value attributes for possible JS use.
+        $wrapper_data_attrs = [];
+        foreach ( $keys as $i => $key ) {
+            $index                                       = $i + 1;
+            $wrapper_data_attrs[ "data-key-{$index}" ]   = esc_attr( $key );
+            $wrapper_data_attrs[ "data-value-{$index}" ] = esc_attr( $current[ $key ] ?? '' );
+        }
+
+        $wrapper_data_attrs['data-use-param-direct'] = $use_param_value_direct ? 'true' : 'false';
+
+        $wrapper_attrs = get_block_wrapper_attributes(
+            array_merge(
+                [
+                    'class' => 'multi-query-content-block',
+                    'style' => 'text-align:' . esc_attr( $alignment ),
+                ],
+                $wrapper_data_attrs
+            )
         );
 
         return sprintf(
             '<div %s>%s</div>',
-            $wrapper_attributes,
+            $wrapper_attrs,
             wp_kses_post( $rendered )
         );
     }
@@ -269,39 +294,39 @@ class BasicBlocks {
      * @return string HTML content for frontend rendering.
      */
     public function render_query_filter_block( $attributes ) {
-		$taxonomy = sanitize_key( $attributes['selectedTaxonomy'] ?? '' );
-		$label    = sanitize_text_field( $attributes['label'] ?? 'Filter' );
+        $taxonomy = sanitize_key( $attributes['selectedTaxonomy'] ?? '' );
+        $label    = sanitize_text_field( $attributes['label'] ?? 'Filter' );
 
-		if ( empty( $taxonomy ) ) {
-			return '<div class="query-filter-block error"> ⚠️ No taxonomy selected for filter block.</div>';
-		}
+        if ( empty( $taxonomy ) ) {
+            return '<div class="query-filter-block error"> ⚠️ No taxonomy selected for filter block.</div>';
+        }
 
-		$current_query = [];
+        $current_query = [];
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only access to $_GET is safe in this context.
-		foreach ( $_GET as $key => $value ) {
-			if ( str_starts_with( $key, '_' ) ) {
-				continue;
-			}
+        foreach ( $_GET as $key => $value ) {
+            if ( str_starts_with( $key, '_' ) ) {
+                continue;
+            }
 
-			$current_query[ sanitize_key( $key ) ] = is_array( $value )
-			? array_map( 'sanitize_text_field', $value )
-			: [ sanitize_text_field( $value ) ];
-		}
+            $current_query[ sanitize_key( $key ) ] = is_array( $value )
+                ? array_map( 'sanitize_text_field', $value )
+                : [ sanitize_text_field( $value ) ];
+        }
 
-		$wrapper_attributes = get_block_wrapper_attributes(
+        $wrapper_attributes = get_block_wrapper_attributes(
             [
-				'class' => 'query-filter-block',
+                'class' => 'query-filter-block',
             ]
         );
 
-		return sprintf(
+        return sprintf(
             '<div %s data-taxonomy="%s" data-label="%s" data-query=\'%s\'>Loading filters…</div>',
             $wrapper_attributes,
             esc_attr( $taxonomy ),
             esc_attr( $label ),
             esc_js( wp_json_encode( $current_query ) )
-		);
-	}
+        );
+    }
 
 
     /**

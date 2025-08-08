@@ -3,7 +3,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 	if (!blocks.length) return;
 
 	const API_URL = '/wp-json/custom/v1/meta-categories';
-	const taxonomies = await fetch(API_URL).then((res) => res.json());
+
+	let taxonomies;
+	try {
+		taxonomies = await fetch(API_URL).then((res) => res.json());
+	} catch (error) {
+		console.error('Error fetching taxonomies:', error);
+		return;
+	}
 
 	blocks.forEach((block) => {
 		const taxonomy = block.dataset.taxonomy;
@@ -60,6 +67,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 		block.innerHTML = '';
 		block.appendChild(group);
 
+		// Emit a custom event so that multi-query blocks can react
+		const event = new CustomEvent('queryFilterReady', {
+			bubbles: true,
+			detail: {
+				taxonomy,
+				selectElement: select,
+				block,
+			},
+		});
+		block.dispatchEvent(event);
+
+		// Optional visual hook
 		requestAnimationFrame(() => {
 			block.setAttribute('data-initialized', 'true');
 		});

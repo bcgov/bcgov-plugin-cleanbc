@@ -1,3 +1,6 @@
+## 1.20.2 August 8, 2025
+– Query Filter Block and Multi Query Content block improvements.
+
 ## 1.20.1 August 8, 2025
 – Query Filter Block for updating query string parameters. Inital pass for testing purposes.
 

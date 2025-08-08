@@ -4,13 +4,13 @@ import {
   InspectorControls,
   RichText,
   BlockControls,
-  AlignmentToolbar
+  AlignmentToolbar,
 } from '@wordpress/block-editor';
 import {
   PanelBody,
   TextControl,
   Button,
-  ToggleControl
+  ToggleControl,
 } from '@wordpress/components';
 import { Fragment } from '@wordpress/element';
 
@@ -25,7 +25,7 @@ registerBlockType('bcgovcleanbc/multi-query-content', {
       previewValues,
       useOrLogic,
       useParamValueDirect,
-      alignment = 'left'
+      alignment = 'left',
     } = attributes;
 
     const blockProps = useBlockProps({ style: { textAlign: alignment } });
@@ -34,17 +34,15 @@ registerBlockType('bcgovcleanbc/multi-query-content', {
       const updatedKeys = [...paramKeys];
       updatedKeys[index] = value;
 
-      // Reset preview values and combinations to avoid stale state.
       const newPreview = {};
-      const newCombinations = combinations.map(combo => ({ ...combo }));
-
-      // Rebuild combinations with new keys if possible.
-      for (let i = 0; i < newCombinations.length; i++) {
-        newCombinations[i] = Object.fromEntries(
-          updatedKeys.map(k => [k, newCombinations[i][k] ?? ''])
-        );
-        newCombinations[i].value = combinations[i]?.value || '';
-      }
+      const newCombinations = combinations.map((combo) =>
+        Object.fromEntries(
+          updatedKeys.map((k) => [k, combo[k] ?? ''])
+        )
+      );
+      newCombinations.forEach((combo, i) => {
+        combo.value = combinations[i]?.value || '';
+      });
 
       setAttributes({
         paramKeys: updatedKeys,
@@ -63,14 +61,12 @@ registerBlockType('bcgovcleanbc/multi-query-content', {
       const updatedKeys = [...paramKeys];
       const removedKey = updatedKeys.splice(index, 1)[0];
 
-      // Remove the key from all combinations.
-      const updatedCombinations = combinations.map(combo => {
+      const updatedCombinations = combinations.map((combo) => {
         const newCombo = { ...combo };
         delete newCombo[removedKey];
         return newCombo;
       });
 
-      // Also clean up preview values.
       const updatedPreview = { ...previewValues };
       delete updatedPreview[removedKey];
 
@@ -82,28 +78,27 @@ registerBlockType('bcgovcleanbc/multi-query-content', {
     };
 
     const updateCombo = (index, field, value) => {
-      const updated = combinations.map(combo => ({ ...combo }));
+      const updated = combinations.map((combo) => ({ ...combo }));
       updated[index][field] = value;
       setAttributes({ combinations: updated });
     };
 
     const addCombo = () => {
-      const cloned = combinations.map(combo => ({ ...combo }));
-      const newCombo = Object.fromEntries(paramKeys.map(k => [k, '']));
+      const newCombo = Object.fromEntries(paramKeys.map((k) => [k, '']));
       newCombo.value = '';
-      setAttributes({ combinations: [...cloned, newCombo] });
+      setAttributes({ combinations: [...combinations, newCombo] });
     };
 
     const removeCombo = (index) => {
-      const updated = combinations.map(combo => ({ ...combo }));
+      const updated = combinations.map((combo) => ({ ...combo }));
       updated.splice(index, 1);
       setAttributes({ combinations: updated });
     };
 
     const matchIndex = combinations.findIndex((combo) =>
       useOrLogic
-        ? paramKeys.some(key => combo[key] === previewValues[key])
-        : paramKeys.every(key => combo[key] === previewValues[key])
+        ? paramKeys.some((key) => combo[key] === previewValues[key])
+        : paramKeys.every((key) => combo[key] === previewValues[key])
     );
 
     let simulatedOutput = placeholderText;
@@ -113,12 +108,14 @@ registerBlockType('bcgovcleanbc/multi-query-content', {
         const placeholderMatches =
           placeholderText.match(/{{\s*value(?:_\d+)?\s*}}/g) || [];
 
-        const requiredIndexes = [...new Set(
-          placeholderMatches.map((match) => {
-            const numberMatch = match.match(/\d+/);
-            return numberMatch ? parseInt(numberMatch[0], 10) - 1 : 0;
-          })
-        )];
+        const requiredIndexes = [
+          ...new Set(
+            placeholderMatches.map((match) => {
+              const numberMatch = match.match(/\d+/);
+              return numberMatch ? parseInt(numberMatch[0], 10) - 1 : 0;
+            })
+          ),
+        ];
 
         const allPresent = requiredIndexes.every((i) => {
           const key = paramKeys[i];
@@ -127,17 +124,13 @@ registerBlockType('bcgovcleanbc/multi-query-content', {
 
         if (allPresent) {
           simulatedOutput = placeholderText;
-
           requiredIndexes.forEach((i) => {
             const key = paramKeys[i];
             const value = previewValues[key] || '';
-
             simulatedOutput = simulatedOutput.replace(
               new RegExp(`{{\\s*value_${i + 1}\\s*}}`, 'g'),
               value
             );
-
-            // Replace {{value}} as an alias for value_1.
             if (0 === i) {
               simulatedOutput = simulatedOutput.replace(
                 /{{\s*value\s*}}/g,
@@ -149,27 +142,11 @@ registerBlockType('bcgovcleanbc/multi-query-content', {
           simulatedOutput = fallbackText;
         }
       } else {
-        const hasCombinations = combinations.length > 0;
-        let match = null;
-
-        if (hasCombinations) {
-          const matchIndex = combinations.findIndex((combo) =>
-            useOrLogic
-              ? paramKeys.some((key) => combo[key] === previewValues[key])
-              : paramKeys.every((key) => combo[key] === previewValues[key])
-          );
-          match = combinations[matchIndex];
-        }
-
-        if (match && match.value) {
-          simulatedOutput = placeholderText.replace(
-            /{{\s*value\s*}}/g,
-            match.value
-          );
-        } else {
-          // No combinations or no match: use fallback for entire content.
-          simulatedOutput = fallbackText;
-        }
+        const match = combinations[matchIndex];
+        simulatedOutput =
+          match && match.value
+            ? placeholderText.replace(/{{\s*value\s*}}/g, match.value)
+            : fallbackText || 'No fallback text provided.';
       }
     }
 
@@ -225,7 +202,6 @@ registerBlockType('bcgovcleanbc/multi-query-content', {
                 </ul>
               </div>
             )}
-
 
             {combinations.map((combo, i) => (
               <div key={i} style={{
@@ -300,7 +276,7 @@ registerBlockType('bcgovcleanbc/multi-query-content', {
               help="When preview values do not find a valid match, the Fallback Text will be displayed instead of the placeholder content. If the Fallback Text is empty, 'No fallback text provided' will be output. Enable preview mode to test."
             />
           </PanelBody>
-        </InspectorControls>
+</InspectorControls>
 
         <div {...blockProps}>
           <RichText
