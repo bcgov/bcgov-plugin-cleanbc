@@ -78,6 +78,7 @@
 		width: 100%;
 		flex: 0 0 auto;
 		margin-bottom: 1rem;
+		gap: 1rem;
 
 		@media (min-width: $breakpoint-md) {
 			width: auto;
@@ -1910,7 +1911,7 @@
 		@media (min-width: $breakpoint-md) {
 			flex-basis: calc((100% / 3) - (1rem / 3));
 			width: auto;
-			justify-content: space-between;
+			justify-content: flex-start;
 		}
 
 		@media (min-width: $breakpoint-lg) {

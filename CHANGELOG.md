@@ -1,3 +1,7 @@
+## 1.21.0 September 16, 2025
+– Large update to add Rebates vNext Vue-based filter tool block for querystring-based variability management. Utilises localStorage for persistence and enables filtering of multi-query and query conditional block output.
+– v2 rebates API endpoint to work with vNext Rebate Filter Tool.
+
 ## 1.20.2 August 8, 2025
 – Query Filter Block and Multi Query Content block improvements.
 

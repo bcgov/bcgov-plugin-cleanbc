@@ -62,6 +62,14 @@ class EnableVueApp {
 		);
 
 		wp_enqueue_script(
+			'cleanbc-plugin/betterhomes-vnext-rebate-filter-block',
+			plugin_dir_url( __DIR__ ) . 'blocks/vue-blocks/betterhomes-vnext-rebate-vue-block.js',
+			[ 'wp-blocks', 'wp-element', 'wp-editor' ],
+			$latest_version,
+			true
+		);
+
+		wp_enqueue_script(
 			'cleanbc-plugin/betterhomes-faqs-filter-block',
 			plugin_dir_url( __DIR__ ) . 'blocks/vue-blocks/betterhomes-faqs-vue-block.js',
 			[ 'wp-blocks', 'wp-element', 'wp-editor' ],
@@ -306,6 +314,52 @@ class EnableVueApp {
 	 * @param array $attributes The block attributes.
 	 * @return string The HTML output for the block.
 	 */
+	public function vuejs_betterhomes_vnext_rebate_filter_app_dynamic_block_plugin( $attributes ) {
+		$plugin_dir  = plugin_dir_path( __DIR__ );
+		$assets_dir  = $plugin_dir . 'dist/assets/';
+		$plugin_data = get_plugin_data( $plugin_dir . 'index.php' );
+
+		$plugin_version = $plugin_data['Version'];
+		$latest_version = $plugin_version; // Fallback to installed version.
+
+		$public_css_files = glob( $assets_dir . 'vue*.css' );
+		$public_js_files  = glob( $assets_dir . 'vue*.js' );
+
+		foreach ( $public_css_files as $file ) {
+			$file_url = plugins_url( str_replace( $plugin_dir, '', $file ), __DIR__ );
+			wp_enqueue_style( 'vue-app-' . basename( $file, '.css' ), $file_url, [], $latest_version );
+		}
+
+		foreach ( $public_js_files as $file ) {
+			$file_url = plugins_url( str_replace( $plugin_dir, '', $file ), __DIR__ );
+			wp_enqueue_script(
+				'vue-app-' . basename( $file, '.js' ),
+				$file_url,
+				[ 'bcgov-block-theme-public' ],
+				$latest_version,
+				true
+			);
+		}
+
+		// Attributes passed to the Vue frontend.
+		$class_name = isset( $attributes['className'] ) ? $attributes['className'] : '';
+		$mode       = isset( $attributes['mode'] ) ? $attributes['mode'] : 'archive'; // fallback default.
+
+		// Wrapper element with data-mode attribute.
+		return sprintf(
+			'<div id="rebateFilterApp" class="%s" data-mode="%s">Loading...</div>',
+			esc_attr( $class_name ),
+			esc_attr( $mode )
+		);
+	}
+
+
+	/**
+	 * Load VueJS app assets when the block is on the page.
+	 *
+	 * @param array $attributes The block attributes.
+	 * @return string The HTML output for the block.
+	 */
 	public function vuejs_betterhomes_faq_filter_app_dynamic_block_plugin( $attributes ) {
 
 		$plugin_dir = plugin_dir_path( __DIR__ );
@@ -371,6 +425,13 @@ class EnableVueApp {
 			'cleanbc-plugin/betterhomes-rebate-filter-block',
 			[
 				'render_callback' => [ $this, 'vuejs_betterhomes_rebate_filter_app_dynamic_block_plugin' ],
+			]
+		);
+
+		register_block_type(
+			'cleanbc-plugin/betterhomes-vnext-rebate-filter-block',
+			[
+				'render_callback' => [ $this, 'vuejs_betterhomes_vnext_rebate_filter_app_dynamic_block_plugin' ],
 			]
 		);
 
@@ -751,46 +812,259 @@ class EnableVueApp {
 	 *
 	 * @return array An array of formatted data for Rebates.
 	 */
+	/**
+	 * API callback: Return published incentives with normalized meta/taxonomy data.
+	 *
+	 * @return WP_REST_Response
+	 */
 	public function custom_api_rebate_filter_callback() {
-		// Set up the arguments for WP_Query.
+		// Always initialize; avoids "Undefined variable $posts_data".
+		$posts_data = array();
+
 		$args = array(
 			'post_type'      => 'incentives',
 			'posts_per_page' => -1,
 			'post_status'    => 'publish',
 		);
 
-		// Query Rebates using WP_Query.
-		$rebates = new \WP_Query( $args );
+		$query = new \WP_Query( $args );
 
-		// Fetch associated meta and ACF fields on a per-post basis.
-		foreach ( $rebates->posts as $rebate ) {
-
-			// Retrieve exclude_from_tool field (may be `null`, `true`, or `false`).
-			$exclude = get_field( 'exclude_from_tool', $rebate->ID );
-
-			if ( $exclude ) {
-				continue;
+		// Normalizer for terms (handles false/WP_Error).
+		$normalize_terms = static function ( $terms, $include_region = false ) {
+			if ( is_wp_error( $terms ) || empty( $terms ) ) {
+				return array();
 			}
+			$out = array();
+			foreach ( (array) $terms as $t ) {
+				if ( ! ( $t instanceof \WP_Term ) ) {
+					continue;
+				}
+				$item = array(
+					'id'   => (int) $t->term_id,
+					'name' => $t->name,
+					'slug' => $t->slug,
+				);
+				if ( $include_region ) {
+					$item['region'] = get_field( 'region', 'term_' . $t->term_id );
+				}
+				$out[] = $item;
+			}
+			return $out;
+		};
 
-			// Setup post data for return at the endpoint.
-			$posts_data[] = (object) array(
-				'id'                  => $rebate->ID,
-				'title'               => get_the_title( $rebate->ID ),
-				'url'                 => $rebate->url,
-				'post_url'            => get_permalink( $rebate->ID ),
-				'rebate_amount'       => get_field( 'rebate', $rebate->ID ),
-				'short_description'   => get_field( 'short_description', $rebate->ID ),
-				'types'               => get_the_terms( $rebate->ID, 'building-types' ),
-				'locations'           => get_the_terms( $rebate->ID, 'regions' ),
-				'upgrade_types'       => get_the_terms( $rebate->ID, 'upgrades' ),
-				'primary_heating_sys' => get_the_terms( $rebate->ID, 'primary-space-heating' ),
-				'other_offers'        => get_the_terms( $rebate->ID, 'other-offers' ),
-			);
+		if ( ! empty( $query->posts ) ) {
+			foreach ( $query->posts as $rebate ) {
+				$post_id = (int) $rebate->ID;
+
+				// Skip records the tool should not show.
+				if ( get_field( 'exclude_from_tool', $post_id ) ) {
+					continue;
+				}
+
+				$locations = $normalize_terms( get_the_terms( $post_id, 'prc-locations' ), true );
+				$regions   = array_values(
+					array_unique(
+						array_filter(
+							array_map(
+								static fn( $loc ) => $loc['region'] ?? null,
+								$locations
+							)
+						)
+					)
+				);
+
+				$posts_data[] = array(
+					'id'                  => $post_id,
+					'title'               => get_the_title( $post_id ),
+					'url'                 => get_field( 'url', $post_id ) ? get_field( 'url', $post_id ) : null, // external ACF field (optional).
+					'post_url'            => get_permalink( $post_id ),
+					'rebate_amount'       => get_field( 'rebate', $post_id ),
+					'short_description'   => get_field( 'short_description', $post_id ),
+					'types'               => $normalize_terms( get_the_terms( $post_id, 'building-types' ) ),
+					'locations'           => $locations, // each includes 'region'.
+					'regions'             => $regions,   // deduped list.
+					'upgrade_types'       => $normalize_terms( get_the_terms( $post_id, 'upgrades' ) ),
+					'primary_heating_sys' => $normalize_terms( get_the_terms( $post_id, 'primary-space-heating' ) ),
+					'other_offers'        => $normalize_terms( get_the_terms( $post_id, 'other-offers' ) ),
+				);
+			}
 		}
 
-		// Return the formatted data.
-		return $posts_data;
+		// Return a proper REST response (prevents stray output breaking JSON).
+		return rest_ensure_response( $posts_data );
 	}
+
+	/**
+	 * Custom callback function for the vNext Rebate filter in the API.
+	 *
+	 * This function fetches and formats data for Rebates
+	 * to be used in a custom API endpoint.
+	 *
+	 * @return array An array of formatted data for Rebates.
+	 */
+	/**
+	 * API callback: Return published incentives with normalized meta/taxonomy data.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function custom_api_vnext_rebate_filter_callback() {
+		$posts_data  = array();
+		$all_regions = array(); // Collector for all unique regions.
+
+		$args = array(
+			'post_type'      => 'incentives',
+			'posts_per_page' => -1,
+			'post_status'    => 'publish',
+		);
+
+		$query = new \WP_Query( $args );
+
+		// Normalizer for flat terms (with optional region).
+		$normalize_terms = static function ( $terms, $include_region = false ) {
+			if ( is_wp_error( $terms ) || empty( $terms ) ) {
+				return array();
+			}
+			$out = array();
+			foreach ( (array) $terms as $t ) {
+				if ( ! ( $t instanceof \WP_Term ) ) {
+					continue;
+				}
+				$item = array(
+					'id'   => (int) $t->term_id,
+					'name' => $t->name,
+					'slug' => $t->slug,
+				);
+				if ( $include_region ) {
+					$region = get_field( 'region', 'term_' . $t->term_id );
+					if ( $region ) {
+						$item['children'][] = array(
+							'id'   => 'region-' . sanitize_title( $region ),
+							'name' => $region,
+							'slug' => sanitize_title( $region ),
+						);
+					}
+				}
+				$out[] = $item;
+			}
+			return $out;
+		};
+
+		// Hierarchical normalizer (adds region as child node).
+		$normalize_terms_hierarchical = static function ( $taxonomy, $parent_node = 0 ) use ( &$normalize_terms_hierarchical, &$all_regions ) {
+			$terms = get_terms(
+                array(
+					'taxonomy'   => $taxonomy,
+					'parent'     => $parent_node,
+					'hide_empty' => false,
+                )
+			);
+
+			if ( is_wp_error( $terms ) || empty( $terms ) ) {
+				return array();
+			}
+
+			$out = array();
+			foreach ( $terms as $t ) {
+				$children = $normalize_terms_hierarchical( $taxonomy, $t->term_id );
+
+				// Attach region as a child node only for prc-locations.
+				$region_node = null;
+				if ( 'prc-locations' === $taxonomy ) {
+					$region = get_field( 'region', 'term_' . $t->term_id );
+					if ( $region ) {
+						$all_regions[] = $region;
+						$region_node   = array(
+							'id'   => 'region-' . sanitize_title( $region ),
+							'name' => $region,
+							'slug' => sanitize_title( $region ),
+						);
+					}
+				}
+
+				$item = array(
+					'id'       => (int) $t->term_id,
+					'name'     => $t->name,
+					'slug'     => $t->slug,
+					'children' => $children,
+				);
+
+				if ( $region_node ) {
+					$item['children'][] = $region_node;
+				}
+
+				$out[] = $item;
+			}
+			return $out;
+		};
+
+		// Build settings-selects trees.
+		$all_home_values    = $normalize_terms_hierarchical( 'rebate-home-values' );
+		$all_building_types = $normalize_terms_hierarchical( 'rebate-building-types' );
+		$all_income_bands   = $normalize_terms_hierarchical( 'rebate-income-bands' );
+		$all_locations      = $normalize_terms_hierarchical( 'prc-locations' );
+		$all_utilities      = $normalize_terms_hierarchical( 'rebate-utilities' );
+
+		$all_regions = array_values( array_unique( array_filter( $all_regions ) ) );
+
+		if ( ! empty( $query->posts ) ) {
+			foreach ( $query->posts as $rebate ) {
+				$post_id = (int) $rebate->ID;
+
+				if ( get_field( 'exclude_from_tool', $post_id ) ) {
+					continue;
+				}
+
+				$locations = $normalize_terms( get_the_terms( $post_id, 'prc-locations' ), true );
+
+				// Collect regions per rebate.
+				$regions = array_values(
+                    array_unique(
+                        array_filter(
+                            array_map(
+                                static fn( $loc ) =>
+                                isset( $loc['children'][0]['name'] ) ? $loc['children'][0]['name'] : null,
+                                $locations
+                            )
+                        )
+                    )
+				);
+
+				$url = get_field( 'url', $post_id );
+
+				$posts_data[] = array(
+					'id'                  => $post_id,
+					'title'               => get_the_title( $post_id ),
+					'url'                 => $url ? $url : null,
+					'post_url'            => get_permalink( $post_id ),
+					'rebate_amount'       => get_field( 'rebate', $post_id ),
+					'short_description'   => get_field( 'short_description', $post_id ),
+					'types'               => $normalize_terms( get_the_terms( $post_id, 'building-types' ) ),
+					'locations'           => $locations,
+					'regions'             => $regions,
+					'upgrade_types'       => $normalize_terms( get_the_terms( $post_id, 'upgrades' ) ),
+					'primary_heating_sys' => $normalize_terms( get_the_terms( $post_id, 'primary-space-heating' ) ),
+					'other_offers'        => $normalize_terms( get_the_terms( $post_id, 'other-offers' ) ),
+				);
+			}
+		}
+
+		// Final response.
+		$response = array(
+			'settings-selects' => array(
+				'building-types' => $all_building_types,
+				'home-value'     => $all_home_values,
+				'income-bands'   => $all_income_bands,
+				'locations'      => $all_locations,
+				'regions'        => $all_regions,
+				'utilities'      => $all_utilities,
+			),
+			'results'          => $posts_data,
+		);
+
+		return rest_ensure_response( $response );
+	}
+
+
 
 	/**
 	 * Custom callback function for the FAQ filter in the API.
@@ -872,23 +1146,23 @@ class EnableVueApp {
 
 
 	/**
-     * Retrieves non-empty taxonomy terms for a given array of post types.
-     *
-     * For each post type, this method fetches the taxonomies associated with it, and
-     * retrieves all non-empty terms. Results are grouped by taxonomy slug.
-     *
-     * Duplicate taxonomy slugs (shared across post types) are merged under a single key.
-     *
-     * Example response:
-     * {
-     *   "regions": [
-     *     { "id": 3, "name": "Fraser Valley", "slug": "fraser-valley" },
-     *     { "id": 7, "name": "Interior", "slug": "interior" }
-     *   ]
-     * }
-     *
-     * @return \WP_REST_Response REST-formatted response containing prefixed taxonomy terms.
-     */
+	 * Retrieves non-empty taxonomy terms for a given array of post types.
+	 *
+	 * For each post type, this method fetches the taxonomies associated with it, and
+	 * retrieves all non-empty terms. Results are grouped by taxonomy slug.
+	 *
+	 * Duplicate taxonomy slugs (shared across post types) are merged under a single key.
+	 *
+	 * Example response:
+	 * {
+	 *   "regions": [
+	 *     { "id": 3, "name": "Fraser Valley", "slug": "fraser-valley" },
+	 *     { "id": 7, "name": "Interior", "slug": "interior" }
+	 *   ]
+	 * }
+	 *
+	 * @return \WP_REST_Response REST-formatted response containing prefixed taxonomy terms.
+	 */
 	public function get_meta_taxonomy_terms() {
 		$post_types = [ 'contractors', 'incentives', 'pqeas-renovation' ]; // Add target post types here.
 
@@ -899,10 +1173,10 @@ class EnableVueApp {
 
 			foreach ( $taxonomies as $taxonomy_slug => $taxonomy_obj ) {
 				$terms = get_terms(
-                    [
+					[
 						'taxonomy'   => $taxonomy_slug,
 						'hide_empty' => true,
-                    ]
+					]
 				);
 
 				if ( is_wp_error( $terms ) ) {
@@ -975,6 +1249,16 @@ class EnableVueApp {
 			array(
 				'methods'             => 'GET',
 				'callback'            => [ $this, 'custom_api_rebate_filter_callback' ],
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		register_rest_route(
+			'custom/v2',
+			'/rebates',
+			array(
+				'methods'             => 'GET',
+				'callback'            => [ $this, 'custom_api_vnext_rebate_filter_callback' ],
 				'permission_callback' => '__return_true',
 			)
 		);
