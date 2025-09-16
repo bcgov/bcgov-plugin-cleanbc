@@ -570,14 +570,19 @@ onMounted(async () => {
 
     const params = new URLSearchParams(window.location.search)
     const hasTool = params.get('tool') === 'rebates'
+    const saved = localStorage.getItem('rebateToolSettings')
 
     if (hasTool) {
+      // From URL.
       initFromQueryString()
+    } else if (saved) {
+      // From localStorage → apply, then reload with full query string.
+      initFromLocalStorage(JSON.parse(saved))
+      window.location.href = assembledUrl.value
+      return // stop further initialization until page reloads
     } else {
-      const saved = localStorage.getItem('rebateToolSettings')
-      if (saved) {
-        initFromLocalStorage(JSON.parse(saved))
-      }
+      // First visit → nothing special.
+      console.log('No saved settings — starting fresh')
     }
 
     watch(urlStateDeps, updateAddressBar, { deep: true })

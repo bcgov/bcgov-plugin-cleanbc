@@ -1,3 +1,6 @@
+## 1.21.1 September 16, 2025
+– Update startup logic for single mode to account for page initialisation from localStorage and force reload if persistent state information available.
+
 ## 1.21.0 September 16, 2025
 – Large update to add Rebates vNext Vue-based filter tool block for querystring-based variability management. Utilises localStorage for persistence and enables filtering of multi-query and query conditional block output.
 – v2 rebates API endpoint to work with vNext Rebate Filter Tool.
