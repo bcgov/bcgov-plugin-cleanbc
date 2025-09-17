@@ -14,26 +14,15 @@
       <!-- Filter Controls -->
       <div id="rebatesFilterControls" class="filter-container" :class="{ 'filters-dirty': isDirty }">
 
-        <p v-if="(!hasAllSelection || isDirty) && mode === 'single'" class='warning-message'>
-          You may be looking at default or incomplete information.
-          <span v-if='!isDirty'>
-            Please update your settings.
-          </span>
-          <span v-if='isDirty'>
-            The page URL does not match your settings. Please update and save your selections.
-          </span>
-        </p>
-
         <div v-if="mode === 'single'" class="selection-summary" aria-live="polite">
+          <p><strong>Current settings: </strong></p>
           <p>
-            <strong>Current rebate settings: </strong><br />
-
             <template v-for="field in fields" :key="field.key">
               <template v-if="field.condition === undefined || field.condition">
                 <!-- If field has a value -->
                 <template v-if="field.displayValue">
                   <!-- Show button (unless its select is open) -->
-                  <button v-if="activeEdit !== field.key" class="rebate-setting" @click="openEdit(field.key)" :ref="el => (buttonRefs[field.key] = el)">
+                  <button v-if="activeEdit !== field.key" class="rebate-setting" :class="{ 'is-external-dirty': isExternalDirty && lastChangedField === field.key }" @click="openEdit(field.key)" :ref="el => (buttonRefs[field.key] = el)">
                     {{ field.displayValue }}
                   </button>
 
@@ -103,15 +92,23 @@
                 </template>
               </template>
             </template>
-
-
           </p>
 
           <p v-if="hasAnySelection" class="small-text">
-            <a @click="clearSettings">Clear your settings</a> and start over.
+            Changing these settings will cause the page content to change. You may also <a @click="clearSettings">clear your settings</a> and start over.
           </p>
+
         </div>
 
+        <p v-if="(!hasAllSelection || isDirty) && mode === 'single'" class='warning-message'>
+          You may be looking at default or incomplete information.
+          <span v-if='!isDirty'>
+            Please update your settings.
+          </span>
+          <span v-if='isDirty'>
+            The page URL does not match your settings. Please update and save your selections.
+          </span>
+        </p>
 
         <template v-if="mode === 'archive'">
           <!-- Building Type Select (hierarchical) -->
@@ -193,12 +190,12 @@
 
         </template>
         <!-- Update Page Button (only in single mode) -->
-        <div v-if="mode === 'single'" class="update-page-container" :class='isDirty ? "has-icon warning" : ""'>
+        <!-- <div v-if="mode === 'single'" class="update-page-container" :class='isDirty ? "has-icon warning" : ""'>
           <button v-if="editable || isDirty" type="button" class="update-page-btn" @click="reloadPage"
             :disabled='!isDirty'>
             Save and update
           </button>
-        </div>
+        </div> -->
 
       </div>
 
@@ -265,10 +262,10 @@
 
         <p v-if="!api.results?.length" class="no-results">No results found.</p>
       </section>
-      <p v-else class="no-results">Please complete the form above.</p>
+      <p v-else-if="mode === 'archive'" class="no-results">Please complete the form above.</p>
 
       <!-- Selection summary (for quick verification) -->
-      <div class="selection-summary" aria-live="polite">
+      <div v-if="debug" class="selection-summary" aria-live="polite">
         <p>
           <strong>Debug information: </strong>
           <span v-if="!hasAnySelection">No selections</span><br />
@@ -295,6 +292,8 @@ const publicDomain = ref('https://www.betterhomesbc.ca')
 /** API endpoint */
 const rebatesAPI = `${window.site?.domain ? window.site.domain : publicDomain.value}/wp-json/custom/v2/rebates`
 
+const debug = false;
+
 // Local state for fetched API payload
 const api = ref({
   'settings-selects': {
@@ -310,10 +309,67 @@ const api = ref({
 const isLoading = ref(true)
 const loadError = ref('')
 
-function reloadPage() {
-  isDirty.value = false
-  initialUrl = assembledQueryString.value
-  window.location.reload()
+// Simple page reload.
+// function reloadPage() {
+//   isDirty.value = false
+//   initialUrl = assembledQueryString.value
+//   window.location.reload()
+// }
+
+function debounce(fn, delay = 500) {
+  let timer
+  return (...args) => {
+    clearTimeout(timer)
+    timer = setTimeout(() => fn(...args), delay)
+  }
+}
+
+const debouncedUpdateRebateDetails = debounce(updateRebateDetails, 500)
+
+const isAjaxLoading = ref(false)
+
+async function updateRebateDetails() {
+  const targetSelector = '#rebate-details-container'
+  const container = document.querySelector(targetSelector)
+  if (!container) return
+
+  try {
+    isAjaxLoading.value = true
+    const res = await fetch(assembledUrl.value, { credentials: 'same-origin' })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const html = await res.text()
+
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(html, 'text/html')
+    const newContent = doc.querySelector(targetSelector)
+
+    if (newContent) {
+      container.innerHTML = newContent.innerHTML
+
+      container.querySelectorAll('script').forEach(oldScript => {
+        const newScript = document.createElement('script')
+        if (oldScript.src) newScript.src = oldScript.src
+        else newScript.textContent = oldScript.textContent
+        document.body.appendChild(newScript)
+        document.body.removeChild(newScript)
+      })
+
+      window.history.replaceState(null, '', assembledUrl.value)
+
+      // Reset dirty baseline AFTER update
+      const currentQs = assembledQueryString.value
+      initialUrl = assembledQueryString.value
+      isDirty.value = false
+      isExternalDirty.value = false
+      lastChangedField.value = ''
+    }
+
+
+  } catch (err) {
+    console.error('Failed to update rebate details via AJAX:', err)
+  } finally {
+    isAjaxLoading.value = false
+  }
 }
 
 // --- Editable state ---
@@ -323,6 +379,7 @@ const activeEdit = ref('')
 // --- Focus map for selects ---
 const selectRefs = ref({})
 const buttonRefs = ref({})
+const lastChangedField = ref('')
 
 // Force full re-render when their options list changes
 const fieldRenderKeys = ref({
@@ -345,9 +402,14 @@ function openEdit(field) {
 // --- Auto-close on change ---
 async function handleSelectChange(fieldKey, newValue) {
   if (!newValue) return
+  lastChangedField.value = fieldKey
+
   await nextTick()
-  activeEdit.value = ''
-  await nextTick()
+  activeEdit.value = '' // closes the select and shows the button again
+
+  await nextTick() // wait for DOM to update
+  isExternalDirty.value = true // mark as dirty now that button is visible
+
   const btn = buttonRefs.value[fieldKey]
   if (btn) btn.focus()
 }
@@ -494,18 +556,13 @@ const fields = computed(() => [
   }
 ])
 
-
-const isDirty = ref(false) // whether filters differ from initial state
+// whether filters differ from initial state
+const isDirty = ref(false)           // for inside Vue (warning UI)
+const isExternalDirty = ref(false)   // for outside Vue elements
 let initialUrl = ''
 
 onMounted(() => {
   initialUrl = window.location.search // record the initial query string
-
-  // Watch for changes in URL state deps
-  watch(urlStateDeps, () => {
-    const currentQs = assembledQueryString.value
-    isDirty.value = currentQs !== initialUrl
-  }, { deep: true })
 
   watch(urlStateDeps, (newDeps) => {
     if (hasAllSelection.value) {
@@ -515,15 +572,11 @@ onMounted(() => {
 
 })
 
-watch(isDirty, (newVal) => {
+watch(isExternalDirty, (newVal) => {
   const targetVariableContent = document.querySelectorAll('.multi-query-content-block')
   const targetVariableGroups = document.querySelectorAll('.query-conditional-group-block')
-  targetVariableContent.forEach(el => {
-    el.classList.toggle('is-dirty-variable', newVal)
-  })
-  targetVariableGroups.forEach(el => {
-    el.classList.toggle('is-dirty-variable', newVal)
-  })
+  targetVariableContent.forEach(el => el.classList.toggle('is-dirty-variable', newVal))
+  targetVariableGroups.forEach(el => el.classList.toggle('is-dirty-variable', newVal))
 })
 
 // --- Watcher: Toggle classes based on isDirty ---
@@ -585,7 +638,12 @@ onMounted(async () => {
       console.log('No saved settings — starting fresh')
     }
 
-    watch(urlStateDeps, updateAddressBar, { deep: true })
+    watch(urlStateDeps, () => {
+      isExternalDirty.value = true // external goes dirty immediately
+      updateAddressBar()
+      debouncedUpdateRebateDetails()
+    }, { deep: true })
+
 
     watch(homeValueOptions, async (newVal) => {
       if (!selectedHomeValueSlug.value && newVal.length > 0) {
@@ -1132,6 +1190,7 @@ function withQueryString(baseUrl) {
 
     &::after {
       content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNOTQgMTg3LjFDMTIwLjggMTI0LjEgMTgzLjMgODAgMjU2IDgwYzM5LjcgMCA3Ny44IDE1LjggMTA1LjkgNDMuOUw0MTQuMSAxNzYgMzYwIDE3NmMtMTMuMyAwLTI0IDEwLjctMjQgMjRzMTAuNyAyNCAyNCAyNGwxMTIgMGMxMy4zIDAgMjQtMTAuNyAyNC0yNGwwLTExMmMwLTEzLjMtMTAuNy0yNC0yNC0yNHMtMjQgMTAuNy0yNCAyNGwwIDU0LjFMMzk1LjkgODkuOUMzNTguOCA1Mi44IDMwOC41IDMyIDI1NiAzMkMxNjMuNCAzMiA4My45IDg4LjIgNDkuOCAxNjguM2MtNS4yIDEyLjIgLjUgMjYuMyAxMi43IDMxLjVzMjYuMy0uNSAzMS41LTEyLjd6bTM2OCAxNTdjNS4yLTEyLjItLjQtMjYuMy0xMi42LTMxLjVzLTI2LjMgLjQtMzEuNSAxMi42QzM5MSAzODguMSAzMjguNiA0MzIgMjU2IDQzMmMtMzkuNyAwLTc3LjgtMTUuOC0xMDUuOS00My45TDk3LjkgMzM2bDU0LjEgMGMxMy4zIDAgMjQtMTAuNyAyNC0yNHMtMTAuNy0yNC0yNC0yNEw0MCAyODhjLTEzLjMgMC0yNCAxMC43LTI0IDI0bDAgMTEyYzAgMTMuMyAxMC43IDI0IDI0IDI0czI0LTEwLjcgMjQtMjRsMC01NC4xIDUyLjEgNTIuMUMxNTMuMiA0NTkuMiAyMDMuNSA0ODAgMjU2IDQ4MGM5Mi41IDAgMTcxLjgtNTYgMjA2LTEzNS45eiIgZmlsbD0iIzM2OSIgLz48L3N2Zz4=);
+      transform-origin: 50% 62%;
       width: 1rem;
       height: 1rem;
       display: inline-block;
@@ -1171,8 +1230,17 @@ function withQueryString(baseUrl) {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.rebate-setting.is-external-dirty::after {
+  animation: spin1440 4s linear;
+}
+
+@keyframes spin1440 {
+  from { transform: rotate(0turn); }
+  to   { transform: rotate(4turn); }
 }
 
 #rebateFilterApp:not([data-mode="archive"]) #rebatesFilterControls.filters-dirty {
@@ -1244,7 +1312,7 @@ function withQueryString(baseUrl) {
 .multi-query-content-block.is-dirty-variable::after {
   background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjIiIHZpZXdCb3g9IjAgMCAyNCAyMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE1LjcxOTYgMi4zNTY4N0MxNC45MzU3IDEuMDQyOSAxMy41NDU3IDAuMjM0Mzc1IDEyLjAwNDggMC4yMzQzNzVDMTAuNDYyNyAwLjIzNDM3NSA5LjA3MjY0IDEuMDE4MjMgOC4yODk5NSAyLjM1Njg3TDAuNjMyMDkgMTUuMTk1NkMtMC4yMDIxMDkgMTYuNTU5OSAtMC4yMDIxMDkgMTguMTc3IDAuNTgxNzQxIDE5LjU2N0MxLjM2NTYgMjAuOTMxMyAyLjc4MDI2IDIxLjc2NTUgNC4zNDY4NiAyMS43NjU1SDE5LjY2MjZDMjEuMjU1IDIxLjc2NTUgMjIuNjQ1IDIwLjk1NyAyMy40Mjc3IDE5LjU2N0MyNC4yMTE1IDE4LjIwMjcgMjQuMTg1OSAxNi41NjAxIDIzLjM3NzMgMTUuMTk0NkwxNS43MTk2IDIuMzU2ODdaTTEyLjAwNDggMTguNDA1QzExLjA0NDIgMTguNDA1IDEwLjI2MTQgMTcuNjIxMSAxMC4yNjE0IDE2LjY2MTZDMTAuMjYxNCAxNS43MDEgMTEuMDQ1MiAxNC45MTgyIDEyLjAwNDggMTQuOTE4MkMxMi45NjUzIDE0LjkxODIgMTMuNzQ4MiAxNS43MDIgMTMuNzQ4MiAxNi42NjE2QzEzLjc0ODIgMTcuNjIxMSAxMi45NjUzIDE4LjQwNSAxMi4wMDQ4IDE4LjQwNVpNMTMuODI0MiA2LjU3NzE1TDEzLjMxODcgMTIuMzM5NkMxMy4yOTMxIDEyLjY5MyAxMy4xMTY0IDEzLjAyMTcgMTIuODM5IDEzLjI0OThDMTIuNjExOSAxMy40NTIyIDEyLjMwNzggMTMuNTUyOCAxMS45ODAxIDEzLjU1MjhIMTEuODUzN0MxMS4yMjE5IDEzLjUwMjUgMTAuNjkwOCAxMi45OTcxIDEwLjY0MDUgMTIuMzM5NkwxMC4xMzUgNi41NzcxNUMxMC4wODQ3IDYuMDk3MzcgMTAuMjM1NyA1LjYxNjU5IDEwLjU2NDQgNS4yMzc1QzEwLjg5MzIgNC44NTg0MSAxMS4zMjI2IDQuNjMxMzYgMTEuODAyNCA0LjU4QzEyLjMwNzggNC41Mjk2NiAxMi43NjMgNC42ODA3IDEzLjE0MiA1LjAwOTQ0QzEzLjUyMTEgNS4zMTI1MSAxMy43NDgyIDUuNzY3NjEgMTMuNzk5NSA2LjI0NzM5QzEzLjg0OTkgNi4zNzQ3NCAxMy44NDk5IDYuNDc2NDIgMTMuODI0MiA2LjU3NzEyTDEzLjgyNDIgNi41NzcxNVoiIGZpbGw9IiNGRkMwMTciLz4KPC9zdmc+);
   background-size: 15px;
-  content: "settings update required";
+  content: "Reloading settings update";
   display: inline-block;
   height: var(--wp--preset--font-size--small);
   background-repeat: no-repeat;

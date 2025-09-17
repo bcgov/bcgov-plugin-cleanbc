@@ -1,3 +1,6 @@
+## 1.21.2 September 17, 2025
+– Added ajax loading and replacement of in-page server side rendered content.
+
 ## 1.21.1 September 16, 2025
 – Update startup logic for single mode to account for page initialisation from localStorage and force reload if persistent state information available.
 
