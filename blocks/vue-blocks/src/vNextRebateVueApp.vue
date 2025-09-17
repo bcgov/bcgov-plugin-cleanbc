@@ -309,13 +309,6 @@ const api = ref({
 const isLoading = ref(true)
 const loadError = ref('')
 
-// Simple page reload.
-// function reloadPage() {
-//   isDirty.value = false
-//   initialUrl = assembledQueryString.value
-//   window.location.reload()
-// }
-
 function debounce(fn, delay = 500) {
   let timer
   return (...args) => {
@@ -356,15 +349,10 @@ async function updateRebateDetails() {
 
       window.history.replaceState(null, '', assembledUrl.value)
 
-      // Reset dirty baseline AFTER update
-      const currentQs = assembledQueryString.value
-      initialUrl = assembledQueryString.value
-      isDirty.value = false
+      // After the DOM has been swapped, only clear external dirty + selection marker.
       isExternalDirty.value = false
       lastChangedField.value = ''
     }
-
-
   } catch (err) {
     console.error('Failed to update rebate details via AJAX:', err)
   } finally {
@@ -381,7 +369,7 @@ const selectRefs = ref({})
 const buttonRefs = ref({})
 const lastChangedField = ref('')
 
-// Force full re-render when their options list changes
+// Force full re-render when the options list changes.
 const fieldRenderKeys = ref({
   homeValue: 0,
   income: 0
@@ -405,10 +393,10 @@ async function handleSelectChange(fieldKey, newValue) {
   lastChangedField.value = fieldKey
 
   await nextTick()
-  activeEdit.value = '' // closes the select and shows the button again
+  activeEdit.value = '' // closes the select and shows the button again.
 
-  await nextTick() // wait for DOM to update
-  isExternalDirty.value = true // mark as dirty now that button is visible
+  await nextTick() // wait for DOM to update.
+  isExternalDirty.value = true
 
   const btn = buttonRefs.value[fieldKey]
   if (btn) btn.focus()
@@ -478,7 +466,6 @@ function clearSettings(event) {
   const url = window.location.origin + window.location.pathname
   window.history.replaceState(null, '', url)
   localStorage.removeItem('rebateToolSettings')
-  isDirty.value = false
 
   editable.value = true
   const firstMissing = fields.value.find(f => !f.displayValue)
@@ -556,13 +543,9 @@ const fields = computed(() => [
   }
 ])
 
-// whether filters differ from initial state
-const isDirty = ref(false)           // for inside Vue (warning UI)
-const isExternalDirty = ref(false)   // for outside Vue elements
-let initialUrl = ''
+const isExternalDirty = ref(false)   // for outside Vue elements + button spin.
 
 onMounted(() => {
-  initialUrl = window.location.search // record the initial query string
 
   watch(urlStateDeps, (newDeps) => {
     if (hasAllSelection.value) {
@@ -573,38 +556,16 @@ onMounted(() => {
 })
 
 watch(isExternalDirty, (newVal) => {
-  const targetVariableContent = document.querySelectorAll('.multi-query-content-block')
-  const targetVariableGroups = document.querySelectorAll('.query-conditional-group-block')
-  targetVariableContent.forEach(el => el.classList.toggle('is-dirty-variable', newVal))
-  targetVariableGroups.forEach(el => el.classList.toggle('is-dirty-variable', newVal))
+  const blocks = document.querySelectorAll('.multi-query-content-block, .query-conditional-group-block')
+  blocks.forEach(el => el.classList.toggle('is-dirty-variable', newVal))
 })
 
 // --- Watcher: Toggle classes based on isDirty ---
-function applyDirtyClasses() {
-  const targets = document.querySelectorAll('.multi-query-content-block > span[data-replace="value"]')
-  targets.forEach(el => {
-    el.classList.toggle('is-dirty', isDirty.value)
-  })
+function applyDirtyClasses(val) {
+  document
+    .querySelectorAll('.multi-query-content-block > span[data-replace="value"]')
+    .forEach(el => el.classList.toggle('is-dirty', val))
 }
-
-// Watch the isDirty state and update existing elements
-watch(isDirty, () => {
-  applyDirtyClasses()
-})
-
-
-
-// --- MutationObserver: Track future DOM changes ---
-onMounted(() => {
-  const observer = new MutationObserver(() => {
-    applyDirtyClasses()
-  })
-
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true
-  })
-})
 
 // ----- Mode (archive|single) -----
 const mode = ref('archive')
@@ -632,14 +593,14 @@ onMounted(async () => {
       // From localStorage → apply, then reload with full query string.
       initFromLocalStorage(JSON.parse(saved))
       window.location.href = assembledUrl.value
-      return // stop further initialization until page reloads
+      return // stop further initialization until page reloads.
     } else {
-      // First visit → nothing special.
+      // First visit — nothing special.
       console.log('No saved settings — starting fresh')
     }
 
     watch(urlStateDeps, () => {
-      isExternalDirty.value = true // external goes dirty immediately
+      isExternalDirty.value = true // external goes dirty immediately.
       updateAddressBar()
       debouncedUpdateRebateDetails()
     }, { deep: true })
@@ -647,7 +608,7 @@ onMounted(async () => {
 
     watch(homeValueOptions, async (newVal) => {
       if (!selectedHomeValueSlug.value && newVal.length > 0) {
-        // force remount and focus
+        // force remount and focus.
         fieldRenderKeys.value.homeValue++
         await nextTick()
         activeEdit.value = 'homeValue'
@@ -713,9 +674,8 @@ function initFromLocalStorage(data) {
     if (utility) selectedUtilitySlug.value = utility.slug
   }
 
-  // After restoring state, update the URL and initialUrl
+  // After restoring state, update the URL and initialUrl.
   updateAddressBar()
-  initialUrl = assembledQueryString.value
 }
 
 // ----- Building Types (hierarchical) -----
@@ -845,6 +805,24 @@ const assembledQueryString = computed(() => {
   const q = assembledUrl.value.split('?')[1]
   return q ? `?${q}` : ''
 })
+
+// --- Dirty states ---
+// URL does not match the settings currently showing.
+const urlOutOfSync = computed(() => assembledQueryString.value !== window.location.search)
+
+// Use this everywhere inside Vue for warnings/outline:
+const isDirty = urlOutOfSync
+
+// Keep external spans in sync with URL mismatch.
+watch(urlOutOfSync, (val) => applyDirtyClasses(val), { immediate: true })
+
+onMounted(() => {
+  const observer = new MutationObserver(() => {
+    applyDirtyClasses(urlOutOfSync.value)
+  })
+  observer.observe(document.body, { childList: true, subtree: true })
+})
+
 function assembleUrl() {
   const baseUrl = window.location.origin + window.location.pathname
   const urlParams = new URLSearchParams()
