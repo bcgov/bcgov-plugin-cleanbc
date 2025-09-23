@@ -55,6 +55,8 @@
                           </option>
                         </template>
                       </select>
+
+                      <caption v-if="field.description">{{ field.description }}</caption>
                     </div>
                   </div>
                 </template>
@@ -481,7 +483,8 @@ const fields = computed(() => [
     groups: buildingTypeGroups.value,
     isGrouped: true,
     displayValue: selectedBuildingTypeName.value,
-    missingMessage: 'Missing home type'
+    missingMessage: 'Missing home type',
+    description: 'Changing between Ground Oriented / MURB types will require you to update the assessed home value information.'
   },
   {
     key: 'murbTenure',
@@ -493,7 +496,8 @@ const fields = computed(() => [
     ],
     displayValue: murbTenureLabel.value,
     missingMessage: 'Missing MURB status',
-    condition: selectedBuildingGroupSlug.value === 'murb'
+    condition: selectedBuildingGroupSlug.value === 'murb',
+    description: 'This only applies to MURB home types.'
   },
   {
     key: 'homeValue',
@@ -511,7 +515,8 @@ const fields = computed(() => [
     vModel: selectedPersonsSlug,
     options: personCountOptions.value,
     displayValue: selectedPersonsCount.value,
-    missingMessage: 'Missing household number'
+    missingMessage: 'Missing household number',
+    description: 'Changing this field will require you to update the pre-tax income range information as well.'
   },
   {
     key: 'income',
@@ -1082,6 +1087,11 @@ function withQueryString(baseUrl) {
     padding: 0.25rem 0.5rem;
     border-radius: 0.375rem;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  }
+
+  caption {
+    text-align: left;
+    font-size: 0.85rem;
   }
 
   .copy-link {

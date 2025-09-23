@@ -1,3 +1,6 @@
+## 1.21.3 September 23, 2025
+– Added single mode filtering captions.
+
 ## 1.21.2 September 17, 2025
 – Added ajax loading and replacement of in-page server side rendered content.
 – Fixed dirty state when messing with URL manually.
