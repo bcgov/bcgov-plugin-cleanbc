@@ -16,7 +16,7 @@
 
         <div v-if="mode === 'single'" class="selection-summary" aria-live="polite">
           <p><strong>Current settings: </strong></p>
-          <p>
+          <div class='control-container'>
             <template v-for="field in fields" :key="field.key">
               <template v-if="field.condition === undefined || field.condition">
                 <!-- If field has a value -->
@@ -28,7 +28,7 @@
 
                   <!-- Show select if open -->
                   <div v-else-if="editable && activeEdit === field.key">
-                    <div class="control editable">
+                    <figure class="control editable" :aria-label='field.aria'>
                       <button :disabled="!field.vModel.value" type="button" class="close-btn" @click="activeEdit = ''" aria-label="Close edit field"></button>
                       <label :for="`${field.key}Select`">{{ field.label }}</label>
                       <select :key="field.key + '-' + (fieldRenderKeys[field.key] ?? 0)" class="select"
@@ -56,14 +56,14 @@
                         </template>
                       </select>
 
-                      <caption v-if="field.description">{{ field.description }}</caption>
-                    </div>
+                      <figcaption v-if="field.description">{{ field.description }}</figcaption>
+                    </figure>
                   </div>
                 </template>
 
                 <!-- If field is missing → show select immediately -->
                 <template v-else>
-                  <div class="control editable">
+                  <figure class="control editable" :aria-label='field.aria'>
                     <button :disabled="!field.vModel.value" type="button" class="close-btn" @click="activeEdit = ''" aria-label="Close edit field"></button>
                     <label :for="`${field.key}Select`">{{ field.label }}</label>
                     <select :key="field.key + '-' + (fieldRenderKeys[field.key] ?? 0)" class="select"
@@ -90,11 +90,13 @@
                         </option>
                       </template>
                     </select>
-                  </div>
+
+                    <figcaption v-if="field.description">{{ field.description }}</figcaption>
+                  </figure>
                 </template>
               </template>
             </template>
-          </p>
+          </div>
 
           <p v-if="hasAnySelection" class="small-text">
             Changing these settings will cause the page content to change. You may also <a @click="clearSettings">clear your settings</a> and start over.
@@ -526,6 +528,7 @@ function clearSettings(event) {
 const fields = computed(() => [
   {
     key: 'building',
+    aria: 'Type of home setting',
     label: 'What kind of home do you live in?',
     vModel: selectedBuildingTypeSlug,
     groups: buildingTypeGroups.value,
@@ -536,6 +539,7 @@ const fields = computed(() => [
   },
   {
     key: 'murbTenure',
+    aria: 'MURB tenure setting',
     label: 'Do you own or rent your home?',
     vModel: murbTenure,
     options: [
@@ -549,16 +553,19 @@ const fields = computed(() => [
   },
   {
     key: 'homeValue',
+    aria: 'Assessed home value setting',
     label: 'What is the current assessed value of your home?',
     vModel: selectedHomeValueSlug,
     options: homeValueOptions.value,
     displayValue: selectedHomeValueName.value,
     missingMessage: 'Missing home value',
     disabled: !selectedBuildingGroupSlug.value,
-    ready: homeValueOptions.value.length > 0
+    ready: homeValueOptions.value.length > 0,
+    description: 'The amount options shown change based on the set type of home.'
   },
   {
     key: 'persons',
+    aria: 'People in household setting',
     label: 'How many people live in your household?',
     vModel: selectedPersonsSlug,
     options: personCountOptions.value,
@@ -568,16 +575,19 @@ const fields = computed(() => [
   },
   {
     key: 'income',
+    aria: 'Household income setting',
     label: 'What is the combined pre-tax income of all adults in your household (excluding dependants)?',
     vModel: selectedIncomeRangeSlug,
     options: incomeRangeOptions.value,
     displayValue: selectedIncomeRangeName.value,
     missingMessage: 'Missing household income',
     disabled: !selectedPersonsSlug.value,
-    ready: incomeRangeOptions.value.length > 0
+    ready: incomeRangeOptions.value.length > 0,
+    description: 'The amount options shown change based on the set number of people in the household.'
   },
   {
     key: 'location',
+    aria: 'Home location setting',
     label: 'Where is your home located?',
     vModel: selectedLocationSlug,
     options: locationOptions.value,
@@ -588,6 +598,7 @@ const fields = computed(() => [
   },
   {
     key: 'utility',
+    aria: 'Electric utility company setting',
     label: 'Which utility company provides your electrical service?',
     vModel: selectedUtilitySlug,
     options: utilityOptions.value,
@@ -1053,6 +1064,11 @@ function withQueryString(baseUrl) {
     grid-template-columns: 1fr;
   }
 
+  .control-container {
+    display: grid;
+    gap: 0;
+  }
+
   .control {
     display: grid;
     gap: 0.25rem;
@@ -1105,11 +1121,24 @@ function withQueryString(baseUrl) {
 
   .control label {
     margin-bottom: 0;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  .control figcaption {
+    border-radius: 0.5rem;
+    background-color: #fff;
+    color: var(--wp--preset--color--primary-brand);
+    text-align: left;
+    font-size: 0.85rem;
+    padding: 0.5rem;
+    opacity: 0.9;
   }
 
   .select {
-    padding: 0.5rem;
     font-size: 1rem;
+    margin-block: 0.25rem;
+    padding: 0.5rem;
   }
 
   .selection-summary {
@@ -1135,11 +1164,6 @@ function withQueryString(baseUrl) {
     padding: 0.25rem 0.5rem;
     border-radius: 0.375rem;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  }
-
-  caption {
-    text-align: left;
-    font-size: 0.85rem;
   }
 
   .copy-link {

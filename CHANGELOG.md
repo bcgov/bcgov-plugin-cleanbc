@@ -1,3 +1,6 @@
+## 1.21.4 September 24, 2025
+– Better descriptions, ARIA and accessibility updates for single mode settings.
+
 ## 1.21.3 September 23, 2025
 – Added single mode filtering captions.
 – Single mode re-renders side scrolling menu if available.
