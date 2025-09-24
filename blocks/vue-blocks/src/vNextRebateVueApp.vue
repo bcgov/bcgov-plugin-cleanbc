@@ -12,23 +12,25 @@
 
     <template v-else>
       <!-- Filter Controls -->
-      <div id="rebatesFilterControls" class="filter-container" :class="{ 'filters-dirty': isDirty }">
+      <div id="rebatesFilterControls" class="filter-container" :class="{ 'filters-dirty': isDirty, 'labels-hidden': editable }">
 
         <div v-if="mode === 'single'" class="selection-summary" aria-live="polite">
-          <p><strong>Current settings: </strong></p>
+          <button class='editBtn' :class="editable ? 'hide-labels' : 'show-labels'" @click='toggleEditable'>Show or hide settings labels</button>
+          <h2 class='settings-headline'>Your home's details:</h2>
           <div class='control-container'>
             <template v-for="field in fields" :key="field.key">
               <template v-if="field.condition === undefined || field.condition">
                 <!-- If field has a value -->
                 <template v-if="field.displayValue">
                   <!-- Show button (unless its select is open) -->
+                  <label class='small'>{{ field.shortDesc }}</label>
                   <button v-if="activeEdit !== field.key" class="rebate-setting" :class="{ 'is-external-dirty': isExternalDirty && lastChangedField === field.key }" @click="openEdit(field.key)" :ref="el => (buttonRefs[field.key] = el)">
                     {{ field.displayValue }}
                   </button>
 
                   <!-- Show select if open -->
                   <div v-else-if="editable && activeEdit === field.key">
-                    <figure class="control editable" :aria-label='field.aria'>
+                    <figure class="control editable" :aria-label="`${field.shortDesc} setting`">
                       <button :disabled="!field.vModel.value" type="button" class="close-btn" @click="activeEdit = ''" aria-label="Close edit field"></button>
                       <label :for="`${field.key}Select`">{{ field.label }}</label>
                       <select :key="field.key + '-' + (fieldRenderKeys[field.key] ?? 0)" class="select"
@@ -63,7 +65,7 @@
 
                 <!-- If field is missing → show select immediately -->
                 <template v-else>
-                  <figure class="control editable" :aria-label='field.aria'>
+                  <figure class="control editable" :aria-label="`${field.shortDesc} setting`">
                     <button :disabled="!field.vModel.value" type="button" class="close-btn" @click="activeEdit = ''" aria-label="Close edit field"></button>
                     <label :for="`${field.key}Select`">{{ field.label }}</label>
                     <select :key="field.key + '-' + (fieldRenderKeys[field.key] ?? 0)" class="select"
@@ -289,6 +291,7 @@
 </template>
 
 <script setup>
+// See `vNextRebateVueApp.docs.js` for full JSDoc reference.
 import { computed, ref, nextTick, onMounted, watch } from 'vue'
 
 /** Public domain fallback */
@@ -313,6 +316,7 @@ const api = ref({
 const isLoading = ref(true)
 const loadError = ref('')
 
+// Debounce a function so it runs only after a specified delay.
 function debounce(fn, delay = 500) {
   let timer
   return (...args) => {
@@ -325,6 +329,7 @@ const debouncedUpdateRebateDetails = debounce(updateRebateDetails, 500)
 
 const isAjaxLoading = ref(false)
 
+// Fetch and replace the rebate details section asynchronously.
 async function updateRebateDetails() {
   const targetSelector = '#rebate-details-container'
   const container = document.querySelector(targetSelector)
@@ -365,6 +370,7 @@ async function updateRebateDetails() {
   }
 }
 
+// Rebuild the scroll menu (`#incentive-side-nav`) from H2 headings inside `#incentive-details-container`.
 function rerenderScrollMenu() {
   const detailsContainer = document.querySelector('#incentive-details-container');
   const sideNav = document.querySelector('#incentive-side-nav');
@@ -427,19 +433,25 @@ const fieldRenderKeys = ref({
   income: 0
 })
 
-// --- Toggle editable mode ---
+// Toggle editable mode. When disabled, resets `activeEdit`.
 function toggleEditable() {
-  editable.value = !editable.value
-  if (!editable.value) activeEdit.value = ''
+editable.value = !editable.value
+  localStorage.setItem('rebateEditableState', JSON.stringify(editable.value))
+
+  if (!editable.value) {
+    activeEdit.value = ''
+  }
 }
 
-// --- Open a specific field ---
+
+
+// Open a specific field for editing.
 function openEdit(field) {
   editable.value = true
   activeEdit.value = field
 }
 
-// --- Auto-close on change ---
+// Handle when a select input changes. Closes the select, marks state dirty, and re-focuses associated button.
 async function handleSelectChange(fieldKey, newValue) {
   if (!newValue) return
   lastChangedField.value = fieldKey
@@ -454,7 +466,7 @@ async function handleSelectChange(fieldKey, newValue) {
   if (btn) btn.focus()
 }
 
-// --- Keyboard navigation ---
+// Keyboard navigation: Move focus to the next field missing a selection.
 function focusNextMissingField(currentKey) {
   const all = fields.value
   const idx = all.findIndex(f => f.key === currentKey)
@@ -467,6 +479,7 @@ function focusNextMissingField(currentKey) {
   return false
 }
 
+// Move focus to the previous field missing a selection.
 function focusPrevMissingField(currentKey) {
   const all = fields.value
   const idx = all.findIndex(f => f.key === currentKey)
@@ -479,6 +492,7 @@ function focusPrevMissingField(currentKey) {
   return false
 }
 
+// Handle keyboard interaction for select elements.
 function handleSelectKeydown(event, fieldKey, currentValue) {
   if (event.key === 'Enter') {
     event.preventDefault()
@@ -503,7 +517,7 @@ watch(activeEdit, async (newKey) => {
   if (el) el.focus()
 })
 
-// --- Clear all settings + open first missing ---
+// Clear all user selections, reset URL, and reopen the first missing field.
 function clearSettings(event) {
   event?.preventDefault?.()
 
@@ -522,13 +536,15 @@ function clearSettings(event) {
   editable.value = true
   const firstMissing = fields.value.find(f => !f.displayValue)
   activeEdit.value = firstMissing ? firstMissing.key : ''
+
+  localStorage.removeItem('rebateEditableState');
 }
 
 // --- Unified fields config ---
 const fields = computed(() => [
   {
     key: 'building',
-    aria: 'Type of home setting',
+    shortDesc: 'Type of home',
     label: 'What kind of home do you live in?',
     vModel: selectedBuildingTypeSlug,
     groups: buildingTypeGroups.value,
@@ -539,7 +555,7 @@ const fields = computed(() => [
   },
   {
     key: 'murbTenure',
-    aria: 'MURB tenure setting',
+    shortDesc: 'MURB tenure',
     label: 'Do you own or rent your home?',
     vModel: murbTenure,
     options: [
@@ -553,7 +569,7 @@ const fields = computed(() => [
   },
   {
     key: 'homeValue',
-    aria: 'Assessed home value setting',
+    shortDesc: 'Assessed home value',
     label: 'What is the current assessed value of your home?',
     vModel: selectedHomeValueSlug,
     options: homeValueOptions.value,
@@ -565,7 +581,7 @@ const fields = computed(() => [
   },
   {
     key: 'persons',
-    aria: 'People in household setting',
+    shortDesc: 'People in household',
     label: 'How many people live in your household?',
     vModel: selectedPersonsSlug,
     options: personCountOptions.value,
@@ -575,7 +591,7 @@ const fields = computed(() => [
   },
   {
     key: 'income',
-    aria: 'Household income setting',
+    shortDesc: 'Household income',
     label: 'What is the combined pre-tax income of all adults in your household (excluding dependants)?',
     vModel: selectedIncomeRangeSlug,
     options: incomeRangeOptions.value,
@@ -587,7 +603,7 @@ const fields = computed(() => [
   },
   {
     key: 'location',
-    aria: 'Home location setting',
+    shortDesc: 'Home location',
     label: 'Where is your home located?',
     vModel: selectedLocationSlug,
     options: locationOptions.value,
@@ -598,7 +614,7 @@ const fields = computed(() => [
   },
   {
     key: 'utility',
-    aria: 'Electric utility company setting',
+    shortDesc: 'Electric utility company',
     label: 'Which utility company provides your electrical service?',
     vModel: selectedUtilitySlug,
     options: utilityOptions.value,
@@ -705,7 +721,7 @@ onMounted(async () => {
   }
 })
 
-
+// Initialize form state from stored localStorage object.
 function initFromLocalStorage(data) {
   if (!data || typeof data !== 'object') return
 
@@ -769,6 +785,7 @@ const selectedBuildingTypeName = computed(() => {
   return ''
 })
 
+// Handle building type change by resetting home value and focusing next.
 async function onBuildingTypeChange() {
   selectedHomeValueSlug.value = ''
   await nextTick()
@@ -824,13 +841,13 @@ const selectedIncomeRangeName = computed(() => {
   return match ? match.name : ''
 })
 
+// Handle household size change by resetting income range and focusing next.
 async function onPersonsChange() {
   selectedIncomeRangeSlug.value = ''
   await nextTick()
   if (!selectedIncomeRangeSlug.value) selectedIncomeRangeSlug.value = ''
   activeEdit.value = 'income'
 }
-
 
 // ----- Location -----
 const locationOptions = computed(() => api.value?.['settings-selects']?.['locations'] ?? [])
@@ -881,12 +898,18 @@ const isDirty = urlOutOfSync
 watch(urlOutOfSync, (val) => applyDirtyClasses(val), { immediate: true })
 
 onMounted(() => {
+  const savedEditableState = localStorage.getItem('rebateEditableState')
+  if (savedEditableState !== null) {
+    editable.value = JSON.parse(savedEditableState)
+  }
+
   const observer = new MutationObserver(() => {
     applyDirtyClasses(urlOutOfSync.value)
   })
   observer.observe(document.body, { childList: true, subtree: true })
 })
 
+// Rebuild the current rebate tool URL including all selected params.
 function assembleUrl() {
   const baseUrl = window.location.origin + window.location.pathname
   const urlParams = new URLSearchParams()
@@ -910,7 +933,7 @@ function assembleUrl() {
   return `${baseUrl}?${urlParams.toString()}`
 }
 
-// ----- Copy link -----
+// Copy the assembled URL to clipboard and show a feedback message.
 function addLinkToClipboard(event) {
   const url = assembledUrl.value
   navigator.clipboard?.writeText(url)
@@ -920,6 +943,8 @@ function addLinkToClipboard(event) {
       handleLinkCopiedMessageContent(event, '.selection-summary', 'Copy failed')
     })
 }
+
+// Show a temporary feedback message in the UI when link copied.
 function handleLinkCopiedMessageContent(event, targetSelector, msg) {
   const root = document.querySelector(targetSelector) || document.body
   const el = root.querySelector('.copy-message')
@@ -930,7 +955,7 @@ function handleLinkCopiedMessageContent(event, targetSelector, msg) {
   setTimeout(() => { el.textContent = '' }, 1800)
 }
 
-// ----- Query string -> state -----
+// Initialize form state from current query string params.
 function initFromQueryString() {
   const urlParams = new URLSearchParams(window.location.search)
   const tool = urlParams.get('tool')
@@ -994,6 +1019,7 @@ const urlStateDeps = computed(() => ({
   region: selectedRegion.value
 }))
 
+// Update the browser address bar to match assembled state.
 function updateAddressBar() {
   const url = assembledUrl.value
   try {
@@ -1023,7 +1049,7 @@ const espTier = computed(() => {
   return '';
 });
 
-// ----- Helper to append current query string -----
+// Return a URL with the current query string appended.
 function withQueryString(baseUrl) {
   if (!baseUrl) return '#'
   const qs = assembledQueryString.value
@@ -1064,84 +1090,96 @@ function withQueryString(baseUrl) {
     grid-template-columns: 1fr;
   }
 
+  .settings-headline {
+    font-size: 1.33rem;
+    margin-block-end: 0;
+  }
+
   .control-container {
     display: grid;
     gap: 0;
-  }
-
-  .control {
-    display: grid;
-    gap: 0.25rem;
-    margin-bottom: 0.5rem;
-
-    &.editable {
-      color: white;
-      background-color: var(--wp--preset--color--primary-brand);
-      outline: 2px solid var(--wp--preset--color--primary-brand);
-      outline-offset: 2px;
-      padding: 0.5rem;
-      border-radius: 0.5rem;
-      margin-block: 0.5rem;
-      position: relative;
-
-      & label {
-        color: white;
-        padding-inline-end: 1.25rem;
-      }
-
-      & .close-btn {
-        position: absolute;
-        top: 0.5rem;
-        right: 0.25rem;
-        width: 1.5rem;
-        height: 1.5rem;
-        background: none;
-        border: none;
-        padding: 0;
-        cursor: pointer;
-        appearance: none;
-        min-width: unset;
-
-        &[disabled] {
-          opacity: 0.25;
+    
+      .control {
+        display: grid;
+        gap: 0.25rem;
+        margin-bottom: 0.5rem;
+    
+        &.editable {
+          color: white;
+          background-color: var(--wp--preset--color--primary-brand);
+          outline: 2px solid var(--wp--preset--color--primary-brand);
+          outline-offset: 2px;
+          padding: 0.5rem;
+          border-radius: 0.5rem;
+          margin-block: 0.5rem;
+          position: relative;
+    
+          & label {
+            color: white;
+            padding-inline-end: 1.25rem;
+          }
+    
+          & .close-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.25rem;
+            width: 1.5rem;
+            height: 1.5rem;
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            appearance: none;
+            min-width: unset;
+    
+            &[disabled] {
+              opacity: 0.25;
+            }
+          }
+    
+          & .close-btn::before {
+            content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjU2IDQ4YTIwOCAyMDggMCAxIDEgMCA0MTYgMjA4IDIwOCAwIDEgMSAwLTQxNnptMCA0NjRBMjU2IDI1NiAwIDEgMCAyNTYgMGEyNTYgMjU2IDAgMSAwIDAgNTEyek0xNzUgMTc1Yy05LjQgOS40LTkuNCAyNC42IDAgMzMuOWw0NyA0Ny00NyA0N2MtOS40IDkuNC05LjQgMjQuNiAwIDMzLjlzMjQuNiA5LjQgMzMuOSAwbDQ3LTQ3IDQ3IDQ3YzkuNCA5LjQgMjQuNiA5LjQgMzMuOSAwczkuNC0yNC42IDAtMzMuOWwtNDctNDcgNDctNDdjOS40LTkuNCA5LjQtMjQuNiAwLTMzLjlzLTI0LjYtOS40LTMzLjkgMGwtNDcgNDctNDctNDdjLTkuNC05LjQtMjQuNi05LjQtMzMuOSAweiIvPjwvc3ZnPg==);
+            width: 1.25rem;
+            height: 1.25rem;
+            display: inline-block;
+            position: absolute;
+            right: 0.15rem;
+            top: 1px;
+          }
+        }
+        
+        label {
+          margin-bottom: 0;
+          font-weight: 400;
+          line-height: 1.5;
+        }
+      
+        figcaption {
+          border-radius: 0.5rem;
+          background-color: #fff;
+          color: var(--wp--preset--color--primary-brand);
+          text-align: left;
+          font-size: 0.85rem;
+          padding: 0.5rem;
+          opacity: 0.9;
+        }
+        
+        .select {
+          font-size: 1rem;
+          margin-block: 0.25rem;
+          padding: .5rem;
+          outline: 2px solid var(--wp--preset--color--vivid-green-cyan);
+          outline-offset: 2px;
         }
       }
-
-      & .close-btn::before {
-        content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjU2IDQ4YTIwOCAyMDggMCAxIDEgMCA0MTYgMjA4IDIwOCAwIDEgMSAwLTQxNnptMCA0NjRBMjU2IDI1NiAwIDEgMCAyNTYgMGEyNTYgMjU2IDAgMSAwIDAgNTEyek0xNzUgMTc1Yy05LjQgOS40LTkuNCAyNC42IDAgMzMuOWw0NyA0Ny00NyA0N2MtOS40IDkuNC05LjQgMjQuNiAwIDMzLjlzMjQuNiA5LjQgMzMuOSAwbDQ3LTQ3IDQ3IDQ3YzkuNCA5LjQgMjQuNiA5LjQgMzMuOSAwczkuNC0yNC42IDAtMzMuOWwtNDctNDcgNDctNDdjOS40LTkuNCA5LjQtMjQuNiAwLTMzLjlzLTI0LjYtOS40LTMzLjkgMGwtNDcgNDctNDctNDdjLTkuNC05LjQtMjQuNi05LjQtMzMuOSAweiIvPjwvc3ZnPg==);
-        width: 1.25rem;
-        height: 1.25rem;
-        display: inline-block;
-        position: absolute;
-        right: 0.15rem;
-        top: 1px;
-      }
-    }
   }
 
-  .control label {
-    margin-bottom: 0;
-    font-weight: 400;
-    line-height: 1.5;
-  }
-
-  .control figcaption {
-    border-radius: 0.5rem;
-    background-color: #fff;
-    color: var(--wp--preset--color--primary-brand);
-    text-align: left;
+  label.small {
     font-size: 0.85rem;
-    padding: 0.5rem;
-    opacity: 0.9;
+    margin-block-end: 0;
+    margin-block-start: 0.25rem;
   }
 
-  .select {
-    font-size: 1rem;
-    margin-block: 0.25rem;
-    padding: .5rem;
-    outline: 2px solid var(--wp--preset--color--vivid-green-cyan);
-    outline-offset: 2px;
-  }
 
   .selection-summary {
     background: #f7f7f8;
@@ -1340,18 +1378,18 @@ function withQueryString(baseUrl) {
   border: 1px solid lightgray !important;
 
   &::after {
-    content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNMzk1LjggMzkuNmM5LjQtOS40IDI0LjYtOS40IDMzLjkgMGw0Mi42IDQyLjZjOS40IDkuNCA5LjQgMjQuNiAwIDMzLjlMNDE3LjYgMTcxIDM0MSA5NC40bDU0LjgtNTQuOHpNMzE4LjQgMTE3TDM5NSAxOTMuNmwtMjE5IDIxOSAwLTEyLjZjMC04LjgtNy4yLTE2LTE2LTE2bC0zMiAwIDAtMzJjMC04LjgtNy4yLTE2LTE2LTE2bC0xMi42IDAgMjE5LTIxOXpNNjYuOSAzNzkuNWMxLjItNCAyLjctNy45IDQuNy0xMS41TDk2IDM2OGwwIDMyYzAgOC44IDcuMiAxNiAxNiAxNmwzMiAwIDAgMjQuNGMtMy43IDEuOS03LjUgMy41LTExLjYgNC43TDM5LjYgNDcyLjRsMjcuMy05Mi44ek00NTIuNCAxN2MtMjEuOS0yMS45LTU3LjMtMjEuOS03OS4yIDBMNjAuNCAzMjkuN2MtMTEuNCAxMS40LTE5LjcgMjUuNC0yNC4yIDQwLjhMLjcgNDkxLjVjLTEuNyA1LjYtLjEgMTEuNyA0IDE1LjhzMTAuMiA1LjcgMTUuOCA0bDEyMS0zNS42YzE1LjQtNC41IDI5LjQtMTIuOSA0MC44LTI0LjJMNDk1IDEzOC44YzIxLjktMjEuOSAyMS45LTU3LjMgMC03OS4yTDQ1Mi40IDE3ek0zMzEuMyAyMDIuN2M2LjItNi4yIDYuMi0xNi40IDAtMjIuNnMtMTYuNC02LjItMjIuNiAwbC0xMjggMTI4Yy02LjIgNi4yLTYuMiAxNi40IDAgMjIuNnMxNi40IDYuMiAyMi42IDBsMTI4LTEyOHoiLz48L3N2Zz4=);
+    content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NDAgNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBkPSJNMzguOCA1LjFDMjguNC0zLjEgMTMuMy0xLjIgNS4xIDkuMlMtMS4yIDM0LjcgOS4yIDQyLjlsNTkyIDQ2NGMxMC40IDguMiAyNS41IDYuMyAzMy43LTQuMXM2LjMtMjUuNS00LjEtMzMuN0w1MjUuNiAzODYuN2MzOS42LTQwLjYgNjYuNC04Ni4xIDc5LjktMTE4LjRjMy4zLTcuOSAzLjMtMTYuNyAwLTI0LjZjLTE0LjktMzUuNy00Ni4yLTg3LjctOTMtMTMxLjFDNDY1LjUgNjguOCA0MDAuOCAzMiAzMjAgMzJjLTY4LjIgMC0xMjUgMjYuMy0xNjkuMyA2MC44TDM4LjggNS4xem0xNTEgMTE4LjNDMjI2IDk3LjcgMjY5LjUgODAgMzIwIDgwYzY1LjIgMCAxMTguOCAyOS42IDE1OS45IDY3LjdDNTE4LjQgMTgzLjUgNTQ1IDIyNiA1NTguNiAyNTZjLTEyLjYgMjgtMzYuNiA2Ni44LTcwLjkgMTAwLjlsLTUzLjgtNDIuMmM5LjEtMTcuNiAxNC4yLTM3LjUgMTQuMi01OC43YzAtNzAuNy01Ny4zLTEyOC0xMjgtMTI4Yy0zMi4yIDAtNjEuNyAxMS45LTg0LjIgMzEuNWwtNDYuMS0zNi4xek0zOTQuOSAyODQuMmwtODEuNS02My45YzQuMi04LjUgNi42LTE4LjIgNi42LTI4LjNjMC01LjUtLjctMTAuOS0yLTE2Yy43IDAgMS4zIDAgMiAwYzQ0LjIgMCA4MCAzNS44IDgwIDgwYzAgOS45LTEuOCAxOS40LTUuMSAyOC4yem05LjQgMTMwLjNDMzc4LjggNDI1LjQgMzUwLjcgNDMyIDMyMCA0MzJjLTY1LjIgMC0xMTguOC0yOS42LTE1OS45LTY3LjdDMTIxLjYgMzI4LjUgOTUgMjg2IDgxLjQgMjU2YzguMy0xOC40IDIxLjUtNDEuNSAzOS40LTY0LjhMODMuMSAxNjEuNUM2MC4zIDE5MS4yIDQ0IDIyMC44IDM0LjUgMjQzLjdjLTMuMyA3LjktMy4zIDE2LjcgMCAyNC42YzE0LjkgMzUuNyA0Ni4yIDg3LjcgOTMgMTMxLjFDMTc0LjUgNDQzLjIgMjM5LjIgNDgwIDMyMCA0ODBjNDcuOCAwIDg5LjktMTIuOSAxMjYuMi0zMi41bC00MS45LTMzek0xOTIgMjU2YzAgNzAuNyA1Ny4zIDEyOCAxMjggMTI4YzEzLjMgMCAyNi4xLTIgMzguMi01LjhMMzAyIDMzNGMtMjMuNS01LjQtNDMuMS0yMS4yLTUzLjctNDIuM2wtNTYuMS00NC4yYy0uMiAyLjgtLjMgNS42LS4zIDguNXoiLz48L3N2Zz4=);
     display: inline-block;
     color: red;
-    width: 1rem;
-    max-width: 1rem !important;
+    width: 1.25rem;
+    max-width: 1.25rem !important;
   }
 
-  &.close::after {
-    content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NDAgNTEyIj48cGF0aCBkPSJNMjUuOSAzLjRDMTktMiA4LjktLjggMy40IDYuMVMtLjggMjMuMSA2LjEgMjguNmw2MDggNDgwYzYuOSA1LjUgMTcgNC4zIDIyLjUtMi42czQuMy0xNy0yLjYtMjIuNUwyNS45IDMuNHpNNTU5IDEzOC44YzIxLjktMjEuOSAyMS45LTU3LjMgMC03OS4yTDUxNi40IDE3Yy0yMS45LTIxLjktNTcuMy0yMS45LTc5LjIgMEwyOTcuNSAxNTYuN2wyNS4zIDIwTDM4Mi40IDExNyA0NTkgMTkzLjZsLTUwLjYgNTAuNiAyNS4zIDIwTDU1OSAxMzguOHpNMzE3LjIgMzM1LjNMMjQwIDQxMi42bDAtMTIuNmMwLTguOC03LjItMTYtMTYtMTZsLTMyIDAgMC0zMmMwLTguOC03LjItMTYtMTYtMTZsLTEyLjYgMCA2OC4yLTY4LjItMjUuMy0yMC04MS45IDgxLjljLTExLjQgMTEuNC0xOS43IDI1LjQtMjQuMiA0MC44bC0zNS42IDEyMWMtMS43IDUuNi0uMSAxMS43IDQgMTUuOHMxMC4yIDUuNyAxNS44IDRsMTIxLTM1LjZjMTUuNC00LjUgMjkuNC0xMi45IDQwLjgtMjQuMmw5Ni4yLTk2LjItMjUuMy0yMHpNNDkzLjggMzkuNmw0Mi42IDQyLjZjOS40IDkuNCA5LjQgMjQuNiAwIDMzLjlMNDgxLjYgMTcxIDQwNSA5NC40bDU0LjgtNTQuOGM5LjQtOS40IDI0LjYtOS40IDMzLjkgMHpNMTM1LjYgMzY4bDI0LjQgMCAwIDMyYzAgOC44IDcuMiAxNiAxNiAxNmwzMiAwIDAgMjQuNGMtMy43IDEuOS03LjUgMy41LTExLjYgNC43bC05Mi44IDI3LjMgMjcuMy05Mi44YzEuMi00IDIuNy03LjkgNC43LTExLjZ6Ii8+PC9zdmc+);
-    width: 1.3rem;
-    max-width: 1.3rem !important;
-    top: -1px;
+  &.hide-labels::after {
+    content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1NzYgNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBkPSJNMjg4IDgwYy02NS4yIDAtMTE4LjggMjkuNi0xNTkuOSA2Ny43Qzg5LjYgMTgzLjUgNjMgMjI2IDQ5LjQgMjU2YzEzLjYgMzAgNDAuMiA3Mi41IDc4LjYgMTA4LjNDMTY5LjIgNDAyLjQgMjIyLjggNDMyIDI4OCA0MzJzMTE4LjgtMjkuNiAxNTkuOS02Ny43QzQ4Ni40IDMyOC41IDUxMyAyODYgNTI2LjYgMjU2Yy0xMy42LTMwLTQwLjItNzIuNS03OC42LTEwOC4zQzQwNi44IDEwOS42IDM1My4yIDgwIDI4OCA4MHpNOTUuNCAxMTIuNkMxNDIuNSA2OC44IDIwNy4yIDMyIDI4OCAzMnMxNDUuNSAzNi44IDE5Mi42IDgwLjZjNDYuOCA0My41IDc4LjEgOTUuNCA5MyAxMzEuMWMzLjMgNy45IDMuMyAxNi43IDAgMjQuNmMtMTQuOSAzNS43LTQ2LjIgODcuNy05MyAxMzEuMUM0MzMuNSA0NDMuMiAzNjguOCA0ODAgMjg4IDQ4MHMtMTQ1LjUtMzYuOC0xOTIuNi04MC42QzQ4LjYgMzU2IDE3LjMgMzA0IDIuNSAyNjguM2MtMy4zLTcuOS0zLjMtMTYuNyAwLTI0LjZDMTcuMyAyMDggNDguNiAxNTYgOTUuNCAxMTIuNnpNMjg4IDMzNmM0NC4yIDAgODAtMzUuOCA4MC04MHMtMzUuOC04MC04MC04MGMtLjcgMC0xLjMgMC0yIDBjMS4zIDUuMSAyIDEwLjUgMiAxNmMwIDM1LjMtMjguNyA2NC02NCA2NGMtNS41IDAtMTAuOS0uNy0xNi0yYzAgLjcgMCAxLjMgMCAyYzAgNDQuMiAzNS44IDgwIDgwIDgwem0wLTIwOGExMjggMTI4IDAgMSAxIDAgMjU2IDEyOCAxMjggMCAxIDEgMC0yNTZ6Ii8+PC9zdmc+);
+    width: 1.1rem;
+    max-width: 1.1rem !important;
+    top: 0;
     position: relative;
   }
 }
@@ -1393,5 +1431,9 @@ function withQueryString(baseUrl) {
   outline: 2px dashed #ffc017;
   outline-offset: 0.66rem;
   border-radius: 1px;
+}
+
+#rebatesFilterControls.labels-hidden label.small {
+  display: none !important;
 }
 </style>

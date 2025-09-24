@@ -1,6 +1,7 @@
 ## 1.21.4 September 24, 2025
 – Better descriptions, ARIA and accessibility updates for single mode settings.
 – Minor styling updates.
+– Added better labels on settings with show/hide persisent state feature.
 
 ## 1.21.3 September 23, 2025
 – Added single mode filtering captions.
