@@ -100,8 +100,11 @@
             </template>
           </div>
 
-          <p v-if="hasAnySelection" class="small-text">
+          <p v-if="hasAnySelection && labelsVisible" class="small-text">
             Changing these settings will cause the page content to change. You may also <a @click="clearSettings">clear your settings</a> and start over.
+          </p>
+          <p v-else-if="hasAnySelection && !labelsVisible" class="small-text">
+            <a @click="clearSettings">Clear your settings</a> and start over.
           </p>
 
         </div>
@@ -1270,7 +1273,12 @@ function withQueryString(baseUrl) {
   .small-text,
   .small-text * {
     margin: 0;
-    font-size: 0.85rem
+    font-size: 0.85rem;
+    color: #5a5a5a;
+  }
+
+   .small-text a {
+    color: #369;
   }
 
   .rebate-setting {
