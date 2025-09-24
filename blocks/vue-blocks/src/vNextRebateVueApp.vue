@@ -1138,7 +1138,9 @@ function withQueryString(baseUrl) {
   .select {
     font-size: 1rem;
     margin-block: 0.25rem;
-    padding: 0.5rem;
+    padding: .5rem;
+    outline: 2px solid var(--wp--preset--color--vivid-green-cyan);
+    outline-offset: 2px;
   }
 
   .selection-summary {
