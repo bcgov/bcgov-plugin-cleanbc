@@ -1177,6 +1177,10 @@ function withQueryString(baseUrl) {
           padding: .5rem;
           outline: 2px solid var(--wp--preset--color--vivid-green-cyan);
           outline-offset: 2px;
+
+          &:disabled {
+            outline: 2px solid gray;
+          }
         }
       }
   }

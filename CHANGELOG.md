@@ -1,3 +1,6 @@
+## 1.21.5 September 25, 2025
+– Minor single mode style adjustments.
+
 ## 1.21.4 September 24, 2025
 – Better descriptions, ARIA and accessibility updates for single mode settings.
 – Minor styling updates.
