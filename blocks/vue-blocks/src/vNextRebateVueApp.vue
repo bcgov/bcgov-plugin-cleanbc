@@ -23,11 +23,12 @@
                 <!-- If field has a value -->
                 <template v-if="field.displayValue">
                   <!-- Show button (unless its select is open) -->
-                  <label class='small'>{{ field.shortDesc }}</label>
-                  <button v-if="activeEdit !== field.key" class="rebate-setting" :class="{ 'is-external-dirty': isExternalDirty && lastChangedField === field.key }" @click="openEdit(field.key)" :ref="el => (buttonRefs[field.key] = el)">
+                  <div class="control button-group" v-if="activeEdit !== field.key" >
+                    <label class='small'>{{ field.shortDesc }}</label>
+                    <button class="rebate-setting" :class="{ 'is-external-dirty': isExternalDirty && lastChangedField === field.key }" @click="openEdit(field.key)" :ref="el => (buttonRefs[field.key] = el)">
                     {{ field.displayValue }}
-                  </button>
-
+                    </button>
+                  </div>
                   <!-- Show select if open -->
                   <div v-else-if="editable && activeEdit === field.key">
                     <figure class="control editable" :aria-label="`${field.shortDesc} setting`">
@@ -1102,14 +1103,33 @@ function withQueryString(baseUrl) {
     margin-block-end: 0;
   }
 
+  #rebatesFilterControls {
+    container-type: inline-size;
+    container-name: filter;
+  }
+
   .control-container {
     display: grid;
-    gap: 0;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+
+    @container filter (width < 680px) {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    @container filter (width < 400px) {
+      grid-template-columns: 1fr;
+    }
     
       .control {
         display: grid;
+        justify-content: stretch;
         gap: 0.25rem;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0;
+
+        &.button-group {
+          
+        }
     
         &.editable {
           color: white;
@@ -1155,13 +1175,13 @@ function withQueryString(baseUrl) {
           }
         }
         
-        label {
+        :is(label) {
           margin-bottom: 0;
           font-weight: 400;
           line-height: 1.5;
         }
       
-        figcaption {
+        :is(figcaption) {
           border-radius: 0.5rem;
           background-color: #fff;
           color: var(--wp--preset--color--primary-brand);
@@ -1185,10 +1205,11 @@ function withQueryString(baseUrl) {
       }
   }
 
-  label.small {
-    font-size: 0.85rem;
-    margin-block-end: 0;
-    margin-block-start: 0.25rem;
+  :is(label).small {
+      font-size: 0.85rem;
+      margin-block-end: 0;
+      margin-block-start: 0.25rem;
+      text-align: left;
   }
 
 
@@ -1293,7 +1314,6 @@ function withQueryString(baseUrl) {
     border-radius: 0.25rem;
     box-decoration-break: clone;
     padding-right: 2rem;
-    margin-block: 0.25rem;
     display: block;
     text-align: left;
     text-wrap: inherit;
@@ -1323,7 +1343,7 @@ function withQueryString(baseUrl) {
 }
 
 #rebateFilterApp[data-mode="single"] .loader {
-  height: 428px;
+  height: 270px;
   display: grid;
   place-items: center;
   background-color: #fff;
@@ -1383,8 +1403,8 @@ function withQueryString(baseUrl) {
 #rebateFilterApp:not([data-mode="archive"]) #rebatesFilterControls .editBtn {
   font-size: 0;
   position: absolute;
-  right: -0.85rem;
-  top: -0.85rem;
+  right: -1rem;
+  top: -1rem;
   width: 2.25rem;
   max-width: 2.25rem;
   min-width: 2.25rem;
