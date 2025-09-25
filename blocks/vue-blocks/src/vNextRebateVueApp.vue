@@ -1111,7 +1111,7 @@ function withQueryString(baseUrl) {
   .control-container {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    gap: 1rem;
+    gap: 0.5rem;
 
     @container filter (width < 680px) {
       grid-template-columns: 1fr 1fr;
@@ -1126,10 +1126,6 @@ function withQueryString(baseUrl) {
         justify-content: stretch;
         gap: 0.5rem;
         margin-bottom: 0;
-
-        &.button-group {
-          
-        }
     
         &.editable {
           color: white;
@@ -1178,6 +1174,7 @@ function withQueryString(baseUrl) {
           margin-bottom: 0;
           font-weight: 400;
           line-height: 1.5;
+          text-wrap: balance;
         }
       
         :is(figcaption) {
@@ -1207,8 +1204,6 @@ function withQueryString(baseUrl) {
   :is(label).small {
     font-size: 0.85rem;
     margin-block-end: 0;
-    margin-block: 0.25rem 0.1rem;
-    text-align: right;
   }
 
 
@@ -1299,6 +1294,8 @@ function withQueryString(baseUrl) {
     margin: 0;
     font-size: 0.85rem;
     color: #5a5a5a;
+    margin-block: 0.25rem 0.1rem;
+    text-align: right;
   }
 
    .small-text a {
