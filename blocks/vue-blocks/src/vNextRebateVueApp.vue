@@ -1124,7 +1124,7 @@ function withQueryString(baseUrl) {
       .control {
         display: grid;
         justify-content: stretch;
-        gap: 0.25rem;
+        gap: 0.5rem;
         margin-bottom: 0;
 
         &.button-group {
@@ -1138,7 +1138,6 @@ function withQueryString(baseUrl) {
           outline-offset: 2px;
           padding: 0.5rem;
           border-radius: 0.5rem;
-          margin-block: 0.5rem;
           position: relative;
     
           & label {
@@ -1171,7 +1170,7 @@ function withQueryString(baseUrl) {
             display: inline-block;
             position: absolute;
             right: 0.15rem;
-            top: 1px;
+            top: 3px;
           }
         }
         
@@ -1206,10 +1205,10 @@ function withQueryString(baseUrl) {
   }
 
   :is(label).small {
-      font-size: 0.85rem;
-      margin-block-end: 0;
-      margin-block-start: 0.25rem;
-      text-align: left;
+    font-size: 0.85rem;
+    margin-block-end: 0;
+    margin-block: 0.25rem 0.1rem;
+    text-align: right;
   }
 
 
@@ -1356,7 +1355,6 @@ function withQueryString(baseUrl) {
 
 #rebateFilterApp[data-mode="single"] select,
 #rebateFilterApp[data-mode="single"] .select {
-  max-width: 280px;
   overflow: clip;
 }
 
