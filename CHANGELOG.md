@@ -1,3 +1,6 @@
+## 1.21.6 September 26, 2025
+– Changed single mode interaction to an edit mode.
+
 ## 1.21.5 September 25, 2025
 – Minor single mode style adjustments.
 – Adjusted template to match in-page wireframe positioning.

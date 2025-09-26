@@ -15,13 +15,21 @@
       <div id="rebatesFilterControls" class="filter-container" :class="{ 'filters-dirty': isDirty, 'labels-hidden': !labelsVisible }">
 
         <div v-if="mode === 'single'" class="selection-summary" aria-live="polite">
-          <button class='editBtn' :class="labelsVisible ? 'show-labels' : 'hide-labels'" @click="toggleLabels" :title="labelsVisible ? 'Hide settings labels' : 'Show settings labels'">Show or hide settings labels</button>
+        <button
+          class="editBtn toggle-edit-mode readonly-toggle"
+          :class="isSavingEditMode ? 'saving' : editModeView ? 'show-edit-mode' : 'show-readonly-mode'"
+          @click="toggleEditModeView"
+          :aria-label="editModeView ? 'Exit edit mode' : 'Enter edit mode'"
+          :title="editModeView ? 'Exit edit mode' : 'Enter edit mode'">
+          <span>{{ isSavingEditMode ? 'Saving...' : editModeView ? 'Hide edit mode' : 'View edit mode' }}</span>
+        </button>
+          <button v-if='false' class='editBtn labels' :class="labelsVisible ? 'show-labels' : 'hide-labels'" @click="toggleLabels" :title="labelsVisible ? 'Hide settings labels' : 'Show settings labels'">Show or hide settings labels</button>
           <h2 class='settings-headline'>Your home's details:</h2>
           <div class='control-container'>
             <template v-for="field in fields" :key="field.key">
               <template v-if="field.condition === undefined || field.condition">
                 <!-- If field has a value -->
-                <template v-if="field.displayValue">
+                <template v-if="field.displayValue && editModeView">
                   <!-- Show button (unless its select is open) -->
                   <div class="control button-group" v-if="activeEdit !== field.key" >
                     <label class='small'>{{ field.shortDesc }}</label>
@@ -64,6 +72,16 @@
                   </div>
                 </template>
 
+
+                <template v-else-if="field.displayValue && !editModeView">
+                  <div class="control label-group">
+                    <label class='small'>{{ field.shortDesc }}</label>
+                    <p class="rebate-detail">
+                      {{ field.displayValue }}
+                    </p>
+                  </div>
+                </template>
+
                 <!-- If field is missing → show select immediately -->
                 <template v-else>
                   <figure class="control editable" :aria-label="`${field.shortDesc} setting`">
@@ -101,10 +119,10 @@
             </template>
           </div>
 
-          <p v-if="hasAnySelection && labelsVisible" class="small-text">
+          <p v-if="hasAnySelection && editModeView" class="small-text">
             Changing these settings will cause the page content to change. You may also <a @click="clearSettings">clear your settings</a> and start over.
           </p>
-          <p v-else-if="hasAnySelection && !labelsVisible" class="small-text">
+          <p v-else-if="hasAnySelection && !editModeView" class="small-text">
             <a @click="clearSettings">Clear your settings</a> and start over.
           </p>
 
@@ -364,6 +382,7 @@ async function updateRebateDetails() {
 
       // After the DOM has been swapped, only clear external dirty + selection marker.
       isExternalDirty.value = false
+      isSavingEditMode.value = false
       lastChangedField.value = ''
       rerenderScrollMenu();
     }
@@ -426,6 +445,10 @@ function rerenderScrollMenu() {
 const editable = ref(false)
 const activeEdit = ref('')
 const labelsVisible = ref(true)
+const showReadOnlyFields = ref(true)
+const showEditModeUI = ref(false)
+const editModeView = ref(false) 
+const isSavingEditMode = ref(false)
 
 // --- Focus map for selects ---
 const selectRefs = ref({})
@@ -443,26 +466,22 @@ function toggleLabels() {
   localStorage.setItem('rebateLabelsVisible', JSON.stringify(labelsVisible.value))
 }
 
-// Toggle editable mode. When disabled, resets `activeEdit`.
-function toggleEditable() {
-  editable.value = !editable.value
-  localStorage.setItem('rebateEditableState', JSON.stringify(editable.value))
-
-  if (!editable.value) {
-    activeEdit.value = ''
-  }
-}
-
 // Open a specific field for editing.
 function openEdit(field) {
   editable.value = true
   activeEdit.value = field
 }
 
+function toggleEditModeView() {
+  editModeView.value = !editModeView.value
+  localStorage.setItem('rebateEditModeView', JSON.stringify(editModeView.value))
+}
+
 // Handle when a select input changes. Closes the select, marks state dirty, and re-focuses associated button.
 async function handleSelectChange(fieldKey, newValue) {
   if (!newValue) return
   lastChangedField.value = fieldKey
+  isSavingEditMode.value = true
 
   await nextTick()
   activeEdit.value = '' // closes the select and shows the button again.
@@ -911,6 +930,21 @@ onMounted(() => {
     labelsVisible.value = JSON.parse(savedLabelsVisible)
   }
 
+  const savedReadOnly = localStorage.getItem('rebateShowReadOnlyFields')
+  if (savedReadOnly !== null) {
+    showReadOnlyFields.value = JSON.parse(savedReadOnly)
+  }
+
+  const savedEditUI = localStorage.getItem('rebateShowEditModeUI')
+  if (savedEditUI !== null) {
+    showEditModeUI.value = JSON.parse(savedEditUI)
+  }
+
+  const savedEditModeView = localStorage.getItem('rebateEditModeView')
+  if (savedEditModeView !== null) {
+    editModeView.value = JSON.parse(savedEditModeView)
+  }
+
   const observer = new MutationObserver(() => {
     applyDirtyClasses(urlOutOfSync.value)
   })
@@ -1101,6 +1135,11 @@ function withQueryString(baseUrl) {
   .settings-headline {
     font-size: 1.33rem;
     margin-block-end: 0;
+    margin-block-start: 1.25rem;
+
+    @media (width > 550px) {
+      margin-block-start: 0;
+    }
   }
 
   #rebatesFilterControls {
@@ -1116,7 +1155,7 @@ function withQueryString(baseUrl) {
     @container filter (width < 680px) {
       grid-template-columns: 1fr 1fr;
     }
-
+    
     @container filter (width < 400px) {
       grid-template-columns: 1fr;
     }
@@ -1175,6 +1214,7 @@ function withQueryString(baseUrl) {
           font-weight: 400;
           line-height: 1.5;
           text-wrap: balance;
+          text-align: left;
         }
       
         :is(figcaption) {
@@ -1204,6 +1244,7 @@ function withQueryString(baseUrl) {
   :is(label).small {
     font-size: 0.85rem;
     margin-block-end: 0;
+    margin-block-start: .5rem;
   }
 
 
@@ -1294,7 +1335,7 @@ function withQueryString(baseUrl) {
     margin: 0;
     font-size: 0.85rem;
     color: #5a5a5a;
-    margin-block: 0.25rem 0.1rem;
+    margin-block: 0.5rem .1rem;
     text-align: right;
   }
 
@@ -1382,7 +1423,6 @@ function withQueryString(baseUrl) {
 #rebateFilterApp:not([data-mode="archive"]) #rebatesFilterControls.filters-dirty::after {
   content: "If your URL has been modified manually, you may need to edit your settings — or clear them completely and start over — to fix.";
   background-color: #ffc01757;
-  color: var(--wp--preset--color--custom-secondary-brand);
   display: block;
   border: 2px dashed #ffc017;
   border-radius: 0.66rem;
@@ -1395,30 +1435,57 @@ function withQueryString(baseUrl) {
   border: none !important;
 }
 
+p.rebate-detail.rebate-detail.rebate-detail {
+  color: #369;
+  font-weight: 600;
+  margin-bottom: 0;
+}
+
+.filter-container.labels-hidden p.rebate-detail.rebate-detail.rebate-detail {
+  font-weight: 400;
+}
+
 #rebateFilterApp:not([data-mode="archive"]) #rebatesFilterControls .editBtn {
-  font-size: 0;
   position: absolute;
   right: -1rem;
   top: -1rem;
-  width: 2.25rem;
-  max-width: 2.25rem;
-  min-width: 2.25rem;
-  padding: 0.25rem;
-  height: 0.85rem;
-  background-color: white;
-  border: 1px solid hsl(0, 0%, 83%) !important;
+  min-width: 10rem;
+  padding: 0 1rem 0 0;
+  height: 1rem;
+  background-color: #fff;
+  border: 1px solid hsl(0,0%,83%) !important;
+  color: #369;
+  display: flex;
+  justify-content: end;
+  align-items: center;
+
+  :is(span) {
+    font-size: 0.85rem;
+    display: inline-block;
+    text-align: center;
+    width: 100%;
+  }
+  &.saving {
+    min-width: 6.75rem;
+    background-color: var(--wp--preset--color--primary-brand);
+  }
+  &.saving :is(span) {
+    color: var(--wp--preset--color--white);
+    text-align: right;
+    padding-inline-end: 1rem;
+  }
 
   &::after {
     content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NDAgNTEyIj48cGF0aCBmaWxsPSIjOWY5ZDljIiBkPSJNMzguOCA1LjFDMjguNC0zLjEgMTMuMy0xLjIgNS4xIDkuMlMtMS4yIDM0LjcgOS4yIDQyLjlsNTkyIDQ2NGMxMC40IDguMiAyNS41IDYuMyAzMy43LTQuMXM2LjMtMjUuNS00LjEtMzMuN0w1MjUuNiAzODYuN2MzOS42LTQwLjYgNjYuNC04Ni4xIDc5LjktMTE4LjRjMy4zLTcuOSAzLjMtMTYuNyAwLTI0LjZjLTE0LjktMzUuNy00Ni4yLTg3LjctOTMtMTMxLjFDNDY1LjUgNjguOCA0MDAuOCAzMiAzMjAgMzJjLTY4LjIgMC0xMjUgMjYuMy0xNjkuMyA2MC44TDM4LjggNS4xem0xNTEgMTE4LjNDMjI2IDk3LjcgMjY5LjUgODAgMzIwIDgwYzY1LjIgMCAxMTguOCAyOS42IDE1OS45IDY3LjdDNTE4LjQgMTgzLjUgNTQ1IDIyNiA1NTguNiAyNTZjLTEyLjYgMjgtMzYuNiA2Ni44LTcwLjkgMTAwLjlsLTUzLjgtNDIuMmM5LjEtMTcuNiAxNC4yLTM3LjUgMTQuMi01OC43YzAtNzAuNy01Ny4zLTEyOC0xMjgtMTI4Yy0zMi4yIDAtNjEuNyAxMS45LTg0LjIgMzEuNWwtNDYuMS0zNi4xek0zOTQuOSAyODQuMmwtODEuNS02My45YzQuMi04LjUgNi42LTE4LjIgNi42LTI4LjNjMC01LjUtLjctMTAuOS0yLTE2Yy43IDAgMS4zIDAgMiAwYzQ0LjIgMCA4MCAzNS44IDgwIDgwYzAgOS45LTEuOCAxOS40LTUuMSAyOC4yem05LjQgMTMwLjNDMzc4LjggNDI1LjQgMzUwLjcgNDMyIDMyMCA0MzJjLTY1LjIgMC0xMTguOC0yOS42LTE1OS45LTY3LjdDMTIxLjYgMzI4LjUgOTUgMjg2IDgxLjQgMjU2YzguMy0xOC40IDIxLjUtNDEuNSAzOS40LTY0LjhMODMuMSAxNjEuNUM2MC4zIDE5MS4yIDQ0IDIyMC44IDM0LjUgMjQzLjdjLTMuMyA3LjktMy4zIDE2LjcgMCAyNC42YzE0LjkgMzUuNyA0Ni4yIDg3LjcgOTMgMTMxLjFDMTc0LjUgNDQzLjIgMjM5LjIgNDgwIDMyMCA0ODBjNDcuOCAwIDg5LjktMTIuOSAxMjYuMi0zMi41bC00MS45LTMzek0xOTIgMjU2YzAgNzAuNyA1Ny4zIDEyOCAxMjggMTI4YzEzLjMgMCAyNi4xLTIgMzguMi01LjhMMzAyIDMzNGMtMjMuNS01LjQtNDMuMS0yMS4yLTUzLjctNDIuM2wtNTYuMS00NC4yYy0uMiAyLjgtLjMgNS42LS4zIDguNXoiLz48L3N2Zz4=);
     display: inline-block;
-    color: red;
-    width: 1.25rem;
-    max-width: 1.25rem !important;
+    position: absolute;
+    right: 0.5rem;
   }
 
     &:is(:hover, :focus-visible)::after {
      content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NDAgNTEyIj48cGF0aCBmaWxsPSIjMDM2IiBkPSJNMzguOCA1LjFDMjguNC0zLjEgMTMuMy0xLjIgNS4xIDkuMlMtMS4yIDM0LjcgOS4yIDQyLjlsNTkyIDQ2NGMxMC40IDguMiAyNS41IDYuMyAzMy43LTQuMXM2LjMtMjUuNS00LjEtMzMuN0w1MjUuNiAzODYuN2MzOS42LTQwLjYgNjYuNC04Ni4xIDc5LjktMTE4LjRjMy4zLTcuOSAzLjMtMTYuNyAwLTI0LjZjLTE0LjktMzUuNy00Ni4yLTg3LjctOTMtMTMxLjFDNDY1LjUgNjguOCA0MDAuOCAzMiAzMjAgMzJjLTY4LjIgMC0xMjUgMjYuMy0xNjkuMyA2MC44TDM4LjggNS4xem0xNTEgMTE4LjNDMjI2IDk3LjcgMjY5LjUgODAgMzIwIDgwYzY1LjIgMCAxMTguOCAyOS42IDE1OS45IDY3LjdDNTE4LjQgMTgzLjUgNTQ1IDIyNiA1NTguNiAyNTZjLTEyLjYgMjgtMzYuNiA2Ni44LTcwLjkgMTAwLjlsLTUzLjgtNDIuMmM5LjEtMTcuNiAxNC4yLTM3LjUgMTQuMi01OC43YzAtNzAuNy01Ny4zLTEyOC0xMjgtMTI4Yy0zMi4yIDAtNjEuNyAxMS45LTg0LjIgMzEuNWwtNDYuMS0zNi4xek0zOTQuOSAyODQuMmwtODEuNS02My45YzQuMi04LjUgNi42LTE4LjIgNi42LTI4LjNjMC01LjUtLjctMTAuOS0yLTE2Yy43IDAgMS4zIDAgMiAwYzQ0LjIgMCA4MCAzNS44IDgwIDgwYzAgOS45LTEuOCAxOS40LTUuMSAyOC4yem05LjQgMTMwLjNDMzc4LjggNDI1LjQgMzUwLjcgNDMyIDMyMCA0MzJjLTY1LjIgMC0xMTguOC0yOS42LTE1OS45LTY3LjdDMTIxLjYgMzI4LjUgOTUgMjg2IDgxLjQgMjU2YzguMy0xOC40IDIxLjUtNDEuNSAzOS40LTY0LjhMODMuMSAxNjEuNUM2MC4zIDE5MS4yIDQ0IDIyMC44IDM0LjUgMjQzLjdjLTMuMyA3LjktMy4zIDE2LjcgMCAyNC42YzE0LjkgMzUuNyA0Ni4yIDg3LjcgOTMgMTMxLjFDMTc0LjUgNDQzLjIgMjM5LjIgNDgwIDMyMCA0ODBjNDcuOCAwIDg5LjktMTIuOSAxMjYuMi0zMi41bC00MS45LTMzek0xOTIgMjU2YzAgNzAuNyA1Ny4zIDEyOCAxMjggMTI4YzEzLjMgMCAyNi4xLTIgMzguMi01LjhMMzAyIDMzNGMtMjMuNS01LjQtNDMuMS0yMS4yLTUzLjctNDIuM2wtNTYuMS00NC4yYy0uMiAyLjgtLjMgNS42LS4zIDguNXoiLz48L3N2Zz4=);
     }
+
 
   &.hide-labels::after {
     content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1NzYgNTEyIj48cGF0aCBmaWxsPSIjOWY5ZDljIiBkPSJNMjg4IDgwYy02NS4yIDAtMTE4LjggMjkuNi0xNTkuOSA2Ny43Qzg5LjYgMTgzLjUgNjMgMjI2IDQ5LjQgMjU2YzEzLjYgMzAgNDAuMiA3Mi41IDc4LjYgMTA4LjNDMTY5LjIgNDAyLjQgMjIyLjggNDMyIDI4OCA0MzJzMTE4LjgtMjkuNiAxNTkuOS02Ny43QzQ4Ni40IDMyOC41IDUxMyAyODYgNTI2LjYgMjU2Yy0xMy42LTMwLTQwLjItNzIuNS03OC42LTEwOC4zQzQwNi44IDEwOS42IDM1My4yIDgwIDI4OCA4MHpNOTUuNCAxMTIuNkMxNDIuNSA2OC44IDIwNy4yIDMyIDI4OCAzMnMxNDUuNSAzNi44IDE5Mi42IDgwLjZjNDYuOCA0My41IDc4LjEgOTUuNCA5MyAxMzEuMWMzLjMgNy45IDMuMyAxNi43IDAgMjQuNmMtMTQuOSAzNS43LTQ2LjIgODcuNy05MyAxMzEuMUM0MzMuNSA0NDMuMiAzNjguOCA0ODAgMjg4IDQ4MHMtMTQ1LjUtMzYuOC0xOTIuNi04MC42QzQ4LjYgMzU2IDE3LjMgMzA0IDIuNSAyNjguM2MtMy4zLTcuOS0zLjMtMTYuNyAwLTI0LjZDMTcuMyAyMDggNDguNiAxNTYgOTUuNCAxMTIuNnpNMjg4IDMzNmM0NC4yIDAgODAtMzUuOCA4MC04MHMtMzUuOC04MC04MC04MGMtLjcgMC0xLjMgMC0yIDBjMS4zIDUuMSAyIDEwLjUgMiAxNmMwIDM1LjMtMjguNyA2NC02NCA2NGMtNS41IDAtMTAuOS0uNy0xNi0yYzAgLjcgMCAxLjMgMCAyYzAgNDQuMiAzNS44IDgwIDgwIDgwem0wLTIwOGExMjggMTI4IDAgMSAxIDAgMjU2IDEyOCAxMjggMCAxIDEgMC0yNTZ6Ii8+PC9zdmc+);
@@ -1430,6 +1497,28 @@ function withQueryString(baseUrl) {
   &.hide-labels:is(:hover, :focus-visible)::after {
     content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1NzYgNTEyIj48cGF0aCBmaWxsPSIjMDM2IiBkPSJNMjg4IDgwYy02NS4yIDAtMTE4LjggMjkuNi0xNTkuOSA2Ny43Qzg5LjYgMTgzLjUgNjMgMjI2IDQ5LjQgMjU2YzEzLjYgMzAgNDAuMiA3Mi41IDc4LjYgMTA4LjNDMTY5LjIgNDAyLjQgMjIyLjggNDMyIDI4OCA0MzJzMTE4LjgtMjkuNiAxNTkuOS02Ny43QzQ4Ni40IDMyOC41IDUxMyAyODYgNTI2LjYgMjU2Yy0xMy42LTMwLTQwLjItNzIuNS03OC42LTEwOC4zQzQwNi44IDEwOS42IDM1My4yIDgwIDI4OCA4MHpNOTUuNCAxMTIuNkMxNDIuNSA2OC44IDIwNy4yIDMyIDI4OCAzMnMxNDUuNSAzNi44IDE5Mi42IDgwLjZjNDYuOCA0My41IDc4LjEgOTUuNCA5MyAxMzEuMWMzLjMgNy45IDMuMyAxNi43IDAgMjQuNmMtMTQuOSAzNS43LTQ2LjIgODcuNy05MyAxMzEuMUM0MzMuNSA0NDMuMiAzNjguOCA0ODAgMjg4IDQ4MHMtMTQ1LjUtMzYuOC0xOTIuNi04MC42QzQ4LjYgMzU2IDE3LjMgMzA0IDIuNSAyNjguM2MtMy4zLTcuOS0zLjMtMTYuNyAwLTI0LjZDMTcuMyAyMDggNDguNiAxNTYgOTUuNCAxMTIuNnpNMjg4IDMzNmM0NC4yIDAgODAtMzUuOCA4MC04MHMtMzUuOC04MC04MC04MGMtLjcgMC0xLjMgMC0yIDBjMS4zIDUuMSAyIDEwLjUgMiAxNmMwIDM1LjMtMjguNyA2NC02NCA2NGMtNS41IDAtMTAuOS0uNy0xNi0yYzAgLjcgMCAxLjMgMCAyYzAgNDQuMiAzNS44IDgwIDgwIDgwem0wLTIwOGExMjggMTI4IDAgMSAxIDAgMjU2IDEyOCAxMjggMCAxIDEgMC0yNTZ6Ii8+PC9zdmc+);
   }
+  &.readonly-toggle {
+    right: -1rem;
+
+    &.saving::after {
+      content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMzIgOTZjMC0xNy43IDE0LjMtMzIgMzItMzJsMCA5NmMwIDE3LjcgMTQuMyAzMiAzMiAzMmwxOTIgMGMxNy43IDAgMzItMTQuMyAzMi0zMmwwLTk0LjJjNC41IDEuNiA4LjcgNC4yIDEyLjEgNy42bDc0LjUgNzQuNWM2IDYgOS40IDE0LjEgOS40IDIyLjZMNDE2IDQxNmMwIDE3LjctMTQuMyAzMi0zMiAzMkw2NCA0NDhjLTE3LjcgMC0zMi0xNC4zLTMyLTMyTDMyIDk2ek05NiA2NGwxOTIgMCAwIDk2TDk2IDE2MGwwLTk2ek0wIDk2TDAgNDE2YzAgMzUuMyAyOC43IDY0IDY0IDY0bDMyMCAwYzM1LjMgMCA2NC0yOC43IDY0LTY0bDAtMjQ1LjVjMC0xNy02LjctMzMuMy0xOC43LTQ1LjNMMzU0LjcgNTAuN2MtMTItMTItMjguMy0xOC43LTQ1LjMtMTguN0w2NCAzMkMyOC43IDMyIDAgNjAuNyAwIDk2ek0yNzIgMzIwYTQ4IDQ4IDAgMSAxIC05NiAwIDQ4IDQ4IDAgMSAxIDk2IDB6bS00OC04MGE4MCA4MCAwIDEgMCAwIDE2MCA4MCA4MCAwIDEgMCAwLTE2MHoiLz48L3N2Zz4=);
+      width: 1.1rem;
+      max-width: 1.1rem !important;
+    }
+  }
+  &.readonly-toggle.show-readonly-mode::after {
+    /* pencil */
+    content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBkPSJNMzk1LjggMzkuNmM5LjQtOS40IDI0LjYtOS40IDMzLjkgMGw0Mi42IDQyLjZjOS40IDkuNCA5LjQgMjQuNiAwIDMzLjlMNDE3LjYgMTcxIDM0MSA5NC40bDU0LjgtNTQuOHpNMzE4LjQgMTE3TDM5NSAxOTMuNmwtMjE5IDIxOSAwLTEyLjZjMC04LjgtNy4yLTE2LTE2LTE2bC0zMiAwIDAtMzJjMC04LjgtNy4yLTE2LTE2LTE2bC0xMi42IDAgMjE5LTIxOXpNNjYuOSAzNzkuNWMxLjItNCAyLjctNy45IDQuNy0xMS41TDk2IDM2OGwwIDMyYzAgOC44IDcuMiAxNiAxNiAxNmwzMiAwIDAgMjQuNGMtMy43IDEuOS03LjUgMy41LTExLjYgNC43TDM5LjYgNDcyLjRsMjcuMy05Mi44ek00NTIuNCAxN2MtMjEuOS0yMS45LTU3LjMtMjEuOS03OS4yIDBMNjAuNCAzMjkuN2MtMTEuNCAxMS40LTE5LjcgMjUuNC0yNC4yIDQwLjhMLjcgNDkxLjVjLTEuNyA1LjYtLjEgMTEuNyA0IDE1LjhzMTAuMiA1LjcgMTUuOCA0bDEyMS0zNS42YzE1LjQtNC41IDI5LjQtMTIuOSA0MC44LTI0LjJMNDk1IDEzOC44YzIxLjktMjEuOSAyMS45LTU3LjMgMC03OS4yTDQ1Mi40IDE3ek0zMzEuMyAyMDIuN2M2LjItNi4yIDYuMi0xNi40IDAtMjIuNnMtMTYuNC02LjItMjIuNiAwbC0xMjggMTI4Yy02LjIgNi4yLTYuMiAxNi40IDAgMjIuNnMxNi40IDYuMiAyMi42IDBsMTI4LTEyOHoiLz48L3N2Zz4=);
+    width: 1.1rem;
+    max-width: 1.1rem !important;
+  }
+  &.readonly-toggle::after {
+    /* pencil slash */
+    content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NDAgNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBkPSJNMjUuOSAzLjRDMTktMiA4LjktLjggMy40IDYuMVMtLjggMjMuMSA2LjEgMjguNmw2MDggNDgwYzYuOSA1LjUgMTcgNC4zIDIyLjUtMi42czQuMy0xNy0yLjYtMjIuNUwyNS45IDMuNHpNNTU5IDEzOC44YzIxLjktMjEuOSAyMS45LTU3LjMgMC03OS4yTDUxNi40IDE3Yy0yMS45LTIxLjktNTcuMy0yMS45LTc5LjIgMEwyOTcuNSAxNTYuN2wyNS4zIDIwTDM4Mi40IDExNyA0NTkgMTkzLjZsLTUwLjYgNTAuNiAyNS4zIDIwTDU1OSAxMzguOHpNMzE3LjIgMzM1LjNMMjQwIDQxMi42bDAtMTIuNmMwLTguOC03LjItMTYtMTYtMTZsLTMyIDAgMC0zMmMwLTguOC03LjItMTYtMTYtMTZsLTEyLjYgMCA2OC4yLTY4LjItMjUuMy0yMC04MS45IDgxLjljLTExLjQgMTEuNC0xOS43IDI1LjQtMjQuMiA0MC44bC0zNS42IDEyMWMtMS43IDUuNi0uMSAxMS43IDQgMTUuOHMxMC4yIDUuNyAxNS44IDRsMTIxLTM1LjZjMTUuNC00LjUgMjkuNC0xMi45IDQwLjgtMjQuMmw5Ni4yLTk2LjItMjUuMy0yMHpNNDkzLjggMzkuNmw0Mi42IDQyLjZjOS40IDkuNCA5LjQgMjQuNiAwIDMzLjlMNDgxLjYgMTcxIDQwNSA5NC40bDU0LjgtNTQuOGM5LjQtOS40IDI0LjYtOS40IDMzLjkgMHpNMTM1LjYgMzY4bDI0LjQgMCAwIDMyYzAgOC44IDcuMiAxNiAxNiAxNmwzMiAwIDAgMjQuNGMtMy43IDEuOS03LjUgMy41LTExLjYgNC43bC05Mi44IDI3LjMgMjcuMy05Mi44YzEuMi00IDIuNy03LjkgNC43LTExLjZ6Ii8+PC9zdmc+);
+    width: 1.3rem;
+    max-width: 1.3rem !important;
+  }
+
 }
 </style>
 <style>
