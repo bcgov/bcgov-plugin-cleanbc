@@ -1,5 +1,6 @@
 ## 1.21.6 September 26, 2025
 – Changed single mode interaction to an edit mode.
+– Filter tool styling changes.
 
 ## 1.21.5 September 25, 2025
 – Minor single mode style adjustments.

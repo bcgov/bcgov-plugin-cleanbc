@@ -1129,6 +1129,7 @@ function withQueryString(baseUrl) {
   .filter-container {
     display: grid !important;
     gap: 1rem;
+    padding: 1rem;
     grid-template-columns: 1fr;
   }
 
@@ -1250,7 +1251,7 @@ function withQueryString(baseUrl) {
 
   .selection-summary {
     background: #f7f7f8;
-    padding: 0.75rem;
+    padding: 1rem;
     border-radius: 0.5rem;
     display: flex;
     flex-direction: column;
@@ -1453,11 +1454,12 @@ p.rebate-detail.rebate-detail.rebate-detail {
   padding: 0 1rem 0 0;
   height: 1rem;
   background-color: #fff;
-  border: 1px solid hsl(0,0%,83%) !important;
+  border: 0 !important;
   color: #369;
   display: flex;
   justify-content: end;
   align-items: center;
+  border-radius: 0 0.66rem 0 0.66rem;
 
   :is(span) {
     font-size: 0.85rem;
@@ -1465,6 +1467,18 @@ p.rebate-detail.rebate-detail.rebate-detail {
     text-align: center;
     width: 100%;
   }
+
+  &:is(:focus-visible, :focus, :hover) {
+    outline: 0;
+    background-color: rgb(235, 245, 255);
+
+    & :is(span) {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+  }
+
   &.saving {
     min-width: 6.75rem;
     background-color: var(--wp--preset--color--primary-brand);
@@ -1509,8 +1523,9 @@ p.rebate-detail.rebate-detail.rebate-detail {
   &.readonly-toggle.show-readonly-mode::after {
     /* pencil */
     content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBkPSJNMzk1LjggMzkuNmM5LjQtOS40IDI0LjYtOS40IDMzLjkgMGw0Mi42IDQyLjZjOS40IDkuNCA5LjQgMjQuNiAwIDMzLjlMNDE3LjYgMTcxIDM0MSA5NC40bDU0LjgtNTQuOHpNMzE4LjQgMTE3TDM5NSAxOTMuNmwtMjE5IDIxOSAwLTEyLjZjMC04LjgtNy4yLTE2LTE2LTE2bC0zMiAwIDAtMzJjMC04LjgtNy4yLTE2LTE2LTE2bC0xMi42IDAgMjE5LTIxOXpNNjYuOSAzNzkuNWMxLjItNCAyLjctNy45IDQuNy0xMS41TDk2IDM2OGwwIDMyYzAgOC44IDcuMiAxNiAxNiAxNmwzMiAwIDAgMjQuNGMtMy43IDEuOS03LjUgMy41LTExLjYgNC43TDM5LjYgNDcyLjRsMjcuMy05Mi44ek00NTIuNCAxN2MtMjEuOS0yMS45LTU3LjMtMjEuOS03OS4yIDBMNjAuNCAzMjkuN2MtMTEuNCAxMS40LTE5LjcgMjUuNC0yNC4yIDQwLjhMLjcgNDkxLjVjLTEuNyA1LjYtLjEgMTEuNyA0IDE1LjhzMTAuMiA1LjcgMTUuOCA0bDEyMS0zNS42YzE1LjQtNC41IDI5LjQtMTIuOSA0MC44LTI0LjJMNDk1IDEzOC44YzIxLjktMjEuOSAyMS45LTU3LjMgMC03OS4yTDQ1Mi40IDE3ek0zMzEuMyAyMDIuN2M2LjItNi4yIDYuMi0xNi40IDAtMjIuNnMtMTYuNC02LjItMjIuNiAwbC0xMjggMTI4Yy02LjIgNi4yLTYuMiAxNi40IDAgMjIuNnMxNi40IDYuMiAyMi42IDBsMTI4LTEyOHoiLz48L3N2Zz4=);
-    width: 1.1rem;
-    max-width: 1.1rem !important;
+    width: 1.05rem;
+    max-width: 1.05rem !important;
+    right: 10px;
   }
   &.readonly-toggle::after {
     /* pencil slash */
