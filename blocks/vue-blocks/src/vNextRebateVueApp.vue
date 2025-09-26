@@ -1250,7 +1250,8 @@ function withQueryString(baseUrl) {
 
 
   .selection-summary {
-    background: #f7f7f8;
+    /* background: #f7f7f8; */
+    background: #fff;
     padding: 1rem;
     border-radius: 0.5rem;
     display: flex;
@@ -1446,6 +1447,11 @@ p.rebate-detail.rebate-detail.rebate-detail {
   font-weight: 400;
 }
 
+#rebateFilterApp:not([data-mode="archive"]) #rebatesFilterControls:has(.editBtn:is(:focus-visible, :focus, :hover)) {
+  background-color: hsl(210, 100%, 96%);
+  transition: all ease-in-out .3s;
+}
+
 #rebateFilterApp:not([data-mode="archive"]) #rebatesFilterControls .editBtn {
   position: absolute;
   right: -1rem;
@@ -1455,11 +1461,13 @@ p.rebate-detail.rebate-detail.rebate-detail {
   height: 1rem;
   background-color: #fff;
   border: 0 !important;
+  outline: 0 !important;
   color: #369;
   display: flex;
   justify-content: end;
   align-items: center;
   border-radius: 0 0.66rem 0 0.66rem;
+  transition: all ease-in-out .3s;
 
   :is(span) {
     font-size: 0.85rem;
