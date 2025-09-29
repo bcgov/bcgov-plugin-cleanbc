@@ -1,3 +1,8 @@
+## 1.21.7 September 29, 2025
+– Added heating types to taxonomies for rebates.
+– Updated single mode filter to include heating types, reordered and updated logic to accomodate.
+– Updated rebates v2 API for heating type incusion in settings.
+
 ## 1.21.6 September 26, 2025
 – Changed single mode interaction to an edit mode.
 – Filter tool styling changes.

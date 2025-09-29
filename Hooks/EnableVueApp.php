@@ -1002,6 +1002,7 @@ class EnableVueApp {
 		$all_building_types = $normalize_terms_hierarchical( 'rebate-building-types' );
 		$all_income_bands   = $normalize_terms_hierarchical( 'rebate-income-bands' );
 		$all_locations      = $normalize_terms_hierarchical( 'prc-locations' );
+		$all_heating_types  = $normalize_terms_hierarchical( 'rebate-heating-types' );
 		$all_utilities      = $normalize_terms_hierarchical( 'rebate-utilities' );
 
 		$all_regions = array_values( array_unique( array_filter( $all_regions ) ) );
@@ -1056,6 +1057,7 @@ class EnableVueApp {
 				'income-bands'   => $all_income_bands,
 				'locations'      => $all_locations,
 				'regions'        => $all_regions,
+				'heating-types'  => $all_heating_types,
 				'utilities'      => $all_utilities,
 			),
 			'results'          => $posts_data,

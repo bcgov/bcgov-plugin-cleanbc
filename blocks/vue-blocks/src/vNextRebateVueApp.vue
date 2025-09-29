@@ -25,6 +25,10 @@
         </button>
           <button v-if='false' class='editBtn labels' :class="labelsVisible ? 'show-labels' : 'hide-labels'" @click="toggleLabels" :title="labelsVisible ? 'Hide settings labels' : 'Show settings labels'">Show or hide settings labels</button>
           <h2 class='settings-headline'>Your home's details:</h2>
+          <div v-if="selectedBuildingGroupSlug !== 'murb' && murbTenure === 'rent'" class='message error-message'>
+            <p><span>Rentals of your home type are not eligible</span></p>
+            <p>Only rentals in multi-unit residential buildings are currently eligible.</p>
+          </div>
           <div class='control-container'>
             <template v-for="field in fields" :key="field.key">
               <template v-if="field.condition === undefined || field.condition">
@@ -117,18 +121,17 @@
                 </template>
               </template>
             </template>
+            <div class="control instruction-group">
+              <label class='small sr-only' for="instructions">Settings instructions</label>
+              <p name="instructions" class="small-text">
+                <a v-if="!editModeView" href="#edit" @click.prevent="toggleEditModeView">Editing details</a><span v-else>Editing details</span> will update the page content. You may also <a href="#clear" @click.prevent="clearSettings">clear the settings</a> to start over.
+              </p>
+            </div>
           </div>
-
-          <p v-if="hasAnySelection && editModeView" class="small-text">
-            Changing these settings will cause the page content to change. You may also <a @click="clearSettings">clear your settings</a> and start over.
-          </p>
-          <p v-else-if="hasAnySelection && !editModeView" class="small-text">
-            <a @click="clearSettings">Clear your settings</a> and start over.
-          </p>
 
         </div>
 
-        <p v-if="(!hasAllSelection || isDirty) && mode === 'single'" class='warning-message'>
+        <p v-if="(!hasAllSelection || isDirty) && mode === 'single'" class='message warning-message'>
           You may be looking at default or incomplete information.
           <span v-if='!isDirty'>
             Please update your settings.
@@ -554,6 +557,7 @@ function clearSettings(event) {
   selectedPersonsSlug.value = ''
   selectedIncomeRangeSlug.value = ''
   selectedLocationSlug.value = ''
+  selectedHeatingSlug.value = ''
   selectedUtilitySlug.value = ''
 
   const url = window.location.origin + window.location.pathname
@@ -570,29 +574,40 @@ function clearSettings(event) {
 // --- Unified fields config ---
 const fields = computed(() => [
   {
-    key: 'building',
-    shortDesc: 'Type of home',
-    label: 'What kind of home do you live in?',
-    vModel: selectedBuildingTypeSlug,
-    groups: buildingTypeGroups.value,
-    isGrouped: true,
-    displayValue: selectedBuildingTypeName.value,
-    missingMessage: 'Missing home type',
-    description: 'Changing between Ground Oriented / MURB types will require you to update the assessed home value information.'
+    key: 'location',
+    shortDesc: 'Home location',
+    label: 'What community do you live in or are closest to?',
+    vModel: selectedLocationSlug,
+    options: locationOptions.value,
+    displayValue: selectedLocationName.value
+      ? `${selectedLocationName.value} (${selectedRegionName.value})`
+      : '',
+    missingMessage: 'Missing location details'
   },
   {
     key: 'murbTenure',
-    shortDesc: 'MURB tenure',
-    label: 'Do you own or rent your home?',
+    shortDesc: 'Rent or own',
+    label: 'Do you rent or own your home?',
     vModel: murbTenure,
     options: [
       { slug: 'own', name: 'Own' },
       { slug: 'rent', name: 'Rent' }
     ],
     displayValue: murbTenureLabel.value,
-    missingMessage: 'Missing MURB status',
-    condition: selectedBuildingGroupSlug.value === 'murb',
-    description: 'This only applies to MURB home types.'
+    missingMessage: 'Missing ownership status',
+    // condition: selectedBuildingGroupSlug.value === 'murb',
+    description: 'Only rentals in multi-unit residential buildings are currently eligible.'
+  },
+  {
+    key: 'building',
+    shortDesc: 'Type of home',
+    label: 'What type of home do you live in?',
+    vModel: selectedBuildingTypeSlug,
+    groups: buildingTypeGroups.value,
+    isGrouped: true,
+    displayValue: selectedBuildingTypeName.value,
+    missingMessage: 'Missing home type',
+    description: 'Changing between Ground Oriented / MURB types will require you to update the assessed home value information.'
   },
   {
     key: 'homeValue',
@@ -609,7 +624,7 @@ const fields = computed(() => [
   {
     key: 'persons',
     shortDesc: 'People in household',
-    label: 'How many people live in your household?',
+    label: 'How many people live in your home (including adults and children)?',
     vModel: selectedPersonsSlug,
     options: personCountOptions.value,
     displayValue: selectedPersonsCount.value,
@@ -629,15 +644,13 @@ const fields = computed(() => [
     description: 'The amount options shown change based on the set number of people in the household.'
   },
   {
-    key: 'location',
-    shortDesc: 'Home location',
-    label: 'Where is your home located?',
-    vModel: selectedLocationSlug,
-    options: locationOptions.value,
-    displayValue: selectedLocationName.value
-      ? `${selectedLocationName.value} (${selectedRegionName.value})`
-      : '',
-    missingMessage: 'Missing location details'
+    key: 'heating',
+    shortDesc: 'Heating type',
+    label: 'What is the primary type of heating in your home?',
+    vModel: selectedHeatingSlug,
+    options: heatingOptions.value,
+    displayValue: selectedHeatingName.value,
+    missingMessage: 'Missing heating details'
   },
   {
     key: 'utility',
@@ -775,6 +788,11 @@ function initFromLocalStorage(data) {
       || locationOptions.value.find(l => l.name === data.location)
     if (loc) selectedLocationSlug.value = loc.slug
   }
+  if (data.heating) {
+    const heating = heatingOptions.value.find(w => w.slug === data.heating)
+      || heatingOptions.value.find(w => w.name === data.heating)
+    if (heating) selectedHeatingSlug.value = heating.slug
+  }
   if (data.utility) {
     const utility = utilityOptions.value.find(u => u.slug === data.utility)
       || utilityOptions.value.find(u => u.name === data.utility)
@@ -884,6 +902,11 @@ const selectedRegion = computed(() => selectedLocation.value?.children?.[0]?.slu
 const selectedLocationName = computed(() => selectedLocation.value?.name || '')
 const selectedRegionName = computed(() => selectedLocation.value?.children?.[0]?.name || '')
 
+// ----- Heating -----
+const heatingOptions = computed(() => api.value?.['settings-selects']?.['heating-types'] ?? [])
+const selectedHeatingSlug = ref('')
+const selectedHeating = computed(() => heatingOptions.value.find(l => l.slug === selectedHeatingSlug.value) || null)
+const selectedHeatingName = computed(() => selectedHeating.value?.name || '')
 
 // ----- Utility -----
 const utilityOptions = computed(() => api.value?.['settings-selects']?.['utilities'] ?? [])
@@ -892,7 +915,7 @@ const selectedUtility = computed(() => utilityOptions.value.find(l => l.slug ===
 const selectedUtilityName = computed(() => selectedUtility.value?.name || '')
 
 // ----- Selections summary -----
-const hasAnySelection = computed(() => !!(selectedBuildingTypeName.value || murbTenure.value || selectedHomeValueName.value || selectedPersonsCount.value || selectedIncomeRangeName.value || selectedLocationName.value || selectedUtilityName.value))
+const hasAnySelection = computed(() => !!(selectedBuildingTypeName.value || murbTenure.value || selectedHomeValueName.value || selectedPersonsCount.value || selectedIncomeRangeName.value || selectedLocationName.value || selectedHeatingName.value || selectedUtilityName.value))
 
 const hasAllSelection = computed(() => {
   const hasBuilding = !!selectedBuildingTypeName.value
@@ -901,9 +924,10 @@ const hasAllSelection = computed(() => {
   const hasPersons = !!selectedPersonsCount.value
   const hasIncome = !!selectedIncomeRangeName.value
   const hasLocation = !!selectedLocationName.value
+  const hasHeating = !!selectedHeatingName.value
   const hasUtility = !!selectedUtilityName.value
 
-  return hasBuilding && hasMurbTenure && hasHomeValue && hasPersons && hasIncome && hasLocation && hasUtility
+  return hasBuilding && hasMurbTenure && hasHomeValue && hasPersons && hasIncome && hasLocation && hasHeating && hasUtility
 })
 
 
@@ -971,6 +995,7 @@ function assembleUrl() {
     urlParams.set('location', selectedLocationName.value)
     if (selectedRegionName.value) urlParams.set('region', selectedRegionName.value)
   }
+  if (selectedHeatingSlug.value) urlParams.set('heating', selectedHeatingName.value)
   if (selectedUtilitySlug.value) urlParams.set('utility', selectedUtilityName.value)
   return `${baseUrl}?${urlParams.toString()}`
 }
@@ -1009,6 +1034,7 @@ function initFromQueryString() {
   const persons = urlParams.get('persons')
   const income = urlParams.get('income')
   const location = urlParams.get('location')
+  const heating = urlParams.get('heating')
   const utility = urlParams.get('utility')
 
   if (group && buildingTypeGroups.value.some(g => g.slug === group)) {
@@ -1042,6 +1068,11 @@ function initFromQueryString() {
     if (foundLoc) selectedLocationSlug.value = foundLoc.slug
   }
 
+  if (heating) {
+    const foundHeat = heatingOptions.value.find(l => l.name === heating)
+    if (foundHeat) selectedHeatingSlug.value = foundHeat.slug
+  }
+
   if (utility) {
     const foundUtil = utilityOptions.value.find(l => l.name === utility)
     if (foundUtil) selectedUtilitySlug.value = foundUtil.slug
@@ -1057,6 +1088,7 @@ const urlStateDeps = computed(() => ({
   persons: selectedPersonsSlug.value,
   income: selectedIncomeRangeSlug.value,
   location: selectedLocationSlug.value,
+  heating: selectedHeatingSlug.value,
   utility: selectedUtilitySlug.value,
   region: selectedRegion.value
 }))
@@ -1082,7 +1114,7 @@ const espTier = computed(() => {
   const isMurb = selectedBuildingGroupSlug.value === 'murb';
   const overLimit = (
     (isMurb && murbTenure.value !== 'rent' && hvSlug === '772000-or-over') ||
-    (!isMurb && hvSlug === '1230000-or-over')
+    (!isMurb && hvSlug === '1230000-or-over') || (!isMurb && murbTenure.value === 'rent')
   );
   if (/-t1$/.test(incomeSlug)) return overLimit ? 'Not Qualified' : 'ESP-1';
   if (/-t2$/.test(incomeSlug)) return overLimit ? 'Not Qualified' : 'ESP-2';
@@ -1166,6 +1198,20 @@ function withQueryString(baseUrl) {
         justify-content: stretch;
         gap: 0.5rem;
         margin-bottom: 0;
+
+        &.instruction-group {
+          border: 1px solid rgba(33, 66, 99, 0.33);
+          border-radius: 0.25rem;
+          padding: 0.25rem 0.5rem 0.5rem;
+          background-color: rgba(33, 66, 99, 0.05);
+          margin-block-start: 0.5rem;
+          height: fit-content;
+          align-self: end;
+
+          :is(label) {
+            margin-block-start: 0;
+          }
+        }
     
         &.editable {
           color: white;
@@ -1331,14 +1377,14 @@ function withQueryString(baseUrl) {
   .selection-summary:has(p + .small-text) p {
     margin-bottom: 0;
   }
-
+  .small-text {
+    margin-block: 0.5rem .1rem;
+  }
   .small-text,
   .small-text * {
     margin: 0;
     font-size: 0.85rem;
     color: #5a5a5a;
-    margin-block: 0.5rem .1rem;
-    text-align: right;
   }
 
    .small-text a {
@@ -1542,20 +1588,52 @@ p.rebate-detail.rebate-detail.rebate-detail {
     max-width: 1.3rem !important;
   }
 
+  
 }
 </style>
 <style>
-.error-message {
-  color: var(--wp--preset--color--vivid-red);
-}
 
-.warning-message {
+.message {
   background: #fff7e5;
   border: 1px solid #facc15;
   color: #92400e;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
   font-weight: 500;
+  font-size: 1rem !important;
+
+  :is(p) { 
+    margin: 0;
+  }
+
+  :is(span) {
+    color: #440000 !important;
+    font-weight: 700;
+  }
+}
+
+.error-message {
+  background: #ffe5e5;
+  border: 1px solid #fa1515;
+  padding-inline-start: 3rem;
+  position: relative;
+  
+  &::before {
+    content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjNDAwIiBkPSJNMjU2IDQ4YTIwOCAyMDggMCAxIDEgMCA0MTYgMjA4IDIwOCAwIDEgMSAwLTQxNnptMCA0NjRBMjU2IDI1NiAwIDEgMCAyNTYgMGEyNTYgMjU2IDAgMSAwIDAgNTEyem0wLTM4NGMtMTMuMyAwLTI0IDEwLjctMjQgMjRsMCAxMTJjMCAxMy4zIDEwLjcgMjQgMjQgMjRzMjQtMTAuNyAyNC0yNGwwLTExMmMwLTEzLjMtMTAuNy0yNC0yNC0yNHptMzIgMjI0YTMyIDMyIDAgMSAwIC02NCAwIDMyIDMyIDAgMSAwIDY0IDB6Ii8+PC9zdmc+);
+    display: inline-block;
+    height: 1rem;
+    width: 1rem;
+    position: absolute;
+    top: 1rem;
+    left: 1.5rem;
+    pointer-events: none;
+  }
+}
+
+
+.warning-message {
+  background: #fff7e5;
+  border: 1px solid #facc15;
 }
 
 .query-conditional-group-block.is-dirty-variable::before,
