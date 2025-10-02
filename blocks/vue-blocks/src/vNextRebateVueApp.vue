@@ -55,7 +55,7 @@
                         @change="handleSelectChange(field.key, $event.target.value)"
                         @keydown="handleSelectKeydown($event, field.key, field.vModel.value)"
                         :ref="el => (selectRefs[field.key] = el)">
-                        <option disabled :selected="!field.vModel.value" value="">Select an option</option>
+                        <option disabled :selected="!field.vModel.value" data-default='Select an option' value="">Select an option</option>
 
                         <!-- Grouped (building) -->
                         <template v-if="field.isGrouped">
@@ -101,7 +101,7 @@
                       @change="handleSelectChange(field.key, $event.target.value)"
                       @keydown="handleSelectKeydown($event, field.key, field.vModel.value)"
                       :ref="el => (selectRefs[field.key] = el)">
-                      <option disabled :selected="!field.vModel.value" value="">Select an option</option>
+                      <option disabled :selected="!field.vModel.value" data-default='Select an option' value="">Select an option</option>
 
                       <!-- Grouped (building) -->
                       <template v-if="field.isGrouped">
@@ -168,7 +168,7 @@
                     @change="handleSelectChange(field.key, $event.target.value)"
                     @keydown="handleSelectKeydown($event, field.key, field.vModel.value)"
                     :ref="el => (selectRefs[field.key] = el)">
-                    <option disabled :selected="!field.vModel.value" value="">Select an option</option>
+                    <option disabled :selected="!field.vModel.value" data-default='Select an option' value="">Select an option</option>
 
                     <!-- Grouped (building) -->
                     <template v-if="field.isGrouped">
@@ -1305,11 +1305,15 @@ function withQueryString(baseUrl) {
         font-size: 1rem;
         margin-block: 0.25rem;
         padding: .5rem;
-        outline: 2px solid var(--wp--preset--color--vivid-green-cyan);
         outline-offset: 2px;
+        outline: 2px solid var(--wp--preset--color--custom-info-border);
+
+        &:has(option[data-default="Select an option"]:checked) {
+          outline: 2px solid var(--wp--preset--color--vivid-green-cyan);
+        }
 
         &:disabled {
-          outline: 2px solid gray;
+          outline: 2px solid lightgray !important;
         }
       }
     }
