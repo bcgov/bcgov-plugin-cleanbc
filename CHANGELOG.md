@@ -1,3 +1,6 @@
+## 1.22.0 October 2, 2025
+– Scaffolded aggregation "archive mode" form and structure to match single mode output without edit mode.
+
 ## 1.21.7 September 29, 2025
 – Added heating types to taxonomies for rebates.
 – Updated single mode filter to include heating types, reordered and updated logic to accomodate.

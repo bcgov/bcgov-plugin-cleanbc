@@ -12,18 +12,19 @@
 
     <template v-else>
       <!-- Filter Controls -->
-      <div id="rebatesFilterControls" class="filter-container" :class="{ 'filters-dirty': isDirty, 'labels-hidden': !labelsVisible }">
+      <div id="rebatesFilterControls" class="filter-container"
+        :class="{ 'filters-dirty': isDirty, 'labels-hidden': !labelsVisible }">
 
         <div v-if="mode === 'single'" class="selection-summary" aria-live="polite">
-        <button
-          class="editBtn toggle-edit-mode readonly-toggle"
-          :class="isSavingEditMode ? 'saving' : editModeView ? 'show-edit-mode' : 'show-readonly-mode'"
-          @click="toggleEditModeView"
-          :aria-label="editModeView ? 'Exit edit mode' : 'Enter edit mode'"
-          :title="editModeView ? 'Exit edit mode' : 'Enter edit mode'">
-          <span>{{ isSavingEditMode ? 'Saving...' : editModeView ? 'Hide edit mode' : 'View edit mode' }}</span>
-        </button>
-          <button v-if='false' class='editBtn labels' :class="labelsVisible ? 'show-labels' : 'hide-labels'" @click="toggleLabels" :title="labelsVisible ? 'Hide settings labels' : 'Show settings labels'">Show or hide settings labels</button>
+          <button class="editBtn toggle-edit-mode readonly-toggle"
+            :class="isSavingEditMode ? 'saving' : editModeView ? 'show-edit-mode' : 'show-readonly-mode'"
+            @click="toggleEditModeView" :aria-label="editModeView ? 'Exit edit mode' : 'Enter edit mode'"
+            :title="editModeView ? 'Exit edit mode' : 'Enter edit mode'">
+            <span>{{ isSavingEditMode ? 'Saving...' : editModeView ? 'Hide edit mode' : 'View edit mode' }}</span>
+          </button>
+          <button v-if='false' class='editBtn labels' :class="labelsVisible ? 'show-labels' : 'hide-labels'"
+            @click="toggleLabels" :title="labelsVisible ? 'Hide settings labels' : 'Show settings labels'">Show or hide
+            settings labels</button>
           <h2 class='settings-headline'>Your home's details:</h2>
           <div v-if="selectedBuildingGroupSlug !== 'murb' && murbTenure === 'rent'" class='message error-message'>
             <p><span>Rentals of your home type are not eligible</span></p>
@@ -35,16 +36,19 @@
                 <!-- If field has a value -->
                 <template v-if="field.displayValue && editModeView">
                   <!-- Show button (unless its select is open) -->
-                  <div class="control button-group" v-if="activeEdit !== field.key" >
+                  <div class="control button-group" v-if="activeEdit !== field.key">
                     <label class='small'>{{ field.shortDesc }}</label>
-                    <button class="rebate-setting" :class="{ 'is-external-dirty': isExternalDirty && lastChangedField === field.key }" @click="openEdit(field.key)" :ref="el => (buttonRefs[field.key] = el)">
-                    {{ field.displayValue }}
+                    <button class="rebate-setting"
+                      :class="{ 'is-external-dirty': isExternalDirty && lastChangedField === field.key }"
+                      @click="openEdit(field.key)" :ref="el => (buttonRefs[field.key] = el)">
+                      {{ field.displayValue }}
                     </button>
                   </div>
                   <!-- Show select if open -->
                   <div v-else-if="editable && activeEdit === field.key">
                     <figure class="control editable" :aria-label="`${field.shortDesc} setting`">
-                      <button :disabled="!field.vModel.value" type="button" class="close-btn" @click="activeEdit = ''" aria-label="Close edit field"></button>
+                      <button :disabled="!field.vModel.value" type="button" class="close-btn" @click="activeEdit = ''"
+                        aria-label="Close edit field"></button>
                       <label :for="`${field.key}Select`">{{ field.label }}</label>
                       <select :key="field.key + '-' + (fieldRenderKeys[field.key] ?? 0)" class="select"
                         :id="`${field.key}Select`" v-model="field.vModel.value" :disabled="field.disabled"
@@ -89,7 +93,8 @@
                 <!-- If field is missing → show select immediately -->
                 <template v-else>
                   <figure class="control editable" :aria-label="`${field.shortDesc} setting`">
-                    <button :disabled="!field.vModel.value" type="button" class="close-btn" @click="activeEdit = ''" aria-label="Close edit field"></button>
+                    <button :disabled="!field.vModel.value" type="button" class="close-btn" @click="activeEdit = ''"
+                      aria-label="Close edit field"></button>
                     <label :for="`${field.key}Select`">{{ field.label }}</label>
                     <select :key="field.key + '-' + (fieldRenderKeys[field.key] ?? 0)" class="select"
                       :id="`${field.key}Select`" v-model="field.vModel.value" :disabled="field.disabled"
@@ -124,7 +129,11 @@
             <div class="control instruction-group">
               <label class='small sr-only' for="instructions">Settings instructions</label>
               <p name="instructions" class="small-text">
-                <a v-if="!editModeView" href="#edit" @click.prevent="toggleEditModeView">Editing details</a><span v-else>Editing details</span> will update the page content. You may also <a href="#clear" @click.prevent="clearSettings">clear the settings</a> to start over.
+                <a v-if="!editModeView" href="#edit" @click.prevent="toggleEditModeView">Editing details</a><span
+                  v-else>Editing
+                  details</span> will update the page content. You may also <a href="#clear"
+                  @click.prevent="clearSettings">clear
+                  the settings</a> to start over.
               </p>
             </div>
           </div>
@@ -142,84 +151,51 @@
         </p>
 
         <template v-if="mode === 'archive'">
-          <!-- Building Type Select (hierarchical) -->
-          <div class="control build-type-select">
-            <label for="typeSelect">What kind of home do you live in?</label>
-            <select id="typeSelect" class="select" v-model="selectedBuildingTypeSlug" @change="onBuildingTypeChange">
-              <option :value="''">Select an option</option>
-              <optgroup v-for="group in buildingTypeGroups" :key="group.slug"
-                :label="group.name === 'MURB' ? 'Multi-unit residential buildings' : group.name">
-                <!-- <option :value="group.slug">All {{ group.name }}</option> -->
-                <option v-for="child in group.children" :key="child.slug" :value="child.slug">
-                  {{ child.name }}
-                </option>
-              </optgroup>
-            </select>
+
+          <div v-if="selectedBuildingGroupSlug !== 'murb' && murbTenure === 'rent'" class='message error-message'>
+            <p><span>Rentals of your home type are not eligible</span></p>
+            <p>Only rentals in multi-unit residential buildings are currently eligible.</p>
           </div>
 
-          <!-- MURB Own/Rent Select -->
-          <div class="control murb-tenure" v-if="selectedBuildingGroupSlug === 'murb'">
-            <label for="murbTenure">Do you own or rent your home?</label>
-            <select id="murbTenure" class="select" v-model="murbTenure">
-              <option :value="''">Select an option</option>
-              <option value="own">Own</option>
-              <option value="rent">Rent</option>
-            </select>
-          </div>
+          <div class='control-container stacked'>
+            <template v-for="field in fields" :key="field.key">
+              <template v-if="field.condition === undefined || field.condition">
+                <figure class="control" :aria-label="`${field.shortDesc} setting`">
+                  <label :for="`${field.key}Select`">{{ field.label }}</label>
 
-          <!-- Home Value Select -->
-          <div class="control home-value-select">
-            <label for="homeValueSelect">What is the current assessed value of your home?</label>
-            <select id="homeValueSelect" class="select" :disabled="!selectedBuildingGroupSlug"
-              v-model="selectedHomeValueSlug">
-              <option :value="''">Select an option</option>
-              <option v-for="hv in homeValueOptions" :key="hv.slug" :value="hv.slug">
-                {{ hv.name }}
-              </option>
-            </select>
-          </div>
+                  <select :key="field.key + '-' + (fieldRenderKeys[field.key] ?? 0)" class="select"
+                    :id="`${field.key}Select`" v-model="field.vModel.value" :disabled="field.disabled"
+                    @change="handleSelectChange(field.key, $event.target.value)"
+                    @keydown="handleSelectKeydown($event, field.key, field.vModel.value)"
+                    :ref="el => (selectRefs[field.key] = el)">
+                    <option disabled :selected="!field.vModel.value" value="">Select an option</option>
 
-          <!-- Income Bands Selects -->
-          <div class="control income-bands-select">
-            <label for="householdPersons">How many people live in your household?</label>
-            <select id="householdPersons" class="select" v-model="selectedPersonsSlug" @change="onPersonsChange">
-              <option :value="''">Select an option</option>
-              <option v-for="p in personCountOptions" :key="p.slug" :value="p.slug">{{ p.name }}</option>
-            </select>
-          </div>
+                    <!-- Grouped (building) -->
+                    <template v-if="field.isGrouped">
+                      <optgroup v-for="group in field.groups" :key="group.slug"
+                        :label="group.name === 'MURB' ? 'Multi-unit residential buildings' : group.name">
+                        <option v-for="child in group.children" :key="child.slug" :value="child.slug">
+                          {{ child.name }}
+                        </option>
+                      </optgroup>
+                    </template>
 
-          <div class="control income-range-select">
-            <label for="incomeRange">What is the combined pre-tax income of all adults in your household (excluding
-              dependants)?</label>
-            <select id="incomeRange" class="select" :disabled="!selectedPersonsSlug" v-model="selectedIncomeRangeSlug">
-              <option :value="''">Select an option</option>
-              <option v-for="r in incomeRangeOptions" :key="r.slug" :value="r.slug">{{ r.name }}</option>
-            </select>
-          </div>
+                    <!-- Flat (others) -->
+                    <template v-else>
+                      <option v-for="opt in field.options" :key="opt.slug" :value="opt.slug">
+                        {{ opt.name }}
+                      </option>
+                    </template>
+                  </select>
 
-          <!-- Location Select -->
-          <div class="control location-select">
-            <label for="locationSelect">Where is your home located?</label>
-            <select id="locationSelect" class="select" v-model="selectedLocationSlug">
-              <option :value="''">Select an option</option>
-              <option v-for="loc in locationOptions" :key="loc.slug" :value="loc.slug" :class="loc.children?.[0]?.name">
-                {{ loc.name }}
-              </option>
-            </select>
+                  <figcaption v-if="false && field.description">{{ field.description }}</figcaption>
+                </figure>
+              </template>
+            </template>
           </div>
-
-          <!-- Utility Select -->
-          <div class="control uitility-select">
-            <label for="uitilitySelect">Which utility company provides your electrical service?</label>
-            <select id="uitilitySelect" class="select" v-model="selectedUtilitySlug">
-              <option :value="''">Select an option</option>
-              <option v-for="utility in utilityOptions" :key="utility.slug" :value="utility.slug">
-                {{ utility.name }}
-              </option>
-            </select>
-          </div>
-
+          <p><a href="#clear" @click.prevent="clearSettings">Clear settings</a> to start over.</p>
         </template>
+
         <!-- Update Page Button (only in single mode) -->
         <!-- <div v-if="mode === 'single'" class="update-page-container" :class='isDirty ? "has-icon warning" : ""'>
           <button v-if="editable || isDirty" type="button" class="update-page-btn" @click="reloadPage"
@@ -227,7 +203,6 @@
             Save and update
           </button>
         </div> -->
-
       </div>
 
       <!-- Results -->
@@ -411,7 +386,7 @@ function rerenderScrollMenu() {
     // Create a new list for navigation
     const navListContainer = document.createElement('nav');
     navListContainer.classList.add('side-nav', 'bb-nav', 'wp-block-navigation', 'is-vertical', 'wp-container-core-navigation-layout-2');
-    
+
     const navList = document.createElement('ul');
     navList.classList.add('side-nav', 'bb-nav', 'wp-block-navigation', 'is-vertical', 'wp-block-navigation__container');
 
@@ -450,7 +425,7 @@ const activeEdit = ref('')
 const labelsVisible = ref(true)
 const showReadOnlyFields = ref(true)
 const showEditModeUI = ref(false)
-const editModeView = ref(false) 
+const editModeView = ref(false)
 const isSavingEditMode = ref(false)
 
 // --- Focus map for selects ---
@@ -1178,6 +1153,11 @@ function withQueryString(baseUrl) {
   #rebatesFilterControls {
     container-type: inline-size;
     container-name: filter;
+
+    &:has(.stacked) {
+      box-shadow: none;
+      padding: 0;
+    }
   }
 
   .control-container {
@@ -1188,104 +1168,144 @@ function withQueryString(baseUrl) {
     @container filter (width < 680px) {
       grid-template-columns: 1fr 1fr;
     }
-    
-    @container filter (width < 400px) {
-      grid-template-columns: 1fr;
-    }
-    
-      .control {
-        display: grid;
-        justify-content: stretch;
-        gap: 0.5rem;
-        margin-bottom: 0;
 
-        &.instruction-group {
-          border: 1px solid rgba(33, 66, 99, 0.33);
-          border-radius: 0.25rem;
-          padding: 0.25rem 0.5rem 0.5rem;
-          background-color: rgba(33, 66, 99, 0.05);
-          margin-block-start: 0.5rem;
-          height: fit-content;
-          align-self: end;
+    &.stacked {
 
-          :is(label) {
-            margin-block-start: 0;
-          }
-        }
-    
-        &.editable {
-          color: white;
-          background-color: var(--wp--preset--color--primary-brand);
-          outline: 2px solid var(--wp--preset--color--primary-brand);
-          outline-offset: 2px;
-          padding: 0.5rem;
-          border-radius: 0.5rem;
-          position: relative;
-    
-          & label {
-            color: white;
-            padding-inline-end: 1.25rem;
-          }
-    
-          & .close-btn {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.25rem;
-            width: 1.5rem;
-            height: 1.5rem;
-            background: none;
-            border: none;
-            padding: 0;
-            cursor: pointer;
-            appearance: none;
-            min-width: unset;
-    
-            &[disabled] {
-              opacity: 0.25;
-            }
-          }
-    
-          & .close-btn::before {
-            content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjU2IDQ4YTIwOCAyMDggMCAxIDEgMCA0MTYgMjA4IDIwOCAwIDEgMSAwLTQxNnptMCA0NjRBMjU2IDI1NiAwIDEgMCAyNTYgMGEyNTYgMjU2IDAgMSAwIDAgNTEyek0xNzUgMTc1Yy05LjQgOS40LTkuNCAyNC42IDAgMzMuOWw0NyA0Ny00NyA0N2MtOS40IDkuNC05LjQgMjQuNiAwIDMzLjlzMjQuNiA5LjQgMzMuOSAwbDQ3LTQ3IDQ3IDQ3YzkuNCA5LjQgMjQuNiA5LjQgMzMuOSAwczkuNC0yNC42IDAtMzMuOWwtNDctNDcgNDctNDdjOS40LTkuNCA5LjQtMjQuNiAwLTMzLjlzLTI0LjYtOS40LTMzLjkgMGwtNDcgNDctNDctNDdjLTkuNC05LjQtMjQuNi05LjQtMzMuOSAweiIvPjwvc3ZnPg==);
-            width: 1.25rem;
-            height: 1.25rem;
-            display: inline-block;
-            position: absolute;
-            right: 0.15rem;
-            top: 3px;
-          }
-        }
-        
-        :is(label) {
-          margin-bottom: 0;
-          font-weight: 400;
-          line-height: 1.5;
-          text-wrap: balance;
-          text-align: left;
-        }
+      gap: 0;
+      grid-template-columns:  1fr 1fr;
       
-        :is(figcaption) {
-          border-radius: 0.5rem;
-          background-color: #fff;
-          color: var(--wp--preset--color--primary-brand);
-          text-align: left;
-          font-size: 0.85rem;
-          padding: 0.5rem;
-          opacity: 0.9;
+      @container filter (width < 680px) {
+        grid-template-columns: 1fr;
+      }
+      
+      .control {
+        justify-content: start;
+        margin-block: 0;
+        gap: .5rem;
+        padding-block-end: 2rem;
+
+        :is(label) {
+          text-wrap: wrap;
+          @supports (text-wrap: pretty) {
+            text-wrap: pretty;
+          }
         }
         
         .select {
-          font-size: 1rem;
-          margin-block: 0.25rem;
-          padding: .5rem;
-          outline: 2px solid var(--wp--preset--color--vivid-green-cyan);
-          outline-offset: 2px;
+          width: fit-content;
+        }
 
-          &:disabled {
-            outline: 2px solid gray;
+        &:nth-of-type(2n + 1) {
+          padding-inline-end: 2rem;
+        }
+        
+        @container filter (width >= 680px) {
+          &:nth-of-type(2n + 2) {
+            padding-inline-start: 2rem;
+            border-left: 1px solid rgb(51 102 153 / 0.3);
           }
         }
       }
+
+    }
+
+    @container filter (width < 400px) {
+      grid-template-columns: 1fr;
+    }
+
+    .control {
+      display: grid;
+      justify-content: stretch;
+      gap: 0.5rem;
+      margin-bottom: 0;
+
+      &.instruction-group {
+        border: 1px solid rgba(33, 66, 99, 0.33);
+        border-radius: 0.25rem;
+        padding: 0.25rem 0.5rem 0.5rem;
+        background-color: rgba(33, 66, 99, 0.05);
+        margin-block-start: 0.5rem;
+        height: fit-content;
+        align-self: end;
+
+        :is(label) {
+          margin-block-start: 0;
+        }
+      }
+
+      &.editable {
+        color: white;
+        background-color: var(--wp--preset--color--primary-brand);
+        outline: 2px solid var(--wp--preset--color--primary-brand);
+        outline-offset: 2px;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+        position: relative;
+
+        & label {
+          color: white;
+          padding-inline-end: 1.25rem;
+        }
+
+        & .close-btn {
+          position: absolute;
+          top: 0.5rem;
+          right: 0.25rem;
+          width: 1.5rem;
+          height: 1.5rem;
+          background: none;
+          border: none;
+          padding: 0;
+          cursor: pointer;
+          appearance: none;
+          min-width: unset;
+
+          &[disabled] {
+            opacity: 0.25;
+          }
+        }
+
+        & .close-btn::before {
+          content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjU2IDQ4YTIwOCAyMDggMCAxIDEgMCA0MTYgMjA4IDIwOCAwIDEgMSAwLTQxNnptMCA0NjRBMjU2IDI1NiAwIDEgMCAyNTYgMGEyNTYgMjU2IDAgMSAwIDAgNTEyek0xNzUgMTc1Yy05LjQgOS40LTkuNCAyNC42IDAgMzMuOWw0NyA0Ny00NyA0N2MtOS40IDkuNC05LjQgMjQuNiAwIDMzLjlzMjQuNiA5LjQgMzMuOSAwbDQ3LTQ3IDQ3IDQ3YzkuNCA5LjQgMjQuNiA5LjQgMzMuOSAwczkuNC0yNC42IDAtMzMuOWwtNDctNDcgNDctNDdjOS40LTkuNCA5LjQtMjQuNiAwLTMzLjlzLTI0LjYtOS40LTMzLjkgMGwtNDcgNDctNDctNDdjLTkuNC05LjQtMjQuNi05LjQtMzMuOSAweiIvPjwvc3ZnPg==);
+          width: 1.25rem;
+          height: 1.25rem;
+          display: inline-block;
+          position: absolute;
+          right: 0.15rem;
+          top: 3px;
+        }
+      }
+
+      :is(label) {
+        margin-bottom: 0;
+        font-weight: 400;
+        line-height: 1.5;
+        text-wrap: balance;
+        text-align: left;
+      }
+
+      :is(figcaption) {
+        border-radius: 0.5rem;
+        background-color: #fff;
+        color: var(--wp--preset--color--primary-brand);
+        text-align: left;
+        font-size: 0.85rem;
+        padding: 0.5rem;
+        opacity: 0.9;
+      }
+
+      .select {
+        font-size: 1rem;
+        margin-block: 0.25rem;
+        padding: .5rem;
+        outline: 2px solid var(--wp--preset--color--vivid-green-cyan);
+        outline-offset: 2px;
+
+        &:disabled {
+          outline: 2px solid gray;
+        }
+      }
+    }
   }
 
   :is(label).small {
@@ -1377,9 +1397,11 @@ function withQueryString(baseUrl) {
   .selection-summary:has(p + .small-text) p {
     margin-bottom: 0;
   }
+
   .small-text {
     margin-block: 0.5rem .1rem;
   }
+
   .small-text,
   .small-text * {
     margin: 0;
@@ -1387,7 +1409,7 @@ function withQueryString(baseUrl) {
     color: #5a5a5a;
   }
 
-   .small-text a {
+  .small-text a {
     color: #369;
   }
 
@@ -1444,14 +1466,19 @@ function withQueryString(baseUrl) {
   overflow: clip;
 }
 
-#rebateFilterApp[data-mode="single"] #rebatesFilterControls .selection-summary{
+#rebateFilterApp[data-mode="single"] #rebatesFilterControls .selection-summary {
   opacity: 0;
   animation: fadeIn 0.3s ease forwards;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .rebate-setting.is-external-dirty::after {
@@ -1459,8 +1486,13 @@ function withQueryString(baseUrl) {
 }
 
 @keyframes spin1440 {
-  from { transform: rotate(0turn); }
-  to   { transform: rotate(4turn); }
+  from {
+    transform: rotate(0turn);
+  }
+
+  to {
+    transform: rotate(4turn);
+  }
 }
 
 #rebateFilterApp:not([data-mode="archive"]) #rebatesFilterControls.filters-dirty {
@@ -1537,6 +1569,7 @@ p.rebate-detail.rebate-detail.rebate-detail {
     min-width: 6.75rem;
     background-color: var(--wp--preset--color--primary-brand);
   }
+
   &.saving :is(span) {
     color: var(--wp--preset--color--white);
     text-align: right;
@@ -1550,9 +1583,9 @@ p.rebate-detail.rebate-detail.rebate-detail {
     right: 0.5rem;
   }
 
-    &:is(:hover, :focus-visible)::after {
-     content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NDAgNTEyIj48cGF0aCBmaWxsPSIjMDM2IiBkPSJNMzguOCA1LjFDMjguNC0zLjEgMTMuMy0xLjIgNS4xIDkuMlMtMS4yIDM0LjcgOS4yIDQyLjlsNTkyIDQ2NGMxMC40IDguMiAyNS41IDYuMyAzMy43LTQuMXM2LjMtMjUuNS00LjEtMzMuN0w1MjUuNiAzODYuN2MzOS42LTQwLjYgNjYuNC04Ni4xIDc5LjktMTE4LjRjMy4zLTcuOSAzLjMtMTYuNyAwLTI0LjZjLTE0LjktMzUuNy00Ni4yLTg3LjctOTMtMTMxLjFDNDY1LjUgNjguOCA0MDAuOCAzMiAzMjAgMzJjLTY4LjIgMC0xMjUgMjYuMy0xNjkuMyA2MC44TDM4LjggNS4xem0xNTEgMTE4LjNDMjI2IDk3LjcgMjY5LjUgODAgMzIwIDgwYzY1LjIgMCAxMTguOCAyOS42IDE1OS45IDY3LjdDNTE4LjQgMTgzLjUgNTQ1IDIyNiA1NTguNiAyNTZjLTEyLjYgMjgtMzYuNiA2Ni44LTcwLjkgMTAwLjlsLTUzLjgtNDIuMmM5LjEtMTcuNiAxNC4yLTM3LjUgMTQuMi01OC43YzAtNzAuNy01Ny4zLTEyOC0xMjgtMTI4Yy0zMi4yIDAtNjEuNyAxMS45LTg0LjIgMzEuNWwtNDYuMS0zNi4xek0zOTQuOSAyODQuMmwtODEuNS02My45YzQuMi04LjUgNi42LTE4LjIgNi42LTI4LjNjMC01LjUtLjctMTAuOS0yLTE2Yy43IDAgMS4zIDAgMiAwYzQ0LjIgMCA4MCAzNS44IDgwIDgwYzAgOS45LTEuOCAxOS40LTUuMSAyOC4yem05LjQgMTMwLjNDMzc4LjggNDI1LjQgMzUwLjcgNDMyIDMyMCA0MzJjLTY1LjIgMC0xMTguOC0yOS42LTE1OS45LTY3LjdDMTIxLjYgMzI4LjUgOTUgMjg2IDgxLjQgMjU2YzguMy0xOC40IDIxLjUtNDEuNSAzOS40LTY0LjhMODMuMSAxNjEuNUM2MC4zIDE5MS4yIDQ0IDIyMC44IDM0LjUgMjQzLjdjLTMuMyA3LjktMy4zIDE2LjcgMCAyNC42YzE0LjkgMzUuNyA0Ni4yIDg3LjcgOTMgMTMxLjFDMTc0LjUgNDQzLjIgMjM5LjIgNDgwIDMyMCA0ODBjNDcuOCAwIDg5LjktMTIuOSAxMjYuMi0zMi41bC00MS45LTMzek0xOTIgMjU2YzAgNzAuNyA1Ny4zIDEyOCAxMjggMTI4YzEzLjMgMCAyNi4xLTIgMzguMi01LjhMMzAyIDMzNGMtMjMuNS01LjQtNDMuMS0yMS4yLTUzLjctNDIuM2wtNTYuMS00NC4yYy0uMiAyLjgtLjMgNS42LS4zIDguNXoiLz48L3N2Zz4=);
-    }
+  &:is(:hover, :focus-visible)::after {
+    content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NDAgNTEyIj48cGF0aCBmaWxsPSIjMDM2IiBkPSJNMzguOCA1LjFDMjguNC0zLjEgMTMuMy0xLjIgNS4xIDkuMlMtMS4yIDM0LjcgOS4yIDQyLjlsNTkyIDQ2NGMxMC40IDguMiAyNS41IDYuMyAzMy43LTQuMXM2LjMtMjUuNS00LjEtMzMuN0w1MjUuNiAzODYuN2MzOS42LTQwLjYgNjYuNC04Ni4xIDc5LjktMTE4LjRjMy4zLTcuOSAzLjMtMTYuNyAwLTI0LjZjLTE0LjktMzUuNy00Ni4yLTg3LjctOTMtMTMxLjFDNDY1LjUgNjguOCA0MDAuOCAzMiAzMjAgMzJjLTY4LjIgMC0xMjUgMjYuMy0xNjkuMyA2MC44TDM4LjggNS4xem0xNTEgMTE4LjNDMjI2IDk3LjcgMjY5LjUgODAgMzIwIDgwYzY1LjIgMCAxMTguOCAyOS42IDE1OS45IDY3LjdDNTE4LjQgMTgzLjUgNTQ1IDIyNiA1NTguNiAyNTZjLTEyLjYgMjgtMzYuNiA2Ni44LTcwLjkgMTAwLjlsLTUzLjgtNDIuMmM5LjEtMTcuNiAxNC4yLTM3LjUgMTQuMi01OC43YzAtNzAuNy01Ny4zLTEyOC0xMjgtMTI4Yy0zMi4yIDAtNjEuNyAxMS45LTg0LjIgMzEuNWwtNDYuMS0zNi4xek0zOTQuOSAyODQuMmwtODEuNS02My45YzQuMi04LjUgNi42LTE4LjIgNi42LTI4LjNjMC01LjUtLjctMTAuOS0yLTE2Yy43IDAgMS4zIDAgMiAwYzQ0LjIgMCA4MCAzNS44IDgwIDgwYzAgOS45LTEuOCAxOS40LTUuMSAyOC4yem05LjQgMTMwLjNDMzc4LjggNDI1LjQgMzUwLjcgNDMyIDMyMCA0MzJjLTY1LjIgMC0xMTguOC0yOS42LTE1OS45LTY3LjdDMTIxLjYgMzI4LjUgOTUgMjg2IDgxLjQgMjU2YzguMy0xOC40IDIxLjUtNDEuNSAzOS40LTY0LjhMODMuMSAxNjEuNUM2MC4zIDE5MS4yIDQ0IDIyMC44IDM0LjUgMjQzLjdjLTMuMyA3LjktMy4zIDE2LjcgMCAyNC42YzE0LjkgMzUuNyA0Ni4yIDg3LjcgOTMgMTMxLjFDMTc0LjUgNDQzLjIgMjM5LjIgNDgwIDMyMCA0ODBjNDcuOCAwIDg5LjktMTIuOSAxMjYuMi0zMi41bC00MS45LTMzek0xOTIgMjU2YzAgNzAuNyA1Ny4zIDEyOCAxMjggMTI4YzEzLjMgMCAyNi4xLTIgMzguMi01LjhMMzAyIDMzNGMtMjMuNS01LjQtNDMuMS0yMS4yLTUzLjctNDIuM2wtNTYuMS00NC4yYy0uMiAyLjgtLjMgNS42LS4zIDguNXoiLz48L3N2Zz4=);
+  }
 
 
   &.hide-labels::after {
@@ -1562,9 +1595,11 @@ p.rebate-detail.rebate-detail.rebate-detail {
     top: 0;
     position: relative;
   }
+
   &.hide-labels:is(:hover, :focus-visible)::after {
     content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1NzYgNTEyIj48cGF0aCBmaWxsPSIjMDM2IiBkPSJNMjg4IDgwYy02NS4yIDAtMTE4LjggMjkuNi0xNTkuOSA2Ny43Qzg5LjYgMTgzLjUgNjMgMjI2IDQ5LjQgMjU2YzEzLjYgMzAgNDAuMiA3Mi41IDc4LjYgMTA4LjNDMTY5LjIgNDAyLjQgMjIyLjggNDMyIDI4OCA0MzJzMTE4LjgtMjkuNiAxNTkuOS02Ny43QzQ4Ni40IDMyOC41IDUxMyAyODYgNTI2LjYgMjU2Yy0xMy42LTMwLTQwLjItNzIuNS03OC42LTEwOC4zQzQwNi44IDEwOS42IDM1My4yIDgwIDI4OCA4MHpNOTUuNCAxMTIuNkMxNDIuNSA2OC44IDIwNy4yIDMyIDI4OCAzMnMxNDUuNSAzNi44IDE5Mi42IDgwLjZjNDYuOCA0My41IDc4LjEgOTUuNCA5MyAxMzEuMWMzLjMgNy45IDMuMyAxNi43IDAgMjQuNmMtMTQuOSAzNS43LTQ2LjIgODcuNy05MyAxMzEuMUM0MzMuNSA0NDMuMiAzNjguOCA0ODAgMjg4IDQ4MHMtMTQ1LjUtMzYuOC0xOTIuNi04MC42QzQ4LjYgMzU2IDE3LjMgMzA0IDIuNSAyNjguM2MtMy4zLTcuOS0zLjMtMTYuNyAwLTI0LjZDMTcuMyAyMDggNDguNiAxNTYgOTUuNCAxMTIuNnpNMjg4IDMzNmM0NC4yIDAgODAtMzUuOCA4MC04MHMtMzUuOC04MC04MC04MGMtLjcgMC0xLjMgMC0yIDBjMS4zIDUuMSAyIDEwLjUgMiAxNmMwIDM1LjMtMjguNyA2NC02NCA2NGMtNS41IDAtMTAuOS0uNy0xNi0yYzAgLjcgMCAxLjMgMCAyYzAgNDQuMiAzNS44IDgwIDgwIDgwem0wLTIwOGExMjggMTI4IDAgMSAxIDAgMjU2IDEyOCAxMjggMCAxIDEgMC0yNTZ6Ii8+PC9zdmc+);
   }
+
   &.readonly-toggle {
     right: -1rem;
 
@@ -1574,6 +1609,7 @@ p.rebate-detail.rebate-detail.rebate-detail {
       max-width: 1.1rem !important;
     }
   }
+
   &.readonly-toggle.show-readonly-mode::after {
     /* pencil */
     content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBkPSJNMzk1LjggMzkuNmM5LjQtOS40IDI0LjYtOS40IDMzLjkgMGw0Mi42IDQyLjZjOS40IDkuNCA5LjQgMjQuNiAwIDMzLjlMNDE3LjYgMTcxIDM0MSA5NC40bDU0LjgtNTQuOHpNMzE4LjQgMTE3TDM5NSAxOTMuNmwtMjE5IDIxOSAwLTEyLjZjMC04LjgtNy4yLTE2LTE2LTE2bC0zMiAwIDAtMzJjMC04LjgtNy4yLTE2LTE2LTE2bC0xMi42IDAgMjE5LTIxOXpNNjYuOSAzNzkuNWMxLjItNCAyLjctNy45IDQuNy0xMS41TDk2IDM2OGwwIDMyYzAgOC44IDcuMiAxNiAxNiAxNmwzMiAwIDAgMjQuNGMtMy43IDEuOS03LjUgMy41LTExLjYgNC43TDM5LjYgNDcyLjRsMjcuMy05Mi44ek00NTIuNCAxN2MtMjEuOS0yMS45LTU3LjMtMjEuOS03OS4yIDBMNjAuNCAzMjkuN2MtMTEuNCAxMS40LTE5LjcgMjUuNC0yNC4yIDQwLjhMLjcgNDkxLjVjLTEuNyA1LjYtLjEgMTEuNyA0IDE1LjhzMTAuMiA1LjcgMTUuOCA0bDEyMS0zNS42YzE1LjQtNC41IDI5LjQtMTIuOSA0MC44LTI0LjJMNDk1IDEzOC44YzIxLjktMjEuOSAyMS45LTU3LjMgMC03OS4yTDQ1Mi40IDE3ek0zMzEuMyAyMDIuN2M2LjItNi4yIDYuMi0xNi40IDAtMjIuNnMtMTYuNC02LjItMjIuNiAwbC0xMjggMTI4Yy02LjIgNi4yLTYuMiAxNi40IDAgMjIuNnMxNi40IDYuMiAyMi42IDBsMTI4LTEyOHoiLz48L3N2Zz4=);
@@ -1581,6 +1617,7 @@ p.rebate-detail.rebate-detail.rebate-detail {
     max-width: 1.05rem !important;
     right: 10px;
   }
+
   &.readonly-toggle::after {
     /* pencil slash */
     content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NDAgNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBkPSJNMjUuOSAzLjRDMTktMiA4LjktLjggMy40IDYuMVMtLjggMjMuMSA2LjEgMjguNmw2MDggNDgwYzYuOSA1LjUgMTcgNC4zIDIyLjUtMi42czQuMy0xNy0yLjYtMjIuNUwyNS45IDMuNHpNNTU5IDEzOC44YzIxLjktMjEuOSAyMS45LTU3LjMgMC03OS4yTDUxNi40IDE3Yy0yMS45LTIxLjktNTcuMy0yMS45LTc5LjIgMEwyOTcuNSAxNTYuN2wyNS4zIDIwTDM4Mi40IDExNyA0NTkgMTkzLjZsLTUwLjYgNTAuNiAyNS4zIDIwTDU1OSAxMzguOHpNMzE3LjIgMzM1LjNMMjQwIDQxMi42bDAtMTIuNmMwLTguOC03LjItMTYtMTYtMTZsLTMyIDAgMC0zMmMwLTguOC03LjItMTYtMTYtMTZsLTEyLjYgMCA2OC4yLTY4LjItMjUuMy0yMC04MS45IDgxLjljLTExLjQgMTEuNC0xOS43IDI1LjQtMjQuMiA0MC44bC0zNS42IDEyMWMtMS43IDUuNi0uMSAxMS43IDQgMTUuOHMxMC4yIDUuNyAxNS44IDRsMTIxLTM1LjZjMTUuNC00LjUgMjkuNC0xMi45IDQwLjgtMjQuMmw5Ni4yLTk2LjItMjUuMy0yMHpNNDkzLjggMzkuNmw0Mi42IDQyLjZjOS40IDkuNCA5LjQgMjQuNiAwIDMzLjlMNDgxLjYgMTcxIDQwNSA5NC40bDU0LjgtNTQuOGM5LjQtOS40IDI0LjYtOS40IDMzLjkgMHpNMTM1LjYgMzY4bDI0LjQgMCAwIDMyYzAgOC44IDcuMiAxNiAxNiAxNmwzMiAwIDAgMjQuNGMtMy43IDEuOS03LjUgMy41LTExLjYgNC43bC05Mi44IDI3LjMgMjcuMy05Mi44YzEuMi00IDIuNy03LjkgNC43LTExLjZ6Ii8+PC9zdmc+);
@@ -1588,11 +1625,10 @@ p.rebate-detail.rebate-detail.rebate-detail {
     max-width: 1.3rem !important;
   }
 
-  
+
 }
 </style>
 <style>
-
 .message {
   background: #fff7e5;
   border: 1px solid #facc15;
@@ -1602,7 +1638,7 @@ p.rebate-detail.rebate-detail.rebate-detail {
   font-weight: 500;
   font-size: 1rem !important;
 
-  :is(p) { 
+  :is(p) {
     margin: 0;
   }
 
@@ -1617,7 +1653,7 @@ p.rebate-detail.rebate-detail.rebate-detail {
   border: 1px solid #fa1515;
   padding-inline-start: 3rem;
   position: relative;
-  
+
   &::before {
     content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjNDAwIiBkPSJNMjU2IDQ4YTIwOCAyMDggMCAxIDEgMCA0MTYgMjA4IDIwOCAwIDEgMSAwLTQxNnptMCA0NjRBMjU2IDI1NiAwIDEgMCAyNTYgMGEyNTYgMjU2IDAgMSAwIDAgNTEyem0wLTM4NGMtMTMuMyAwLTI0IDEwLjctMjQgMjRsMCAxMTJjMCAxMy4zIDEwLjcgMjQgMjQgMjRzMjQtMTAuNyAyNC0yNGwwLTExMmMwLTEzLjMtMTAuNy0yNC0yNC0yNHptMzIgMjI0YTMyIDMyIDAgMSAwIC02NCAwIDMyIDMyIDAgMSAwIDY0IDB6Ii8+PC9zdmc+);
     display: inline-block;
