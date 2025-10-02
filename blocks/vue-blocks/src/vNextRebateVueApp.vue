@@ -161,7 +161,7 @@
             <template v-for="field in fields" :key="field.key">
               <template v-if="field.condition === undefined || field.condition">
                 <figure class="control" :aria-label="`${field.shortDesc} setting`">
-                  <label :for="`${field.key}Select`">{{ field.label }}</label>
+                  <label :for="`${field.key}Select`">{{ field.label }} <a v-if="field.definition" :href='field.glossary_link'>{{ field.definition }}</a></label> 
 
                   <select :key="field.key + '-' + (fieldRenderKeys[field.key] ?? 0)" class="select"
                     :id="`${field.key}Select`" v-model="field.vModel.value" :disabled="field.disabled"
@@ -188,7 +188,7 @@
                     </template>
                   </select>
 
-                  <figcaption v-if="false && field.description">{{ field.description }}</figcaption>
+                  <figcaption v-if="field.filter_desc">{{ field.filter_desc }}</figcaption>
                 </figure>
               </template>
             </template>
@@ -582,7 +582,8 @@ const fields = computed(() => [
     isGrouped: true,
     displayValue: selectedBuildingTypeName.value,
     missingMessage: 'Missing home type',
-    description: 'Changing between Ground Oriented / MURB types will require you to update the assessed home value information.'
+    description: 'Changing between Ground Oriented / MURB types will require you to update the assessed home value information.',
+    filter_desc: 'Each unit must have its own electricity meter and the utility account must be in the name of a resident in the household that is applying to the rebate.'
   },
   {
     key: 'homeValue',
@@ -604,7 +605,9 @@ const fields = computed(() => [
     options: personCountOptions.value,
     displayValue: selectedPersonsCount.value,
     missingMessage: 'Missing household number',
-    description: 'Changing this field will require you to update the pre-tax income range information as well.'
+    description: 'Changing this field will require you to update the pre-tax income range information as well.',
+    definition: 'How to find the assessed value of your home',
+    glossary_link: '/definitions/assessed-home-value/'
   },
   {
     key: 'income',
@@ -616,7 +619,10 @@ const fields = computed(() => [
     missingMessage: 'Missing household income',
     disabled: !selectedPersonsSlug.value,
     ready: incomeRangeOptions.value.length > 0,
-    description: 'The amount options shown change based on the set number of people in the household.'
+    description: 'The amount options shown change based on the set number of people in the household.',
+    filter_desc: 'Please answer the number of people in your home to population options here.',
+    definition: 'Why we ask for annual household income',
+    glossary_link: '/definitions/household-income/'
   },
   {
     key: 'heating',
@@ -734,6 +740,10 @@ onMounted(async () => {
   } finally {
     isLoading.value = false
   }
+
+  // load the definitions links
+  nextTick()
+  bcgovBlockThemePluginDefnitions()
 })
 
 // Initialize form state from stored localStorage object.
@@ -1172,17 +1182,26 @@ function withQueryString(baseUrl) {
     &.stacked {
 
       gap: 0;
-      grid-template-columns:  1fr 1fr;
+      grid-template-columns:  1fr;
       
       @container filter (width < 680px) {
         grid-template-columns: 1fr;
+      }
+
+      a.icon-definition.icon-definition,
+      a.icon-definition.icon-definition * {
+        color: var(--wp--preset--color--primary-brand);
+        text-decoration-style: dashed;
+        text-decoration-color: var(--wp--preset--color--primary-brand);
+        display: inline;
+        font-size: 0.85rem;
       }
       
       .control {
         justify-content: start;
         margin-block: 0;
         gap: .5rem;
-        padding-block-end: 2rem;
+        padding-block-end: 1.5rem;
 
         :is(label) {
           text-wrap: wrap;
@@ -1194,19 +1213,7 @@ function withQueryString(baseUrl) {
         .select {
           width: fit-content;
         }
-
-        &:nth-of-type(2n + 1) {
-          padding-inline-end: 2rem;
-        }
-        
-        @container filter (width >= 680px) {
-          &:nth-of-type(2n + 2) {
-            padding-inline-start: 2rem;
-            border-left: 1px solid rgb(51 102 153 / 0.3);
-          }
-        }
       }
-
     }
 
     @container filter (width < 400px) {
@@ -1629,6 +1636,13 @@ p.rebate-detail.rebate-detail.rebate-detail {
 }
 </style>
 <style>
+
+body.betterhomesbc #dialog .dialog-content h2 {
+  border-bottom: 3px solid var(--wp--preset--color--primary-brand);
+  color: var(--wp--preset--color--primary-brand);
+  margin-bottom: 1rem;
+}
+
 .message {
   background: #fff7e5;
   border: 1px solid #facc15;
