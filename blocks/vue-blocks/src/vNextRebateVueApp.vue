@@ -201,7 +201,7 @@
                     <figcaption v-if="field.filter_desc && !field.disabled">{{ field.filter_desc }}</figcaption>
                     <figcaption v-if="field.disabled_desc && field.disabled">{{ field.disabled_desc }}</figcaption>
                     <figcaption v-if="field.error_desc && fieldErrors[field.key]" class="hasError">{{ field.error_desc
-                      }}</figcaption>
+                    }}</figcaption>
                   </figure>
                 </div>
               </template>
@@ -589,14 +589,21 @@ async function handleSelectChange(fieldKey, newValue) {
     const nextSelect = nextEl.querySelector('select')
     if (nextSelect) {
       // small delay so focus happens after scroll settles.
-      setTimeout(() => nextSelect.focus(), 300)
+      setTimeout(() => {
+        nextSelect.disabled = true;
+        nextSelect.focus({ preventScroll: true });
+
+        setTimeout(() => {
+          nextSelect.disabled = false;
+        }, 150);
+      }, 300)
     }
   }
 
-    // Always refocus the button if no scroll occurred.
-    const btn = buttonRefs.value[fieldKey]
-    if (btn) btn.focus()
-  }
+  // Always refocus the button if no scroll occurred.
+  const btn = buttonRefs.value[fieldKey]
+  if (btn) btn.focus()
+}
 
 // Keyboard navigation: Move focus to the next field missing a selection.
 function focusNextMissingField(currentKey) {
