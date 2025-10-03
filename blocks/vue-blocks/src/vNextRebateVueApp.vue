@@ -16,6 +16,7 @@
         :class="{ 'filters-dirty': isDirty, 'labels-hidden': !labelsVisible }">
 
         <div v-if="mode === 'single'" class="selection-summary" aria-live="polite">
+
           <button class="editBtn toggle-edit-mode readonly-toggle"
             :class="isSavingEditMode ? 'saving' : editModeView ? 'show-edit-mode' : 'show-readonly-mode'"
             @click="toggleEditModeView" :aria-label="editModeView ? 'Exit edit mode' : 'Enter edit mode'"
@@ -152,7 +153,7 @@
 
         <template v-if="mode === 'archive'">
 
-          <div v-if="selectedBuildingGroupSlug !== 'murb' && murbTenure === 'rent'" class='message error-message'>
+          <div v-if="selectedBuildingGroupSlug === 'ground-oriented-dwellings' && murbTenure === 'rent'" class='message error-message'>
             <p><span>Rentals of your home type are not eligible</span></p>
             <p>Only rentals in multi-unit residential buildings are currently eligible.</p>
           </div>
@@ -160,10 +161,14 @@
           <div class='control-container stacked'>
             <template v-for="field in fields" :key="field.key">
               <template v-if="field.condition === undefined || field.condition">
-                <figure class="control" :aria-label="`${field.shortDesc} setting`">
+                
+                <div class='question-container'>
+                  <div class='num-label'></div>
+                  <figure class="control" :aria-label="`${field.shortDesc} setting`">
                   <label :for="`${field.key}Select`">{{ field.label }} <a v-if="field.definition" :href='field.glossary_link'>{{ field.definition }}</a></label> 
 
                   <select :key="field.key + '-' + (fieldRenderKeys[field.key] ?? 0)" class="select"
+                    :class="fieldErrors[field.key] ? 'error' : ''"
                     :id="`${field.key}Select`" v-model="field.vModel.value" :disabled="field.disabled"
                     @change="handleSelectChange(field.key, $event.target.value)"
                     @keydown="handleSelectKeydown($event, field.key, field.vModel.value)"
@@ -188,12 +193,15 @@
                     </template>
                   </select>
 
-                  <figcaption v-if="field.filter_desc">{{ field.filter_desc }}</figcaption>
-                </figure>
+                  <figcaption v-if="field.filter_desc && !field.disabled">{{ field.filter_desc }}</figcaption>
+                  <figcaption v-if="field.disabled_desc && field.disabled">{{ field.disabled_desc }}</figcaption>
+                  <figcaption v-if="field.error_desc && fieldErrors[field.key]" class="hasError">{{ field.error_desc }}</figcaption>
+                  </figure>
+                </div>
               </template>
             </template>
           </div>
-          <p><a href="#clear" @click.prevent="clearSettings">Clear settings</a> to start over.</p>
+          <div  v-if="hasAnySelection" class='clear-msg'><a href="#clear" @click.prevent="clearSettings">Clear settings</a> to start over</div>
         </template>
 
         <!-- Update Page Button (only in single mode) -->
@@ -427,6 +435,7 @@ const showReadOnlyFields = ref(true)
 const showEditModeUI = ref(false)
 const editModeView = ref(false)
 const isSavingEditMode = ref(false)
+const hasError = ref(false)
 
 // --- Focus map for selects ---
 const selectRefs = ref({})
@@ -438,6 +447,19 @@ const fieldRenderKeys = ref({
   homeValue: 0,
   income: 0
 })
+
+const fieldErrors = computed(() => {
+  return {
+    murbTenure:
+      selectedBuildingGroupSlug.value === 'ground-oriented-dwellings' &&
+      murbTenure.value === 'rent',
+    // homeValue: !selectedBuildingGroupSlug.value && !!selectedHomeValueSlug.value,
+  }
+})
+
+const hasAnyError = computed(() =>
+  Object.values(fieldErrors.value).some(Boolean)
+)
 
 function toggleLabels() {
   labelsVisible.value = !labelsVisible.value
@@ -460,6 +482,10 @@ async function handleSelectChange(fieldKey, newValue) {
   if (!newValue) return
   lastChangedField.value = fieldKey
   isSavingEditMode.value = true
+
+  if(selectedBuildingGroupSlug === 'ground-oriented-dwellings' && murbTenure === 'rent') {
+    hasError.value = true;
+  }
 
   await nextTick()
   activeEdit.value = '' // closes the select and shows the button again.
@@ -571,7 +597,8 @@ const fields = computed(() => [
     displayValue: murbTenureLabel.value,
     missingMessage: 'Missing ownership status',
     // condition: selectedBuildingGroupSlug.value === 'murb',
-    description: 'Only rentals in multi-unit residential buildings are currently eligible.'
+    description: 'Only rentals in multi-unit residential buildings are currently eligible.',
+    error_desc: 'Rentals of your home type are not eligible. Only rentals in multi-unit residential buildings are currently eligible.'
   },
   {
     key: 'building',
@@ -595,7 +622,8 @@ const fields = computed(() => [
     missingMessage: 'Missing home value',
     disabled: !selectedBuildingGroupSlug.value,
     ready: homeValueOptions.value.length > 0,
-    description: 'The amount options shown change based on the set type of home.'
+    description: 'The amount options shown change based on the set type of home.',
+    disabled_desc: 'Please answer the "type of home you live in" question to enable this selection.',
   },
   {
     key: 'persons',
@@ -620,7 +648,7 @@ const fields = computed(() => [
     disabled: !selectedPersonsSlug.value,
     ready: incomeRangeOptions.value.length > 0,
     description: 'The amount options shown change based on the set number of people in the household.',
-    filter_desc: 'Please answer the number of people in your home to population options here.',
+    disabled_desc: 'Please answer the "number of people in your home" question to enable this selection.',
     definition: 'Why we ask for annual household income',
     glossary_link: '/definitions/household-income/'
   },
@@ -1123,6 +1151,7 @@ function withQueryString(baseUrl) {
 </script>
 
 <style scoped>
+
 #rebateFilterApp {
 
   /* Minimal utility styles to make the component usable without external scripts. */
@@ -1179,7 +1208,88 @@ function withQueryString(baseUrl) {
       grid-template-columns: 1fr 1fr;
     }
 
+    
+    
     &.stacked {
+
+      counter-reset: question;
+      
+      .question-container {
+        display: grid;
+        grid-template-columns: 3px 8rem 1fr;
+        position: relative;
+        
+        &::before {
+          border-left: 3px solid #369;
+          content: "";
+          height: 100%;
+          width: 3px;
+          position: relative;
+          left: calc(3rem + 2px);
+          z-index: 0;
+        }
+
+        &:last-of-type::before {
+          border-bottom: 3px solid #369;
+          width: 1rem;
+        }
+
+      }
+      
+      .num-label {
+        display: grid;
+        justify-content: center;
+        align-content: center;
+        border: 3px solid #369;
+        border-radius: 100vw;
+        background-color: white;
+        width: 6rem;
+        height: 6rem;
+        z-index: 1;
+        position: relative;
+  
+        &::before {
+          counter-increment: question;
+          content: counter(question);
+  
+          color: #369;
+          font-size: 2rem;
+          font-family: Verdana,Arial, sans-serif;
+        }
+
+        &::after {
+          border: 3px solid darkgreen;
+          border-radius: 100vw;
+          background-color: white;
+          content: "";
+          /* Check mark */
+          background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJsaW1lZ3JlZW4iICBvcGFjaXR5PSIuMyIgZD0iTTAgMjU2YTI1NiAyNTYgMCAxIDAgNTEyIDBBMjU2IDI1NiAwIDEgMCAwIDI1NnptMTI2LjEgMEwxNjAgMjIyLjFjLjMgLjMgLjYgLjYgMSAxYzUuMyA1LjMgMTAuNyAxMC43IDE2IDE2YzE1LjcgMTUuNyAzMS40IDMxLjQgNDcgNDdjMzctMzcgNzQtNzQgMTExLTExMWM1LjMtNS4zIDEwLjctMTAuNyAxNi0xNmMuMy0uMyAuNi0uNiAxLTFMMzg1LjkgMTkyYy0uMyAuMy0uNiAuNi0xIDFsLTE2IDE2TDI0MSAzMzdsLTE3IDE3LTE3LTE3LTY0LTY0Yy01LjMtNS4zLTEwLjctMTAuNy0xNi0xNmwtMS0xeiIvPjxwYXRoIGZpbGw9ImRhcmtncmVlbiIgZD0iTTM4NSAxOTNMMjQxIDMzN2wtMTcgMTctMTctMTctODAtODBMMTYxIDIyM2w2MyA2M0wzNTEgMTU5IDM4NSAxOTN6Ii8+PC9zdmc+);
+          background-size: contain;
+          height: 1.5rem;
+          width: 1.5rem;
+          position: absolute;
+          right: -2px;
+          top: -2px;
+          z-index: 1;
+        }
+      }
+
+      /* Question mark */
+      :has(.select option[data-default="Select an option"]:checked) .num-label::after {
+        border: 3px solid #f6a044;
+        background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iLjMiIGQ9Ik0wIDI1NmEyNTYgMjU2IDAgMSAwIDUxMiAwQTI1NiAyNTYgMCAxIDAgMCAyNTZ6bTE2OC03MmMwLS41IDAtMSAwIDB6bTY0IDE1Mmw0OCAwYzAgMTYgMCAzMiAwIDQ4bC00OCAwYzAtMTYgMC0zMiAwLTQ4eiIvPjxwYXRoIGZpbGw9IiNmNmEwNDQiIGQ9Ik0yMjQgMTI4Yy0zMC45IDAtNTYgMjUuMS01NiA1NmwwIDYuNSA0OCAwIDAtNi41YzAtNC40IDMuNi04IDgtOGw1Ni45IDBjOC40IDAgMTUuMSA2LjggMTUuMSAxNS4xYzAgNS40LTIuOSAxMC40LTcuNiAxMy4xbC00NC4zIDI1LjRMMjMyIDIzNi42bDAgMTMuOSAwIDIxLjUgMCAyNCA0OCAwIDAtMjQgMC03LjYgMzIuMy0xOC41YzE5LjYtMTEuMyAzMS43LTMyLjIgMzEuNy01NC44YzAtMzQuOS0yOC4zLTYzLjEtNjMuMS02My4xTDIyNCAxMjh6bTU2IDIwOGwtNDggMCAwIDQ4IDQ4IDAgMC00OHoiLz48L3N2Zz4=);
+      }
+
+      /* Exclamation mark */
+      :has(.select:disabled) .num-label::after {
+        border: 3px solid darkgray !important;
+        background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJkYXJrZ3JheSIgb3BhY2l0eT0iLjMiIGQ9Ik0wIDI1NmEyNTYgMjU2IDAgMSAwIDUxMiAwQTI1NiAyNTYgMCAxIDAgMCAyNTZ6TTIzMiAxMjhsNDggMCAwIDI0IDAgMTEyIDAgMjQtNDggMCAwLTI0IDAtMTEyIDAtMjR6bTAgMTkybDQ4IDAgMCA0OC00OCAwIDAtNDh6Ii8+PHBhdGggZmlsbD0iZGFya2dyYXkiIGQ9Ik0yODAgMTUybDAtMjQtNDggMCAwIDI0IDAgMTEyIDAgMjQgNDggMCAwLTI0IDAtMTEyem0wIDE2OGwtNDggMCAwIDQ4IDQ4IDAgMC00OHoiLz48L3N2Zz4=) !important;
+      }
+      /* X mark */
+      :has(.select.error) .num-label::after {
+        border: 3px solid darkred !important;
+        background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJyZWQiIG9wYWNpdHk9Ii40IiBkPSJNMCAyNTZhMjU2IDI1NiAwIDEgMCA1MTIgMEEyNTYgMjU2IDAgMSAwIDAgMjU2em0xNTguMS02NGMxMS4zLTExLjMgMjIuNi0yMi42IDMzLjktMzMuOWM1LjcgNS43IDExLjMgMTEuMyAxNyAxN2MxNS43IDE1LjcgMzEuMyAzMS4zIDQ3IDQ3YzE1LjctMTUuNyAzMS4zLTMxLjMgNDctNDdjNS43LTUuNyAxMS4zLTExLjMgMTctMTdjMTEuMyAxMS4zIDIyLjYgMjIuNiAzMy45IDMzLjljLTUuNyA1LjctMTEuMyAxMS4zLTE3IDE3Yy0xNS43IDE1LjctMzEuMyAzMS4zLTQ3IDQ3YzE1LjcgMTUuNyAzMS40IDMxLjQgNDcgNDdjNS43IDUuNyAxMS4zIDExLjMgMTcgMTdMMzIwIDM1My45bC0xNy0xNy00Ny00N2MtMTUuNyAxNS43LTMxLjMgMzEuMy00NyA0N2MtNS43IDUuNy0xMS4zIDExLjMtMTcgMTdjLTExLjMtMTEuMy0yMi42LTIyLjYtMzMuOS0zMy45YzUuNy01LjcgMTEuMy0xMS4zIDE3LTE3YzE1LjctMTUuNyAzMS40LTMxLjQgNDctNDdjLTE1LjctMTUuNy0zMS4zLTMxLjMtNDctNDdjLTUuNy01LjctMTEuMy0xMS4zLTE3LTE3eiIvPjxwYXRoIGZpbGw9ImRhcmtyZWQiIGQ9Ik0zMzcgMjA5bDE3LTE3TDMyMCAxNTguMWwtMTcgMTctNDcgNDctNDctNDctMTctMTdMMTU4LjEgMTkybDE3IDE3IDQ3IDQ3LTQ3IDQ3LTE3IDE3TDE5MiAzNTMuOWwxNy0xNyA0Ny00NyA0NyA0NyAxNyAxN0wzNTMuOSAzMjBsLTE3LTE3LTQ3LTQ3IDQ3LTQ3eiIvPjwvc3ZnPg==) !important;
+      }
 
       gap: 0;
       grid-template-columns:  1fr;
@@ -1188,8 +1298,8 @@ function withQueryString(baseUrl) {
         grid-template-columns: 1fr;
       }
 
-      a.icon-definition.icon-definition,
-      a.icon-definition.icon-definition * {
+      :is(a).icon-definition.icon-definition,
+      :is(a).icon-definition.icon-definition * {
         color: var(--wp--preset--color--primary-brand);
         text-decoration-style: dashed;
         text-decoration-color: var(--wp--preset--color--primary-brand);
@@ -1201,7 +1311,7 @@ function withQueryString(baseUrl) {
         justify-content: start;
         margin-block: 0;
         gap: .5rem;
-        padding-block-end: 1.5rem;
+        padding-block-end: 3rem;
 
         :is(label) {
           text-wrap: wrap;
@@ -1212,6 +1322,18 @@ function withQueryString(baseUrl) {
         
         .select {
           width: fit-content;
+
+          background-color: #fff;
+
+          &.error {
+            background-color: #ffe5e5;
+            color: darkred;
+            outline-color: darkred !important;
+          }
+        }
+
+        :is(figcaption) {
+         padding: 0;
         }
       }
     }
@@ -1309,13 +1431,21 @@ function withQueryString(baseUrl) {
         outline: 2px solid var(--wp--preset--color--custom-info-border);
 
         &:has(option[data-default="Select an option"]:checked) {
-          outline: 2px solid var(--wp--preset--color--vivid-green-cyan);
+          outline: 2px solid #f6a044;
         }
 
         &:disabled {
           outline: 2px solid lightgray !important;
         }
       }
+    }
+  }
+  .clear-msg {
+    margin-inline-start: 4.75rem;
+    margin-block-start: -1.75rem;
+    font-size: 0.85rem;
+    :is(a) {
+      font-size: 0.85rem;
     }
   }
 
@@ -1650,7 +1780,7 @@ body.betterhomesbc #dialog .dialog-content h2 {
 .message {
   background: #fff7e5;
   border: 1px solid #facc15;
-  color: #92400e;
+  color: darkred;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
   font-weight: 500;
@@ -1668,12 +1798,13 @@ body.betterhomesbc #dialog .dialog-content h2 {
 
 .error-message {
   background: #ffe5e5;
-  border: 1px solid #fa1515;
+  border: 2px solid darkred;
   padding-inline-start: 3rem;
+  margin-block-end: 2rem;
   position: relative;
 
   &::before {
-    content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjNDAwIiBkPSJNMjU2IDQ4YTIwOCAyMDggMCAxIDEgMCA0MTYgMjA4IDIwOCAwIDEgMSAwLTQxNnptMCA0NjRBMjU2IDI1NiAwIDEgMCAyNTYgMGEyNTYgMjU2IDAgMSAwIDAgNTEyem0wLTM4NGMtMTMuMyAwLTI0IDEwLjctMjQgMjRsMCAxMTJjMCAxMy4zIDEwLjcgMjQgMjQgMjRzMjQtMTAuNyAyNC0yNGwwLTExMmMwLTEzLjMtMTAuNy0yNC0yNC0yNHptMzIgMjI0YTMyIDMyIDAgMSAwIC02NCAwIDMyIDMyIDAgMSAwIDY0IDB6Ii8+PC9zdmc+);
+    content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMSIgZD0iTTQ4IDI1NmEyMDggMjA4IDAgMSAwIDQxNiAwQTIwOCAyMDggMCAxIDAgNDggMjU2em0xMTAuMS02NEwxOTIgMTU4LjFsMTcgMTcgNDcgNDcgNDctNDcgMTctMTdMMzUzLjkgMTkybC0xNyAxNy00NyA0NyA0NyA0NyAxNyAxN0wzMjAgMzUzLjlsLTE3LTE3LTQ3LTQ3LTQ3IDQ3LTE3IDE3TDE1OC4xIDMyMGwxNy0xNyA0Ny00Ny00Ny00Ny0xNy0xN3oiLz48cGF0aCBmaWxsPSJkYXJrcmVkIiBkPSJNMjU2IDQ4YTIwOCAyMDggMCAxIDEgMCA0MTYgMjA4IDIwOCAwIDEgMSAwLTQxNnptMCA0NjRBMjU2IDI1NiAwIDEgMCAyNTYgMGEyNTYgMjU2IDAgMSAwIDAgNTEyem05Ny45LTMyMEwzMjAgMTU4LjFsLTE3IDE3LTQ3IDQ3LTQ3LTQ3LTE3LTE3TDE1OC4xIDE5MmwxNyAxNyA0NyA0Ny00NyA0Ny0xNyAxN0wxOTIgMzUzLjlsMTctMTcgNDctNDcgNDcgNDcgMTcgMTdMMzUzLjkgMzIwbC0xNy0xNy00Ny00NyA0Ny00NyAxNy0xN3oiLz48L3N2Zz4=);
     display: inline-block;
     height: 1rem;
     width: 1rem;

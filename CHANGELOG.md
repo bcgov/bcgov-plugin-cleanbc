@@ -1,3 +1,6 @@
+## 1.22.1 October 2, 2025
+– Archive mode styling and error handling to add design and realtime feedback + gamification of answering questions.
+
 ## 1.22.0 October 2, 2025
 – Scaffolded aggregation "archive mode" form and structure to match single mode output without edit mode.
 – Added modal defintions for popover links on filter form labels.
