@@ -48,15 +48,16 @@
                   <!-- Show select if open -->
                   <div v-else-if="editable && activeEdit === field.key">
                     <figure class="control editable" :aria-label="`${field.shortDesc} setting`">
-                      <button :disabled="!field.vModel.value" type="button" class="close-btn" @click="activeEdit = ''"
+                      <button :disabled="!field.model.value" type="button" class="close-btn" @click="activeEdit = ''"
                         aria-label="Close edit field"></button>
                       <label :for="`${field.key}Select`">{{ field.label }}</label>
                       <select :key="field.key + '-' + (fieldRenderKeys[field.key] ?? 0)" class="select"
-                        :id="`${field.key}Select`" v-model="field.vModel.value" :disabled="field.disabled"
+                        :id="`${field.key}Select`" v-model="field.model.value" :disabled="field.disabled"
                         @change="handleSelectChange(field.key, $event.target.value)"
-                        @keydown="handleSelectKeydown($event, field.key, field.vModel.value)"
+                        @keydown="handleSelectKeydown($event, field.key, field.model.value)"
                         :ref="el => (selectRefs[field.key] = el)">
-                        <option disabled :selected="!field.vModel.value" data-default='Select an option' value="">Select an option</option>
+                        <option disabled :selected="!field.model.value" data-default='Select an option' value="">Select
+                          an option</option>
 
                         <!-- Grouped (building) -->
                         <template v-if="field.isGrouped">
@@ -94,15 +95,16 @@
                 <!-- If field is missing → show select immediately -->
                 <template v-else>
                   <figure class="control editable" :aria-label="`${field.shortDesc} setting`">
-                    <button :disabled="!field.vModel.value" type="button" class="close-btn" @click="activeEdit = ''"
+                    <button :disabled="!field.model.value" type="button" class="close-btn" @click="activeEdit = ''"
                       aria-label="Close edit field"></button>
                     <label :for="`${field.key}Select`">{{ field.label }}</label>
                     <select :key="field.key + '-' + (fieldRenderKeys[field.key] ?? 0)" class="select"
-                      :id="`${field.key}Select`" v-model="field.vModel.value" :disabled="field.disabled"
+                      :id="`${field.key}Select`" v-model="field.model.value" :disabled="field.disabled"
                       @change="handleSelectChange(field.key, $event.target.value)"
-                      @keydown="handleSelectKeydown($event, field.key, field.vModel.value)"
+                      @keydown="handleSelectKeydown($event, field.key, field.model.value)"
                       :ref="el => (selectRefs[field.key] = el)">
-                      <option disabled :selected="!field.vModel.value" data-default='Select an option' value="">Select an option</option>
+                      <option disabled :selected="!field.model.value" data-default='Select an option' value="">Select an
+                        option</option>
 
                       <!-- Grouped (building) -->
                       <template v-if="field.isGrouped">
@@ -153,7 +155,8 @@
 
         <template v-if="mode === 'archive'">
 
-          <div v-if="selectedBuildingGroupSlug === 'ground-oriented-dwellings' && murbTenure === 'rent'" class='message error-message'>
+          <div v-if="selectedBuildingGroupSlug === 'ground-oriented-dwellings' && murbTenure === 'rent'"
+            class='message error-message'>
             <p><span>Rentals of your home type are not eligible</span></p>
             <p>Only rentals in multi-unit residential buildings are currently eligible.</p>
           </div>
@@ -161,47 +164,52 @@
           <div class='control-container stacked'>
             <template v-for="field in fields" :key="field.key">
               <template v-if="field.condition === undefined || field.condition">
-                
+
                 <div class='question-container'>
                   <div class='num-label'></div>
                   <figure class="control" :aria-label="`${field.shortDesc} setting`">
-                  <label :for="`${field.key}Select`">{{ field.label }} <a v-if="field.definition" :href='field.glossary_link'>{{ field.definition }}</a></label> 
+                    <label :for="`${field.key}Select`">{{ field.label }} <a v-if="field.definition"
+                        :href='field.glossary_link'>{{ field.definition }}</a></label>
 
-                  <select :key="field.key + '-' + (fieldRenderKeys[field.key] ?? 0)" class="select"
-                    :class="fieldErrors[field.key] ? 'error' : ''"
-                    :id="`${field.key}Select`" v-model="field.vModel.value" :disabled="field.disabled"
-                    @change="handleSelectChange(field.key, $event.target.value)"
-                    @keydown="handleSelectKeydown($event, field.key, field.vModel.value)"
-                    :ref="el => (selectRefs[field.key] = el)">
-                    <option disabled :selected="!field.vModel.value" data-default='Select an option' value="">Select an option</option>
+                    <select :key="field.key + '-' + (fieldRenderKeys[field.key] ?? 0)" class="select"
+                      :class="fieldErrors[field.key] ? 'error' : ''" :id="`${field.key}Select`"
+                      v-model="field.model.value" :disabled="field.disabled"
+                      @change="handleSelectChange(field.key, $event.target.value)"
+                      @keydown="handleSelectKeydown($event, field.key, field.model.value)"
+                      :ref="el => (selectRefs[field.key] = el)">
+                      <option disabled :selected="!field.model.value" data-default='Select an option' value="">Select an
+                        option</option>
 
-                    <!-- Grouped (building) -->
-                    <template v-if="field.isGrouped">
-                      <optgroup v-for="group in field.groups" :key="group.slug"
-                        :label="group.name === 'MURB' ? 'Multi-unit residential buildings' : group.name">
-                        <option v-for="child in group.children" :key="child.slug" :value="child.slug">
-                          {{ child.name }}
+                      <!-- Grouped (building) -->
+                      <template v-if="field.isGrouped">
+                        <optgroup v-for="group in field.groups" :key="group.slug"
+                          :label="group.name === 'MURB' ? 'Multi-unit residential buildings' : group.name">
+                          <option v-for="child in group.children" :key="child.slug" :value="child.slug">
+                            {{ child.name }}
+                          </option>
+                        </optgroup>
+                      </template>
+
+                      <!-- Flat (others) -->
+                      <template v-else>
+                        <option v-for="opt in field.options" :key="opt.slug" :value="opt.slug">
+                          {{ opt.name }}
                         </option>
-                      </optgroup>
-                    </template>
+                      </template>
+                    </select>
 
-                    <!-- Flat (others) -->
-                    <template v-else>
-                      <option v-for="opt in field.options" :key="opt.slug" :value="opt.slug">
-                        {{ opt.name }}
-                      </option>
-                    </template>
-                  </select>
-
-                  <figcaption v-if="field.filter_desc && !field.disabled">{{ field.filter_desc }}</figcaption>
-                  <figcaption v-if="field.disabled_desc && field.disabled">{{ field.disabled_desc }}</figcaption>
-                  <figcaption v-if="field.error_desc && fieldErrors[field.key]" class="hasError">{{ field.error_desc }}</figcaption>
+                    <figcaption v-if="field.filter_desc && !field.disabled">{{ field.filter_desc }}</figcaption>
+                    <figcaption v-if="field.disabled_desc && field.disabled">{{ field.disabled_desc }}</figcaption>
+                    <figcaption v-if="field.error_desc && fieldErrors[field.key]" class="hasError">{{ field.error_desc
+                      }}</figcaption>
                   </figure>
                 </div>
               </template>
             </template>
           </div>
-          <div  v-if="hasAnySelection" class='clear-msg'><a href="#clear" @click.prevent="clearSettings">Clear settings</a> to start over</div>
+          <div v-if="hasAnySelection" class='clear-msg'><a href="#clear" @click.prevent="clearSettings">Clear
+              settings</a> to
+            start over</div>
         </template>
 
         <!-- Update Page Button (only in single mode) -->
@@ -477,9 +485,11 @@ function toggleEditModeView() {
   localStorage.setItem('rebateEditModeView', JSON.stringify(editModeView.value))
 }
 
-// Handle when a select input changes. Closes the select, marks state dirty, and re-focuses associated button.
+// Handle when a select input changes. 
+// Closes the select, marks state dirty, and re-focuses associated button (when appropriate).
 async function handleSelectChange(fieldKey, newValue) {
-  if (!newValue) return
+  if (newValue === undefined || newValue === null) return
+
   lastChangedField.value = fieldKey
   isSavingEditMode.value = true
 
@@ -487,6 +497,24 @@ async function handleSelectChange(fieldKey, newValue) {
   activeEdit.value = ''
   await nextTick()
   isExternalDirty.value = true
+
+  if (mode.value !== 'archive') return
+
+  // Wait for all reactive updates to propagate.
+  await nextTick()
+  await nextTick()
+
+  const all = fields.value
+
+  const isAnsweredAndValid = (field) => {
+    const value = field.model?.value ?? null
+    const hasError = field.isInvalid?.() || false
+    return !!value && !hasError
+  }
+
+  const currentIndex = all.findIndex(f => f.key === fieldKey)
+  const aboveFields = all.slice(0, currentIndex)
+  const belowFields = all.slice(currentIndex + 1)
 
   // Scroll to error message if any error exists.
   if (mode.value === 'archive' && hasAnyError.value) {
@@ -500,67 +528,65 @@ async function handleSelectChange(fieldKey, newValue) {
     return
   }
 
-  if (mode.value !== 'archive') return
-
-  const all = fields.value
-  const currentIndex = all.findIndex(f => f.key === fieldKey)
-
-  const isAnsweredAndValid = (field) => {
-    const valueMap = {
-      murbTenure: murbTenure.value,
-      buildingGroup: selectedBuildingGroupSlug.value,
-      buildingType: selectedBuildingTypeSlug.value,
-      homeValue: selectedHomeValueSlug.value,
-      persons: selectedPersonsSlug.value,
-      incomeRange: selectedIncomeRangeSlug.value,
-      location: selectedLocationSlug.value,
-    }
-
-    const value = valueMap[field.key]
-    const hasError = fieldErrors.value[field.key] || false
-    return !!value && !hasError
-  }
-
-  const aboveFields = all.slice(0, currentIndex)
-  const belowFields = all.slice(currentIndex + 1)
-
-  // Prioritize error above.
-  const erroredAbove = aboveFields.find(field => fieldErrors.value[field.key])
-  if (erroredAbove) {
-    return scrollToField(erroredAbove)
-  }
-
-  // Check for unanswered fields.
-  const unansweredAbove = aboveFields.find(field => !isAnsweredAndValid(field))
+  // Identify what needs attention.
+  const erroredAbove = aboveFields.find(field => field.isInvalid?.())
   const unansweredBelow = belowFields.find(field => !isAnsweredAndValid(field))
+  const unansweredAbove = aboveFields.find(field => !isAnsweredAndValid(field))
 
-  // Priority: prefer below if available, only scroll up if nothing below needs attention.
-  if (unansweredBelow) {
-    return scrollToField(unansweredBelow)
+  // Final validation state.
+  const allValid = all.every(field => isAnsweredAndValid(field))
+
+  // Decision tree.
+  if (erroredAbove) {
+    await scrollToField(erroredAbove, { direction: 'up' })
+  } else if (unansweredBelow) {
+    await scrollToField(unansweredBelow, { direction: 'down' })
   } else if (unansweredAbove) {
-    return scrollToField(unansweredAbove)
-  }
-
-  // Helper: smooth scroll + focus.
-  async function scrollToField(field) {
-    await nextTick()
-    const nextEl = document.querySelector(
-      `.question-container:has(#${field.key}Select)`
-    )
-    if (nextEl) {
-      nextEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      const nextSelect = nextEl.querySelector('select')
-      if (nextSelect) {
-        nextSelect.focus()
-      }
+    await scrollToField(unansweredAbove, { direction: 'up' })
+  } else if (allValid) {
+    const resultsSection = document.getElementById('rebatesResults')
+    if (resultsSection) {
+      setTimeout(() => {
+        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        resultsSection.setAttribute('tabindex', '-1')
+        resultsSection.focus({ preventScroll: true })
+      }, 100)
     }
   }
 
+  // Helper: smooth scroll + focus (direction-aware).
+  async function scrollToField(field, { direction } = {}) {
+    // Wait for Vue to update DOM.
+    await nextTick()
+    // Wait for browser to paint new layout.
+    await new Promise(r => requestAnimationFrame(r))
+    // Wait a tiny extra tick so scroll happens after final layout.
+    await new Promise(r => setTimeout(r, 0))
+
+    const nextEl = document
+      .getElementById(`${field.key}Select`)
+      ?.closest('.question-container')
+
+    if (!nextEl) {
+      console.warn(`Could not find element for field: ${field.key}`)
+      return
+    }
+
+    nextEl.scrollIntoView({
+      behavior: 'smooth',
+      block: direction === 'up' ? 'center' : 'start'
+    })
+
+    const nextSelect = nextEl.querySelector('select')
+    if (nextSelect) {
+      // Another micro-delay ensures focus follows after scroll finishes.
+      setTimeout(() => nextSelect.focus(), 100)
+    }
+  }
   // Always refocus the button if no scroll occurred.
   const btn = buttonRefs.value[fieldKey]
   if (btn) btn.focus()
 }
-
 
 // Keyboard navigation: Move focus to the next field missing a selection.
 function focusNextMissingField(currentKey) {
@@ -643,45 +669,49 @@ const fields = computed(() => [
     key: 'location',
     shortDesc: 'Home location',
     label: 'What community do you live in or are closest to?',
-    vModel: selectedLocationSlug,
+    model: selectedLocationSlug,
     options: locationOptions.value,
     displayValue: selectedLocationName.value
       ? `${selectedLocationName.value} (${selectedRegionName.value})`
       : '',
-    missingMessage: 'Missing location details'
+    missingMessage: 'Missing location details',
+    isInvalid: () => !selectedLocationSlug.value // must have a value
   },
   {
     key: 'murbTenure',
     shortDesc: 'Rent or own',
     label: 'Do you rent or own your home?',
-    vModel: murbTenure,
+    model: murbTenure,
     options: [
       { slug: 'own', name: 'Own' },
       { slug: 'rent', name: 'Rent' }
     ],
     displayValue: murbTenureLabel.value,
     missingMessage: 'Missing ownership status',
-    // condition: selectedBuildingGroupSlug.value === 'murb',
     description: 'Only rentals in multi-unit residential buildings are currently eligible.',
-    error_desc: 'Rentals of your home type are not eligible. Only rentals in multi-unit residential buildings are currently eligible.'
+    error_desc: 'Rentals of your home type are not eligible. Only rentals in multi-unit residential buildings are currently eligible.',
+    isInvalid: () =>
+      selectedBuildingGroupSlug.value === 'ground-oriented-dwellings' &&
+      murbTenure.value === 'rent'
   },
   {
     key: 'building',
     shortDesc: 'Type of home',
     label: 'What type of home do you live in?',
-    vModel: selectedBuildingTypeSlug,
+    model: selectedBuildingTypeSlug,
     groups: buildingTypeGroups.value,
     isGrouped: true,
     displayValue: selectedBuildingTypeName.value,
     missingMessage: 'Missing home type',
     description: 'Changing between Ground Oriented / MURB types will require you to update the assessed home value information.',
-    filter_desc: 'Each unit must have its own electricity meter and the utility account must be in the name of a resident in the household that is applying to the rebate.'
+    filter_desc: 'Each unit must have its own electricity meter and the utility account must be in the name of a resident in the household that is applying to the rebate.',
+    isInvalid: () => !selectedBuildingTypeSlug.value
   },
   {
     key: 'homeValue',
     shortDesc: 'Assessed home value',
     label: 'What is the current assessed value of your home?',
-    vModel: selectedHomeValueSlug,
+    model: selectedHomeValueSlug,
     options: homeValueOptions.value,
     displayValue: selectedHomeValueName.value,
     missingMessage: 'Missing home value',
@@ -690,23 +720,25 @@ const fields = computed(() => [
     description: 'The amount options shown change based on the set type of home.',
     disabled_desc: 'Please answer the "type of home you live in" question to enable this selection.',
     definition: 'How to find the assessed value of your home',
-    glossary_link: '/definitions/assessed-home-value/'
+    glossary_link: '/definitions/assessed-home-value/',
+    isInvalid: () => !selectedHomeValueSlug.value && !!selectedBuildingGroupSlug.value
   },
   {
     key: 'persons',
     shortDesc: 'People in household',
     label: 'How many people live in your home (including adults and children)?',
-    vModel: selectedPersonsSlug,
+    model: selectedPersonsSlug,
     options: personCountOptions.value,
     displayValue: selectedPersonsCount.value,
     missingMessage: 'Missing household number',
-    description: 'Changing this field will require you to update the pre-tax income range information as well.'
+    description: 'Changing this field will require you to update the pre-tax income range information as well.',
+    isInvalid: () => !selectedPersonsSlug.value
   },
   {
     key: 'income',
     shortDesc: 'Household income',
     label: 'What is the combined pre-tax income of all adults in your household (excluding dependants)?',
-    vModel: selectedIncomeRangeSlug,
+    model: selectedIncomeRangeSlug,
     options: incomeRangeOptions.value,
     displayValue: selectedIncomeRangeName.value,
     missingMessage: 'Missing household income',
@@ -715,27 +747,31 @@ const fields = computed(() => [
     description: 'The amount options shown change based on the set number of people in the household.',
     disabled_desc: 'Please answer the "number of people in your home" question to enable this selection.',
     definition: 'Why we ask for annual household income',
-    glossary_link: '/definitions/household-income/'
+    glossary_link: '/definitions/household-income/',
+    isInvalid: () => !selectedIncomeRangeSlug.value && !!selectedPersonsSlug.value
   },
   {
     key: 'heating',
     shortDesc: 'Heating type',
     label: 'What is the primary type of heating in your home?',
-    vModel: selectedHeatingSlug,
+    model: selectedHeatingSlug,
     options: heatingOptions.value,
     displayValue: selectedHeatingName.value,
-    missingMessage: 'Missing heating details'
+    missingMessage: 'Missing heating details',
+    isInvalid: () => !selectedHeatingSlug.value
   },
   {
     key: 'utility',
     shortDesc: 'Electric utility company',
     label: 'Which utility company provides your electrical service?',
-    vModel: selectedUtilitySlug,
+    model: selectedUtilitySlug,
     options: utilityOptions.value,
     displayValue: selectedUtilityName.value,
-    missingMessage: 'Missing service details'
+    missingMessage: 'Missing service details',
+    isInvalid: () => !selectedUtilitySlug.value
   }
 ])
+
 
 const isExternalDirty = ref(false)   // for outside Vue elements + button spin.
 
@@ -1216,7 +1252,6 @@ function withQueryString(baseUrl) {
 </script>
 
 <style scoped>
-
 #rebateFilterApp {
 
   /* Minimal utility styles to make the component usable without external scripts. */
@@ -1273,17 +1308,17 @@ function withQueryString(baseUrl) {
       grid-template-columns: 1fr 1fr;
     }
 
-    
-    
+
+
     &.stacked {
 
       counter-reset: question;
-      
+
       .question-container {
         display: grid;
         grid-template-columns: 3px 8rem 1fr;
         position: relative;
-        
+
         &::before {
           border-left: 3px solid #369;
           content: "";
@@ -1300,7 +1335,7 @@ function withQueryString(baseUrl) {
         }
 
       }
-      
+
       .num-label {
         display: grid;
         justify-content: center;
@@ -1312,14 +1347,14 @@ function withQueryString(baseUrl) {
         height: 6rem;
         z-index: 1;
         position: relative;
-  
+
         &::before {
           counter-increment: question;
           content: counter(question);
-  
+
           color: #369;
           font-size: 2rem;
-          font-family: Verdana,Arial, sans-serif;
+          font-family: Verdana, Arial, sans-serif;
         }
 
         &::after {
@@ -1350,6 +1385,7 @@ function withQueryString(baseUrl) {
         border: 3px solid darkgray !important;
         background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJkYXJrZ3JheSIgb3BhY2l0eT0iLjMiIGQ9Ik0wIDI1NmEyNTYgMjU2IDAgMSAwIDUxMiAwQTI1NiAyNTYgMCAxIDAgMCAyNTZ6TTIzMiAxMjhsNDggMCAwIDI0IDAgMTEyIDAgMjQtNDggMCAwLTI0IDAtMTEyIDAtMjR6bTAgMTkybDQ4IDAgMCA0OC00OCAwIDAtNDh6Ii8+PHBhdGggZmlsbD0iZGFya2dyYXkiIGQ9Ik0yODAgMTUybDAtMjQtNDggMCAwIDI0IDAgMTEyIDAgMjQgNDggMCAwLTI0IDAtMTEyem0wIDE2OGwtNDggMCAwIDQ4IDQ4IDAgMC00OHoiLz48L3N2Zz4=) !important;
       }
+
       /* X mark */
       :has(.select.error) .num-label::after {
         border: 3px solid darkred !important;
@@ -1357,8 +1393,8 @@ function withQueryString(baseUrl) {
       }
 
       gap: 0;
-      grid-template-columns:  1fr;
-      
+      grid-template-columns: 1fr;
+
       @container filter (width < 680px) {
         grid-template-columns: 1fr;
       }
@@ -1371,7 +1407,7 @@ function withQueryString(baseUrl) {
         display: inline;
         font-size: 0.85rem;
       }
-      
+
       .control {
         justify-content: start;
         margin-block: 0;
@@ -1380,11 +1416,12 @@ function withQueryString(baseUrl) {
 
         :is(label) {
           text-wrap: wrap;
+
           @supports (text-wrap: pretty) {
             text-wrap: pretty;
           }
         }
-        
+
         .select {
           max-width: fit-content;
 
@@ -1398,7 +1435,7 @@ function withQueryString(baseUrl) {
         }
 
         :is(figcaption) {
-         padding: 0;
+          padding: 0;
         }
       }
     }
@@ -1505,10 +1542,12 @@ function withQueryString(baseUrl) {
       }
     }
   }
+
   .clear-msg {
     margin-inline-start: 4.75rem;
     margin-block-start: -1.75rem;
     font-size: 0.85rem;
+
     :is(a) {
       font-size: 0.85rem;
     }
@@ -1835,7 +1874,6 @@ p.rebate-detail.rebate-detail.rebate-detail {
 }
 </style>
 <style>
-
 body.betterhomesbc #dialog .dialog-content h2 {
   border-bottom: 3px solid var(--wp--preset--color--primary-brand);
   color: var(--wp--preset--color--primary-brand);
