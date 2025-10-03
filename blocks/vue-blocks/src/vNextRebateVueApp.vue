@@ -483,19 +483,84 @@ async function handleSelectChange(fieldKey, newValue) {
   lastChangedField.value = fieldKey
   isSavingEditMode.value = true
 
-  if(selectedBuildingGroupSlug === 'ground-oriented-dwellings' && murbTenure === 'rent') {
-    hasError.value = true;
-  }
-
   await nextTick()
-  activeEdit.value = '' // closes the select and shows the button again.
-
-  await nextTick() // wait for DOM to update.
+  activeEdit.value = ''
+  await nextTick()
   isExternalDirty.value = true
 
+  // Scroll to error message if any error exists.
+  if (mode.value === 'archive' && hasAnyError.value) {
+    await nextTick()
+    const errorEl = document.querySelector('.message.error-message')
+    if (errorEl) {
+      errorEl.setAttribute('tabindex', '-1')
+      errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      errorEl.focus({ preventScroll: true })
+    }
+    return
+  }
+
+  if (mode.value !== 'archive') return
+
+  const all = fields.value
+  const currentIndex = all.findIndex(f => f.key === fieldKey)
+
+  const isAnsweredAndValid = (field) => {
+    const valueMap = {
+      murbTenure: murbTenure.value,
+      buildingGroup: selectedBuildingGroupSlug.value,
+      buildingType: selectedBuildingTypeSlug.value,
+      homeValue: selectedHomeValueSlug.value,
+      persons: selectedPersonsSlug.value,
+      incomeRange: selectedIncomeRangeSlug.value,
+      location: selectedLocationSlug.value,
+    }
+
+    const value = valueMap[field.key]
+    const hasError = fieldErrors.value[field.key] || false
+    return !!value && !hasError
+  }
+
+  const aboveFields = all.slice(0, currentIndex)
+  const belowFields = all.slice(currentIndex + 1)
+
+  // Prioritize error above.
+  const erroredAbove = aboveFields.find(field => fieldErrors.value[field.key])
+  if (erroredAbove) {
+    return scrollToField(erroredAbove)
+  }
+
+  // Check for unanswered fields.
+  const unansweredAbove = aboveFields.find(field => !isAnsweredAndValid(field))
+  const unansweredBelow = belowFields.find(field => !isAnsweredAndValid(field))
+
+  // Priority: prefer below if available, only scroll up if nothing below needs attention.
+  if (unansweredBelow) {
+    return scrollToField(unansweredBelow)
+  } else if (unansweredAbove) {
+    return scrollToField(unansweredAbove)
+  }
+
+  // Helper: smooth scroll + focus.
+  async function scrollToField(field) {
+    await nextTick()
+    const nextEl = document.querySelector(
+      `.question-container:has(#${field.key}Select)`
+    )
+    if (nextEl) {
+      nextEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      const nextSelect = nextEl.querySelector('select')
+      if (nextSelect) {
+        nextSelect.focus()
+      }
+    }
+  }
+
+  // Always refocus the button if no scroll occurred.
   const btn = buttonRefs.value[fieldKey]
   if (btn) btn.focus()
 }
+
 
 // Keyboard navigation: Move focus to the next field missing a selection.
 function focusNextMissingField(currentKey) {
@@ -624,6 +689,8 @@ const fields = computed(() => [
     ready: homeValueOptions.value.length > 0,
     description: 'The amount options shown change based on the set type of home.',
     disabled_desc: 'Please answer the "type of home you live in" question to enable this selection.',
+    definition: 'How to find the assessed value of your home',
+    glossary_link: '/definitions/assessed-home-value/'
   },
   {
     key: 'persons',
@@ -633,9 +700,7 @@ const fields = computed(() => [
     options: personCountOptions.value,
     displayValue: selectedPersonsCount.value,
     missingMessage: 'Missing household number',
-    description: 'Changing this field will require you to update the pre-tax income range information as well.',
-    definition: 'How to find the assessed value of your home',
-    glossary_link: '/definitions/assessed-home-value/'
+    description: 'Changing this field will require you to update the pre-tax income range information as well.'
   },
   {
     key: 'income',
@@ -1321,7 +1386,7 @@ function withQueryString(baseUrl) {
         }
         
         .select {
-          width: fit-content;
+          max-width: fit-content;
 
           background-color: #fff;
 
