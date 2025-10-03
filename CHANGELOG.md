@@ -1,6 +1,7 @@
 ## 1.22.1 October 2, 2025
 – Archive mode styling and error handling to add design and realtime feedback + gamification of answering questions.
 – Mobile and scroll position handling.
+– Augments the scroll positioning to keep previous question in sight.
 
 ## 1.22.0 October 2, 2025
 – Scaffolded aggregation "archive mode" form and structure to match single mode output without edit mode.

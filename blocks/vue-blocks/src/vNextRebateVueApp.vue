@@ -556,11 +556,8 @@ async function handleSelectChange(fieldKey, newValue) {
 
   // Helper: smooth scroll + focus (direction-aware).
   async function scrollToField(field, { direction } = {}) {
-    // Wait for Vue to update DOM.
     await nextTick()
-    // Wait for browser to paint new layout.
     await new Promise(r => requestAnimationFrame(r))
-    // Wait a tiny extra tick so scroll happens after final layout.
     await new Promise(r => setTimeout(r, 0))
 
     const nextEl = document
@@ -572,21 +569,34 @@ async function handleSelectChange(fieldKey, newValue) {
       return
     }
 
-    nextEl.scrollIntoView({
-      behavior: 'smooth',
-      block: direction === 'up' ? 'center' : 'start'
+    // Figure out how much space to leave above so previous question stays visible.
+    let visibleOffset = 150 // fallback padding
+    const previousEl = nextEl.previousElementSibling
+
+    if (direction === 'down' && previousEl) {
+      // leave full previous question + small gap visible.
+      visibleOffset = previousEl.offsetHeight + 150
+    }
+
+    const rect = nextEl.getBoundingClientRect()
+    const offsetTop = window.scrollY + rect.top
+
+    window.scrollTo({
+      top: Math.max(0, offsetTop - visibleOffset),
+      behavior: 'smooth'
     })
 
     const nextSelect = nextEl.querySelector('select')
     if (nextSelect) {
-      // Another micro-delay ensures focus follows after scroll finishes.
-      setTimeout(() => nextSelect.focus(), 100)
+      // small delay so focus happens after scroll settles.
+      setTimeout(() => nextSelect.focus(), 300)
     }
   }
-  // Always refocus the button if no scroll occurred.
-  const btn = buttonRefs.value[fieldKey]
-  if (btn) btn.focus()
-}
+
+    // Always refocus the button if no scroll occurred.
+    const btn = buttonRefs.value[fieldKey]
+    if (btn) btn.focus()
+  }
 
 // Keyboard navigation: Move focus to the next field missing a selection.
 function focusNextMissingField(currentKey) {
