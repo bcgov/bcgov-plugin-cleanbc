@@ -590,12 +590,14 @@ async function handleSelectChange(fieldKey, newValue) {
     if (nextSelect) {
       // small delay so focus happens after scroll settles.
       setTimeout(() => {
+        nextSelect.classList.add('transition')
         nextSelect.disabled = true;
         nextSelect.focus({ preventScroll: true });
 
         setTimeout(() => {
           nextSelect.disabled = false;
-        }, 150);
+          nextSelect.classList.remove('transition')
+        }, 300);
       }, 300)
     }
   }
@@ -1398,7 +1400,7 @@ function withQueryString(baseUrl) {
       }
 
       /* Exclamation mark */
-      :has(.select:disabled) .num-label::after {
+      :has(.select:disabled:not(.transition)) .num-label::after {
         border: 3px solid darkgray !important;
         background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJkYXJrZ3JheSIgb3BhY2l0eT0iLjMiIGQ9Ik0wIDI1NmEyNTYgMjU2IDAgMSAwIDUxMiAwQTI1NiAyNTYgMCAxIDAgMCAyNTZ6TTIzMiAxMjhsNDggMCAwIDI0IDAgMTEyIDAgMjQtNDggMCAwLTI0IDAtMTEyIDAtMjR6bTAgMTkybDQ4IDAgMCA0OC00OCAwIDAtNDh6Ii8+PHBhdGggZmlsbD0iZGFya2dyYXkiIGQ9Ik0yODAgMTUybDAtMjQtNDggMCAwIDI0IDAgMTEyIDAgMjQgNDggMCAwLTI0IDAtMTEyem0wIDE2OGwtNDggMCAwIDQ4IDQ4IDAgMC00OHoiLz48L3N2Zz4=) !important;
       }
@@ -1543,6 +1545,7 @@ function withQueryString(baseUrl) {
       }
 
       .select {
+        color: #369;
         font-size: 1rem;
         margin-block: 0.25rem;
         padding: .5rem;
@@ -1553,7 +1556,8 @@ function withQueryString(baseUrl) {
           outline: 2px solid #f6a044;
         }
 
-        &:disabled {
+        &:disabled:not(.transition) {
+          color: #696969;
           outline: 2px solid lightgray !important;
         }
       }
