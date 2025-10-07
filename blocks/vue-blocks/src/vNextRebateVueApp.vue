@@ -177,14 +177,16 @@
 
                     <!-- Location input -->
                     <template v-if="field.key === 'location'">
-                      <input :list="`${field.key}List`" :id="`${field.key}Select`" class="location-input" :class="{
+                      <input :list="`${field.key}List`" :id="`${field.key}Select`" type="text" autocomplete="off"
+                      class="location-input" :class="{
                         'is-empty': !locationInputValue,
                         'is-valid': isLocationValid,
                         'is-invalid': isLocationFocused && locationInputValue && !isLocationValid,
                         'is-error': !isLocationFocused && locationInputValue && !isLocationValid
-                      }" placeholder="Your community name..." v-model="locationInputValue"
-                        :disabled="field.disabled" @focus="isLocationFocused = true"
-                        @blur="isLocationFocused = false; handleLocationInputCommit('blur')"
+                      }" placeholder="Your community..." v-model="locationInputProxy" :disabled="field.disabled"
+                        @focus="handleFocus"
+                        @blur="handleLocationInputCommit('blur')"
+                        @focusout="handleLocationInputCommit('blur')"
                         @change="handleLocationInputCommit('change')"
                         @keydown.enter.prevent="handleLocationInputCommit('enter')" />
                       <datalist :id="`${field.key}List`">
@@ -236,7 +238,7 @@
                       <figcaption v-if="field.filter_desc && !field.disabled">{{ field.filter_desc }}</figcaption>
                       <figcaption v-if="field.disabled_desc && field.disabled">{{ field.disabled_desc }}</figcaption>
                       <figcaption v-if="field.error_desc && fieldErrors[field.key]" class="hasError">{{ field.error_desc
-                      }}</figcaption>
+                        }}</figcaption>
                     </template>
                   </figure>
                 </div>
@@ -247,14 +249,6 @@
               settings</a> to
             start over</div>
         </template>
-
-        <!-- Update Page Button (only in single mode) -->
-        <!-- <div v-if="mode === 'single'" class="update-page-container" :class='isDirty ? "has-icon warning" : ""'>
-          <button v-if="editable || isDirty" type="button" class="update-page-btn" @click="reloadPage"
-            :disabled='!isDirty'>
-            Save and update
-          </button>
-        </div> -->
       </div>
 
       <!-- Results -->
@@ -552,14 +546,37 @@ function toggleEditModeView() {
   localStorage.setItem('rebateEditModeView', JSON.stringify(editModeView.value))
 }
 
+function handleFocus() {
+  isLocationFocused.value = true
+  if (isMobile.value) {
+    setTimeout(() => {
+      const inputEl = document.querySelector('input.location-input')
+      inputEl?.focus()
+    }, 300)
+  }
+}
+
 /**
  * Commit location input on change or blur.
  */
 const handleLocationInputCommit = debounce(async (trigger = 'change') => {
-  // Wait a frame to ensure the latest input value is committed.
-  await new Promise(resolve => requestAnimationFrame(resolve))
+  await new Promise(resolve => setTimeout(resolve, 150))
 
-  const raw = locationInputValue.value
+  let raw
+
+  // On mobile blur, re-read the DOM value to capture datalist suggestion.
+  if (isMobile.value && trigger === 'blur') {
+    const inputEl = document.querySelector('input.location-input')
+    if (inputEl) {
+      raw = inputEl.value
+      locationInputDisplay.value = raw
+    } else {
+      raw = locationInputDisplay.value
+    }
+  } else {
+    raw = isMobile.value ? locationInputDisplay.value : locationInputValue.value
+  }
+
   const trimmed = raw.trim().toLowerCase()
 
   // 1. Try exact match first.
@@ -567,12 +584,23 @@ const handleLocationInputCommit = debounce(async (trigger = 'change') => {
     opt => opt.name.toLowerCase() === trimmed
   )
 
-  // 2. If no exact match and user blurred the field, try prefix match.
+  // 2. Try best fuzzy match on blur.
   if (!match && trigger === 'blur' && raw !== '') {
     const possible = locationOptions.value.filter(opt =>
       opt.name.toLowerCase().includes(trimmed)
     )
+
     if (possible.length > 0) {
+      possible.sort((a, b) => {
+        const aIndex = a.name.toLowerCase().indexOf(trimmed)
+        const bIndex = b.name.toLowerCase().indexOf(trimmed)
+        const aLengthDiff = Math.abs(a.name.length - raw.length)
+        const bLengthDiff = Math.abs(b.name.length - raw.length)
+
+        if (aIndex !== bIndex) return aIndex - bIndex
+        return aLengthDiff - bLengthDiff
+      })
+
       match = possible[0]
     }
   }
@@ -581,20 +609,19 @@ const handleLocationInputCommit = debounce(async (trigger = 'change') => {
   if (match) {
     selectedLocationSlug.value = match.slug
     locationInputValue.value = match.name
+    if (isMobile.value) {
+      locationInputDisplay.value = match.name
+    }
     lastChangedField.value = 'location'
     isExternalDirty.value = true
     updateAddressBar()
     debouncedUpdateRebateDetails()
     ariaStatusMessage.value = `${match.name} selected. Moving to next field.`
-
-    if (trigger === 'enter' || trigger === 'change') {
-      queueMicrotask(() => focusNextField('location'))
-    }
   } else {
-    // If no match, don't override user input — just clear the selection state.
     selectedLocationSlug.value = ''
   }
 }, 50)
+
 
 const isLocationFocused = ref(false)
 
@@ -1332,6 +1359,35 @@ const selectedLocation = computed(
 )
 
 const locationInputValue = ref('')
+
+const isMobile = ref(false)
+onMounted(() => {
+  isMobile.value = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+})
+
+const locationInputDisplay = ref('')
+
+// Keep the display synced with the real model when that changes
+watch(locationInputValue, newVal => {
+  if (isMobile.value) {
+    locationInputDisplay.value = newVal
+  }
+})
+
+// Unified proxy for v-model (✅ this is now a valid member expression)
+const locationInputProxy = computed({
+  get() {
+    return isMobile.value ? locationInputDisplay.value : locationInputValue.value
+  },
+  set(val) {
+    if (isMobile.value) {
+      debounce(() => { locationInputDisplay.value = val }, 1000)
+    } else {
+      locationInputValue.value = val
+    }
+  }
+})
+
 const selectedRegion = computed(
   () => selectedLocation.value?.children?.[0]?.slug || ''
 )
@@ -1638,6 +1694,9 @@ const espTier = computed(() => {
   return ''
 })
 
+// ----- HRR derivation -----
+// TBD
+
 /**
  * Return a URL with the current query string appended.
  */
@@ -1840,7 +1899,7 @@ function withQueryString(baseUrl) {
           }
 
           &:is(:focus-visible, :focus) {
-            border: 2px solid #369!important
+            border: 2px solid #369 !important
           }
         }
 
@@ -1878,11 +1937,17 @@ function withQueryString(baseUrl) {
           outline-offset: 2px;
           outline: 2px solid var(--wp--preset--color--custom-info-border);
           background-color: #fff
+
         }
 
         .location-input:is(:hover, :focus-visible) {
-          border: 2px solid #369 !important;
-          background-position: right 2rem center !important
+            border: 2px solid #369 !important;
+            background-position: right 2rem center !important
+          }
+
+        @supports (-webkit-calendar-picker-indicator) {
+          .location-input:is(:hover, :focus-visible) {
+          }
         }
 
         .location-input.is-empty {

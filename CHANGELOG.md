@@ -1,6 +1,7 @@
 ## 1.22.2 October 7, 2025
 – Modified archive mode to use input + datalist for locations.
 – Related change handling and styling updates.
+– Improved mobile input handling.
 
 ## 1.22.1 October 2, 2025
 – Archive mode styling and error handling to add design and realtime feedback + gamification of answering questions.
