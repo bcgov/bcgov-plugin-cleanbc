@@ -161,6 +161,10 @@
             <p>Only rentals in multi-unit residential buildings are currently eligible.</p>
           </div>
 
+          <div aria-live="polite" class="sr-only" role="status">
+            {{ ariaStatusMessage }}
+          </div>
+
           <div class='control-container stacked'>
             <template v-for="field in fields" :key="field.key">
               <template v-if="field.condition === undefined || field.condition">
@@ -171,37 +175,69 @@
                     <label :for="`${field.key}Select`">{{ field.label }} <a v-if="field.definition"
                         :href='field.glossary_link'>{{ field.definition }}</a></label>
 
-                    <select :key="field.key + '-' + (fieldRenderKeys[field.key] ?? 0)" class="select"
-                      :class="fieldErrors[field.key] ? 'error' : ''" :id="`${field.key}Select`"
-                      v-model="field.model.value" :disabled="field.disabled"
-                      @change="handleSelectChange(field.key, $event.target.value)"
-                      @keydown="handleSelectKeydown($event, field.key, field.model.value)"
-                      :ref="el => (selectRefs[field.key] = el)">
-                      <option disabled :selected="!field.model.value" data-default='Select an option' value="">Select an
-                        option</option>
+                    <!-- Location input -->
+                    <template v-if="field.key === 'location'">
+                      <input :list="`${field.key}List`" :id="`${field.key}Select`" class="location-input" :class="{
+                        'is-empty': !locationInputValue,
+                        'is-valid': isLocationValid,
+                        'is-invalid': isLocationFocused && locationInputValue && !isLocationValid,
+                        'is-error': !isLocationFocused && locationInputValue && !isLocationValid
+                      }" placeholder="Your community name..." v-model="locationInputValue"
+                        :disabled="field.disabled" @focus="isLocationFocused = true"
+                        @blur="isLocationFocused = false; handleLocationInputCommit('blur')"
+                        @change="handleLocationInputCommit('change')"
+                        @keydown.enter.prevent="handleLocationInputCommit('enter')" />
+                      <datalist :id="`${field.key}List`">
+                        <option v-for="opt in field.options" :key="opt.slug" :value="opt.name"></option>
+                      </datalist>
 
-                      <!-- Grouped (building) -->
-                      <template v-if="field.isGrouped">
-                        <optgroup v-for="group in field.groups" :key="group.slug"
-                          :label="group.name === 'MURB' ? 'Multi-unit residential buildings' : group.name">
-                          <option v-for="child in group.children" :key="child.slug" :value="child.slug">
-                            {{ child.name }}
+                      <figcaption v-if="field.filter_desc && !field.disabled">
+                        {{ field.filter_desc }}
+                      </figcaption>
+                      <figcaption v-if="field.disabled_desc && field.disabled">
+                        {{ field.disabled_desc }}
+                      </figcaption>
+                      <figcaption v-if="field.error_desc && fieldErrors[field.key]" class="hasError">
+                        {{ field.error_desc }}
+                      </figcaption>
+                    </template>
+
+                    <!-- All other selects -->
+                    <template v-else>
+
+                      <select :key="field.key + '-' + (fieldRenderKeys[field.key] ?? 0)" class="select"
+                        :class="fieldErrors[field.key] ? 'error' : ''" :id="`${field.key}Select`"
+                        v-model="field.model.value" :disabled="field.disabled"
+                        @change="handleSelectChange(field.key, $event.target.value)"
+                        @keydown="handleSelectKeydown($event, field.key, field.model.value)"
+                        :ref="el => (selectRefs[field.key] = el)">
+                        <option disabled :selected="!field.model.value" data-default='Select an option' value="">Select
+                          an
+                          option</option>
+
+                        <!-- Grouped (building) -->
+                        <template v-if="field.isGrouped">
+                          <optgroup v-for="group in field.groups" :key="group.slug"
+                            :label="group.name === 'MURB' ? 'Multi-unit residential buildings' : group.name">
+                            <option v-for="child in group.children" :key="child.slug" :value="child.slug">
+                              {{ child.name }}
+                            </option>
+                          </optgroup>
+                        </template>
+
+                        <!-- Flat (others) -->
+                        <template v-else>
+                          <option v-for="opt in field.options" :key="opt.slug" :value="opt.slug">
+                            {{ opt.name }}
                           </option>
-                        </optgroup>
-                      </template>
+                        </template>
+                      </select>
 
-                      <!-- Flat (others) -->
-                      <template v-else>
-                        <option v-for="opt in field.options" :key="opt.slug" :value="opt.slug">
-                          {{ opt.name }}
-                        </option>
-                      </template>
-                    </select>
-
-                    <figcaption v-if="field.filter_desc && !field.disabled">{{ field.filter_desc }}</figcaption>
-                    <figcaption v-if="field.disabled_desc && field.disabled">{{ field.disabled_desc }}</figcaption>
-                    <figcaption v-if="field.error_desc && fieldErrors[field.key]" class="hasError">{{ field.error_desc
-                    }}</figcaption>
+                      <figcaption v-if="field.filter_desc && !field.disabled">{{ field.filter_desc }}</figcaption>
+                      <figcaption v-if="field.disabled_desc && field.disabled">{{ field.disabled_desc }}</figcaption>
+                      <figcaption v-if="field.error_desc && fieldErrors[field.key]" class="hasError">{{ field.error_desc
+                      }}</figcaption>
+                    </template>
                   </figure>
                 </div>
               </template>
@@ -307,17 +343,18 @@
 </template>
 
 <script setup>
-// See `vNextRebateVueApp.docs.js` for full JSDoc reference.
+// See vNextRebateVueApp.docs.js for full JSDoc reference.
 import { computed, ref, nextTick, onMounted, watch } from 'vue'
 
 /** Public domain fallback */
 const publicDomain = ref('https://www.betterhomesbc.ca')
+
 /** API endpoint */
 const rebatesAPI = `${window.site?.domain ? window.site.domain : publicDomain.value}/wp-json/custom/v2/rebates`
 
-const debug = false;
+const debug = false
 
-// Local state for fetched API payload
+// Local state for fetched API payload.
 const api = ref({
   'settings-selects': {
     'building-types': [],
@@ -332,7 +369,9 @@ const api = ref({
 const isLoading = ref(true)
 const loadError = ref('')
 
-// Debounce a function so it runs only after a specified delay.
+/**
+ * Debounce a function so it runs only after a specified delay.
+ */
 function debounce(fn, delay = 500) {
   let timer
   return (...args) => {
@@ -342,10 +381,11 @@ function debounce(fn, delay = 500) {
 }
 
 const debouncedUpdateRebateDetails = debounce(updateRebateDetails, 500)
-
 const isAjaxLoading = ref(false)
 
-// Fetch and replace the rebate details section asynchronously.
+/**
+ * Fetch and replace the rebate details section asynchronously.
+ */
 async function updateRebateDetails() {
   const targetSelector = '#rebate-details-container'
   const container = document.querySelector(targetSelector)
@@ -355,8 +395,8 @@ async function updateRebateDetails() {
     isAjaxLoading.value = true
     const res = await fetch(assembledUrl.value, { credentials: 'same-origin' })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const html = await res.text()
 
+    const html = await res.text()
     const parser = new DOMParser()
     const doc = parser.parseFromString(html, 'text/html')
     const newContent = doc.querySelector(targetSelector)
@@ -366,19 +406,22 @@ async function updateRebateDetails() {
 
       container.querySelectorAll('script').forEach(oldScript => {
         const newScript = document.createElement('script')
-        if (oldScript.src) newScript.src = oldScript.src
-        else newScript.textContent = oldScript.textContent
+        if (oldScript.src) {
+          newScript.src = oldScript.src
+        } else {
+          newScript.textContent = oldScript.textContent
+        }
         document.body.appendChild(newScript)
         document.body.removeChild(newScript)
       })
 
       window.history.replaceState(null, '', assembledUrl.value)
 
-      // After the DOM has been swapped, only clear external dirty + selection marker.
+      // After DOM swap, clear external dirty + selection markers.
       isExternalDirty.value = false
       isSavingEditMode.value = false
       lastChangedField.value = ''
-      rerenderScrollMenu();
+      rerenderScrollMenu()
     }
   } catch (err) {
     console.error('Failed to update rebate details via AJAX:', err)
@@ -387,52 +430,65 @@ async function updateRebateDetails() {
   }
 }
 
-// Rebuild the scroll menu (`#incentive-side-nav`) from H2 headings inside `#incentive-details-container`.
+/**
+ * Rebuild the scroll menu (#incentive-side-nav) from H2 headings inside #incentive-details-container.
+ */
 function rerenderScrollMenu() {
-  const detailsContainer = document.querySelector('#incentive-details-container');
-  const sideNav = document.querySelector('#incentive-side-nav');
+  const detailsContainer = document.querySelector('#incentive-details-container')
+  const sideNav = document.querySelector('#incentive-side-nav')
+  if (!detailsContainer || !sideNav) return
 
-  if (detailsContainer && sideNav) {
-    // Clear the existing content of #incentive-side-nav
-    sideNav.innerHTML = '';
+  // Clear the existing content of #incentive-side-nav.
+  sideNav.innerHTML = ''
 
-    // Find all H2 elements inside the #incentive-details-container
-    const headings = detailsContainer.querySelectorAll('h2[id]');
+  // Find all H2 elements inside the #incentive-details-container.
+  const headings = detailsContainer.querySelectorAll('h2[id]')
 
-    // Create a new list for navigation
-    const navListContainer = document.createElement('nav');
-    navListContainer.classList.add('side-nav', 'bb-nav', 'wp-block-navigation', 'is-vertical', 'wp-container-core-navigation-layout-2');
+  // Create a new list for navigation.
+  const navListContainer = document.createElement('nav')
+  navListContainer.classList.add(
+    'side-nav',
+    'bb-nav',
+    'wp-block-navigation',
+    'is-vertical',
+    'wp-container-core-navigation-layout-2'
+  )
 
-    const navList = document.createElement('ul');
-    navList.classList.add('side-nav', 'bb-nav', 'wp-block-navigation', 'is-vertical', 'wp-block-navigation__container');
+  const navList = document.createElement('ul')
+  navList.classList.add(
+    'side-nav',
+    'bb-nav',
+    'wp-block-navigation',
+    'is-vertical',
+    'wp-block-navigation__container'
+  )
 
-    // Loop through the H2 elements to create links
-    headings.forEach(heading => {
-      const id = heading.id;
-      const text = heading.textContent.trim();
+  // Loop through the H2 elements to create links.
+  headings.forEach(heading => {
+    const id = heading.id
+    const text = heading.textContent.trim()
 
-      // Create a list item
-      const listItem = document.createElement('li');
-      listItem.classList.add('wp-block-navigation-item', 'wp-block-navigation-link');
+    // Create a list item.
+    const listItem = document.createElement('li')
+    listItem.classList.add('wp-block-navigation-item', 'wp-block-navigation-link')
 
-      // Create a link element
-      const link = document.createElement('a');
-      link.href = `#${id}`;
-      link.textContent = text;
-      link.classList.add('wp-block-navigation-item__content');
+    // Create a link element.
+    const link = document.createElement('a')
+    link.href = `#${id}`
+    link.textContent = text
+    link.classList.add('wp-block-navigation-item__content')
 
-      // Append the link to the list item
-      listItem.appendChild(link);
+    // Append the link to the list item.
+    listItem.appendChild(link)
 
-      // Append the list item to the navigation list
-      navList.appendChild(listItem);
-    });
+    // Append the list item to the navigation list.
+    navList.appendChild(listItem)
+  })
 
-    // Append the navigation list to the side navigation
-    navListContainer.appendChild(navList);
-    sideNav.appendChild(navListContainer);
-    sideNav.classList.remove('admin-instructions');
-  }
+  // Append the navigation list to the side navigation.
+  navListContainer.appendChild(navList)
+  sideNav.appendChild(navListContainer)
+  sideNav.classList.remove('admin-instructions')
 }
 
 // --- Editable state ---
@@ -444,6 +500,7 @@ const showEditModeUI = ref(false)
 const editModeView = ref(false)
 const isSavingEditMode = ref(false)
 const hasError = ref(false)
+const ariaStatusMessage = ref('')
 
 // --- Focus map for selects ---
 const selectRefs = ref({})
@@ -460,8 +517,7 @@ const fieldErrors = computed(() => {
   return {
     murbTenure:
       selectedBuildingGroupSlug.value === 'ground-oriented-dwellings' &&
-      murbTenure.value === 'rent',
-    // homeValue: !selectedBuildingGroupSlug.value && !!selectedHomeValueSlug.value,
+      murbTenure.value === 'rent'
   }
 })
 
@@ -469,24 +525,109 @@ const hasAnyError = computed(() =>
   Object.values(fieldErrors.value).some(Boolean)
 )
 
+/**
+ * Toggle visibility of field labels.
+ */
 function toggleLabels() {
   labelsVisible.value = !labelsVisible.value
-  localStorage.setItem('rebateLabelsVisible', JSON.stringify(labelsVisible.value))
+  localStorage.setItem(
+    'rebateLabelsVisible',
+    JSON.stringify(labelsVisible.value)
+  )
 }
 
-// Open a specific field for editing.
+/**
+ * Open a specific field for editing.
+ */
 function openEdit(field) {
   editable.value = true
   activeEdit.value = field
 }
 
+/**
+ * Toggle the edit mode view on/off.
+ */
 function toggleEditModeView() {
   editModeView.value = !editModeView.value
   localStorage.setItem('rebateEditModeView', JSON.stringify(editModeView.value))
 }
 
-// Handle when a select input changes. 
-// Closes the select, marks state dirty, and re-focuses associated button (when appropriate).
+/**
+ * Commit location input on change or blur.
+ */
+const handleLocationInputCommit = debounce(async (trigger = 'change') => {
+  // Wait a frame to ensure the latest input value is committed.
+  await new Promise(resolve => requestAnimationFrame(resolve))
+
+  const raw = locationInputValue.value
+  const trimmed = raw.trim().toLowerCase()
+
+  // 1. Try exact match first.
+  let match = locationOptions.value.find(
+    opt => opt.name.toLowerCase() === trimmed
+  )
+
+  // 2. If no exact match and user blurred the field, try prefix match.
+  if (!match && trigger === 'blur' && raw !== '') {
+    const possible = locationOptions.value.filter(opt =>
+      opt.name.toLowerCase().includes(trimmed)
+    )
+    if (possible.length > 0) {
+      match = possible[0]
+    }
+  }
+
+  // 3. Apply the match if found.
+  if (match) {
+    selectedLocationSlug.value = match.slug
+    locationInputValue.value = match.name
+    lastChangedField.value = 'location'
+    isExternalDirty.value = true
+    updateAddressBar()
+    debouncedUpdateRebateDetails()
+    ariaStatusMessage.value = `${match.name} selected. Moving to next field.`
+
+    if (trigger === 'enter' || trigger === 'change') {
+      queueMicrotask(() => focusNextField('location'))
+    }
+  } else {
+    // If no match, don't override user input — just clear the selection state.
+    selectedLocationSlug.value = ''
+  }
+}, 50)
+
+const isLocationFocused = ref(false)
+
+const isLocationValid = computed(() =>
+  locationOptions.value.some(
+    opt =>
+      opt.name.toLowerCase() === locationInputValue.value.trim().toLowerCase()
+  )
+)
+
+/**
+ * Move focus to the next field after currentKey.
+ */
+function focusNextField(currentKey) {
+  const fieldKeys = fields.value.map(f => f.key)
+  const currentIndex = fieldKeys.indexOf(currentKey)
+  if (currentIndex === -1 || currentIndex >= fieldKeys.length - 1) return
+
+  const nextKey = fieldKeys[currentIndex + 1]
+  const nextEl =
+    selectRefs.value?.[nextKey] ||
+    document.getElementById(`${nextKey}Select`) ||
+    document.getElementById(`${nextKey}Input`)
+
+  if (nextEl && typeof nextEl.focus === 'function') {
+    nextEl.focus({ preventScroll: false })
+  }
+}
+
+/**
+ * Handle when a select input changes.
+ * Closes the select, marks state dirty, and re-focuses associated button (when appropriate).
+ */
 async function handleSelectChange(fieldKey, newValue) {
   if (newValue === undefined || newValue === null) return
 
@@ -496,6 +637,7 @@ async function handleSelectChange(fieldKey, newValue) {
   await nextTick()
   activeEdit.value = ''
   await nextTick()
+
   isExternalDirty.value = true
 
   if (mode.value !== 'archive') return
@@ -506,7 +648,7 @@ async function handleSelectChange(fieldKey, newValue) {
 
   const all = fields.value
 
-  const isAnsweredAndValid = (field) => {
+  const isAnsweredAndValid = field => {
     const value = field.model?.value ?? null
     const hasError = field.isInvalid?.() || false
     return !!value && !hasError
@@ -554,7 +696,9 @@ async function handleSelectChange(fieldKey, newValue) {
     }
   }
 
-  // Helper: smooth scroll + focus (direction-aware).
+  /**
+   * Smooth scroll + focus (direction-aware).
+   */
   async function scrollToField(field, { direction } = {}) {
     await nextTick()
     await new Promise(r => requestAnimationFrame(r))
@@ -570,11 +714,9 @@ async function handleSelectChange(fieldKey, newValue) {
     }
 
     // Figure out how much space to leave above so previous question stays visible.
-    let visibleOffset = 150 // fallback padding
+    let visibleOffset = 150 // fallback padding.
     const previousEl = nextEl.previousElementSibling
-
     if (direction === 'down' && previousEl) {
-      // leave full previous question + small gap visible.
       visibleOffset = previousEl.offsetHeight + 150
     }
 
@@ -591,13 +733,13 @@ async function handleSelectChange(fieldKey, newValue) {
       // small delay so focus happens after scroll settles.
       setTimeout(() => {
         nextSelect.classList.add('transition')
-        nextSelect.disabled = true;
-        nextSelect.focus({ preventScroll: true });
+        nextSelect.disabled = true
+        nextSelect.focus({ preventScroll: true })
 
         setTimeout(() => {
-          nextSelect.disabled = false;
+          nextSelect.disabled = false
           nextSelect.classList.remove('transition')
-        }, 300);
+        }, 300)
       }, 300)
     }
   }
@@ -607,11 +749,14 @@ async function handleSelectChange(fieldKey, newValue) {
   if (btn) btn.focus()
 }
 
-// Keyboard navigation: Move focus to the next field missing a selection.
+/**
+ * Move focus to the next field missing a selection.
+ */
 function focusNextMissingField(currentKey) {
   const all = fields.value
   const idx = all.findIndex(f => f.key === currentKey)
   if (idx === -1) return false
+
   const nextMissing = all.slice(idx + 1).find(f => !f.displayValue)
   if (nextMissing) {
     activeEdit.value = nextMissing.key
@@ -620,12 +765,18 @@ function focusNextMissingField(currentKey) {
   return false
 }
 
-// Move focus to the previous field missing a selection.
+/**
+ * Move focus to the previous field missing a selection.
+ */
 function focusPrevMissingField(currentKey) {
   const all = fields.value
   const idx = all.findIndex(f => f.key === currentKey)
   if (idx === -1) return false
-  const prevMissing = [...all.slice(0, idx)].reverse().find(f => !f.displayValue)
+
+  const prevMissing = [...all.slice(0, idx)]
+    .reverse()
+    .find(f => !f.displayValue)
+
   if (prevMissing) {
     activeEdit.value = prevMissing.key
     return true
@@ -633,32 +784,72 @@ function focusPrevMissingField(currentKey) {
   return false
 }
 
-// Handle keyboard interaction for select elements.
+/**
+ * Handle keyboard interaction for select elements.
+ */
 function handleSelectKeydown(event, fieldKey, currentValue) {
   if (event.key === 'Enter') {
     event.preventDefault()
     handleSelectChange(fieldKey, currentValue)
+
+    // Optional: also scroll when Enter moves to next field.
+    nextTick(() => scrollToNextVisibleField(fieldKey))
   } else if (event.key === 'Escape') {
     event.preventDefault()
     activeEdit.value = ''
   } else if (event.key === 'Tab') {
-    if (event.shiftKey) {
-      if (focusPrevMissingField(fieldKey)) event.preventDefault()
-    } else {
-      if (focusNextMissingField(fieldKey)) event.preventDefault()
-    }
+    // Don't prevent default. Let Tab move focus naturally.
+    const direction = event.shiftKey ? 'up' : 'down'
+    // Schedule scroll after focus moves.
+    nextTick(() => {
+      scrollToNextVisibleField(fieldKey, direction)
+    })
   }
 }
 
-// --- Auto-focus when activeEdit changes ---
-watch(activeEdit, async (newKey) => {
+/**
+ * Scroll to next visible field (direction-aware).
+ */
+async function scrollToNextVisibleField(currentKey, direction = 'down') {
+  await nextTick()
+  const all = fields.value
+  const idx = all.findIndex(f => f.key === currentKey)
+  if (idx === -1) return
+
+  const nextField =
+    direction === 'up'
+      ? all
+        .slice(0, idx)
+        .reverse()
+        .find(f => f)
+      : all.slice(idx + 1).find(f => f)
+
+  if (!nextField) return
+
+  const nextEl =
+    document.getElementById(`${nextField.key}Select`) ||
+    document.getElementById(`${nextField.key}Input`)
+
+  if (nextEl) {
+    const rect = nextEl.getBoundingClientRect()
+    const offsetTop = window.scrollY + rect.top - 150 // adjust padding.
+    window.scrollTo({ top: Math.max(0, offsetTop), behavior: 'smooth' })
+  }
+}
+
+/**
+ * Auto-focus when activeEdit changes.
+ */
+watch(activeEdit, async newKey => {
   if (!newKey) return
   await nextTick()
   const el = selectRefs.value[newKey]
   if (el) el.focus()
 })
 
-// Clear all user selections, reset URL, and reopen the first missing field.
+/**
+ * Clear all user selections, reset URL, and reopen the first missing field.
+ */
 function clearSettings(event) {
   event?.preventDefault?.()
 
@@ -673,16 +864,19 @@ function clearSettings(event) {
 
   const url = window.location.origin + window.location.pathname
   window.history.replaceState(null, '', url)
-  localStorage.removeItem('rebateToolSettings')
 
+  localStorage.removeItem('rebateToolSettings')
   editable.value = true
+
   const firstMissing = fields.value.find(f => !f.displayValue)
   activeEdit.value = firstMissing ? firstMissing.key : ''
 
-  localStorage.removeItem('rebateEditableState');
+  localStorage.removeItem('rebateEditableState')
 }
 
-// --- Unified fields config ---
+/**
+ * Unified fields config.
+ */
 const fields = computed(() => [
   {
     key: 'location',
@@ -694,7 +888,8 @@ const fields = computed(() => [
       ? `${selectedLocationName.value} (${selectedRegionName.value})`
       : '',
     missingMessage: 'Missing location details',
-    isInvalid: () => !selectedLocationSlug.value // must have a value
+    isInvalid: () => !selectedLocationSlug.value,
+    filter_desc: 'Start typing to refine your choices.'
   },
   {
     key: 'murbTenure',
@@ -707,8 +902,10 @@ const fields = computed(() => [
     ],
     displayValue: murbTenureLabel.value,
     missingMessage: 'Missing ownership status',
-    description: 'Only rentals in multi-unit residential buildings are currently eligible.',
-    error_desc: 'Rentals of your home type are not eligible. Only rentals in multi-unit residential buildings are currently eligible.',
+    description:
+      'Only rentals in multi-unit residential buildings are currently eligible.',
+    error_desc:
+      'Rentals of your home type are not eligible. Only rentals in multi-unit residential buildings are currently eligible.',
     isInvalid: () =>
       selectedBuildingGroupSlug.value === 'ground-oriented-dwellings' &&
       murbTenure.value === 'rent'
@@ -722,8 +919,10 @@ const fields = computed(() => [
     isGrouped: true,
     displayValue: selectedBuildingTypeName.value,
     missingMessage: 'Missing home type',
-    description: 'Changing between Ground Oriented / MURB types will require you to update the assessed home value information.',
-    filter_desc: 'Each unit must have its own electricity meter and the utility account must be in the name of a resident in the household that is applying to the rebate.',
+    description:
+      'Changing between Ground Oriented / MURB types will require you to update the assessed home value information.',
+    filter_desc:
+      'Each unit must have its own electricity meter and the utility account must be in the name of a resident in the household that is applying to the rebate.',
     isInvalid: () => !selectedBuildingTypeSlug.value
   },
   {
@@ -736,35 +935,43 @@ const fields = computed(() => [
     missingMessage: 'Missing home value',
     disabled: !selectedBuildingGroupSlug.value,
     ready: homeValueOptions.value.length > 0,
-    description: 'The amount options shown change based on the set type of home.',
-    disabled_desc: 'Please answer the "type of home you live in" question to enable this selection.',
+    description:
+      'The amount options shown change based on the set type of home.',
+    disabled_desc:
+      'Please answer the "type of home you live in" question to enable this selection.',
     definition: 'How to find the assessed value of your home',
     glossary_link: '/definitions/assessed-home-value/',
-    isInvalid: () => !selectedHomeValueSlug.value && !!selectedBuildingGroupSlug.value
+    isInvalid: () =>
+      !selectedHomeValueSlug.value && !!selectedBuildingGroupSlug.value
   },
   {
     key: 'persons',
     shortDesc: 'People in household',
-    label: 'How many people live in your home (including adults and children)?',
+    label:
+      'How many people live in your home (including adults and children)?',
     model: selectedPersonsSlug,
     options: personCountOptions.value,
     displayValue: selectedPersonsCount.value,
     missingMessage: 'Missing household number',
-    description: 'Changing this field will require you to update the pre-tax income range information as well.',
+    description:
+      'Changing this field will require you to update the pre-tax income range information as well.',
     isInvalid: () => !selectedPersonsSlug.value
   },
   {
     key: 'income',
     shortDesc: 'Household income',
-    label: 'What is the combined pre-tax income of all adults in your household (excluding dependants)?',
+    label:
+      'What is the combined pre-tax income of all adults in your household (excluding dependants)?',
     model: selectedIncomeRangeSlug,
     options: incomeRangeOptions.value,
     displayValue: selectedIncomeRangeName.value,
     missingMessage: 'Missing household income',
     disabled: !selectedPersonsSlug.value,
     ready: incomeRangeOptions.value.length > 0,
-    description: 'The amount options shown change based on the set number of people in the household.',
-    disabled_desc: 'Please answer the "number of people in your home" question to enable this selection.',
+    description:
+      'The amount options shown change based on the set number of people in the household.',
+    disabled_desc:
+      'Please answer the "number of people in your home" question to enable this selection.',
     definition: 'Why we ask for annual household income',
     glossary_link: '/definitions/household-income/',
     isInvalid: () => !selectedIncomeRangeSlug.value && !!selectedPersonsSlug.value
@@ -791,25 +998,30 @@ const fields = computed(() => [
   }
 ])
 
-
-const isExternalDirty = ref(false)   // for outside Vue elements + button spin.
+const isExternalDirty = ref(false) // for outside Vue elements + button spin.
 
 onMounted(() => {
-
-  watch(urlStateDeps, (newDeps) => {
-    if (hasAllSelection.value) {
-      localStorage.setItem('rebateToolSettings', JSON.stringify(newDeps))
-    }
-  }, { deep: true })
-
+  watch(
+    urlStateDeps,
+    newDeps => {
+      if (hasAllSelection.value) {
+        localStorage.setItem('rebateToolSettings', JSON.stringify(newDeps))
+      }
+    },
+    { deep: true }
+  )
 })
 
-watch(isExternalDirty, (newVal) => {
-  const blocks = document.querySelectorAll('.multi-query-content-block, .query-conditional-group-block')
+watch(isExternalDirty, newVal => {
+  const blocks = document.querySelectorAll(
+    '.multi-query-content-block, .query-conditional-group-block'
+  )
   blocks.forEach(el => el.classList.toggle('is-dirty-variable', newVal))
 })
 
-// --- Watcher: Toggle classes based on isDirty ---
+/**
+ * Toggle classes based on isDirty state.
+ */
 function applyDirtyClasses(val) {
   document
     .querySelectorAll('.multi-query-content-block > span[data-replace="value"]')
@@ -818,6 +1030,7 @@ function applyDirtyClasses(val) {
 
 // ----- Mode (archive|single) -----
 const mode = ref('archive')
+
 onMounted(() => {
   const el = document.getElementById('rebateFilterApp')
   if (el?.dataset?.mode) {
@@ -829,6 +1042,7 @@ onMounted(async () => {
   try {
     const res = await fetch(rebatesAPI, { cache: 'no-store' })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
+
     api.value = await res.json()
 
     const params = new URLSearchParams(window.location.search)
@@ -848,20 +1062,26 @@ onMounted(async () => {
       console.log('No saved settings — starting fresh')
     }
 
-    watch(urlStateDeps, () => {
-      isExternalDirty.value = true // external goes dirty immediately.
-      updateAddressBar()
-      debouncedUpdateRebateDetails()
-    }, { deep: true })
+    watch(
+      urlStateDeps,
+      () => {
+        isExternalDirty.value = true // external goes dirty immediately.
+        updateAddressBar()
+        debouncedUpdateRebateDetails()
+      },
+      { deep: true }
+    )
 
-
-    watch(homeValueOptions, async (newVal) => {
+    watch(homeValueOptions, async newVal => {
       if (!selectedHomeValueSlug.value && newVal.length > 0) {
         // force remount and focus.
         fieldRenderKeys.value.homeValue++
         await nextTick()
         activeEdit.value = 'homeValue'
-      } else if (selectedHomeValueSlug.value && !newVal.find(o => o.slug === selectedHomeValueSlug.value)) {
+      } else if (
+        selectedHomeValueSlug.value &&
+        !newVal.find(o => o.slug === selectedHomeValueSlug.value)
+      ) {
         selectedHomeValueSlug.value = ''
         fieldRenderKeys.value.homeValue++
         await nextTick()
@@ -869,19 +1089,21 @@ onMounted(async () => {
       }
     })
 
-    watch(incomeRangeOptions, async (newVal) => {
+    watch(incomeRangeOptions, async newVal => {
       if (!selectedIncomeRangeSlug.value && newVal.length > 0) {
         fieldRenderKeys.value.income++
         await nextTick()
         activeEdit.value = 'income'
-      } else if (selectedIncomeRangeSlug.value && !newVal.find(o => o.slug === selectedIncomeRangeSlug.value)) {
+      } else if (
+        selectedIncomeRangeSlug.value &&
+        !newVal.find(o => o.slug === selectedIncomeRangeSlug.value)
+      ) {
         selectedIncomeRangeSlug.value = ''
         fieldRenderKeys.value.income++
         await nextTick()
         activeEdit.value = 'income'
       }
     })
-
   } catch (e) {
     loadError.value = String(e)
     console.error('Failed to fetch rebates:', e)
@@ -889,46 +1111,62 @@ onMounted(async () => {
     isLoading.value = false
   }
 
-  // load the definitions links
-  nextTick()
-  bcgovBlockThemePluginDefnitions()
+  // load the definitions links nextTick.
+  nextTick(() => bcgovBlockThemePluginDefnitions())
 })
 
-// Initialize form state from stored localStorage object.
+/**
+ * Initialize form state from stored localStorage object.
+ */
 function initFromLocalStorage(data) {
   if (!data || typeof data !== 'object') return
 
   if (data.group && buildingTypeGroups.value.some(g => g.slug === data.group)) {
     selectedBuildingTypeSlug.value = data.group
   }
+
   if (data.type) {
     const isParent = buildingTypeGroups.value.some(g => g.slug === data.type)
     const isChild = Array.from(childToGroupSlug.value.keys()).includes(data.type)
     if (isParent || isChild) selectedBuildingTypeSlug.value = data.type
   }
-  if (data.tenure && (data.tenure === 'own' || data.tenure === 'rent')) murbTenure.value = data.tenure
-  if (data.home_value && homeValueOptions.value.find(h => h.slug === data.home_value)) {
+
+  if (data.tenure && (data.tenure === 'own' || data.tenure === 'rent'))
+    murbTenure.value = data.tenure
+
+  if (
+    data.home_value &&
+    homeValueOptions.value.find(h => h.slug === data.home_value)
+  ) {
     selectedHomeValueSlug.value = data.home_value
   }
+
   if (data.persons && personCountOptions.value.some(p => p.slug === data.persons)) {
     selectedPersonsSlug.value = data.persons
   }
+
   if (data.income && incomeRangeOptions.value.some(r => r.slug === data.income)) {
     selectedIncomeRangeSlug.value = data.income
   }
+
   if (data.location) {
-    const loc = locationOptions.value.find(l => l.slug === data.location)
-      || locationOptions.value.find(l => l.name === data.location)
+    const loc =
+      locationOptions.value.find(l => l.slug === data.location) ||
+      locationOptions.value.find(l => l.name === data.location)
     if (loc) selectedLocationSlug.value = loc.slug
   }
+
   if (data.heating) {
-    const heating = heatingOptions.value.find(w => w.slug === data.heating)
-      || heatingOptions.value.find(w => w.name === data.heating)
+    const heating =
+      heatingOptions.value.find(w => w.slug === data.heating) ||
+      heatingOptions.value.find(w => w.name === data.heating)
     if (heating) selectedHeatingSlug.value = heating.slug
   }
+
   if (data.utility) {
-    const utility = utilityOptions.value.find(u => u.slug === data.utility)
-      || utilityOptions.value.find(u => u.name === data.utility)
+    const utility =
+      utilityOptions.value.find(u => u.slug === data.utility) ||
+      utilityOptions.value.find(u => u.name === data.utility)
     if (utility) selectedUtilitySlug.value = utility.slug
   }
 
@@ -937,7 +1175,10 @@ function initFromLocalStorage(data) {
 }
 
 // ----- Building Types (hierarchical) -----
-const buildingTypeGroups = computed(() => api.value?.['settings-selects']?.['building-types'] ?? [])
+const buildingTypeGroups = computed(
+  () => api.value?.['settings-selects']?.['building-types'] ?? []
+)
+
 const childToGroupSlug = computed(() => {
   const map = new Map()
   for (const g of buildingTypeGroups.value) {
@@ -945,12 +1186,20 @@ const childToGroupSlug = computed(() => {
   }
   return map
 })
+
 const selectedBuildingTypeSlug = ref('')
+
 const selectedBuildingGroupSlug = computed(() => {
   if (!selectedBuildingTypeSlug.value) return ''
-  if (buildingTypeGroups.value.some(g => g.slug === selectedBuildingTypeSlug.value)) return selectedBuildingTypeSlug.value
+  if (
+    buildingTypeGroups.value.some(
+      g => g.slug === selectedBuildingTypeSlug.value
+    )
+  )
+    return selectedBuildingTypeSlug.value
   return childToGroupSlug.value.get(selectedBuildingTypeSlug.value) || ''
 })
+
 const selectedBuildingTypeName = computed(() => {
   const sel = selectedBuildingTypeSlug.value
   if (!sel) return ''
@@ -963,7 +1212,9 @@ const selectedBuildingTypeName = computed(() => {
   return ''
 })
 
-// Handle building type change by resetting home value and focusing next.
+/**
+ * Handle building type change by resetting home value and focusing next.
+ */
 async function onBuildingTypeChange() {
   selectedHomeValueSlug.value = ''
   await nextTick()
@@ -973,53 +1224,93 @@ async function onBuildingTypeChange() {
 
 // ----- MURB tenure -----
 const murbTenure = ref('')
-const murbTenureLabel = computed(() => (murbTenure.value === 'own' ? 'Own' : murbTenure.value === 'rent' ? 'Rent' : ''))
+const murbTenureLabel = computed(() =>
+  murbTenure.value === 'own'
+    ? 'Own'
+    : murbTenure.value === 'rent'
+      ? 'Rent'
+      : ''
+)
 
 // ----- Home Value -----
 const homeValueOptions = computed(() => {
   const hvGroups = api.value?.['settings-selects']?.['home-value'] ?? []
   const groupSlug = selectedBuildingGroupSlug.value
   if (!groupSlug) return []
-  const groupObj = (api.value?.['settings-selects']?.['building-types'] ?? []).find(g => g.slug === groupSlug)
+
+  const groupObj = (
+    api.value?.['settings-selects']?.['building-types'] ?? []
+  ).find(g => g.slug === groupSlug)
   const groupName = groupObj?.name || ''
   const singularish = groupSlug.replace(/s$/, '')
+
   const hvGroup =
     hvGroups.find(g => g.slug === `${groupSlug}-value`) ||
     hvGroups.find(g => g.name === groupName) ||
     hvGroups.find(g => g.slug === `${singularish}-value`) ||
     hvGroups.find(g => g.slug.startsWith(singularish)) ||
     null
+
   return hvGroup?.children ?? []
 })
+
 const selectedHomeValueSlug = ref('')
 const selectedHomeValueName = computed(() => {
-  const match = homeValueOptions.value.find(v => v.slug === selectedHomeValueSlug.value)
+  const match = homeValueOptions.value.find(
+    v => v.slug === selectedHomeValueSlug.value
+  )
   return match ? match.name : ''
 })
 
 // ----- Income Bands -----
-const personCountOptions = computed(() => (api.value?.['settings-selects']?.['income-bands'] ?? []).map(p => ({ name: p.name, slug: p.slug, id: p.id })))
+const personCountOptions = computed(() =>
+  (api.value?.['settings-selects']?.['income-bands'] ?? []).map(p => ({
+    name: p.name,
+    slug: p.slug,
+    id: p.id
+  }))
+)
+
 const selectedPersonsSlug = ref('')
-const selectedPersonsGroup = computed(() => (api.value?.['settings-selects']?.['income-bands'] ?? []).find(p => p.slug === selectedPersonsSlug.value) || null)
-const selectedPersonsCount = computed(() => selectedPersonsGroup.value?.name || '')
+
+const selectedPersonsGroup = computed(
+  () =>
+    (api.value?.['settings-selects']?.['income-bands'] ?? []).find(
+      p => p.slug === selectedPersonsSlug.value
+    ) || null
+)
+
+const selectedPersonsCount = computed(
+  () => selectedPersonsGroup.value?.name || ''
+)
+
 const incomeRangeOptions = computed(() => {
   const children = selectedPersonsGroup.value?.children ?? []
   return children
-    .map(r => ({ ...r, name: r.name.replace(/^Range:\s*/, '') }))
+    .map(r => ({
+      ...r,
+      name: r.name.replace(/^Range:\s*/, '')
+    }))
     .sort((a, b) => {
-      const order = { 't1': 1, 't2': 2, 't3': 3, 't0': 4 }
+      const order = { t1: 1, t2: 2, t3: 3, t0: 4 }
       const aCode = a.slug.split('-').pop()
       const bCode = b.slug.split('-').pop()
       return (order[aCode] || 99) - (order[bCode] || 99)
     })
 })
+
 const selectedIncomeRangeSlug = ref('')
+
 const selectedIncomeRangeName = computed(() => {
-  const match = incomeRangeOptions.value.find(r => r.slug === selectedIncomeRangeSlug.value)
+  const match = incomeRangeOptions.value.find(
+    r => r.slug === selectedIncomeRangeSlug.value
+  )
   return match ? match.name : ''
 })
 
-// Handle household size change by resetting income range and focusing next.
+/**
+ * Handle household size change by resetting income range and focusing next.
+ */
 async function onPersonsChange() {
   selectedIncomeRangeSlug.value = ''
   await nextTick()
@@ -1028,31 +1319,74 @@ async function onPersonsChange() {
 }
 
 // ----- Location -----
-const locationOptions = computed(() => api.value?.['settings-selects']?.['locations'] ?? [])
+const locationOptions = computed(
+  () => api.value?.['settings-selects']?.['locations'] ?? []
+)
+
 const selectedLocationSlug = ref('')
-const selectedLocation = computed(() => locationOptions.value.find(l => l.slug === selectedLocationSlug.value) || null)
-const selectedRegion = computed(() => selectedLocation.value?.children?.[0]?.slug || '')
-const selectedLocationName = computed(() => selectedLocation.value?.name || '')
-const selectedRegionName = computed(() => selectedLocation.value?.children?.[0]?.name || '')
+
+const selectedLocation = computed(
+  () =>
+    locationOptions.value.find(l => l.slug === selectedLocationSlug.value) ||
+    null
+)
+
+const locationInputValue = ref('')
+const selectedRegion = computed(
+  () => selectedLocation.value?.children?.[0]?.slug || ''
+)
+const selectedLocationName = computed(
+  () => selectedLocation.value?.name || ''
+)
+const selectedRegionName = computed(
+  () => selectedLocation.value?.children?.[0]?.name || ''
+)
 
 // ----- Heating -----
-const heatingOptions = computed(() => api.value?.['settings-selects']?.['heating-types'] ?? [])
+const heatingOptions = computed(
+  () => api.value?.['settings-selects']?.['heating-types'] ?? []
+)
 const selectedHeatingSlug = ref('')
-const selectedHeating = computed(() => heatingOptions.value.find(l => l.slug === selectedHeatingSlug.value) || null)
-const selectedHeatingName = computed(() => selectedHeating.value?.name || '')
+const selectedHeating = computed(
+  () =>
+    heatingOptions.value.find(l => l.slug === selectedHeatingSlug.value) || null
+)
+const selectedHeatingName = computed(
+  () => selectedHeating.value?.name || ''
+)
 
 // ----- Utility -----
-const utilityOptions = computed(() => api.value?.['settings-selects']?.['utilities'] ?? [])
+const utilityOptions = computed(
+  () => api.value?.['settings-selects']?.['utilities'] ?? []
+)
 const selectedUtilitySlug = ref('')
-const selectedUtility = computed(() => utilityOptions.value.find(l => l.slug === selectedUtilitySlug.value) || null)
-const selectedUtilityName = computed(() => selectedUtility.value?.name || '')
+const selectedUtility = computed(
+  () =>
+    utilityOptions.value.find(l => l.slug === selectedUtilitySlug.value) || null
+)
+const selectedUtilityName = computed(
+  () => selectedUtility.value?.name || ''
+)
 
 // ----- Selections summary -----
-const hasAnySelection = computed(() => !!(selectedBuildingTypeName.value || murbTenure.value || selectedHomeValueName.value || selectedPersonsCount.value || selectedIncomeRangeName.value || selectedLocationName.value || selectedHeatingName.value || selectedUtilityName.value))
+const hasAnySelection = computed(
+  () =>
+    !!(
+      selectedBuildingTypeName.value ||
+      murbTenure.value ||
+      selectedHomeValueName.value ||
+      selectedPersonsCount.value ||
+      selectedIncomeRangeName.value ||
+      selectedLocationName.value ||
+      selectedHeatingName.value ||
+      selectedUtilityName.value
+    )
+)
 
 const hasAllSelection = computed(() => {
   const hasBuilding = !!selectedBuildingTypeName.value
-  const hasMurbTenure = selectedBuildingGroupSlug.value === 'murb' ? !!murbTenure.value : true
+  const hasMurbTenure =
+    selectedBuildingGroupSlug.value === 'murb' ? !!murbTenure.value : true
   const hasHomeValue = !!selectedHomeValueName.value
   const hasPersons = !!selectedPersonsCount.value
   const hasIncome = !!selectedIncomeRangeName.value
@@ -1060,12 +1394,21 @@ const hasAllSelection = computed(() => {
   const hasHeating = !!selectedHeatingName.value
   const hasUtility = !!selectedUtilityName.value
 
-  return hasBuilding && hasMurbTenure && hasHomeValue && hasPersons && hasIncome && hasLocation && hasHeating && hasUtility
+  return (
+    hasBuilding &&
+    hasMurbTenure &&
+    hasHomeValue &&
+    hasPersons &&
+    hasIncome &&
+    hasLocation &&
+    hasHeating &&
+    hasUtility
+  )
 })
-
 
 // ----- URL assembly -----
 const assembledUrl = computed(() => assembleUrl())
+
 const assembledQueryString = computed(() => {
   const q = assembledUrl.value.split('?')[1]
   return q ? `?${q}` : ''
@@ -1075,11 +1418,16 @@ const assembledQueryString = computed(() => {
 // URL does not match the settings currently showing.
 const urlOutOfSync = computed(() => assembledQueryString.value !== window.location.search)
 
-// Use this everywhere inside Vue for warnings/outline:
+// Use this everywhere inside Vue for warnings/outline.
 const isDirty = urlOutOfSync
 
 // Keep external spans in sync with URL mismatch.
-watch(urlOutOfSync, (val) => applyDirtyClasses(val), { immediate: true })
+watch(urlOutOfSync, val => applyDirtyClasses(val), { immediate: true })
+
+// Keep input value in sync when a location is selected externally (e.g. from URL or localStorage).
+watch(selectedLocationName, newName => {
+  locationInputValue.value = newName || ''
+})
 
 onMounted(() => {
   const savedLabelsVisible = localStorage.getItem('rebateLabelsVisible')
@@ -1108,58 +1456,83 @@ onMounted(() => {
   observer.observe(document.body, { childList: true, subtree: true })
 })
 
-// Rebuild the current rebate tool URL including all selected params.
+/**
+ * Rebuild the current rebate tool URL including all selected params.
+ */
 function assembleUrl() {
   const baseUrl = window.location.origin + window.location.pathname
   const urlParams = new URLSearchParams()
   urlParams.set('tool', 'rebates')
+
   if (selectedBuildingTypeSlug.value) urlParams.set('type', selectedBuildingTypeSlug.value)
   if (selectedBuildingGroupSlug.value) urlParams.set('group', selectedBuildingGroupSlug.value)
   if (murbTenure.value) urlParams.set('tenure', murbTenure.value)
   if (selectedHomeValueSlug.value) urlParams.set('home_value', selectedHomeValueSlug.value)
   if (selectedPersonsSlug.value) urlParams.set('persons', selectedPersonsSlug.value)
   if (selectedIncomeRangeSlug.value) urlParams.set('income', selectedIncomeRangeSlug.value)
+
   if (hasAllSelection.value && espTier.value) {
     urlParams.set('esp_tier', espTier.value)
   } else {
     urlParams.delete('esp_tier')
   }
+
   if (selectedLocationSlug.value) {
     urlParams.set('location', selectedLocationName.value)
     if (selectedRegionName.value) urlParams.set('region', selectedRegionName.value)
   }
+
   if (selectedHeatingSlug.value) urlParams.set('heating', selectedHeatingName.value)
   if (selectedUtilitySlug.value) urlParams.set('utility', selectedUtilityName.value)
+
   return `${baseUrl}?${urlParams.toString()}`
 }
 
-// Copy the assembled URL to clipboard and show a feedback message.
+/**
+ * Copy the assembled URL to clipboard and show a feedback message.
+ */
 function addLinkToClipboard(event) {
   const url = assembledUrl.value
-  navigator.clipboard?.writeText(url)
-    .then(() => handleLinkCopiedMessageContent(event, '.selection-summary', 'Link copied to clipboard'))
-    .catch((err) => {
+  navigator.clipboard
+    ?.writeText(url)
+    .then(() =>
+      handleLinkCopiedMessageContent(
+        event,
+        '.selection-summary',
+        'Link copied to clipboard'
+      )
+    )
+    .catch(err => {
       console.error('Failed to copy URL:', err)
       handleLinkCopiedMessageContent(event, '.selection-summary', 'Copy failed')
     })
 }
 
-// Show a temporary feedback message in the UI when link copied.
+/**
+ * Show a temporary feedback message in the UI when link copied.
+ */
 function handleLinkCopiedMessageContent(event, targetSelector, msg) {
   const root = document.querySelector(targetSelector) || document.body
   const el = root.querySelector('.copy-message')
   if (!el) return
+
   el.textContent = msg
   el.classList.remove('isFadedOut')
+
   setTimeout(() => el.classList.add('isFadedOut'), 1200)
-  setTimeout(() => { el.textContent = '' }, 1800)
+  setTimeout(() => {
+    el.textContent = ''
+  }, 1800)
 }
 
-// Initialize form state from current query string params.
+/**
+ * Initialize form state from current query string params.
+ */
 function initFromQueryString() {
   const urlParams = new URLSearchParams(window.location.search)
   const tool = urlParams.get('tool')
   if (tool && tool !== 'rebates') return
+
   const type = urlParams.get('type')
   const group = urlParams.get('group')
   const tenure = urlParams.get('tenure')
@@ -1173,6 +1546,7 @@ function initFromQueryString() {
   if (group && buildingTypeGroups.value.some(g => g.slug === group)) {
     selectedBuildingTypeSlug.value = group
   }
+
   if (type) {
     const isParent = buildingTypeGroups.value.some(g => g.slug === type)
     const isChild = Array.from(childToGroupSlug.value.keys()).includes(type)
@@ -1226,37 +1600,47 @@ const urlStateDeps = computed(() => ({
   region: selectedRegion.value
 }))
 
-// Update the browser address bar to match assembled state.
+/**
+ * Update the browser address bar to match assembled state.
+ */
 function updateAddressBar() {
   const url = assembledUrl.value
   try {
     window.history.replaceState(null, '', url)
   } catch (e) {
-    // no-op
+    // no-op.
   }
 }
 
 // ----- ESP Tier derivation -----
 const espTier = computed(() => {
-  const incomeSlug = selectedIncomeRangeSlug.value;
-  if (!incomeSlug) return '';
-  const hasAllSelectionAvailable = hasAllSelection.value;
-  if (!hasAllSelectionAvailable) return '';
-  const selectedHV = homeValueOptions.value.find(v => v.slug === selectedHomeValueSlug.value);
-  const hvSlug = selectedHV?.slug || '';
-  const isMurb = selectedBuildingGroupSlug.value === 'murb';
-  const overLimit = (
-    (isMurb && murbTenure.value !== 'rent' && hvSlug === '772000-or-over') ||
-    (!isMurb && hvSlug === '1230000-or-over') || (!isMurb && murbTenure.value === 'rent')
-  );
-  if (/-t1$/.test(incomeSlug)) return overLimit ? 'Not Qualified' : 'ESP-1';
-  if (/-t2$/.test(incomeSlug)) return overLimit ? 'Not Qualified' : 'ESP-2';
-  if (/-t3$/.test(incomeSlug)) return 'ESP-3';
-  if (/-t0$/.test(incomeSlug)) return 'Not Qualified';
-  return '';
-});
+  const incomeSlug = selectedIncomeRangeSlug.value
+  if (!incomeSlug) return ''
 
-// Return a URL with the current query string appended.
+  const hasAllSelectionAvailable = hasAllSelection.value
+  if (!hasAllSelectionAvailable) return ''
+
+  const selectedHV = homeValueOptions.value.find(
+    v => v.slug === selectedHomeValueSlug.value
+  )
+  const hvSlug = selectedHV?.slug || ''
+  const isMurb = selectedBuildingGroupSlug.value === 'murb'
+
+  const overLimit =
+    (isMurb && murbTenure.value !== 'rent' && hvSlug === '772000-or-over') ||
+    (!isMurb && hvSlug === '1230000-or-over') ||
+    (!isMurb && murbTenure.value === 'rent')
+
+  if (/-t1$/.test(incomeSlug)) return overLimit ? 'Not Qualified' : 'ESP-1'
+  if (/-t2$/.test(incomeSlug)) return overLimit ? 'Not Qualified' : 'ESP-2'
+  if (/-t3$/.test(incomeSlug)) return 'ESP-3'
+  if (/-t0$/.test(incomeSlug)) return 'Not Qualified'
+  return ''
+})
+
+/**
+ * Return a URL with the current query string appended.
+ */
 function withQueryString(baseUrl) {
   if (!baseUrl) return '#'
   const qs = assembledQueryString.value
@@ -1394,18 +1778,21 @@ function withQueryString(baseUrl) {
       }
 
       /* Question mark */
+      .question-container:has(.location-input.is-empty) .num-label:after,
       :has(.select option[data-default="Select an option"]:checked) .num-label::after {
         border: 3px solid #f6a044;
         background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iLjMiIGQ9Ik0wIDI1NmEyNTYgMjU2IDAgMSAwIDUxMiAwQTI1NiAyNTYgMCAxIDAgMCAyNTZ6bTE2OC03MmMwLS41IDAtMSAwIDB6bTY0IDE1Mmw0OCAwYzAgMTYgMCAzMiAwIDQ4bC00OCAwYzAtMTYgMC0zMiAwLTQ4eiIvPjxwYXRoIGZpbGw9IiNmNmEwNDQiIGQ9Ik0yMjQgMTI4Yy0zMC45IDAtNTYgMjUuMS01NiA1NmwwIDYuNSA0OCAwIDAtNi41YzAtNC40IDMuNi04IDgtOGw1Ni45IDBjOC40IDAgMTUuMSA2LjggMTUuMSAxNS4xYzAgNS40LTIuOSAxMC40LTcuNiAxMy4xbC00NC4zIDI1LjRMMjMyIDIzNi42bDAgMTMuOSAwIDIxLjUgMCAyNCA0OCAwIDAtMjQgMC03LjYgMzIuMy0xOC41YzE5LjYtMTEuMyAzMS43LTMyLjIgMzEuNy01NC44YzAtMzQuOS0yOC4zLTYzLjEtNjMuMS02My4xTDIyNCAxMjh6bTU2IDIwOGwtNDggMCAwIDQ4IDQ4IDAgMC00OHoiLz48L3N2Zz4=);
       }
 
       /* Exclamation mark */
+      .question-container:has(.location-input.is-invalid) .num-label:after,
       :has(.select:disabled:not(.transition)) .num-label::after {
         border: 3px solid darkgray !important;
         background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJkYXJrZ3JheSIgb3BhY2l0eT0iLjMiIGQ9Ik0wIDI1NmEyNTYgMjU2IDAgMSAwIDUxMiAwQTI1NiAyNTYgMCAxIDAgMCAyNTZ6TTIzMiAxMjhsNDggMCAwIDI0IDAgMTEyIDAgMjQtNDggMCAwLTI0IDAtMTEyIDAtMjR6bTAgMTkybDQ4IDAgMCA0OC00OCAwIDAtNDh6Ii8+PHBhdGggZmlsbD0iZGFya2dyYXkiIGQ9Ik0yODAgMTUybDAtMjQtNDggMCAwIDI0IDAgMTEyIDAgMjQgNDggMCAwLTI0IDAtMTEyem0wIDE2OGwtNDggMCAwIDQ4IDQ4IDAgMC00OHoiLz48L3N2Zz4=) !important;
       }
 
       /* X mark */
+      .question-container:has(.location-input.is-error) .num-label:after,
       :has(.select.error) .num-label::after {
         border: 3px solid darkred !important;
         background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJyZWQiIG9wYWNpdHk9Ii40IiBkPSJNMCAyNTZhMjU2IDI1NiAwIDEgMCA1MTIgMEEyNTYgMjU2IDAgMSAwIDAgMjU2em0xNTguMS02NGMxMS4zLTExLjMgMjIuNi0yMi42IDMzLjktMzMuOWM1LjcgNS43IDExLjMgMTEuMyAxNyAxN2MxNS43IDE1LjcgMzEuMyAzMS4zIDQ3IDQ3YzE1LjctMTUuNyAzMS4zLTMxLjMgNDctNDdjNS43LTUuNyAxMS4zLTExLjMgMTctMTdjMTEuMyAxMS4zIDIyLjYgMjIuNiAzMy45IDMzLjljLTUuNyA1LjctMTEuMyAxMS4zLTE3IDE3Yy0xNS43IDE1LjctMzEuMyAzMS4zLTQ3IDQ3YzE1LjcgMTUuNyAzMS40IDMxLjQgNDcgNDdjNS43IDUuNyAxMS4zIDExLjMgMTcgMTdMMzIwIDM1My45bC0xNy0xNy00Ny00N2MtMTUuNyAxNS43LTMxLjMgMzEuMy00NyA0N2MtNS43IDUuNy0xMS4zIDExLjMtMTcgMTdjLTExLjMtMTEuMy0yMi42LTIyLjYtMzMuOS0zMy45YzUuNy01LjcgMTEuMy0xMS4zIDE3LTE3YzE1LjctMTUuNyAzMS40LTMxLjQgNDctNDdjLTE1LjctMTUuNy0zMS4zLTMxLjMtNDctNDdjLTUuNy01LjctMTEuMy0xMS4zLTE3LTE3eiIvPjxwYXRoIGZpbGw9ImRhcmtyZWQiIGQ9Ik0zMzcgMjA5bDE3LTE3TDMyMCAxNTguMWwtMTcgMTctNDcgNDctNDctNDctMTctMTdMMTU4LjEgMTkybDE3IDE3IDQ3IDQ3LTQ3IDQ3LTE3IDE3TDE5MiAzNTMuOWwxNy0xNyA0Ny00NyA0NyA0NyAxNyAxN0wzNTMuOSAzMjBsLTE3LTE3LTQ3LTQ3IDQ3LTQ3eiIvPjwvc3ZnPg==) !important;
@@ -1451,11 +1838,78 @@ function withQueryString(baseUrl) {
             color: darkred;
             outline-color: darkred !important;
           }
+
+          &:is(:focus-visible, :focus) {
+            border: 2px solid #369!important
+          }
         }
 
         :is(figcaption) {
           padding: 0;
         }
+
+        .location-input {
+          border: 0;
+          border-radius: .4375rem;
+          color: #369;
+          font-size: 1rem;
+          margin-block: .25rem;
+          padding: .5rem;
+          outline-offset: 2px;
+          outline: 2px solid var(--wp--preset--color--custom-info-border)
+        }
+
+        .location-input:invalid {
+          outline-color: #8b0000;
+          background-color: #ffe5e5
+        }
+
+        .location-input:is(:focus-visible) {
+          outline-color: var(--wp--preset--color--primary-brand)
+        }
+
+        .location-input {
+          border: 0;
+          border-radius: .4375rem;
+          color: #369;
+          font-size: 1rem;
+          margin-block: .25rem;
+          padding: .5rem;
+          outline-offset: 2px;
+          outline: 2px solid var(--wp--preset--color--custom-info-border);
+          background-color: #fff
+        }
+
+        .location-input:is(:hover, :focus-visible) {
+          border: 2px solid #369 !important;
+          background-position: right 2rem center !important
+        }
+
+        .location-input.is-empty {
+          outline-color: #f6a044;
+          background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZmZkNDkzIiBvcGFjaXR5PSIuNSIgZD0iTTAgMjU2YTI1NiAyNTYgMCAxIDAgNTEyIDBBMjU2IDI1NiAwIDEgMCAwIDI1NnptMTY4LTcyYzAtLjUgMC0xIDAgMHptNjQgMTUybDQ4IDBjMCAxNiAwIDMyIDAgNDhsLTQ4IDBjMC0xNiAwLTMyIDAtNDh6Ii8+PHBhdGggZmlsbD0iI2Y2YTA0NCIgZD0iTTIyNCAxMjhjLTMwLjkgMC01NiAyNS4xLTU2IDU2bDAgNi41IDQ4IDAgMC02LjVjMC00LjQgMy42LTggOC04bDU2LjkgMGM4LjQgMCAxNS4xIDYuOCAxNS4xIDE1LjFjMCA1LjQtMi45IDEwLjQtNy42IDEzLjFsLTQ0LjMgMjUuNEwyMzIgMjM2LjZsMCAxMy45IDAgMjEuNSAwIDI0IDQ4IDAgMC0yNCAwLTcuNiAzMi4zLTE4LjVjMTkuNi0xMS4zIDMxLjctMzIuMiAzMS43LTU0LjhjMC0zNC45LTI4LjMtNjMuMS02My4xLTYzLjFMMjI0IDEyOHptNTYgMjA4bC00OCAwIDAgNDggNDggMCAwLTQ4eiIvPjwvc3ZnPg==);
+          background-repeat: no-repeat;
+          background-position: right .75rem center;
+          background-size: 1.25rem
+        }
+
+        .location-input.is-valid {
+          outline-color: var(--wp--preset--color--custom-success-border, green);
+          background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJsaW1lZ3JlZW4iICBvcGFjaXR5PSIuMyIgZD0iTTAgMjU2YTI1NiAyNTYgMCAxIDAgNTEyIDBBMjU2IDI1NiAwIDEgMCAwIDI1NnptMTI2LjEgMEwxNjAgMjIyLjFjLjMgLjMgLjYgLjYgMSAxYzUuMyA1LjMgMTAuNyAxMC43IDE2IDE2YzE1LjcgMTUuNyAzMS40IDMxLjQgNDcgNDdjMzctMzcgNzQtNzQgMTExLTExMWM1LjMtNS4zIDEwLjctMTAuNyAxNi0xNmMuMy0uMyAuNi0uNiAxLTFMMzg1LjkgMTkyYy0uMyAuMy0uNiAuNi0xIDFsLTE2IDE2TDI0MSAzMzdsLTE3IDE3LTE3LTE3LTY0LTY0Yy01LjMtNS4zLTEwLjctMTAuNy0xNi0xNmwtMS0xeiIvPjxwYXRoIGZpbGw9ImRhcmtncmVlbiIgZD0iTTM4NSAxOTNMMjQxIDMzN2wtMTcgMTctMTctMTctODAtODBMMTYxIDIyM2w2MyA2M0wzNTEgMTU5IDM4NSAxOTN6Ii8+PC9zdmc+);
+          background-repeat: no-repeat;
+          background-position: right .75rem center;
+          background-size: 1.25rem
+        }
+
+        .location-input.is-error {
+          outline-color: #8b0000;
+          background-color: #ffe5e5;
+          background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJyZWQiIG9wYWNpdHk9Ii40IiBkPSJNMCAyNTZhMjU2IDI1NiAwIDEgMCA1MTIgMEEyNTYgMjU2IDAgMSAwIDAgMjU2em0xNTguMS02NGMxMS4zLTExLjMgMjIuNi0yMi42IDMzLjktMzMuOWM1LjcgNS43IDExLjMgMTEuMyAxNyAxN2MxNS43IDE1LjcgMzEuMyAzMS4zIDQ3IDQ3YzE1LjctMTUuNyAzMS4zLTMxLjMgNDctNDdjNS43LTUuNyAxMS4zLTExLjMgMTctMTdjMTEuMyAxMS4zIDIyLjYgMjIuNiAzMy45IDMzLjljLTUuNyA1LjctMTEuMyAxMS4zLTE3IDE3Yy0xNS43IDE1LjctMzEuMyAzMS4zLTQ3IDQ3YzE1LjcgMTUuNyAzMS40IDMxLjQgNDcgNDdjNS43IDUuNyAxMS4zIDExLjMgMTcgMTdMMzIwIDM1My45bC0xNy0xNy00Ny00N2MtMTUuNyAxNS43LTMxLjMgMzEuMy00NyA0N2MtNS43IDUuNy0xMS4zIDExLjMtMTcgMTdjLTExLjMtMTEuMy0yMi42LTIyLjYtMzMuOS0zMy45YzUuNy01LjcgMTEuMy0xMS4zIDE3LTE3YzE1LjctMTUuNyAzMS40LTMxLjQgNDctNDdjLTE1LjctMTUuNy0zMS4zLTMxLjMtNDctNDdjLTUuNy01LjctMTEuMy0xMS4zLTE3LTE3eiIvPjxwYXRoIGZpbGw9ImRhcmtyZWQiIGQ9Ik0zMzcgMjA5bDE3LTE3TDMyMCAxNTguMWwtMTcgMTctNDcgNDctNDctNDctMTctMTdMMTU4LjEgMTkybDE3IDE3IDQ3IDQ3LTQ3IDQ3LTE3IDE3TDE5MiAzNTMuOWwxNy0xNyA0Ny00NyA0NyA0NyAxNyAxN0wzNTMuOSAzMjBsLTE3LTE3LTQ3LTQ3IDQ3LTQ3eiIvPjwvc3ZnPg==);
+          background-repeat: no-repeat;
+          background-position: right .75rem center;
+          background-size: 1.25rem
+        }
+
       }
     }
 
