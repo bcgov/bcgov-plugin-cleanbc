@@ -246,9 +246,7 @@
               </template>
             </template>
           </div>
-          <div v-if="hasAnySelection" class='clear-msg'><a href="#clear" @click.prevent="clearSettings">Clear
-              settings</a> to
-            start over</div>
+          <div v-if="hasAnySelection" class='clear-msg'><a href="#clear" @click.prevent="clearSettings">Clear settings</a> to start over</div>
         </template>
       </div>
 
@@ -1890,8 +1888,10 @@ function withQueryString(baseUrl) {
 
         .select {
           max-width: fit-content;
+          font-weight: normal;
 
           background-color: #fff;
+          border: 2px solid transparent;
 
           &.error {
             background-color: #ffe5e5;
@@ -1929,7 +1929,7 @@ function withQueryString(baseUrl) {
         }
 
         .location-input {
-          border: 0;
+          border: 2px solid transparent;
           border-radius: .4375rem;
           color: #369;
           font-size: 1rem;
