@@ -917,7 +917,7 @@ const fields = computed(() => [
       : '',
     missingMessage: 'Missing location details',
     isInvalid: () => !selectedLocationSlug.value,
-    filter_desc: 'Start typing to narrow down the choices, or select the icon to see available options.'
+    filter_desc: 'Start typing to narrow down your choice of options. Select the icon to see available choices.'
   },
   {
     key: 'murbTenure',
@@ -1937,8 +1937,8 @@ function withQueryString(baseUrl) {
           padding: .5rem;
           outline-offset: 2px;
           outline: 2px solid var(--wp--preset--color--custom-info-border);
-          background-color: #fff
-
+          background-color: #fff;
+          max-width: 320px;
         }
 
         .location-input::-webkit-list-button,
