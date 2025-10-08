@@ -997,6 +997,12 @@ class EnableVueApp {
 			return $out;
 		};
 
+		// Safe wrapper for get_the_terms to avoid repeated guards.
+		$get_terms_safe = static function ( $post_id, $taxonomy ) {
+			$terms = get_the_terms( $post_id, $taxonomy );
+			return ( ! is_wp_error( $terms ) && $terms ) ? $terms : array();
+		};
+
 		// Build settings-selects trees.
 		$all_home_values    = $normalize_terms_hierarchical( 'rebate-home-values' );
 		$all_building_types = $normalize_terms_hierarchical( 'rebate-building-types' );
@@ -1005,52 +1011,63 @@ class EnableVueApp {
 		$all_heating_types  = $normalize_terms_hierarchical( 'rebate-heating-types' );
 		$all_utilities      = $normalize_terms_hierarchical( 'rebate-utilities' );
 
+		// Unique list of regions for the settings block.
 		$all_regions = array_values( array_unique( array_filter( $all_regions ) ) );
 
 		if ( ! empty( $query->posts ) ) {
 			foreach ( $query->posts as $rebate ) {
 				$post_id = (int) $rebate->ID;
 
+				// Allow content authors to hide a rebate from the tool.
 				if ( get_field( 'exclude_from_tool', $post_id ) ) {
 					continue;
 				}
 
-				$locations = $normalize_terms( get_the_terms( $post_id, 'prc-locations' ), true );
+				// Locations normalized with region child node for each term.
+				$locations = $normalize_terms( $get_terms_safe( $post_id, 'prc-locations' ), true );
 
-				// Collect regions per rebate.
+				// Collect unique region names from the first child node per location.
 				$regions = array_values(
                     array_unique(
                         array_filter(
                             array_map(
-                                static fn( $loc ) =>
-                                isset( $loc['children'][0]['name'] ) ? $loc['children'][0]['name'] : null,
+                                static function ( $loc ) {
+									return isset( $loc['children'][0]['name'] ) ? $loc['children'][0]['name'] : null;
+                                },
                                 $locations
                             )
                         )
                     )
 				);
 
+				// Check if present.
 				$url = get_field( 'url', $post_id );
+				$img = get_the_post_thumbnail_url( $post_id, 'full' );
 
+				// Assemble post payload.
 				$posts_data[] = array(
-					'id'                => $post_id,
-					'title'             => get_the_title( $post_id ),
-					'url'               => $url ? $url : null,
-					'post_url'          => get_permalink( $post_id ),
-					'rebate_amount'     => get_field( 'rebate', $post_id ),
-					'short_description' => get_field( 'short_description', $post_id ),
-					'types'             => $normalize_terms( get_the_terms( $post_id, 'rebate-building-types' ) ),
-					'locations'         => $locations,
-					'regions'           => $regions,
-					'upgrade_types'     => $normalize_terms( get_the_terms( $post_id, 'upgrades' ) ),
-					'heating_types'     => $normalize_terms( get_the_terms( $post_id, 'rebate-heating-types' ) ),
-					'utilities'         => $normalize_terms( get_the_terms( $post_id, 'rebate-utilities' ) ),
-					'other_offers'      => $normalize_terms( get_the_terms( $post_id, 'other-offers' ) ),
+					'id'                        => $post_id,
+					'title'                     => get_the_title( $post_id ),
+					'url'                       => $url ? $url : null,
+					'post_url'                  => get_permalink( $post_id ),
+					'rebate_amount'             => get_field( 'rebate', $post_id ),
+					'short_description'         => get_field( 'short_description', $post_id ),
+					'types'                     => $normalize_terms( $get_terms_safe( $post_id, 'rebate-building-types' ) ),
+					'locations'                 => $locations,
+					'regions'                   => $regions,
+					'upgrade_types'             => $normalize_terms( $get_terms_safe( $post_id, 'upgrades' ) ),
+					'heating_types'             => $normalize_terms( $get_terms_safe( $post_id, 'rebate-heating-types' ) ),
+					'utilities'                 => $normalize_terms( $get_terms_safe( $post_id, 'rebate-utilities' ) ),
+					'other_offers'              => $normalize_terms( $get_terms_safe( $post_id, 'other-offers' ) ),
+					'rebate_type_headline_card' => get_field( 'rebate_types', $post_id ),
+					'rebate_description_card'   => get_field( 'rebate_description', $post_id ),
+					'rebate_value_card'         => get_field( 'rebate_total', $post_id ),
+					'rebate_featured_image'     => $img ? $img : null,
 				);
 			}
 		}
 
-		// Final response.
+		// Final response payload.
 		$response = array(
 			'settings-selects' => array(
 				'building-types' => $all_building_types,
@@ -1066,7 +1083,6 @@ class EnableVueApp {
 
 		return rest_ensure_response( $response );
 	}
-
 
 
 	/**

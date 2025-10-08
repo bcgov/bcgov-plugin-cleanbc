@@ -252,26 +252,26 @@
       <!-- Results -->
       <section v-if="mode === 'archive'" id="rebatesResults" class="results" aria-label="Rebate results">
         <article v-for="item in filteredResults" :key="item.id" class="rebate-card">
+          <figure v-if="item.rebate_featured_image" class="wp-block-image size-full"><img decoding="async" width="1024" height="515" data-print-width="25" :src="item.rebate_featured_image" alt="" title=""></figure>
           <header>
             <h3 class="rebate-title">
               <a :href="withQueryString(item.post_url ?? item.url ?? '#')">
-                {{ item.title }}
+                {{ item.rebate_type_headline_card}}<br />
+                <small>{{ item.title }}</small>
               </a>
             </h3>
           </header>
 
           <dl class="rebate-details">
-            <div v-if="item.rebate_amount">
-              <dt>Rebate amount</dt>
-              <dd>{{ item.rebate_amount }}</dd>
+            <div v-if="item.rebate_value_card">
+              <dd>{{ item.rebate_value_card }}</dd>
             </div>
 
-            <div v-if="item.short_description">
-              <dt>Description</dt>
-              <dd>{{ item.short_description }}</dd>
+            <div v-if="item.rebate_description_card">
+              <dd>{{ item.rebate_description_card }}</dd>
             </div>
 
-            <div v-if="item.primary_heating_sys?.length">
+            <div v-if="debug && item.primary_heating_sys?.length">
               <dt>Eligible Heating Types</dt>
               <dd>
                 <ul>
@@ -282,12 +282,12 @@
               </dd>
             </div>
 
-            <div v-if="item.regions?.length">
+            <div v-if="debug && item.regions?.length">
               <dt>Regions</dt>
               <dd>{{ item.regions.join(', ') }}</dd>
             </div>
 
-            <div v-if="item.utilities?.length">
+            <div v-if="debug && item.utilities?.length">
               <dt>Eligible Utilities</dt>
               <dd>
                 <ul>
@@ -296,7 +296,7 @@
               </dd>
             </div>
 
-            <div v-if="item.other_offers?.length">
+            <div v-if="debug && item.other_offers?.length">
               <dt>Other Offers</dt>
               <dd>
                 <ul>
@@ -1695,60 +1695,107 @@ const espTier = computed(() => {
 // ----- HRR derivation -----
 // TBD
 
+
+const normalizeHeatingSlug = (val) => {
+  if (!val) return ''
+  const v = val.toLowerCase().trim()
+  if (v.includes('gas')) return 'gas'
+  if (v.includes('oil')) return 'oil'
+  if (v.includes('wood')) return 'wood'
+  if (v.includes('electric')) return 'electricity'
+  return v.replace(/\s+/g, '-') // fallback.
+}
+
+const normalizeUtilitySlug = (val) => {
+  if (!val) return ''
+  const v = val.toLowerCase().trim()
+  if (v.includes('bc hydro')) return 'bc-hydro'
+  if (v.includes('fortis')) return 'fortisbc-electric'
+  if (v.includes('grand forks')) return 'grand-forks'
+  if (v.includes('nelson')) return 'nelson'
+  if (v.includes('new west')) return 'new-westminster'
+  if (v.includes('penticton')) return 'penticton'
+  if (v.includes('summerland')) return 'summerland'
+  return v.replace(/\s+/g, '-') // fallback slugify.
+}
+
+// Normalize region ("North" → "north").
+const normalizeRegionSlug = (val) => {
+  if (!val) return ''
+  return val.toLowerCase().trim()
+}
+
+// Normalize location ("100 Mile House" → "100-mile-house").
+const normalizeLocationSlug = (val) => {
+  if (!val) return ''
+  return val.toLowerCase().trim().replace(/\s+/g, '-')
+}
+
 const filteredResults = computed(() => {
+  const normalizedHeating = normalizeHeatingSlug(selectedHeatingName.value)
+  const normalizedUtility = normalizeUtilitySlug(selectedUtilityName.value)
+  const normalizedRegion = normalizeRegionSlug(selectedRegionName.value)
+  const normalizedLocation = normalizeLocationSlug(selectedLocationName.value)
+
   return api.value.results.filter(item => {
-    // --- ESP tier check ---
-    const espEligible = ['ESP-1', 'ESP-2', 'ESP-3'].includes(espTier.value)
+    // ESP tier check.
+    const espEligible = ['esp-1', 'esp-2', 'esp-3'].includes(espTier.value?.toLowerCase?.())
 
-    // --- Normalize query values ---
-    const normalizedHeating = selectedHeatingName.value
-      ? selectedHeatingName.value.toLowerCase()
-      : ''
-
-    const normalizedUtility = selectedUtilityName.value
-      ? selectedUtilityName.value.toLowerCase().replace(/\s+/g, '-')
-      : ''
-
-    const normalizedRegion = selectedRegionName?.value
-      ? selectedRegionName.value.toLowerCase()
-      : ''
-
-    // --- Heating type check ---
+    // Heating type check. If no heating types are defined or none is selected, treat as eligible.
     const heatingEligible =
       !normalizedHeating ||
-      item.heating_types?.some(sys => sys.slug === normalizedHeating)
+      !item.heating_types || item.heating_types.length === 0 ||
+      item.heating_types.some(sys => sys.slug?.toLowerCase?.() === normalizedHeating)
 
     debug && console.log('heatingEligible', heatingEligible, {
-      api: item.heating_types?.map(h => h.slug),
+      api: item.heating_types?.map(sys => sys.slug),
       selected: normalizedHeating
     })
 
-    // --- Utility check ---
+    // Utility check. If no utilities are defined or none is selected, treat as eligible.
     const utilityEligible =
       !normalizedUtility ||
-      item.utilities?.length === 0 ||
-      item.utilities?.some(u => u.slug === normalizedUtility)
+      !item.utilities || item.utilities.length === 0 ||
+      item.utilities.some(u => u.slug?.toLowerCase?.() === normalizedUtility)
 
     debug && console.log('utilityEligible', utilityEligible, {
       api: item.utilities?.map(u => u.slug),
       selected: normalizedUtility
     })
 
-    // --- Region check ---
+    // Region check. If no regions are defined or none is selected, treat as eligible.
     const regionEligible =
       !normalizedRegion ||
-      item.regions?.length === 0 ||
-      item.regions?.map(r => r.toLowerCase()).includes(normalizedRegion)
+      !item.regions || item.regions.length === 0 ||
+      item.regions.map(r => r.toLowerCase()).includes(normalizedRegion)
 
     debug && console.log('regionEligible', regionEligible, {
       api: item.regions,
       selected: normalizedRegion
     })
 
-    // --- Final filter decision ---
-    return espEligible && heatingEligible && utilityEligible && regionEligible
+    // Location check. If no locations are defined or none is selected, treat as eligible.
+    const locationEligible =
+      !normalizedLocation ||
+      !item.locations || item.locations.length === 0 ||
+      item.locations.some(l => l.slug?.toLowerCase?.() === normalizedLocation)
+
+    debug && console.log('locationEligible', locationEligible, {
+      api: item.locations?.map(l => l.slug),
+      selected: normalizedLocation
+    })
+
+    // Final eligibility check.
+    return (
+      espEligible &&
+      heatingEligible &&
+      utilityEligible &&
+      regionEligible &&
+      locationEligible
+    )
   })
 })
+
 
 /**
  * Return a URL with the current query string appended.
