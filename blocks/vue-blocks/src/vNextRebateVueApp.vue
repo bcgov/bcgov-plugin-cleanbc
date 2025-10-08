@@ -178,18 +178,15 @@
                     <!-- Location input -->
                     <template v-if="field.key === 'location'">
                       <input :list="`${field.key}List`" :id="`${field.key}Select`" type="text" autocomplete="off"
-                      class="location-input" :class="{
-                        'is-empty': !locationInputValue,
-                        'is-valid': isLocationValid,
-                        'is-invalid': isLocationFocused && locationInputValue && !isLocationValid,
-                        'is-error': !isLocationFocused && locationInputValue && !isLocationValid
-                      }" placeholder="Your community..." v-model="locationInputProxy" :disabled="field.disabled"
-                        @focus="handleFocus"
-                        @blur="handleLocationInputCommit('blur')"
-                        @focusout="handleLocationInputCommit('blur')"
-                        @change="handleLocationInputCommit('change')"
-                        @keydown.enter.prevent="handleLocationInputCommit('enter')" 
-                        onmouseover="focus()" />
+                        class="location-input" :class="{
+                          'is-empty': !locationInputValue,
+                          'is-valid': isLocationValid,
+                          'is-invalid': isLocationFocused && locationInputValue && !isLocationValid,
+                          'is-error': !isLocationFocused && locationInputValue && !isLocationValid
+                        }" placeholder="Your community..." v-model="locationInputProxy" :disabled="field.disabled"
+                        @focus="handleFocus" @blur="handleLocationInputCommit('blur')"
+                        @focusout="handleLocationInputCommit('blur')" @change="handleLocationInputCommit('change')"
+                        @keydown.enter.prevent="handleLocationInputCommit('enter')" onmouseover="focus()" />
                       <datalist :id="`${field.key}List`">
                         <option v-for="opt in field.options" :key="opt.slug" :value="opt.name"></option>
                       </datalist>
@@ -239,69 +236,68 @@
                       <figcaption v-if="field.filter_desc && !field.disabled">{{ field.filter_desc }}</figcaption>
                       <figcaption v-if="field.disabled_desc && field.disabled">{{ field.disabled_desc }}</figcaption>
                       <figcaption v-if="field.error_desc && fieldErrors[field.key]" class="hasError">{{ field.error_desc
-                        }}</figcaption>
+                      }}</figcaption>
                     </template>
                   </figure>
                 </div>
               </template>
             </template>
           </div>
-          <div v-if="hasAnySelection" class='clear-msg'><a href="#clear" @click.prevent="clearSettings">Clear settings</a> to start over</div>
+          <div v-if="hasAnySelection" class='clear-msg'><a href="#clear" @click.prevent="clearSettings">Clear
+              settings</a> to
+            start over</div>
         </template>
       </div>
 
       <!-- Results -->
-      <section v-if="mode === 'archive' && hasAllSelection" id="rebatesResults" class="results"
-        aria-label="Rebate results">
-        <article v-for="item in api.results" :key="item.id" class="rebate-card">
+      <section v-if="mode === 'archive'" id="rebatesResults" class="results" aria-label="Rebate results">
+        <article v-for="item in filteredResults" :key="item.id" class="rebate-card">
           <header>
             <h3 class="rebate-title">
-              <a :href="withQueryString(item.post_url ?? item.url ?? '#')">{{ item.title }}</a>
+              <a :href="withQueryString(item.post_url ?? item.url ?? '#')">
+                {{ item.title }}
+              </a>
             </h3>
           </header>
+
           <dl class="rebate-details">
             <div v-if="item.rebate_amount">
               <dt>Rebate amount</dt>
               <dd>{{ item.rebate_amount }}</dd>
             </div>
+
             <div v-if="item.short_description">
               <dt>Description</dt>
               <dd>{{ item.short_description }}</dd>
             </div>
-            <div v-if="item.types?.length">
-              <dt>Building types</dt>
-              <dd>
-                <ul>
-                  <li v-for="t in item.types" :key="t.slug">{{ t.name }}</li>
-                </ul>
-              </dd>
-            </div>
-            <div v-if="item.locations?.length">
-              <dt>Locations</dt>
-              <dd>
-                <ul>
-                  <li v-for="loc in item.locations" :key="loc.slug">{{ loc.name }} ({{ loc.region }})</li>
-                </ul>
-              </dd>
-            </div>
-            <div v-if="item.upgrade_types?.length">
-              <dt>Upgrade types</dt>
-              <dd>
-                <ul>
-                  <li v-for="u in item.upgrade_types" :key="u.slug">{{ u.name }}</li>
-                </ul>
-              </dd>
-            </div>
+
             <div v-if="item.primary_heating_sys?.length">
-              <dt>Primary heating systems</dt>
+              <dt>Eligible Heating Types</dt>
               <dd>
                 <ul>
-                  <li v-for="s in item.primary_heating_sys" :key="s.slug">{{ s.name }}</li>
+                  <li v-for="sys in item.primary_heating_sys" :key="sys.slug">
+                    {{ sys.name }}
+                  </li>
                 </ul>
               </dd>
             </div>
+
+            <div v-if="item.regions?.length">
+              <dt>Regions</dt>
+              <dd>{{ item.regions.join(', ') }}</dd>
+            </div>
+
+            <div v-if="item.utilities?.length">
+              <dt>Eligible Utilities</dt>
+              <dd>
+                <ul>
+                  <li v-for="u in item.utilities" :key="u.slug">{{ u.name }}</li>
+                </ul>
+              </dd>
+            </div>
+
             <div v-if="item.other_offers?.length">
-              <dt>Other offers</dt>
+              <dt>Other Offers</dt>
               <dd>
                 <ul>
                   <li v-for="o in item.other_offers" :key="o.slug">{{ o.name }}</li>
@@ -311,8 +307,11 @@
           </dl>
         </article>
 
-        <p v-if="!api.results?.length" class="no-results">No results found.</p>
+        <p v-if="!filteredResults.length" class="no-results">
+          No rebates match your current selections ({{ espTier }}).
+        </p>
       </section>
+
       <p v-else-if="mode === 'archive'" class="no-results">Please complete the form above.</p>
 
       <!-- Selection summary (for quick verification) -->
@@ -1695,6 +1694,61 @@ const espTier = computed(() => {
 
 // ----- HRR derivation -----
 // TBD
+
+const filteredResults = computed(() => {
+  return api.value.results.filter(item => {
+    // --- ESP tier check ---
+    const espEligible = ['ESP-1', 'ESP-2', 'ESP-3'].includes(espTier.value)
+
+    // --- Normalize query values ---
+    const normalizedHeating = selectedHeatingName.value
+      ? selectedHeatingName.value.toLowerCase()
+      : ''
+
+    const normalizedUtility = selectedUtilityName.value
+      ? selectedUtilityName.value.toLowerCase().replace(/\s+/g, '-')
+      : ''
+
+    const normalizedRegion = selectedRegionName?.value
+      ? selectedRegionName.value.toLowerCase()
+      : ''
+
+    // --- Heating type check ---
+    const heatingEligible =
+      !normalizedHeating ||
+      item.heating_types?.some(sys => sys.slug === normalizedHeating)
+
+    debug && console.log('heatingEligible', heatingEligible, {
+      api: item.heating_types?.map(h => h.slug),
+      selected: normalizedHeating
+    })
+
+    // --- Utility check ---
+    const utilityEligible =
+      !normalizedUtility ||
+      item.utilities?.length === 0 ||
+      item.utilities?.some(u => u.slug === normalizedUtility)
+
+    debug && console.log('utilityEligible', utilityEligible, {
+      api: item.utilities?.map(u => u.slug),
+      selected: normalizedUtility
+    })
+
+    // --- Region check ---
+    const regionEligible =
+      !normalizedRegion ||
+      item.regions?.length === 0 ||
+      item.regions?.map(r => r.toLowerCase()).includes(normalizedRegion)
+
+    debug && console.log('regionEligible', regionEligible, {
+      api: item.regions,
+      selected: normalizedRegion
+    })
+
+    // --- Final filter decision ---
+    return espEligible && heatingEligible && utilityEligible && regionEligible
+  })
+})
 
 /**
  * Return a URL with the current query string appended.

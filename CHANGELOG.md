@@ -1,7 +1,11 @@
+## 1.23.0 October 8, 2025
+– Initial results output: tests against esp tier, heating type, utility provider and region. Additional checks to come.
+– Rebates custom/v2 API output modified to match newer taxonomies/meta.
+
 ## 1.22.3 October 8, 2025
 – iOS and input list icon fixes.
 – Input field invalid check fix.
-– General styling updates.
+– General styling updates. Typo fix.
 
 ## 1.22.2 October 7, 2025
 – Modified archive mode to use input + datalist for locations.

@@ -1033,18 +1033,19 @@ class EnableVueApp {
 				$url = get_field( 'url', $post_id );
 
 				$posts_data[] = array(
-					'id'                  => $post_id,
-					'title'               => get_the_title( $post_id ),
-					'url'                 => $url ? $url : null,
-					'post_url'            => get_permalink( $post_id ),
-					'rebate_amount'       => get_field( 'rebate', $post_id ),
-					'short_description'   => get_field( 'short_description', $post_id ),
-					'types'               => $normalize_terms( get_the_terms( $post_id, 'building-types' ) ),
-					'locations'           => $locations,
-					'regions'             => $regions,
-					'upgrade_types'       => $normalize_terms( get_the_terms( $post_id, 'upgrades' ) ),
-					'primary_heating_sys' => $normalize_terms( get_the_terms( $post_id, 'primary-space-heating' ) ),
-					'other_offers'        => $normalize_terms( get_the_terms( $post_id, 'other-offers' ) ),
+					'id'                => $post_id,
+					'title'             => get_the_title( $post_id ),
+					'url'               => $url ? $url : null,
+					'post_url'          => get_permalink( $post_id ),
+					'rebate_amount'     => get_field( 'rebate', $post_id ),
+					'short_description' => get_field( 'short_description', $post_id ),
+					'types'             => $normalize_terms( get_the_terms( $post_id, 'rebate-building-types' ) ),
+					'locations'         => $locations,
+					'regions'           => $regions,
+					'upgrade_types'     => $normalize_terms( get_the_terms( $post_id, 'upgrades' ) ),
+					'heating_types'     => $normalize_terms( get_the_terms( $post_id, 'rebate-heating-types' ) ),
+					'utilities'         => $normalize_terms( get_the_terms( $post_id, 'rebate-utilities' ) ),
+					'other_offers'      => $normalize_terms( get_the_terms( $post_id, 'other-offers' ) ),
 				);
 			}
 		}
