@@ -531,7 +531,7 @@ const checkDefinitions = () => {
             dialog.className = 'dialog';
             dialog.setAttribute('aria-modal', true);
             dialog.setAttribute('aria-live', 'polite');
-            dialog.innerHTML = '<div class="dialog-content"></div><button id="close-dialog" aria-label="closes defintion dialog">Close</button>';
+            dialog.innerHTML = '<div class="dialog-content"></div><button id="close-dialog" aria-label="closes definition dialog">Close</button>';
             document.body.appendChild(dialog);
 
             const closeDialogButton = document.querySelector('#dialog #close-dialog');
