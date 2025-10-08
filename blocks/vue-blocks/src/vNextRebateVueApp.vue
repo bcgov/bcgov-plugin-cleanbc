@@ -188,7 +188,8 @@
                         @blur="handleLocationInputCommit('blur')"
                         @focusout="handleLocationInputCommit('blur')"
                         @change="handleLocationInputCommit('change')"
-                        @keydown.enter.prevent="handleLocationInputCommit('enter')" />
+                        @keydown.enter.prevent="handleLocationInputCommit('enter')" 
+                        onmouseover="focus()" />
                       <datalist :id="`${field.key}List`">
                         <option v-for="opt in field.options" :key="opt.slug" :value="opt.name"></option>
                       </datalist>
@@ -916,7 +917,7 @@ const fields = computed(() => [
       : '',
     missingMessage: 'Missing location details',
     isInvalid: () => !selectedLocationSlug.value,
-    filter_desc: 'Start typing to refine your choices.'
+    filter_desc: 'Start typing to narrow down the choices, or select the icon to see available options.'
   },
   {
     key: 'murbTenure',
@@ -1940,21 +1941,21 @@ function withQueryString(baseUrl) {
 
         }
 
-        .location-input:is(:hover, :focus-visible) {
-            border: 2px solid #369 !important;
-            background-position: right 2rem center !important
-          }
+        .location-input::-webkit-list-button,
+        .location-input::-webkit-calendar-picker-indicator {
+          opacity: 0;
+          filter: size(0);
+        }
 
-        @supports (-webkit-calendar-picker-indicator) {
-          .location-input:is(:hover, :focus-visible) {
-          }
+        .location-input:is(:hover, :focus-visible) {
+          border: 2px solid #369 !important;
         }
 
         .location-input.is-empty {
           outline-color: #f6a044;
           background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZmZkNDkzIiBvcGFjaXR5PSIuNSIgZD0iTTAgMjU2YTI1NiAyNTYgMCAxIDAgNTEyIDBBMjU2IDI1NiAwIDEgMCAwIDI1NnptMTY4LTcyYzAtLjUgMC0xIDAgMHptNjQgMTUybDQ4IDBjMCAxNiAwIDMyIDAgNDhsLTQ4IDBjMC0xNiAwLTMyIDAtNDh6Ii8+PHBhdGggZmlsbD0iI2Y2YTA0NCIgZD0iTTIyNCAxMjhjLTMwLjkgMC01NiAyNS4xLTU2IDU2bDAgNi41IDQ4IDAgMC02LjVjMC00LjQgMy42LTggOC04bDU2LjkgMGM4LjQgMCAxNS4xIDYuOCAxNS4xIDE1LjFjMCA1LjQtMi45IDEwLjQtNy42IDEzLjFsLTQ0LjMgMjUuNEwyMzIgMjM2LjZsMCAxMy45IDAgMjEuNSAwIDI0IDQ4IDAgMC0yNCAwLTcuNiAzMi4zLTE4LjVjMTkuNi0xMS4zIDMxLjctMzIuMiAzMS43LTU0LjhjMC0zNC45LTI4LjMtNjMuMS02My4xLTYzLjFMMjI0IDEyOHptNTYgMjA4bC00OCAwIDAgNDggNDggMCAwLTQ4eiIvPjwvc3ZnPg==);
           background-repeat: no-repeat;
-          background-position: right .75rem center;
+          background-position: right 0.75rem center;
           background-size: 1.25rem
         }
 
@@ -1962,7 +1963,7 @@ function withQueryString(baseUrl) {
           outline-color: var(--wp--preset--color--custom-success-border, green);
           background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJsaW1lZ3JlZW4iICBvcGFjaXR5PSIuMyIgZD0iTTAgMjU2YTI1NiAyNTYgMCAxIDAgNTEyIDBBMjU2IDI1NiAwIDEgMCAwIDI1NnptMTI2LjEgMEwxNjAgMjIyLjFjLjMgLjMgLjYgLjYgMSAxYzUuMyA1LjMgMTAuNyAxMC43IDE2IDE2YzE1LjcgMTUuNyAzMS40IDMxLjQgNDcgNDdjMzctMzcgNzQtNzQgMTExLTExMWM1LjMtNS4zIDEwLjctMTAuNyAxNi0xNmMuMy0uMyAuNi0uNiAxLTFMMzg1LjkgMTkyYy0uMyAuMy0uNiAuNi0xIDFsLTE2IDE2TDI0MSAzMzdsLTE3IDE3LTE3LTE3LTY0LTY0Yy01LjMtNS4zLTEwLjctMTAuNy0xNi0xNmwtMS0xeiIvPjxwYXRoIGZpbGw9ImRhcmtncmVlbiIgZD0iTTM4NSAxOTNMMjQxIDMzN2wtMTcgMTctMTctMTctODAtODBMMTYxIDIyM2w2MyA2M0wzNTEgMTU5IDM4NSAxOTN6Ii8+PC9zdmc+);
           background-repeat: no-repeat;
-          background-position: right .75rem center;
+          background-position: right 0.75rem center;
           background-size: 1.25rem
         }
 
@@ -1971,7 +1972,7 @@ function withQueryString(baseUrl) {
           background-color: #ffe5e5;
           background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJyZWQiIG9wYWNpdHk9Ii40IiBkPSJNMCAyNTZhMjU2IDI1NiAwIDEgMCA1MTIgMEEyNTYgMjU2IDAgMSAwIDAgMjU2em0xNTguMS02NGMxMS4zLTExLjMgMjIuNi0yMi42IDMzLjktMzMuOWM1LjcgNS43IDExLjMgMTEuMyAxNyAxN2MxNS43IDE1LjcgMzEuMyAzMS4zIDQ3IDQ3YzE1LjctMTUuNyAzMS4zLTMxLjMgNDctNDdjNS43LTUuNyAxMS4zLTExLjMgMTctMTdjMTEuMyAxMS4zIDIyLjYgMjIuNiAzMy45IDMzLjljLTUuNyA1LjctMTEuMyAxMS4zLTE3IDE3Yy0xNS43IDE1LjctMzEuMyAzMS4zLTQ3IDQ3YzE1LjcgMTUuNyAzMS40IDMxLjQgNDcgNDdjNS43IDUuNyAxMS4zIDExLjMgMTcgMTdMMzIwIDM1My45bC0xNy0xNy00Ny00N2MtMTUuNyAxNS43LTMxLjMgMzEuMy00NyA0N2MtNS43IDUuNy0xMS4zIDExLjMtMTcgMTdjLTExLjMtMTEuMy0yMi42LTIyLjYtMzMuOS0zMy45YzUuNy01LjcgMTEuMy0xMS4zIDE3LTE3YzE1LjctMTUuNyAzMS40LTMxLjQgNDctNDdjLTE1LjctMTUuNy0zMS4zLTMxLjMtNDctNDdjLTUuNy01LjctMTEuMy0xMS4zLTE3LTE3eiIvPjxwYXRoIGZpbGw9ImRhcmtyZWQiIGQ9Ik0zMzcgMjA5bDE3LTE3TDMyMCAxNTguMWwtMTcgMTctNDcgNDctNDctNDctMTctMTdMMTU4LjEgMTkybDE3IDE3IDQ3IDQ3LTQ3IDQ3LTE3IDE3TDE5MiAzNTMuOWwxNy0xNyA0Ny00NyA0NyA0NyAxNyAxN0wzNTMuOSAzMjBsLTE3LTE3LTQ3LTQ3IDQ3LTQ3eiIvPjwvc3ZnPg==);
           background-repeat: no-repeat;
-          background-position: right .75rem center;
+          background-position: right 0.75rem center;
           background-size: 1.25rem
         }
 

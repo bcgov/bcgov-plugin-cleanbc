@@ -1,3 +1,6 @@
+## 1.22.3 October 8, 2025
+– iOS and input list icon fixes.
+
 ## 1.22.2 October 7, 2025
 – Modified archive mode to use input + datalist for locations.
 – Related change handling and styling updates.
