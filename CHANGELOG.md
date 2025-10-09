@@ -1,3 +1,6 @@
+## 1.23.1 October 9, 2025
+– Single mode updates for ensuring the heating type cannot be mismanaged or faked for specific rebate pages of that type.
+
 ## 1.23.0 October 8, 2025
 – Initial results output: tests against esp tier, heating type, utility provider and region. Additional checks to come.
 – Rebates custom/v2 API output modified to match newer taxonomies/meta.

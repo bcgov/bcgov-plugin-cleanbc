@@ -39,7 +39,7 @@
                   <!-- Show button (unless its select is open) -->
                   <div class="control button-group" v-if="activeEdit !== field.key">
                     <label class='small'>{{ field.shortDesc }}</label>
-                    <button class="rebate-setting"
+                    <button class="rebate-setting"  :disabled="field.disabled"
                       :class="{ 'is-external-dirty': isExternalDirty && lastChangedField === field.key }"
                       @click="openEdit(field.key)" :ref="el => (buttonRefs[field.key] = el)">
                       {{ field.displayValue }}
@@ -78,6 +78,9 @@
                       </select>
 
                       <figcaption v-if="field.description">{{ field.description }}</figcaption>
+                      <figcaption v-if="field.key === 'heating' && field.disabled">
+                        This heating type is preselected for this rebate.
+                      </figcaption>
                     </figure>
                   </div>
                 </template>
@@ -493,6 +496,7 @@ const editModeView = ref(false)
 const isSavingEditMode = ref(false)
 const hasError = ref(false)
 const ariaStatusMessage = ref('')
+const pageHeatingType = ref('')
 
 // --- Focus map for selects ---
 const selectRefs = ref({})
@@ -878,13 +882,22 @@ watch(activeEdit, async newKey => {
 function clearSettings(event) {
   event?.preventDefault?.()
 
+  // Determine whether heating is locked
+  const isLockedHeating =
+    mode.value === 'single' && !!pageHeatingType.value
+
   selectedBuildingTypeSlug.value = ''
   murbTenure.value = ''
   selectedHomeValueSlug.value = ''
   selectedPersonsSlug.value = ''
   selectedIncomeRangeSlug.value = ''
   selectedLocationSlug.value = ''
-  selectedHeatingSlug.value = ''
+
+  // Only clear heating type if it's not locked (archive mode or no SSR value)
+  if (!isLockedHeating) {
+    selectedHeatingSlug.value = ''
+  }
+
   selectedUtilitySlug.value = ''
 
   const url = window.location.origin + window.location.pathname
@@ -898,6 +911,7 @@ function clearSettings(event) {
 
   localStorage.removeItem('rebateEditableState')
 }
+
 
 /**
  * Unified fields config.
@@ -1005,6 +1019,7 @@ const fields = computed(() => [
     key: 'heating',
     shortDesc: 'Heating type',
     label: 'What is the primary type of heating in your home?',
+    disabled: mode.value === 'single' && !!pageHeatingType.value,
     model: selectedHeatingSlug,
     options: heatingOptions.value,
     displayValue: selectedHeatingName.value,
@@ -1078,10 +1093,15 @@ onMounted(async () => {
       // From URL.
       initFromQueryString()
     } else if (saved) {
-      // From localStorage → apply, then reload with full query string.
+      // From localStorage apply, then reload with full query string.
       initFromLocalStorage(JSON.parse(saved))
-      window.location.href = assembledUrl.value
-      return // stop further initialization until page reloads.
+      if (mode.value === 'archive') {
+        updateAddressBar()
+      } else {
+         // This is needed on single mode pages so the page receives the SSR details aligned with localStorage when accessed without the query string.
+        window.location.href = assembledUrl.value
+        return  // stop further initialization until page reloads.
+      }
     } else {
       // First visit — nothing special.
       console.log('No saved settings — starting fresh')
@@ -1475,6 +1495,18 @@ const urlOutOfSync = computed(() => assembledQueryString.value !== window.locati
 // Use this everywhere inside Vue for warnings/outline.
 const isDirty = urlOutOfSync
 
+const isUrlHeatingMismatch = computed(() => {
+  // Only relevant in single mode where SSR heating type is defined
+  if (mode.value !== 'single' || !pageHeatingType.value) return false
+
+  const params = new URLSearchParams(window.location.search)
+  const heatingParam = params.get('heating')
+
+  // Mismatch occurs if the URL has a heating param that differs from SSR value
+  return heatingParam && heatingParam !== pageHeatingType.value
+})
+
+
 // Keep external spans in sync with URL mismatch.
 watch(urlOutOfSync, val => applyDirtyClasses(val), { immediate: true })
 
@@ -1484,6 +1516,39 @@ watch(selectedLocationName, newName => {
 })
 
 onMounted(() => {
+  const el = document.getElementById('rebateFilterApp')
+  if (el?.dataset?.mode) mode.value = el.dataset.mode
+  if (el?.dataset?.pageHeatingType) {
+    pageHeatingType.value = el.dataset.pageHeatingType
+  }
+
+  // If SSR heating type exists, set the model directly
+  if (mode.value === 'single' && pageHeatingType.value) {
+    // find a matching option from heatingOptions by slug
+    watch(
+      heatingOptions,
+      (opts) => {
+        const match = opts.find(o => o.slug === pageHeatingType.value)
+        if (match) {
+          selectedHeatingSlug.value = match.slug
+        }
+      },
+      { immediate: true }
+    )
+  }
+
+  // Auto-correct URL heating param if it doesn't match SSR heating type
+  if (mode.value === 'single' && pageHeatingType.value) {
+    const params = new URLSearchParams(window.location.search)
+    const currentHeating = params.get('heating')
+    if (currentHeating && currentHeating !== pageHeatingType.value) {
+      params.set('heating', pageHeatingType.value)
+      const newUrl = `${window.location.pathname}?${params.toString()}`
+      window.history.replaceState(null, '', newUrl)
+    }
+  }
+
+
   const savedLabelsVisible = localStorage.getItem('rebateLabelsVisible')
   if (savedLabelsVisible !== null) {
     labelsVisible.value = JSON.parse(savedLabelsVisible)
@@ -2146,6 +2211,7 @@ function withQueryString(baseUrl) {
         }
 
         & .close-btn::before {
+          /* X icon */
           content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjU2IDQ4YTIwOCAyMDggMCAxIDEgMCA0MTYgMjA4IDIwOCAwIDEgMSAwLTQxNnptMCA0NjRBMjU2IDI1NiAwIDEgMCAyNTYgMGEyNTYgMjU2IDAgMSAwIDAgNTEyek0xNzUgMTc1Yy05LjQgOS40LTkuNCAyNC42IDAgMzMuOWw0NyA0Ny00NyA0N2MtOS40IDkuNC05LjQgMjQuNiAwIDMzLjlzMjQuNiA5LjQgMzMuOSAwbDQ3LTQ3IDQ3IDQ3YzkuNCA5LjQgMjQuNiA5LjQgMzMuOSAwczkuNC0yNC42IDAtMzMuOWwtNDctNDcgNDctNDdjOS40LTkuNCA5LjQtMjQuNiAwLTMzLjlzLTI0LjYtOS40LTMzLjkgMGwtNDcgNDctNDctNDdjLTkuNC05LjQtMjQuNi05LjQtMzMuOSAweiIvPjwvc3ZnPg==);
           width: 1.25rem;
           height: 1.25rem;
@@ -2154,6 +2220,11 @@ function withQueryString(baseUrl) {
           right: 0.15rem;
           top: 3px;
         }
+        &:has(select:disabled) .close-btn::before {
+            /* X + lock icons */
+            content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjU2IDQ4YTIwOCAyMDggMCAxIDEgMCA0MTYgMjA4IDIwOCAwIDEgMSAwLTQxNnptMCA0NjRBMjU2IDI1NiAwIDEgMCAyNTYgMGEyNTYgMjU2IDAgMSAwIDAgNTEyek0xNzUgMTc1Yy05LjQgOS40LTkuNCAyNC42IDAgMzMuOWw0NyA0Ny00NyA0N2MtOS40IDkuNC05LjQgMjQuNiAwIDMzLjlzMjQuNiA5LjQgMzMuOSAwbDQ3LTQ3IDQ3IDQ3YzkuNCA5LjQgMjQuNiA5LjQgMzMuOSAwczkuNC0yNC42IDAtMzMuOWwtNDctNDcgNDctNDdjOS40LTkuNCA5LjQtMjQuNiAwLTMzLjlzLTI0LjYtOS40LTMzLjkgMGwtNDcgNDctNDctNDdjLTkuNC05LjQtMjQuNi05LjQtMzMuOSAweiIvPjwvc3ZnPg==)  
+            url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48cGF0aCBmaWxsPSIjZmZmIiBvcGFjaXR5PSIuNCIgZD0iTTMyIDI3MmMwLTI2LjUgMjEuNS00OCA0OC00OGwyODggMGMyNi41IDAgNDggMjEuNSA0OCA0OGwwIDE2MGMwIDI2LjUtMjEuNSA0OC00OCA0OEw4MCA0ODBjLTI2LjUgMC00OC0yMS41LTQ4LTQ4bDAtMTYweiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xMjggMTI4bDAgNjQgMTkyIDAgMC02NGMwLTUzLTQzLTk2LTk2LTk2cy05NiA0My05NiA5NnpNOTYgMTkybDAtNjRDOTYgNTcuMyAxNTMuMyAwIDIyNCAwczEyOCA1Ny4zIDEyOCAxMjhsMCA2NCAxNiAwYzQ0LjIgMCA4MCAzNS44IDgwIDgwbDAgMTYwYzAgNDQuMi0zNS44IDgwLTgwIDgwTDgwIDUxMmMtNDQuMiAwLTgwLTM1LjgtODAtODBMMCAyNzJjMC00NC4yIDM1LjgtODAgODAtODBsMTYgMHpNMzIgMjcybDAgMTYwYzAgMjYuNSAyMS41IDQ4IDQ4IDQ4bDI4OCAwYzI2LjUgMCA0OC0yMS41IDQ4LTQ4bDAtMTYwYzAtMjYuNS0yMS41LTQ4LTQ4LTQ4TDgwIDIyNGMtMjYuNSAwLTQ4IDIxLjUtNDggNDh6Ii8+PC9zdmc+);
+          }
       }
 
       :is(label) {
@@ -2187,7 +2258,7 @@ function withQueryString(baseUrl) {
         }
 
         &:disabled:not(.transition) {
-          color: #696969;
+          color: #fff;
           outline: 2px solid lightgray !important;
         }
       }
@@ -2337,6 +2408,14 @@ function withQueryString(baseUrl) {
       position: absolute;
       right: 0.5rem;
       top: 0.65rem;
+    }
+
+    &:disabled {
+      pointer-events: none;
+      &::after {
+        /* lock icon */
+        content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBvcGFjaXR5PSIuNCIgZD0iTTMyIDI3MmMwLTI2LjUgMjEuNS00OCA0OC00OGwyODggMGMyNi41IDAgNDggMjEuNSA0OCA0OGwwIDE2MGMwIDI2LjUtMjEuNSA0OC00OCA0OEw4MCA0ODBjLTI2LjUgMC00OC0yMS41LTQ4LTQ4bDAtMTYweiIvPjxwYXRoIGZpbGw9IiMzNjkiIGQ9Ik0xMjggMTI4bDAgNjQgMTkyIDAgMC02NGMwLTUzLTQzLTk2LTk2LTk2cy05NiA0My05NiA5NnpNOTYgMTkybDAtNjRDOTYgNTcuMyAxNTMuMyAwIDIyNCAwczEyOCA1Ny4zIDEyOCAxMjhsMCA2NCAxNiAwYzQ0LjIgMCA4MCAzNS44IDgwIDgwbDAgMTYwYzAgNDQuMi0zNS44IDgwLTgwIDgwTDgwIDUxMmMtNDQuMiAwLTgwLTM1LjgtODAtODBMMCAyNzJjMC00NC4yIDM1LjgtODAgODAtODBsMTYgMHpNMzIgMjcybDAgMTYwYzAgMjYuNSAyMS41IDQ4IDQ4IDQ4bDI4OCAwYzI2LjUgMCA0OC0yMS41IDQ4LTQ4bDAtMTYwYzAtMjYuNS0yMS41LTQ4LTQ4LTQ4TDgwIDIyNGMtMjYuNSAwLTQ4IDIxLjUtNDggNDh6Ii8+PC9zdmc+);
+      }
     }
 
     &:is(:hover, :focus, :focus-visible)::after {

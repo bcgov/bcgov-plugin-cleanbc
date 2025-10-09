@@ -345,11 +345,31 @@ class EnableVueApp {
 		$class_name = isset( $attributes['className'] ) ? $attributes['className'] : '';
 		$mode       = isset( $attributes['mode'] ) ? $attributes['mode'] : 'archive'; // fallback default.
 
+		// Detect taxonomy terms when on a single rebate page.
+		$page_heating_type = '';
+
+		if ( 'single' === $mode && is_singular( 'incentives' ) ) {
+			global $post;
+
+			if ( $post instanceof \WP_Post ) {
+				$heating_terms = get_the_terms( $post->ID, 'rebate-heating-types' );
+
+				if ( ! empty( $heating_terms ) && ! is_wp_error( $heating_terms ) ) {
+					// For simplicity, use the first assigned term.
+					$first_term = $heating_terms[0];
+					if ( $first_term instanceof \WP_Term ) {
+						$page_heating_type = $first_term->slug;
+					}
+				}
+			}
+		}
+
 		// Wrapper element with data-mode attribute.
 		return sprintf(
-			'<div id="rebateFilterApp" class="%s" data-mode="%s">Loading...</div>',
-			esc_attr( $class_name ),
-			esc_attr( $mode )
+            '<div id="rebateFilterApp" class="%s" data-mode="%s" data-page-heating-type="%s">Loading...</div>',
+            esc_attr( $class_name ),
+            esc_attr( $mode ),
+            esc_attr( $page_heating_type )
 		);
 	}
 
