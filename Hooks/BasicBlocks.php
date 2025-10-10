@@ -133,108 +133,166 @@ class BasicBlocks {
      * @param array $attributes Block attributes.
      * @return string Rendered HTML output.
      */
-    public function render_multi_query_block( $attributes ) {
-        $placeholder            = $attributes['placeholderText'] ?? '';
-        $fallback               = $attributes['fallbackText'] ?? '';
-        $keys                   = $attributes['paramKeys'] ?? [];
-        $combinations           = $attributes['combinations'] ?? [];
-        $use_or                 = $attributes['useOrLogic'] ?? false;
-        $alignment              = $attributes['alignment'] ?? 'left';
-        $use_param_value_direct = $attributes['useParamValueDirect'] ?? false;
+	public function render_multi_query_block( $attributes ) {
+		$placeholder            = $attributes['placeholderText'] ?? '';
+		$fallback               = $attributes['fallbackText'] ?? '';
+		$keys                   = $attributes['paramKeys'] ?? [];
+		$combinations           = $attributes['combinations'] ?? [];
+		$use_or                 = $attributes['useOrLogic'] ?? false;
+		$alignment              = $attributes['alignment'] ?? 'left';
+		$use_param_value_direct = $attributes['useParamValueDirect'] ?? false;
 
-        // Collect current query param values.
-        $current = [];
-        foreach ( $keys as $key ) {
-            $current[ $key ] = sanitize_text_field( filter_input( INPUT_GET, $key ) ?? '' );
-        }
+		// Collect current query param values.
+		$current = [];
+		foreach ( $keys as $key ) {
+			$current[ $key ] = sanitize_text_field( filter_input( INPUT_GET, $key ) ?? '' );
+		}
 
-        $rendered = $placeholder;
+		$rendered = $placeholder;
 
-        if ( $use_param_value_direct ) {
-            // Match all possible placeholders like {{value}}, {{value_2}}, etc.
-            preg_match_all( '/{{\s*value(?:_(\d+))?\s*}}/', $placeholder, $matches, PREG_SET_ORDER );
+		/**
+		 * Helper to evaluate a single rule.
+		 */
+		$evaluate_rule = static function ( $operator, $required, $actual ) {
+			switch ( $operator ) {
+				case 'equals':
+					return $actual === $required;
+				case 'notEquals':
+					return $actual !== $required;
+				case 'contains':
+					return str_contains( (string) $actual, (string) $required );
+                case 'notContains':
+					return ! str_contains( (string) $actual, (string) $required );
+				case 'startsWith':
+					return str_starts_with( (string) $actual, (string) $required );
+				case 'endsWith':
+					return str_ends_with( (string) $actual, (string) $required );
+				case 'exists':
+					return '' !== (string) $actual;
+				case 'notExists':
+					return '' === (string) $actual;
+				default:
+					return false;
+			}
+		};
 
-            $all_present = true;
-            foreach ( $matches as $match ) {
-                $index = isset( $match[1] ) ? intval( $match[1] ) - 1 : 0;
-                $key   = $keys[ $index ] ?? null;
+		if ( $use_param_value_direct ) {
+			// Regex match all placeholders like {{value}}, {{value_2}}, etc.
+			preg_match_all( '/{{\s*value(?:_(\d+))?\s*}}/', $placeholder, $matches, PREG_SET_ORDER );
 
-                if ( ! $key || '' === $current[ $key ] ) {
-                    $all_present = false;
-                    break;
-                }
-            }
+			$all_present = true;
+			foreach ( $matches as $match ) {
+				$index = isset( $match[1] ) ? intval( $match[1] ) - 1 : 0;
+				$key   = $keys[ $index ] ?? null;
 
-            if ( $all_present ) {
-                foreach ( $matches as $match ) {
-                    $index       = isset( $match[1] ) ? intval( $match[1] ) - 1 : 0;
-                    $key         = $keys[ $index ] ?? null;
-                    $value       = $key ? esc_html( $current[ $key ] ) : '';
-                    $token       = $match[0];
-                    $span_name   = 0 === $index ? 'value' : 'value_' . ( $index + 1 );
-                    $replacement = sprintf(
+				if ( ! $key || '' === $current[ $key ] ) {
+					$all_present = false;
+					break;
+				}
+			}
+
+			if ( $all_present ) {
+				foreach ( $matches as $match ) {
+					$index       = isset( $match[1] ) ? intval( $match[1] ) - 1 : 0;
+					$key         = $keys[ $index ] ?? null;
+					$value       = $key ? esc_html( $current[ $key ] ) : '';
+					$token       = $match[0];
+					$span_name   = 0 === $index ? 'value' : 'value_' . ( $index + 1 );
+					$replacement = sprintf(
                         '<span data-replace="%s">%s</span>',
                         esc_attr( $span_name ),
                         $value
-                    );
-                    $rendered    = str_replace( $token, $replacement, $rendered );
-                }
-            } else {
-                $rendered = '' !== $fallback ? esc_html( $fallback ) : 'No fallback text provided.';
-            }
-        } else {
-            $match = null;
-            foreach ( $combinations as $combo ) {
-                $is_match = $use_or
-                    ? array_intersect_assoc( $combo, $current )
-                    : ! array_diff_assoc( array_intersect_key( $combo, $current ), $current );
+					);
+					$rendered    = str_replace( $token, $replacement, $rendered );
+				}
+			} else {
+				$rendered = '' !== $fallback ? esc_html( $fallback ) : 'No fallback text provided.';
+			}
+		} else {
+			// Evaluate combination logic with per-key operators.
+			$match_value = null;
 
-                if ( $is_match && isset( $combo['value'] ) ) {
-                    $match = $combo['value'];
-                    break;
-                }
-            }
+			foreach ( $combinations as $combo ) {
+				$evaluations = [];
 
-            if ( null !== $match && '' !== $match ) {
-                $rendered = str_replace(
+				foreach ( $keys as $key ) {
+					if ( ! array_key_exists( $key, $combo ) ) {
+						$evaluations[] = false;
+						continue;
+					}
+
+					$rule = $combo[ $key ];
+
+					// Backward compatibility: pre-operator blocks used raw strings.
+					if ( ! is_array( $rule ) ) {
+						$rule = [
+							'value'    => (string) $rule,
+							'operator' => 'equals',
+						];
+					}
+
+					$required      = (string) ( $rule['value'] ?? '' );
+					$operator      = (string) ( $rule['operator'] ?? 'equals' );
+					$actual        = (string) ( $current[ $key ] ?? '' );
+					$evaluations[] = $evaluate_rule( $operator, $required, $actual );
+				}
+
+				$is_match = $use_or
+                ? in_array( true, $evaluations, true )
+                : ! in_array( false, $evaluations, true );
+
+				if ( $is_match && isset( $combo['value'] ) ) {
+					$match_value = $combo['value'];
+					break;
+				}
+			}
+
+			if ( null !== $match_value && '' !== $match_value ) {
+				$rendered = str_replace(
                     '{{value}}',
                     sprintf(
                         '<span data-replace="value">%s</span>',
-                        esc_html( $match )
+                        esc_html( $match_value )
                     ),
                     $placeholder
-                );
-            } else {
-                $rendered = '' !== $fallback ? esc_html( $fallback ) : 'No fallback text provided.';
-            }
-        }
+				);
+			} else {
+				$rendered = '' !== $fallback ? esc_html( $fallback ) : 'No fallback text provided.';
+			}
+		}
 
-        // Add data-key/data-value attributes for possible JS use.
-        $wrapper_data_attrs = [];
-        foreach ( $keys as $i => $key ) {
-            $index                                       = $i + 1;
-            $wrapper_data_attrs[ "data-key-{$index}" ]   = esc_attr( $key );
-            $wrapper_data_attrs[ "data-value-{$index}" ] = esc_attr( $current[ $key ] ?? '' );
-        }
+		// Add data-key/data-value attributes for possible JS use.
+		$wrapper_data_attrs = [];
+		foreach ( $keys as $i => $key ) {
+			$index                                       = $i + 1;
+			$wrapper_data_attrs[ "data-key-{$index}" ]   = esc_attr( $key );
+			$wrapper_data_attrs[ "data-value-{$index}" ] = esc_attr( $current[ $key ] ?? '' );
+		}
 
-        $wrapper_data_attrs['data-use-param-direct'] = $use_param_value_direct ? 'true' : 'false';
+		// Add dynamic evaluation metadata.
+		$wrapper_data_attrs['data-use-param-direct'] = $use_param_value_direct ? 'true' : 'false';
+		$wrapper_data_attrs['data-combinations']     = esc_attr( wp_json_encode( $combinations ) );
+		$wrapper_data_attrs['data-use-or']           = $use_or ? 'true' : 'false';
+		$wrapper_data_attrs['data-fallback']         = esc_attr( $fallback );
 
-        $wrapper_attrs = get_block_wrapper_attributes(
+		$wrapper_attrs = get_block_wrapper_attributes(
             array_merge(
                 [
-                    'class' => 'multi-query-content-block',
-                    'style' => 'text-align:' . esc_attr( $alignment ),
+					'class' => 'multi-query-content-block',
+					'style' => 'text-align:' . esc_attr( $alignment ),
                 ],
                 $wrapper_data_attrs
             )
-        );
+		);
 
-        return sprintf(
+		return sprintf(
             '<div %s>%s</div>',
             $wrapper_attrs,
             wp_kses_post( $rendered )
-        );
-    }
+		);
+	}
+
+
 
     /**
      * Render the Query Conditional Group block.

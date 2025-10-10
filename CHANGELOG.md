@@ -1,3 +1,6 @@
+## 1.24.0 October 10, 2025
+– Modified Multy-Query Content block to better handle operations. Added various pattern matching options: contains, starts with, etc.
+
 ## 1.23.1 October 9, 2025
 – Single mode updates for ensuring the heating type cannot be mismanaged or faked for specific rebate pages of that type.
 
