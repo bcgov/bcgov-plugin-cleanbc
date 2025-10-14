@@ -1,3 +1,8 @@
+## 1.24.1 October 14, 2025
+– Updated rebate taxonomy to include "applicable rebates" meta details for better search filtering/management.
+– Updated rebates v2 API for better results handling.
+– Various archive mode results styling changes.
+
 ## 1.24.0 October 10, 2025
 – Modified Multy-Query Content block to better handle operations. Added various pattern matching options: contains, starts with, etc.
 

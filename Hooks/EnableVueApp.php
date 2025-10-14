@@ -1076,13 +1076,15 @@ class EnableVueApp {
 					'locations'                 => $locations,
 					'regions'                   => $regions,
 					'upgrade_types'             => $normalize_terms( $get_terms_safe( $post_id, 'upgrades' ) ),
-					'heating_types'             => $normalize_terms( $get_terms_safe( $post_id, 'rebate-heating-types' ) ),
+					'heating_types'             => get_field( $post_id, 'rebate-heating-types' ),
 					'utilities'                 => $normalize_terms( $get_terms_safe( $post_id, 'rebate-utilities' ) ),
 					'other_offers'              => $normalize_terms( $get_terms_safe( $post_id, 'other-offers' ) ),
 					'rebate_type_headline_card' => get_field( 'rebate_types', $post_id ),
+					'rebate_type_class'         => sanitize_title( get_field( 'rebate_types', $post_id ) ),
 					'rebate_description_card'   => get_field( 'rebate_description', $post_id ),
 					'rebate_value_card'         => get_field( 'rebate_total', $post_id ),
 					'rebate_featured_image'     => $img ? $img : null,
+					'applicable_rebates'        => $normalize_terms( $get_terms_safe( $post_id, 'applicable-rebates' ) ),
 				);
 			}
 		}

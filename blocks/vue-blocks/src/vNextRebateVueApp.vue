@@ -39,7 +39,7 @@
                   <!-- Show button (unless its select is open) -->
                   <div class="control button-group" v-if="activeEdit !== field.key">
                     <label class='small'>{{ field.shortDesc }}</label>
-                    <button class="rebate-setting"  :disabled="field.disabled"
+                    <button class="rebate-setting" :disabled="field.disabled"
                       :class="{ 'is-external-dirty': isExternalDirty && lastChangedField === field.key }"
                       @click="openEdit(field.key)" :ref="el => (buttonRefs[field.key] = el)">
                       {{ field.displayValue }}
@@ -239,7 +239,7 @@
                       <figcaption v-if="field.filter_desc && !field.disabled">{{ field.filter_desc }}</figcaption>
                       <figcaption v-if="field.disabled_desc && field.disabled">{{ field.disabled_desc }}</figcaption>
                       <figcaption v-if="field.error_desc && fieldErrors[field.key]" class="hasError">{{ field.error_desc
-                      }}</figcaption>
+                        }}</figcaption>
                     </template>
                   </figure>
                 </div>
@@ -253,62 +253,70 @@
       </div>
 
       <!-- Results -->
-      <section v-if="mode === 'archive'" id="rebatesResults" class="results" aria-label="Rebate results">
-        <article v-for="item in filteredResults" :key="item.id" class="rebate-card">
-          <figure v-if="item.rebate_featured_image" class="wp-block-image size-full"><img decoding="async" width="1024" height="515" data-print-width="25" :src="item.rebate_featured_image" alt="" title=""></figure>
-          <header>
-            <h3 class="rebate-title">
-              <a :href="withQueryString(item.post_url ?? item.url ?? '#')">
-                {{ item.rebate_type_headline_card}}<br />
-                <small>{{ item.title }}</small>
-              </a>
-            </h3>
-          </header>
+      <section v-if="mode === 'archive'" id="rebatesResults" aria-label="Rebate results">
+        <div class="results">
+          <article v-for="item in filteredResults" :key="item.id" class="rebate-card" :class="item.rebate_type_class">
+            <a :href="withQueryString(item.post_url ?? item.url ?? '#')">
+              <figure v-if="item.rebate_featured_image" class="wp-block-image size-full"><img decoding="async"
+                  width="1024" height="515" data-print-width="25" :src="item.rebate_featured_image" alt="" title="">
+                <div v-if="item.rebate_value_card" class='rebate-value' aria-hidden='true'>{{ item.rebate_value_card }}
+                </div>
+              </figure>
+              <div>
+                <header>
+                  <h3 class="rebate-title">
+                    {{ item.rebate_type_headline_card }}<br />
+                    <small>{{ item.title }}</small>
+                  </h3>
+                </header>
 
-          <dl class="rebate-details">
-            <div v-if="item.rebate_value_card">
-              <dd>{{ item.rebate_value_card }}</dd>
-            </div>
+                <dl class="rebate-details sr-only">
+                  <div v-if="item.rebate_value_card">
+                    <dd>{{ item.rebate_value_card }}</dd>
+                  </div>
 
-            <div v-if="item.rebate_description_card">
-              <dd>{{ item.rebate_description_card }}</dd>
-            </div>
+                  <div v-if="item.rebate_description_card" class='rebate-description'>
+                    <dd>{{ item.rebate_description_card }}</dd>
+                  </div>
 
-            <div v-if="debug && item.primary_heating_sys?.length">
-              <dt>Eligible Heating Types</dt>
-              <dd>
-                <ul>
-                  <li v-for="sys in item.primary_heating_sys" :key="sys.slug">
-                    {{ sys.name }}
-                  </li>
-                </ul>
-              </dd>
-            </div>
+                  <div v-if="debug && item.primary_heating_sys?.length">
+                    <dt>Eligible Heating Types</dt>
+                    <dd>
+                      <ul>
+                        <li v-for="sys in item.primary_heating_sys" :key="sys.slug">
+                          {{ sys.name }}
+                        </li>
+                      </ul>
+                    </dd>
+                  </div>
 
-            <div v-if="debug && item.regions?.length">
-              <dt>Regions</dt>
-              <dd>{{ item.regions.join(', ') }}</dd>
-            </div>
+                  <div v-if="debug && item.regions?.length">
+                    <dt>Regions</dt>
+                    <dd>{{ item.regions.join(', ') }}</dd>
+                  </div>
 
-            <div v-if="debug && item.utilities?.length">
-              <dt>Eligible Utilities</dt>
-              <dd>
-                <ul>
-                  <li v-for="u in item.utilities" :key="u.slug">{{ u.name }}</li>
-                </ul>
-              </dd>
-            </div>
+                  <div v-if="debug && item.utilities?.length">
+                    <dt>Eligible Utilities</dt>
+                    <dd>
+                      <ul>
+                        <li v-for="u in item.utilities" :key="u.slug">{{ u.name }}</li>
+                      </ul>
+                    </dd>
+                  </div>
 
-            <div v-if="debug && item.other_offers?.length">
-              <dt>Other Offers</dt>
-              <dd>
-                <ul>
-                  <li v-for="o in item.other_offers" :key="o.slug">{{ o.name }}</li>
-                </ul>
-              </dd>
-            </div>
-          </dl>
-        </article>
+                  <div v-if="debug && item.other_offers?.length">
+                    <dt>Other Offers</dt>
+                    <dd>
+                      <ul>
+                        <li v-for="o in item.other_offers" :key="o.slug">{{ o.name }}</li>
+                      </ul>
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            </a>
+          </article>
+        </div>
 
         <p v-if="!filteredResults.length" class="no-results">
           No rebates match your current selections ({{ espTier }}).
@@ -1098,7 +1106,7 @@ onMounted(async () => {
       if (mode.value === 'archive') {
         updateAddressBar()
       } else {
-         // This is needed on single mode pages so the page receives the SSR details aligned with localStorage when accessed without the query string.
+        // This is needed on single mode pages so the page receives the SSR details aligned with localStorage when accessed without the query string.
         window.location.href = assembledUrl.value
         return  // stop further initialization until page reloads.
       }
@@ -2220,11 +2228,11 @@ function withQueryString(baseUrl) {
           right: 0.15rem;
           top: 3px;
         }
+
         &:has(select:disabled) .close-btn::before {
-            /* X + lock icons */
-            content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjU2IDQ4YTIwOCAyMDggMCAxIDEgMCA0MTYgMjA4IDIwOCAwIDEgMSAwLTQxNnptMCA0NjRBMjU2IDI1NiAwIDEgMCAyNTYgMGEyNTYgMjU2IDAgMSAwIDAgNTEyek0xNzUgMTc1Yy05LjQgOS40LTkuNCAyNC42IDAgMzMuOWw0NyA0Ny00NyA0N2MtOS40IDkuNC05LjQgMjQuNiAwIDMzLjlzMjQuNiA5LjQgMzMuOSAwbDQ3LTQ3IDQ3IDQ3YzkuNCA5LjQgMjQuNiA5LjQgMzMuOSAwczkuNC0yNC42IDAtMzMuOWwtNDctNDcgNDctNDdjOS40LTkuNCA5LjQtMjQuNiAwLTMzLjlzLTI0LjYtOS40LTMzLjkgMGwtNDcgNDctNDctNDdjLTkuNC05LjQtMjQuNi05LjQtMzMuOSAweiIvPjwvc3ZnPg==)  
-            url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48cGF0aCBmaWxsPSIjZmZmIiBvcGFjaXR5PSIuNCIgZD0iTTMyIDI3MmMwLTI2LjUgMjEuNS00OCA0OC00OGwyODggMGMyNi41IDAgNDggMjEuNSA0OCA0OGwwIDE2MGMwIDI2LjUtMjEuNSA0OC00OCA0OEw4MCA0ODBjLTI2LjUgMC00OC0yMS41LTQ4LTQ4bDAtMTYweiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xMjggMTI4bDAgNjQgMTkyIDAgMC02NGMwLTUzLTQzLTk2LTk2LTk2cy05NiA0My05NiA5NnpNOTYgMTkybDAtNjRDOTYgNTcuMyAxNTMuMyAwIDIyNCAwczEyOCA1Ny4zIDEyOCAxMjhsMCA2NCAxNiAwYzQ0LjIgMCA4MCAzNS44IDgwIDgwbDAgMTYwYzAgNDQuMi0zNS44IDgwLTgwIDgwTDgwIDUxMmMtNDQuMiAwLTgwLTM1LjgtODAtODBMMCAyNzJjMC00NC4yIDM1LjgtODAgODAtODBsMTYgMHpNMzIgMjcybDAgMTYwYzAgMjYuNSAyMS41IDQ4IDQ4IDQ4bDI4OCAwYzI2LjUgMCA0OC0yMS41IDQ4LTQ4bDAtMTYwYzAtMjYuNS0yMS41LTQ4LTQ4LTQ4TDgwIDIyNGMtMjYuNSAwLTQ4IDIxLjUtNDggNDh6Ii8+PC9zdmc+);
-          }
+          /* X + lock icons */
+          content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjU2IDQ4YTIwOCAyMDggMCAxIDEgMCA0MTYgMjA4IDIwOCAwIDEgMSAwLTQxNnptMCA0NjRBMjU2IDI1NiAwIDEgMCAyNTYgMGEyNTYgMjU2IDAgMSAwIDAgNTEyek0xNzUgMTc1Yy05LjQgOS40LTkuNCAyNC42IDAgMzMuOWw0NyA0Ny00NyA0N2MtOS40IDkuNC05LjQgMjQuNiAwIDMzLjlzMjQuNiA5LjQgMzMuOSAwbDQ3LTQ3IDQ3IDQ3YzkuNCA5LjQgMjQuNiA5LjQgMzMuOSAwczkuNC0yNC42IDAtMzMuOWwtNDctNDcgNDctNDdjOS40LTkuNCA5LjQtMjQuNiAwLTMzLjlzLTI0LjYtOS40LTMzLjkgMGwtNDcgNDctNDctNDdjLTkuNC05LjQtMjQuNi05LjQtMzMuOSAweiIvPjwvc3ZnPg==) url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48cGF0aCBmaWxsPSIjZmZmIiBvcGFjaXR5PSIuNCIgZD0iTTMyIDI3MmMwLTI2LjUgMjEuNS00OCA0OC00OGwyODggMGMyNi41IDAgNDggMjEuNSA0OCA0OGwwIDE2MGMwIDI2LjUtMjEuNSA0OC00OCA0OEw4MCA0ODBjLTI2LjUgMC00OC0yMS41LTQ4LTQ4bDAtMTYweiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xMjggMTI4bDAgNjQgMTkyIDAgMC02NGMwLTUzLTQzLTk2LTk2LTk2cy05NiA0My05NiA5NnpNOTYgMTkybDAtNjRDOTYgNTcuMyAxNTMuMyAwIDIyNCAwczEyOCA1Ny4zIDEyOCAxMjhsMCA2NCAxNiAwYzQ0LjIgMCA4MCAzNS44IDgwIDgwbDAgMTYwYzAgNDQuMi0zNS44IDgwLTgwIDgwTDgwIDUxMmMtNDQuMiAwLTgwLTM1LjgtODAtODBMMCAyNzJjMC00NC4yIDM1LjgtODAgODAtODBsMTYgMHpNMzIgMjcybDAgMTYwYzAgMjYuNSAyMS41IDQ4IDQ4IDQ4bDI4OCAwYzI2LjUgMCA0OC0yMS41IDQ4LTQ4bDAtMTYwYzAtMjYuNS0yMS41LTQ4LTQ4LTQ4TDgwIDIyNGMtMjYuNSAwLTQ4IDIxLjUtNDggNDh6Ii8+PC9zdmc+);
+        }
       }
 
       :is(label) {
@@ -2321,22 +2329,53 @@ function withQueryString(baseUrl) {
     display: none;
   }
 
+  #rebatesResults {
+    container-type: inline-size;
+    container-name: results;
+  }
+
   .results {
     display: grid;
     gap: 1rem;
     margin-top: 0.5rem;
-    grid-template-columns: repeat(3, 1fr);
+
+    grid-template-columns: 1fr;
+
+    @container (width > 500px) and (width < 800px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @container (width > 801px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
   }
 
   .rebate-card {
-    border: 1px solid #e5e7eb;
+    border: 3px solid var(--wp--preset--color--custom-info-border);
     border-radius: 0.5rem;
-    padding: 1rem;
+    padding: 0;
+    overflow: hidden;
+
+    * {
+      text-decoration: none;
+    }
+
+    .wp-block-image img {
+      border-bottom: 3px solid var(--wp--preset--color--custom-info-border);
+    }
   }
 
   .rebate-title {
+    font-size: 1.35rem;
+    padding: 0 1rem;
     margin: 0 0 0.5rem;
-    font-size: 1.125rem;
+
+    :is(small) {
+      display: inline-block;
+      font-size: 1rem;
+      line-height: 1.5;
+      margin-block-start: 0.5rem;
+    }
   }
 
   .rebate-details {
@@ -2344,8 +2383,19 @@ function withQueryString(baseUrl) {
     gap: 0.25rem;
   }
 
-  .rebate-details dt {
+  .rebate-value {
+    background-color: #fff;
+    border-radius: 100vw;
+    outline: 2px solid var(--wp--preset--color--custom-info-border);
+    color: #369;
     font-weight: 600;
+    position: relative;
+    top: -1.25rem;
+    margin-inline-start: 1rem;
+    margin-inline-end: auto;
+    margin-block-end: -2rem;
+    padding: 0.25rem 1rem;
+    width: fit-content;
   }
 
   .rebate-details dd {
@@ -2412,6 +2462,7 @@ function withQueryString(baseUrl) {
 
     &:disabled {
       pointer-events: none;
+
       &::after {
         /* lock icon */
         content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBvcGFjaXR5PSIuNCIgZD0iTTMyIDI3MmMwLTI2LjUgMjEuNS00OCA0OC00OGwyODggMGMyNi41IDAgNDggMjEuNSA0OCA0OGwwIDE2MGMwIDI2LjUtMjEuNSA0OC00OCA0OEw4MCA0ODBjLTI2LjUgMC00OC0yMS41LTQ4LTQ4bDAtMTYweiIvPjxwYXRoIGZpbGw9IiMzNjkiIGQ9Ik0xMjggMTI4bDAgNjQgMTkyIDAgMC02NGMwLTUzLTQzLTk2LTk2LTk2cy05NiA0My05NiA5NnpNOTYgMTkybDAtNjRDOTYgNTcuMyAxNTMuMyAwIDIyNCAwczEyOCA1Ny4zIDEyOCAxMjhsMCA2NCAxNiAwYzQ0LjIgMCA4MCAzNS44IDgwIDgwbDAgMTYwYzAgNDQuMi0zNS44IDgwLTgwIDgwTDgwIDUxMmMtNDQuMiAwLTgwLTM1LjgtODAtODBMMCAyNzJjMC00NC4yIDM1LjgtODAgODAtODBsMTYgMHpNMzIgMjcybDAgMTYwYzAgMjYuNSAyMS41IDQ4IDQ4IDQ4bDI4OCAwYzI2LjUgMCA0OC0yMS41IDQ4LTQ4bDAtMTYwYzAtMjYuNS0yMS41LTQ4LTQ4LTQ4TDgwIDIyNGMtMjYuNSAwLTQ4IDIxLjUtNDggNDh6Ii8+PC9zdmc+);
