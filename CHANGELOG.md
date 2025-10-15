@@ -1,3 +1,6 @@
+## 1.24.2 October 15, 2025
+– Results cards styling updates.
+
 ## 1.24.1 October 14, 2025
 – Updated rebate taxonomy to include "applicable rebates" meta details for better search filtering/management.
 – Updated rebates v2 API for better results handling.
