@@ -2422,7 +2422,7 @@ function withQueryString(baseUrl) {
         background-size: 65%;
         background-repeat: no-repeat;
         background-position: center;
-        outline: 3px solid #369;
+        outline: 3px solid var(--wp--preset--color--custom-info-border);
         border-radius: 50%;
         /* electric */
         background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NDAgNTEyIj48IS0tZWxlY3RyaWMtLT48cGF0aCBmaWxsPSIjMzY5IiAgZD0iTTI1NiA1MTJjNzMuNyAwIDE0MC4xLTMxLjEgMTg2LjgtODFsNy41LTE1TDQzMiA0MTZjLTIwLjQgMC0zOC41LTEyLjktNDUuMy0zMi4xcy0uNi00MC42IDE1LjMtNTMuNGwxMDkuNi04Ny43QzUwNC44IDEwNy41IDM5MyAwIDI1NiAwQzExNC42IDAgMCAxMTQuNiAwIDI1NlMxMTQuNiA1MTIgMjU2IDUxMnpNMTkyIDE2MGwwIDMyYzAgMTcuNy0xNC4zIDMyLTMyIDMycy0zMi0xNC4zLTMyLTMybDAtMzJjMC0xNy43IDE0LjMtMzIgMzItMzJzMzIgMTQuMyAzMiAzMnptOTYgMGwwIDMyYzAgMTcuNy0xNC4zIDMyLTMyIDMycy0zMi0xNC4zLTMyLTMybDAtMzJjMC0xNy43IDE0LjMtMzIgMzItMzJzMzIgMTQuMyAzMiAzMnptOTYgMGwwIDMyYzAgMTcuNy0xNC4zIDMyLTMyIDMycy0zMi0xNC4zLTMyLTMybDAtMzJjMC0xNy43IDE0LjMtMzIgMzItMzJzMzIgMTQuMyAzMiAzMnptMjE4LjEgNjcuNmMtNS44LTQuNy0xNC4yLTQuNy0yMC4xLS4xbC0xNjAgMTI4Yy01LjMgNC4yLTcuNCAxMS40LTUuMSAxNy44czguMyAxMC43IDE1LjEgMTAuN2w3MC4xIDBMNDQ5LjcgNDg4LjhjLTMuNCA2LjctMS42IDE0LjkgNC4zIDE5LjZzMTQuMiA0LjcgMjAuMSAuMWwxNjAtMTI4YzUuMy00LjIgNy40LTExLjQgNS4xLTE3LjhzLTguMy0xMC43LTE1LjEtMTAuN2wtNzAuMSAwIDUyLjQtMTA0LjhjMy40LTYuNyAxLjYtMTQuOS00LjItMTkuNnoiLz48L3N2Zz4=);
@@ -2460,7 +2460,7 @@ function withQueryString(baseUrl) {
     width: fit-content;
   }
 
-  &:has(a:is(:hover, :focus-visible)) .rebate-value {
+  .rebate-card:has(a:is(:hover, :focus-visible)) .rebate-value {
     outline: 3px solid #369;
     box-shadow: 0 0 0.5rem rgb(3 6 9 / 1);
   }
