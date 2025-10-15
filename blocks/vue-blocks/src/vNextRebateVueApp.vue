@@ -2344,7 +2344,7 @@ function withQueryString(baseUrl) {
 
   .results {
     display: grid;
-    gap: 1rem;
+    gap: 2.5rem 1.25rem;
     margin-top: 0.5rem;
 
     grid-template-columns: 1fr;
