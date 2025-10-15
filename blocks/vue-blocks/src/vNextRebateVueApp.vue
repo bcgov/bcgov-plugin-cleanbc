@@ -262,8 +262,8 @@
               <figure v-if="item.rebate_featured_image" class="wp-block-image size-full"><img decoding="async"
                   width="1024" height="515" data-print-width="25" :src="item.rebate_featured_image" alt="" title="">
               </figure>
-              <div v-if="item.rebate_description_card" class='rebate-icons'>
-                <div v-for="(ht, i) in item.heating_types" :key="ht.id || i" :class="['rebate-icon', ht.slug]" title="Heated by ${{item.rebate_description_card}}">
+              <div v-if="item.rebate_description_card" class='rebate-icons' aria-label='Rebate available'>
+                <div v-for="(ht, i) in item.heating_types" :key="ht.id || i" :class="['rebate-icon', ht.slug]" :title="`For homes fueled by ${ht.name}`" :aria-label="`For homes fueled by ${ht.name}`">
                 </div>
               </div>
               <div>
