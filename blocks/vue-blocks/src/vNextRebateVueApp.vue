@@ -2362,7 +2362,7 @@ function withQueryString(baseUrl) {
   }
 
   .info-card {
-    box-shadow: 0 0 .5rem rgb(0 0 0 / 0.3);
+    /* box-shadow: 0 0 .5rem rgb(0 0 0 / 0.3); */
     border-radius: 0.5rem;
     padding: 0;
 
