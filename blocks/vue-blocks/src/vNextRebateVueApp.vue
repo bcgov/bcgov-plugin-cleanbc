@@ -260,7 +260,7 @@
         </div>
         <div class="results">
           <article v-for="item in filteredResults" :key="item.id" class="rebate-card" :class="item.rebate_type_class">
-            <a :href="withQueryString(item.post_url ?? item.url ?? '#')" style='position: relative;'>
+            <a :href="withQueryString(item.post_url ?? item.url ?? '#')" style='position: relative;' :aria-label='item.rebate_type_headline_card'>
               <div v-if="item.rebate_value_card" class='rebate-value' aria-hidden='true'>{{ item.rebate_value_card }}
             </div>
               <figure v-if="item.rebate_featured_image" class="wp-block-image size-full"><img decoding="async"
@@ -274,7 +274,7 @@
               <div>
                 <header>
                   <h3 class="rebate-title">
-                    {{ item.rebate_type_headline_card }}<br />
+                    <div>{{ item.rebate_type_headline_card }}</div>
                     <small>{{ item.title }}</small>
                   </h3>
                 </header>
@@ -291,6 +291,10 @@
               </div>
             </a>
           </article>
+          <div v-if="showHeatPumpInfo" class='info-card'>
+            <h3>What is a heat pump?</h3>
+            <p>A heat pump is an efficient heating and cooling system that uses electricity to move heat from one place to another. In the winter, a heat pump transfers heat from the outside air to the indoors through a cycle of compression and expansion of a refrigerant. In the summer, it operates in reverse and transfers heat from inside your home to the outdoors, like an air conditioner.</p>
+          </div>
         </div>
 
         <p v-if="!filteredResults.length" class="no-results">
@@ -1053,6 +1057,12 @@ function applyDirtyClasses(val) {
 
 // ----- Mode (archive|single) -----
 const mode = ref('archive')
+
+const showHeatPumpInfo = computed(() =>
+  filteredResults.value.some(item =>
+    item.rebate_type_headline_card?.toLowerCase().includes('heat pump')
+  )
+)
 
 onMounted(() => {
   const el = document.getElementById('rebateFilterApp')
@@ -2321,6 +2331,20 @@ function withQueryString(baseUrl) {
   #rebatesResults {
     container-type: inline-size;
     container-name: results;
+  }
+
+  .info-card {
+    box-shadow: 0 0 .5rem rgb(0 0 0 / 0.3);
+    border-radius: 0.5rem;
+    padding: 1rem 1rem 1rem;
+
+    :is(h3) {
+      font-size: 1.25rem;
+    }
+
+    :is(p) {
+      font-size: 0.9rem;
+    }
   }
 
   .results-message {
