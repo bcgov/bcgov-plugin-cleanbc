@@ -239,7 +239,7 @@
                       <figcaption v-if="field.filter_desc && !field.disabled">{{ field.filter_desc }}</figcaption>
                       <figcaption v-if="field.disabled_desc && field.disabled">{{ field.disabled_desc }}</figcaption>
                       <figcaption v-if="field.error_desc && fieldErrors[field.key]" class="hasError">{{ field.error_desc
-                        }}</figcaption>
+                      }}</figcaption>
                     </template>
                   </figure>
                 </div>
@@ -259,43 +259,56 @@
           <p>You may qualify for the following rebates.</p>
         </div>
         <div class="results">
-          <article v-for="item in filteredResults" :key="item.id" class="rebate-card" :class="item.rebate_type_class">
-            <a :href="withQueryString(item.post_url ?? item.url ?? '#')" style='position: relative;' :aria-label='item.rebate_type_headline_card'>
-              <div v-if="item.rebate_value_card" class='rebate-value' aria-hidden='true'>{{ item.rebate_value_card }}
+          <template v-for="(item, index) in filteredResults" :key="item.id">
+            <article class="rebate-card" :class="item.rebate_type_class">
+              <a :href="withQueryString(item.post_url ?? item.url ?? '#')" style="position: relative;"
+                :aria-label="item.rebate_type_headline_card">
+                <div v-if="item.rebate_value_card" class="rebate-value" aria-hidden="true">
+                  {{ item.rebate_value_card }}
+                </div>
+
+                <figure v-if="item.rebate_featured_image" class="wp-block-image size-full">
+                  <img decoding="async" width="1024" height="515" data-print-width="25"
+                    :src="item.rebate_featured_image" alt="" title="" />
+                </figure>
+
+                <div v-if="item.rebate_description_card" class="rebate-icons" aria-label="Rebate available">
+                  <div v-for="(ht, i) in item.heating_types" :key="ht.id || i" :class="['rebate-icon', ht.slug]"
+                    :title="`For homes fueled by ${ht.name}`" :aria-label="`For homes fueled by ${ht.name}`"></div>
+                </div>
+
+                <div>
+                  <header>
+                    <h3 class="rebate-title">
+                      <div>{{ item.rebate_type_headline_card }}</div>
+                      <small>{{ item.title }}</small>
+                    </h3>
+                  </header>
+
+                  <div class="rebate-details">
+                    <div v-if="item.rebate_value_card" class="sr-only">
+                      <div>{{ item.rebate_value_card }}</div>
+                    </div>
+
+                    <div v-if="item.rebate_description_card" class="rebate-description">
+                      <div>{{ item.rebate_description_card }}</div>
+                    </div>
+                  </div>
+                </div>
+              </a>
+            </article>
+
+            <!-- Info card appears AFTER the first heat pump rebate -->
+            <div v-if="showHeatPumpInfo &&
+              (item.rebate_type_class === 'heat-pump-rebates' ||
+                item.rebate_type_class === 'heat-pump-water-heater-rebates') &&
+              index === firstHeatPumpIndex" class="info-card">
+              <h3>What is a heat pump?</h3>
+              <p>A heat pump is an efficient heating and cooling system that uses electricity to move heat from one place to another. In the winter, a heat pump transfers heat from the outside air to the indoors through a cycle of compression and expansion of a refrigerant. In the summer, it operates in reverse and heat from inside your home to the outdoors, like an air conditioner.</p>
             </div>
-              <figure v-if="item.rebate_featured_image" class="wp-block-image size-full"><img decoding="async"
-                  width="1024" height="515" data-print-width="25" :src="item.rebate_featured_image" alt="" title="">
-              </figure>
-              <div v-if="item.rebate_description_card" class='rebate-icons' aria-label='Rebate available'>
-                <div v-for="(ht, i) in item.heating_types" :key="ht.id || i" :class="['rebate-icon', ht.slug]"
-                  :title="`For homes fueled by ${ht.name}`" :aria-label="`For homes fueled by ${ht.name}`">
-                </div>
-              </div>
-              <div>
-                <header>
-                  <h3 class="rebate-title">
-                    <div>{{ item.rebate_type_headline_card }}</div>
-                    <small>{{ item.title }}</small>
-                  </h3>
-                </header>
-
-                <div class="rebate-details">
-                  <div v-if="item.rebate_value_card" class='sr-only'>
-                    <div>{{ item.rebate_value_card }}</div>
-                  </div>
-
-                  <div v-if="item.rebate_description_card" class='rebate-description'>
-                    <div>{{ item.rebate_description_card }}</div>
-                  </div>
-                </div>
-              </div>
-            </a>
-          </article>
-          <div v-if="showHeatPumpInfo" class='info-card'>
-            <h3>What is a heat pump?</h3>
-            <p>A heat pump is an efficient heating and cooling system that uses electricity to move heat from one place to another. In the winter, a heat pump transfers heat from the outside air to the indoors through a cycle of compression and expansion of a refrigerant. In the summer, it operates in reverse and transfers heat from inside your home to the outdoors, like an air conditioner.</p>
-          </div>
+          </template>
         </div>
+
 
         <p v-if="!filteredResults.length" class="no-results">
           No rebates match your current selections ({{ espTier }}).
@@ -1058,11 +1071,20 @@ function applyDirtyClasses(val) {
 // ----- Mode (archive|single) -----
 const mode = ref('archive')
 
+// Show the info card only if any heat pump rebate exists
 const showHeatPumpInfo = computed(() =>
   filteredResults.value.some(item =>
-    item.rebate_type_headline_card?.toLowerCase().includes('heat pump')
+    ['heat-pump-rebates', 'heat-pump-water-heater-rebates'].includes(item.rebate_type_class)
   )
 )
+
+// Find the index of the first qualifying heat pump rebate
+const firstHeatPumpIndex = computed(() =>
+  filteredResults.value.findIndex(item =>
+    ['heat-pump-rebates', 'heat-pump-water-heater-rebates'].includes(item.rebate_type_class)
+  )
+)
+
 
 onMounted(() => {
   const el = document.getElementById('rebateFilterApp')
@@ -2349,7 +2371,7 @@ function withQueryString(baseUrl) {
 
   .results-message {
     margin-block-end: 2rem;
-    
+
     &::before {
       content: "";
       display: block;
