@@ -256,6 +256,14 @@
       <section v-if="mode === 'archive'" id="rebatesResults" aria-label="Rebate results">
         <div class="results">
           <article v-for="item in filteredResults" :key="item.id" class="rebate-card" :class="item.rebate_type_class">
+            <div v-if="item.rebate_description_card" class='rebate-icons'>
+              <div
+                v-for="(ht, i) in item.heating_types"
+                :key="ht.id || i"
+                :class="['rebate-icon', ht.slug]"
+              >
+              </div>
+            </div>
             <a :href="withQueryString(item.post_url ?? item.url ?? '#')">
               <figure v-if="item.rebate_featured_image" class="wp-block-image size-full"><img decoding="async"
                   width="1024" height="515" data-print-width="25" :src="item.rebate_featured_image" alt="" title="">
@@ -311,14 +319,6 @@
                         <li v-for="o in item.other_offers" :key="o.slug">{{ o.name }}</li>
                       </ul>
                     </div>
-                  </div>
-                </div>
-                <div v-if="item.rebate_description_card" class='rebate-icons'>
-                  <div
-                    v-for="(ht, i) in item.heating_types"
-                    :key="ht.id || i"
-                    :class="['rebate-icon', ht.slug]"
-                  >
                   </div>
                 </div>
               </div>
@@ -2386,7 +2386,7 @@ function withQueryString(baseUrl) {
   .rebate-title {
     font-size: 1.35rem;
     padding: 0 1rem;
-    margin: 1rem 0 0.5rem;
+    margin: 1.5rem 0 0.5rem;
 
     :is(small) {
       display: inline-block;
@@ -2397,7 +2397,7 @@ function withQueryString(baseUrl) {
   }
 
   .rebate-details {
-    padding: 0 1rem;
+    padding: 0 1rem 1rem;
   }
   
   a:is(:hover) .rebate-details.rebate-details .rebate-description.rebate-description * {
@@ -2406,14 +2406,17 @@ function withQueryString(baseUrl) {
   
   .rebate-icons {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    padding: 0 0.5rem;
-    margin-block-start: 1rem;
+    grid-template-columns: repeat(4,1fr);
+    margin-block-start: -2.15rem;
+    position: absolute !important;
+    z-index: 1;
+    gap: 0.65rem;
+    margin-inline-start: 1rem;
   }
 
   .rebate-icon {
-      width: 4rem;
-      height: 4rem;
+      width: 3rem;
+      height: 3rem;
       position: relative;
       margin-block-start: auto;
       &::after {
@@ -2429,7 +2432,6 @@ function withQueryString(baseUrl) {
         width: 3rem;
         height: 3rem;
         display: inline-block;
-        margin-left: 0.5rem;
         position: absolute;
         top: 0.65rem;
       }
@@ -2463,10 +2465,6 @@ function withQueryString(baseUrl) {
   .rebate-card:has(a:is(:hover, :focus-visible)) .rebate-value {
     outline: 3px solid #369;
     box-shadow: 0 0 0.5rem rgb(3 6 9 / 1);
-  }
-
-  .rebate-details dd {
-    margin: 0 0 0.5rem;
   }
 
   .no-results {
