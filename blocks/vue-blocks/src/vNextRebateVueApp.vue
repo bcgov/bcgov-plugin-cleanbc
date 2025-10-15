@@ -263,7 +263,7 @@
                   width="1024" height="515" data-print-width="25" :src="item.rebate_featured_image" alt="" title="">
               </figure>
               <div v-if="item.rebate_description_card" class='rebate-icons'>
-                <div v-for="(ht, i) in item.heating_types" :key="ht.id || i" :class="['rebate-icon', ht.slug]">
+                <div v-for="(ht, i) in item.heating_types" :key="ht.id || i" :class="['rebate-icon', ht.slug]" title="Heated by ${{item.rebate_description_card}}">
                 </div>
               </div>
               <div>
@@ -2373,6 +2373,8 @@ function withQueryString(baseUrl) {
 
     &:has(a:is(:hover, :focus-visible)) {
       outline: 3px solid #369;
+      outline-offset: 2px;
+      box-shadow: inset 0 0 2px rgb(0 0 0 / 0.3);
     }
   }
 
@@ -2403,14 +2405,14 @@ function withQueryString(baseUrl) {
     margin-block-start: 0rem;
     position: relative;
     z-index: 1;
-    gap: 0.25rem;
+    gap: 0.15rem;
     margin-inline-start: 1rem;
-    top: -3rem;
+    top: -3.25rem;
     bottom: auto;
     z-index: 9;
     width: 100%;
     max-width: 130px;
-    margin-bottom: -3.5rem;
+    margin-bottom: -4rem;
   }
 
   .rebate-icon {
@@ -2425,14 +2427,14 @@ function withQueryString(baseUrl) {
       background-size: 65%;
       background-repeat: no-repeat;
       background-position: center;
-      outline: 3px solid var(--wp--preset--color--custom-info-border);
+      box-shadow: 0 0 0.25rem rgb(3 6 9 / 0.5);
       border-radius: 50%;
       /* electric */
       background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NDAgNTEyIj48IS0tZWxlY3RyaWMtLT48cGF0aCBmaWxsPSIjMzY5IiAgZD0iTTI1NiA1MTJjNzMuNyAwIDE0MC4xLTMxLjEgMTg2LjgtODFsNy41LTE1TDQzMiA0MTZjLTIwLjQgMC0zOC41LTEyLjktNDUuMy0zMi4xcy0uNi00MC42IDE1LjMtNTMuNGwxMDkuNi04Ny43QzUwNC44IDEwNy41IDM5MyAwIDI1NiAwQzExNC42IDAgMCAxMTQuNiAwIDI1NlMxMTQuNiA1MTIgMjU2IDUxMnpNMTkyIDE2MGwwIDMyYzAgMTcuNy0xNC4zIDMyLTMyIDMycy0zMi0xNC4zLTMyLTMybDAtMzJjMC0xNy43IDE0LjMtMzIgMzItMzJzMzIgMTQuMyAzMiAzMnptOTYgMGwwIDMyYzAgMTcuNy0xNC4zIDMyLTMyIDMycy0zMi0xNC4zLTMyLTMybDAtMzJjMC0xNy43IDE0LjMtMzIgMzItMzJzMzIgMTQuMyAzMiAzMnptOTYgMGwwIDMyYzAgMTcuNy0xNC4zIDMyLTMyIDMycy0zMi0xNC4zLTMyLTMybDAtMzJjMC0xNy43IDE0LjMtMzIgMzItMzJzMzIgMTQuMyAzMiAzMnptMjE4LjEgNjcuNmMtNS44LTQuNy0xNC4yLTQuNy0yMC4xLS4xbC0xNjAgMTI4Yy01LjMgNC4yLTcuNCAxMS40LTUuMSAxNy44czguMyAxMC43IDE1LjEgMTAuN2w3MC4xIDBMNDQ5LjcgNDg4LjhjLTMuNCA2LjctMS42IDE0LjkgNC4zIDE5LjZzMTQuMiA0LjcgMjAuMSAuMWwxNjAtMTI4YzUuMy00LjIgNy40LTExLjQgNS4xLTE3LjhzLTguMy0xMC43LTE1LjEtMTAuN2wtNzAuMSAwIDUyLjQtMTA0LjhjMy40LTYuNyAxLjYtMTQuOS00LjItMTkuNnoiLz48L3N2Zz4=);
       width: 3rem;
       height: 3rem;
-      max-width: 80%;
-      max-height: 80%;
+      max-width: 90%;
+      max-height: 90%;
       display: inline-block;
       position: absolute;
       top: 0.65rem;
