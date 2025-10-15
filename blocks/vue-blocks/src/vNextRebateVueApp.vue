@@ -270,58 +270,57 @@
                   </h3>
                 </header>
 
-                <dl class="rebate-details">
+                <div class="rebate-details">
                   <div v-if="item.rebate_value_card" class='sr-only'>
-                    <dd>{{ item.rebate_value_card }}</dd>
+                    <div>{{ item.rebate_value_card }}</div>
                   </div>
 
                   <div v-if="item.rebate_description_card" class='rebate-description'>
-                    <dd>{{ item.rebate_description_card }}</dd>
-                  </div>
-
-                  <div v-if="item.rebate_description_card" class='rebate-icons'>
-                    <div
-                      v-for="(ht, i) in item.heating_types"
-                      :key="ht.id || i"
-                      :class="['rebate-icon', ht.slug]"
-                    >
-                    </div>
+                    <div>{{ item.rebate_description_card }}</div>
                   </div>
 
                   <div v-if="debug && item.primary_heating_sys?.length">
-                    <dt>Eligible Heating Types</dt>
-                    <dd>
+                    <div>Eligible Heating Types</div>
+                    <div>
                       <ul>
                         <li v-for="sys in item.primary_heating_sys" :key="sys.slug">
                           {{ sys.name }}
                         </li>
                       </ul>
-                    </dd>
+                    </div>
                   </div>
 
                   <div v-if="debug && item.regions?.length">
-                    <dt>Regions</dt>
-                    <dd>{{ item.regions.join(', ') }}</dd>
+                    <div>Regions</div>
+                    <div>{{ item.regions.join(', ') }}</div>
                   </div>
 
                   <div v-if="debug && item.utilities?.length">
-                    <dt>Eligible Utilities</dt>
-                    <dd>
+                    <div>Eligible Utilities</div>
+                    <div>
                       <ul>
                         <li v-for="u in item.utilities" :key="u.slug">{{ u.name }}</li>
                       </ul>
-                    </dd>
+                    </div>
                   </div>
 
                   <div v-if="debug && item.other_offers?.length">
-                    <dt>Other Offers</dt>
-                    <dd>
+                    <div>Other Offers</div>
+                    <div>
                       <ul>
                         <li v-for="o in item.other_offers" :key="o.slug">{{ o.name }}</li>
                       </ul>
-                    </dd>
+                    </div>
                   </div>
-                </dl>
+                </div>
+                <div v-if="item.rebate_description_card" class='rebate-icons'>
+                  <div
+                    v-for="(ht, i) in item.heating_types"
+                    :key="ht.id || i"
+                    :class="['rebate-icon', ht.slug]"
+                  >
+                  </div>
+                </div>
               </div>
             </a>
           </article>
@@ -2365,19 +2364,29 @@ function withQueryString(baseUrl) {
     padding: 0;
     overflow: hidden;
 
-    * {
+    *, *:is(:hover, :focus-visible) {
       text-decoration: none;
     }
 
     .wp-block-image img {
       border-bottom: 3px solid var(--wp--preset--color--custom-info-border);
+      aspect-ratio: 3/2;
+      object-fit: cover;
+    }
+
+    &:has(a:is(:hover, :focus-visible)) {
+       border: 3px solid #369;
+
+      .wp-block-image img {
+        border-bottom: 3px solid #369;
+      }
     }
   }
 
   .rebate-title {
     font-size: 1.35rem;
     padding: 0 1rem;
-    margin: 0 0 0.5rem;
+    margin: 1rem 0 0.5rem;
 
     :is(small) {
       display: inline-block;
@@ -2388,20 +2397,25 @@ function withQueryString(baseUrl) {
   }
 
   .rebate-details {
-    display: grid;
-    gap: 0.25rem;
     padding: 0 1rem;
   }
-
+  
+  a:is(:hover) .rebate-details.rebate-details .rebate-description.rebate-description * {
+    text-decoration: none !important;
+  }
+  
   .rebate-icons {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
+    padding: 0 0.5rem;
+    margin-block-start: 1rem;
   }
 
   .rebate-icon {
       width: 4rem;
       height: 4rem;
       position: relative;
+      margin-block-start: auto;
       &::after {
         content: "";
         background-color: #fff;
@@ -2434,7 +2448,7 @@ function withQueryString(baseUrl) {
   .rebate-value {
     background-color: #fff;
     border-radius: 100vw;
-    outline: 2px solid var(--wp--preset--color--custom-info-border);
+    outline: 3px solid var(--wp--preset--color--custom-info-border);
     color: #369;
     font-weight: 600;
     position: relative;
@@ -2444,6 +2458,11 @@ function withQueryString(baseUrl) {
     margin-block-end: -2rem;
     padding: 0.25rem 1rem;
     width: fit-content;
+  }
+
+  &:has(a:is(:hover, :focus-visible)) .rebate-value {
+    outline: 3px solid #369;
+    box-shadow: 0 0 0.5rem rgb(3 6 9 / 1);
   }
 
   .rebate-details dd {
