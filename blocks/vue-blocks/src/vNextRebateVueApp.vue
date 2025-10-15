@@ -308,8 +308,8 @@
                 <p>A heat pump is an efficient heating and cooling system that uses electricity to move heat from one place to another. In the winter, a heat pump transfers heat from the outside air to the indoors through a cycle of compression and expansion of a refrigerant. In the summer, it operates in reverse and heat from inside your home to the outdoors, like an air conditioner.</p>
               </div>
               <figure class="wp-block-image size-full">
-                  <img decoding="async" width="1024" height="515" data-print-width="25"
-                    src="https://www.betterhomesbc.ca/app/uploads/sites/956/2021/08/iStock-523832965.jpg" alt="" title="" />
+                  <img decoding="async" width="1889" height="1259" data-print-width="25"
+                    src="https://www.betterhomesbc.ca/app/uploads/sites/956/2025/10/heat-pump-info-card.jpg" alt="" title="" />
                 </figure>
             </div>
           </template>
@@ -2373,6 +2373,12 @@ function withQueryString(baseUrl) {
     .wp-block-image {
       padding: 0;
       margin: 0;
+
+      :is(img) {
+        aspect-ratio: 3/2;
+        object-fit: cover;
+        margin-block: 0.5rem;
+      }
     }
 
     :is(h3) {
