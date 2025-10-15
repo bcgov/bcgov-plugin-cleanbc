@@ -1,5 +1,6 @@
 ## 1.24.3 October 15, 2025
 – Updated filtering results to include "available rebates" taxonomy + added murb/god meta check.
+– Sorted filteredResults by rebate_type_headline_card from API.
 
 ## 1.24.2 October 15, 2025
 – Results cards styling updates with accessible labeling of icons.

@@ -1821,14 +1821,14 @@ const filteredResults = computed(() => {
   const normalizedEspTier = espTier.value?.toLowerCase?.()
   const normalizedBuildingGroup = selectedBuildingGroupSlug.value?.toLowerCase?.()
 
-  return api.value.results.filter(item => {
+  const results = api.value.results.filter(item => {
     // --- ESP tier eligibility ---
     const hasApplicableRebates = Array.isArray(item.applicable_rebates) && item.applicable_rebates.length > 0
     const rebateTierEligible = hasApplicableRebates
       ? item.applicable_rebates.some(r => r.slug?.toLowerCase?.() === normalizedEspTier)
       : ['esp-1', 'esp-2', 'esp-3'].includes(normalizedEspTier)
 
-    // --- Building type eligibility (ground-oriented vs MURB) ---
+    // --- Building type eligibility ---
     const hasTypeInfo = Array.isArray(item.types) && item.types.length > 0
     const buildingTypeEligible = hasTypeInfo
       ? item.types.some(t => t.slug?.toLowerCase?.() === normalizedBuildingGroup)
@@ -1862,7 +1862,6 @@ const filteredResults = computed(() => {
       item.locations.length === 0 ||
       item.locations.some(l => l.slug?.toLowerCase?.() === normalizedLocation)
 
-    // --- Final combined eligibility ---
     return (
       rebateTierEligible &&
       buildingTypeEligible &&
@@ -1871,6 +1870,13 @@ const filteredResults = computed(() => {
       regionEligible &&
       locationEligible
     )
+  })
+
+  // --- Sort alphabetically by rebate_type_headline_card ---
+  return results.sort((a, b) => {
+    const nameA = (a.rebate_type_headline_card || '').toLowerCase()
+    const nameB = (b.rebate_type_headline_card || '').toLowerCase()
+    return nameA.localeCompare(nameB)
   })
 })
 
