@@ -1818,58 +1818,54 @@ const filteredResults = computed(() => {
   const normalizedUtility = normalizeUtilitySlug(selectedUtilityName.value)
   const normalizedRegion = normalizeRegionSlug(selectedRegionName.value)
   const normalizedLocation = normalizeLocationSlug(selectedLocationName.value)
+  const normalizedEspTier = espTier.value?.toLowerCase?.()
+  const normalizedBuildingGroup = selectedBuildingGroupSlug.value?.toLowerCase?.()
 
   return api.value.results.filter(item => {
-    // ESP tier check.
-    const espEligible = ['esp-1', 'esp-2', 'esp-3'].includes(espTier.value?.toLowerCase?.())
+    // --- ESP tier eligibility ---
+    const hasApplicableRebates = Array.isArray(item.applicable_rebates) && item.applicable_rebates.length > 0
+    const rebateTierEligible = hasApplicableRebates
+      ? item.applicable_rebates.some(r => r.slug?.toLowerCase?.() === normalizedEspTier)
+      : ['esp-1', 'esp-2', 'esp-3'].includes(normalizedEspTier)
 
-    // Heating type check. If no heating types are defined or none is selected, treat as eligible.
+    // --- Building type eligibility (ground-oriented vs MURB) ---
+    const hasTypeInfo = Array.isArray(item.types) && item.types.length > 0
+    const buildingTypeEligible = hasTypeInfo
+      ? item.types.some(t => t.slug?.toLowerCase?.() === normalizedBuildingGroup)
+      : true // include if no type defined
+
+    // --- Heating type eligibility ---
     const heatingEligible =
       !normalizedHeating ||
-      !item.heating_types || item.heating_types.length === 0 ||
+      !item.heating_types ||
+      item.heating_types.length === 0 ||
       item.heating_types.some(sys => sys.slug?.toLowerCase?.() === normalizedHeating)
 
-    debug && console.log('heatingEligible', heatingEligible, {
-      api: item.heating_types?.map(sys => sys.slug),
-      selected: normalizedHeating
-    })
-
-    // Utility check. If no utilities are defined or none is selected, treat as eligible.
+    // --- Utility eligibility ---
     const utilityEligible =
       !normalizedUtility ||
-      !item.utilities || item.utilities.length === 0 ||
+      !item.utilities ||
+      item.utilities.length === 0 ||
       item.utilities.some(u => u.slug?.toLowerCase?.() === normalizedUtility)
 
-    debug && console.log('utilityEligible', utilityEligible, {
-      api: item.utilities?.map(u => u.slug),
-      selected: normalizedUtility
-    })
-
-    // Region check. If no regions are defined or none is selected, treat as eligible.
+    // --- Region eligibility ---
     const regionEligible =
       !normalizedRegion ||
-      !item.regions || item.regions.length === 0 ||
+      !item.regions ||
+      item.regions.length === 0 ||
       item.regions.map(r => r.toLowerCase()).includes(normalizedRegion)
 
-    debug && console.log('regionEligible', regionEligible, {
-      api: item.regions,
-      selected: normalizedRegion
-    })
-
-    // Location check. If no locations are defined or none is selected, treat as eligible.
+    // --- Location eligibility ---
     const locationEligible =
       !normalizedLocation ||
-      !item.locations || item.locations.length === 0 ||
+      !item.locations ||
+      item.locations.length === 0 ||
       item.locations.some(l => l.slug?.toLowerCase?.() === normalizedLocation)
 
-    debug && console.log('locationEligible', locationEligible, {
-      api: item.locations?.map(l => l.slug),
-      selected: normalizedLocation
-    })
-
-    // Final eligibility check.
+    // --- Final combined eligibility ---
     return (
-      espEligible &&
+      rebateTierEligible &&
+      buildingTypeEligible &&
       heatingEligible &&
       utilityEligible &&
       regionEligible &&
