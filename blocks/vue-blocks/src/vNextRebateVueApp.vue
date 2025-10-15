@@ -239,7 +239,7 @@
                       <figcaption v-if="field.filter_desc && !field.disabled">{{ field.filter_desc }}</figcaption>
                       <figcaption v-if="field.disabled_desc && field.disabled">{{ field.disabled_desc }}</figcaption>
                       <figcaption v-if="field.error_desc && fieldErrors[field.key]" class="hasError">{{ field.error_desc
-                      }}</figcaption>
+                        }}</figcaption>
                     </template>
                   </figure>
                 </div>
@@ -253,7 +253,11 @@
       </div>
 
       <!-- Results -->
-      <section v-if="mode === 'archive'" id="rebatesResults" aria-label="Rebate results">
+      <section v-if="mode === 'archive' && filteredResults.length" id="rebatesResults" aria-label="Rebate results">
+        <div class="results-message">
+          <h2>Congratulations!</h2>
+          <p>You may qualify for the following rebates.</p>
+        </div>
         <div class="results">
           <article v-for="item in filteredResults" :key="item.id" class="rebate-card" :class="item.rebate_type_class">
             <div v-if="item.rebate_value_card" class='rebate-value' aria-hidden='true'>{{ item.rebate_value_card }}
@@ -263,7 +267,8 @@
                   width="1024" height="515" data-print-width="25" :src="item.rebate_featured_image" alt="" title="">
               </figure>
               <div v-if="item.rebate_description_card" class='rebate-icons' aria-label='Rebate available'>
-                <div v-for="(ht, i) in item.heating_types" :key="ht.id || i" :class="['rebate-icon', ht.slug]" :title="`For homes fueled by ${ht.name}`" :aria-label="`For homes fueled by ${ht.name}`">
+                <div v-for="(ht, i) in item.heating_types" :key="ht.id || i" :class="['rebate-icon', ht.slug]"
+                  :title="`For homes fueled by ${ht.name}`" :aria-label="`For homes fueled by ${ht.name}`">
                 </div>
               </div>
               <div>
@@ -2336,6 +2341,24 @@ function withQueryString(baseUrl) {
   #rebatesResults {
     container-type: inline-size;
     container-name: results;
+  }
+
+  .results-message {
+    margin-block-end: 2rem;
+    
+    &::before {
+      content: "";
+      display: block;
+      background-color: var(--wp--preset--color--heading-line);
+      border-top-width: 3rem;
+      margin-block-end: 1rem;
+      height: 3px;
+      width: 3rem;
+    }
+
+    h2 {
+      margin-block-end: 0;
+    }
   }
 
   .results {

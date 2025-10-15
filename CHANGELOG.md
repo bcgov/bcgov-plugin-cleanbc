@@ -1,5 +1,6 @@
 ## 1.24.2 October 15, 2025
 – Results cards styling updates with accessible labeling of icons.
+– Results messaging content and styling.
 
 ## 1.24.1 October 14, 2025
 – Updated rebate taxonomy to include "applicable rebates" meta details for better search filtering/management.
