@@ -260,9 +260,9 @@
         </div>
         <div class="results">
           <article v-for="item in filteredResults" :key="item.id" class="rebate-card" :class="item.rebate_type_class">
-            <div v-if="item.rebate_value_card" class='rebate-value' aria-hidden='true'>{{ item.rebate_value_card }}
-            </div>
             <a :href="withQueryString(item.post_url ?? item.url ?? '#')" style='position: relative;'>
+              <div v-if="item.rebate_value_card" class='rebate-value' aria-hidden='true'>{{ item.rebate_value_card }}
+            </div>
               <figure v-if="item.rebate_featured_image" class="wp-block-image size-full"><img decoding="async"
                   width="1024" height="515" data-print-width="25" :src="item.rebate_featured_image" alt="" title="">
               </figure>
@@ -286,40 +286,6 @@
 
                   <div v-if="item.rebate_description_card" class='rebate-description'>
                     <div>{{ item.rebate_description_card }}</div>
-                  </div>
-
-                  <div v-if="debug && item.primary_heating_sys?.length">
-                    <div>Eligible Heating Types</div>
-                    <div>
-                      <ul>
-                        <li v-for="sys in item.primary_heating_sys" :key="sys.slug">
-                          {{ sys.name }}
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  <div v-if="debug && item.regions?.length">
-                    <div>Regions</div>
-                    <div>{{ item.regions.join(', ') }}</div>
-                  </div>
-
-                  <div v-if="debug && item.utilities?.length">
-                    <div>Eligible Utilities</div>
-                    <div>
-                      <ul>
-                        <li v-for="u in item.utilities" :key="u.slug">{{ u.name }}</li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  <div v-if="debug && item.other_offers?.length">
-                    <div>Other Offers</div>
-                    <div>
-                      <ul>
-                        <li v-for="o in item.other_offers" :key="o.slug">{{ o.name }}</li>
-                      </ul>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -1822,11 +1788,23 @@ const filteredResults = computed(() => {
   const normalizedBuildingGroup = selectedBuildingGroupSlug.value?.toLowerCase?.()
 
   const results = api.value.results.filter(item => {
+    const applicable = Array.isArray(item.applicable_rebates)
+      ? item.applicable_rebates.map(r => r.slug?.toLowerCase?.())
+      : []
+
     // --- ESP tier eligibility ---
-    const hasApplicableRebates = Array.isArray(item.applicable_rebates) && item.applicable_rebates.length > 0
+    const hasApplicableRebates = applicable.length > 0
     const rebateTierEligible = hasApplicableRebates
-      ? item.applicable_rebates.some(r => r.slug?.toLowerCase?.() === normalizedEspTier)
+      ? applicable.includes(normalizedEspTier)
       : ['esp-1', 'esp-2', 'esp-3'].includes(normalizedEspTier)
+
+    // --- HRR fallback rule ---
+    const hasHRR = applicable.includes('hrr')
+    const hasESP3 = applicable.includes('esp-3')
+    const isHighTier = ['esp-3', 'not qualified'].includes(normalizedEspTier)
+
+    const hrrEligible =
+      hasHRR && !hasESP3 && isHighTier
 
     // --- Building type eligibility ---
     const hasTypeInfo = Array.isArray(item.types) && item.types.length > 0
@@ -1863,7 +1841,7 @@ const filteredResults = computed(() => {
       item.locations.some(l => l.slug?.toLowerCase?.() === normalizedLocation)
 
     return (
-      rebateTierEligible &&
+      (rebateTierEligible || hrrEligible) &&
       buildingTypeEligible &&
       heatingEligible &&
       utilityEligible &&
@@ -2358,7 +2336,7 @@ function withQueryString(baseUrl) {
       width: 3rem;
     }
 
-    h2 {
+    :is(h2) {
       margin-block-end: 0;
     }
   }
@@ -2380,6 +2358,7 @@ function withQueryString(baseUrl) {
   }
 
   .rebate-card {
+    isolation: isolate;
     box-shadow: 0 0 .5rem rgb(0 0 0 / 0.3);
     border-radius: 0.5rem;
     padding: 0;
