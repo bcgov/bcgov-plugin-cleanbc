@@ -42,7 +42,12 @@
                     <button class="rebate-setting" :disabled="field.disabled"
                       :class="{ 'is-external-dirty': isExternalDirty && lastChangedField === field.key }"
                       @click="openEdit(field.key)" :ref="el => (buttonRefs[field.key] = el)">
-                      {{ field.displayValue }}
+                      <template v-if="field.key === 'heating'">
+                        {{ fields.find(f => f.key === 'heating').displayValue(api.results[0]).value }}
+                      </template>
+                      <template v-else>
+                        {{ field.displayValue }}
+                      </template>
                     </button>
                   </div>
                   <!-- Show select if open -->
@@ -85,7 +90,6 @@
                   </div>
                 </template>
 
-
                 <template v-else-if="field.displayValue && !editModeView">
                   <div class="control label-group">
                     <label class='small'>{{ field.shortDesc }}</label>
@@ -95,7 +99,7 @@
                   </div>
                 </template>
 
-                <!-- If field is missing → show select immediately -->
+                <!-- If field is missing show select immediately -->
                 <template v-else>
                   <figure class="control editable" :aria-label="`${field.shortDesc} setting`">
                     <button :disabled="!field.model.value" type="button" class="close-btn" @click="activeEdit = ''"
@@ -1031,29 +1035,23 @@ const fields = computed(() => [
     missingMessage: 'Missing heating details',
     isInvalid: () => !selectedHeatingSlug.value,
 
-    // Enhanced display logic (now self-contained)
-    displayValue: computed(() => {
-      // In archive mode, show user’s selected heating name as usual
+    // Dynamic display logic accepts a rebate item.
+    displayValue: (item) => computed(() => {
+      // In archive mode, show user’s selected heating name as usual.
       if (mode.value !== 'single') {
         return selectedHeatingName.value
       }
 
       // --- Single mode logic ---
-      const item = api.value.results?.[0] || {}
-      const heatingTypes = item.heating_types || []
+      const heatingTypes = item?.heating_types || []
       const allHeatingOptions = api.value?.['settings-selects']?.['heating-types'] || []
-      console.log('api', api)
-      console.log('item', item)
-      console.log('heatingTypes', heatingTypes)
-      console.log('allHeatingOptions', allHeatingOptions)
 
       // Check for “any fuel type” in content
-      const headline = item.rebate_type_headline_card?.toLowerCase?.() || ''
-      const title = item.title?.toLowerCase?.() || ''
-      const mentionsAnyFuel =
-        headline.includes('any fuel') || title.includes('any fuel')
+      const headline = item?.rebate_type_headline_card?.toLowerCase?.() || ''
+      const title = item?.title?.toLowerCase?.() || ''
+      const mentionsAnyFuel = headline.includes('any fuel') || title.includes('any fuel')
 
-      // Compare the rebate’s heating_types against all available options
+      // Compare the rebate's heating_types against all available options.
       const rebateHasAllHeatingTypes =
         heatingTypes.length > 0 &&
         allHeatingOptions.length > 0 &&
@@ -1064,18 +1062,18 @@ const fields = computed(() => [
           heatingTypes.some(ht => ht.slug === opt.slug)
         )
 
-      // “Any” if explicitly mentioned or if rebate covers all heating types
-      if (mentionsAnyFuel || rebateHasAllHeatingTypes) {
+      // "Any" if explicitly mentioned or if rebate covers all heating types.
+      if (mentionsAnyFuel || rebateHasAllHeatingTypes || heatingTypes.length === 0) {
         return 'Any'
       }
 
-      // If multiple types exist, join with “or”
+      // If multiple types exist, join with "or".
       const names = heatingTypes.map(ht => ht.name).filter(Boolean)
       if (names.length > 1) {
         return names.join(' or ')
       }
 
-      // Otherwise, single heating type
+      // Otherwise, single heating type.
       return names[0]
     })
   },
