@@ -1061,7 +1061,7 @@ const fields = computed(() => [
         )
 
       // “Any” if explicitly mentioned or if rebate covers all heating types
-      if (mentionsAnyFuel || rebateHasAllHeatingTypes || heatingTypes.length === 0) {
+      if (mentionsAnyFuel || rebateHasAllHeatingTypes) {
         return 'Any'
       }
 
