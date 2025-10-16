@@ -42,8 +42,9 @@
                     <button class="rebate-setting" :disabled="field.disabled"
                       :class="{ 'is-external-dirty': isExternalDirty && lastChangedField === field.key }"
                       @click="openEdit(field.key)" :ref="el => (buttonRefs[field.key] = el)">
+                      <!-- Button version -->
                       <template v-if="field.key === 'heating'">
-                        {{ fields.find(f => f.key === 'heating').displayValue(api.results[0]).value }}
+                        {{ heatingField.displayValue(currentItem).value }}
                       </template>
                       <template v-else>
                         {{ field.displayValue }}
@@ -94,7 +95,12 @@
                   <div class="control label-group">
                     <label class='small'>{{ field.shortDesc }}</label>
                     <p class="rebate-detail">
-                      {{ field.displayValue }}
+                      <template v-if="field.key === 'heating'">
+                        {{ heatingField.displayValue(currentItem).value }}
+                      </template>
+                      <template v-else>
+                        {{ field.displayValue }}
+                      </template>
                     </p>
                   </div>
                 </template>
@@ -309,12 +315,16 @@
               index === firstHeatPumpIndex" class="info-card">
               <div class="info-card-content">
                 <h3>What is a heat pump?</h3>
-                <p>A heat pump is an efficient heating and cooling system that uses electricity to move heat from one place to another. In the winter, a heat pump transfers heat from the outside air to the indoors through a cycle of compression and expansion of a refrigerant. In the summer, it operates in reverse and heat from inside your home to the outdoors, like an air conditioner.</p>
+                <p>A heat pump is an efficient heating and cooling system that uses electricity to move heat from one
+                  place to another. In the winter, a heat pump transfers heat from the outside air to the indoors
+                  through a cycle of compression and expansion of a refrigerant. In the summer, it operates in reverse
+                  and heat from inside your home to the outdoors, like an air conditioner.</p>
               </div>
               <figure class="wp-block-image size-full">
-                  <img decoding="async" width="1889" height="1259" data-print-width="25"
-                    src="https://www.betterhomesbc.ca/app/uploads/sites/956/2025/10/heat-pump-info-card.jpg" alt="" title="" />
-                </figure>
+                <img decoding="async" width="1889" height="1259" data-print-width="25"
+                  src="https://www.betterhomesbc.ca/app/uploads/sites/956/2025/10/heat-pump-info-card.jpg" alt=""
+                  title="" />
+              </figure>
             </div>
           </template>
         </div>
@@ -349,7 +359,7 @@
 
 <script setup>
 // See vNextRebateVueApp.docs.js for full JSDoc reference.
-import { computed, ref, nextTick, onMounted, watch } from 'vue'
+import { computed, ref, unref, nextTick, onMounted, watch } from 'vue'
 
 /** Public domain fallback */
 const publicDomain = ref('https://www.betterhomesbc.ca')
@@ -1036,45 +1046,34 @@ const fields = computed(() => [
     isInvalid: () => !selectedHeatingSlug.value,
 
     // Dynamic display logic accepts a rebate item.
-    displayValue: (item) => computed(() => {
-      // In archive mode, show user’s selected heating name as usual.
+    displayValue: (itemLike) => computed(() => {
+      const item = unref(itemLike) || {}
+
+      // In archive mode, show user's selected heating name as usual.
       if (mode.value !== 'single') {
         return selectedHeatingName.value
       }
 
       // --- Single mode logic ---
-      const heatingTypes = item?.heating_types || []
-      const allHeatingOptions = api.value?.['settings-selects']?.['heating-types'] || []
+      const heatingTypes = item?.heating_types ?? []
+      const allHeatingOptions = api.value?.['settings-selects']?.['heating-types'] ?? []
 
-      // Check for “any fuel type” in content
-      const headline = item?.rebate_type_headline_card?.toLowerCase?.() || ''
-      const title = item?.title?.toLowerCase?.() || ''
+      const headline = (item?.rebate_type_headline_card ?? '').toLowerCase()
+      const title = (item?.title ?? '').toLowerCase()
       const mentionsAnyFuel = headline.includes('any fuel') || title.includes('any fuel')
 
-      // Compare the rebate's heating_types against all available options.
       const rebateHasAllHeatingTypes =
         heatingTypes.length > 0 &&
         allHeatingOptions.length > 0 &&
-        heatingTypes.every(ht =>
-          allHeatingOptions.some(opt => opt.slug === ht.slug)
-        ) &&
-        allHeatingOptions.every(opt =>
-          heatingTypes.some(ht => ht.slug === opt.slug)
-        )
+        heatingTypes.every(ht => allHeatingOptions.some(opt => opt.slug === ht.slug)) &&
+        allHeatingOptions.every(opt => heatingTypes.some(ht => ht.slug === opt.slug))
 
-      // "Any" if explicitly mentioned or if rebate covers all heating types.
       if (mentionsAnyFuel || rebateHasAllHeatingTypes || heatingTypes.length === 0) {
         return 'Any'
       }
 
-      // If multiple types exist, join with "or".
       const names = heatingTypes.map(ht => ht.name).filter(Boolean)
-      if (names.length > 1) {
-        return names.join(' or ')
-      }
-
-      // Otherwise, single heating type.
-      return names[0]
+      return names.length > 1 ? names.join(' or ') : (names[0] || '')
     })
   },
   {
@@ -1088,6 +1087,21 @@ const fields = computed(() => [
     isInvalid: () => !selectedUtilitySlug.value
   }
 ])
+
+// Treat api.value.results as an array safely.
+const singleItems = computed(() => {
+  const r = api.value?.results
+  return Array.isArray(r) ? r : r ? [r] : []
+})
+
+// The "current" item for single-page display (first by default).
+const currentItem = computed(() => singleItems.value[0] || null)
+
+// Safe getter for the heating field.
+const heatingField = computed(() => {
+  const f = fields.value.find(f => f.key === 'heating')
+  return f || { displayValue: () => ({ value: '' }) }
+})
 
 const isExternalDirty = ref(false) // for outside Vue elements + button spin.
 
