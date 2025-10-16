@@ -1042,6 +1042,10 @@ const fields = computed(() => [
       const item = api.value.results?.[0] || {}
       const heatingTypes = item.heating_types || []
       const allHeatingOptions = api.value?.['settings-selects']?.['heating-types'] || []
+      console.log('api', api)
+      console.log('item', item)
+      console.log('heatingTypes', heatingTypes)
+      console.log('allHeatingOptions', allHeatingOptions)
 
       // Check for “any fuel type” in content
       const headline = item.rebate_type_headline_card?.toLowerCase?.() || ''
