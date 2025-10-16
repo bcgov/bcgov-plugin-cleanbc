@@ -261,7 +261,7 @@
         <div class="results">
           <template v-for="(item, index) in filteredResults" :key="item.id">
             <article class="rebate-card" :class="item.rebate_type_class">
-              <a :href="withQueryString(item.post_url ?? item.url ?? '#')" style="position: relative;"
+              <a :href="withQueryString(item.post_url ?? item.url ?? '#')" style="position: relative; height: 100%;"
                 :aria-label="item.rebate_type_headline_card">
                 <div v-if="item.rebate_value_card" class="rebate-value" aria-hidden="true">
                   {{ item.rebate_value_card }}
@@ -1028,9 +1028,52 @@ const fields = computed(() => [
     disabled: mode.value === 'single' && !!pageHeatingType.value,
     model: selectedHeatingSlug,
     options: heatingOptions.value,
-    displayValue: selectedHeatingName.value,
     missingMessage: 'Missing heating details',
-    isInvalid: () => !selectedHeatingSlug.value
+    isInvalid: () => !selectedHeatingSlug.value,
+
+    // Enhanced display logic (now self-contained)
+    displayValue: computed(() => {
+      // In archive mode, show user’s selected heating name as usual
+      if (mode.value !== 'single') {
+        return selectedHeatingName.value
+      }
+
+      // --- Single mode logic ---
+      const item = api.value.results?.[0] || {}
+      const heatingTypes = item.heating_types || []
+      const allHeatingOptions = api.value?.['settings-selects']?.['heating-types'] || []
+
+      // Check for “any fuel type” in content
+      const headline = item.rebate_type_headline_card?.toLowerCase?.() || ''
+      const title = item.title?.toLowerCase?.() || ''
+      const mentionsAnyFuel =
+        headline.includes('any fuel') || title.includes('any fuel')
+
+      // Compare the rebate’s heating_types against all available options
+      const rebateHasAllHeatingTypes =
+        heatingTypes.length > 0 &&
+        allHeatingOptions.length > 0 &&
+        heatingTypes.every(ht =>
+          allHeatingOptions.some(opt => opt.slug === ht.slug)
+        ) &&
+        allHeatingOptions.every(opt =>
+          heatingTypes.some(ht => ht.slug === opt.slug)
+        )
+
+      // “Any” if explicitly mentioned or if rebate covers all heating types
+      if (mentionsAnyFuel || rebateHasAllHeatingTypes || heatingTypes.length === 0) {
+        return 'Any'
+      }
+
+      // If multiple types exist, join with “or”
+      const names = heatingTypes.map(ht => ht.name).filter(Boolean)
+      if (names.length > 1) {
+        return names.join(' or ')
+      }
+
+      // Otherwise, single heating type
+      return names[0]
+    })
   },
   {
     key: 'utility',

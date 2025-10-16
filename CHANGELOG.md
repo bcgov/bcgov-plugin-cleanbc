@@ -1,3 +1,6 @@
+## 1.24.4 October 16, 2025
+– Single mode heating type handles multiple or any (for all) types.
+
 ## 1.24.3 October 15, 2025
 – Updated filtering results to include "available rebates" taxonomy + added murb/god meta check.
 – Sorted filteredResults by rebate_type_headline_card from API.
