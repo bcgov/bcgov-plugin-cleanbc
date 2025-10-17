@@ -320,7 +320,8 @@
           No rebates match your current selections ({{ espTier }}).
         </p>
       </section>
-      
+
+      <!-- No results -->
       <section v-if="mode === 'archive' && hasAllSelection && !filteredResults.length" class="no-results">
         <div class="results-message">
           <h2>No matching rebates found</h2>
@@ -348,7 +349,7 @@
           </div>
       </section>
 
-      <p v-else class="no-results">Please complete the form above.</p>
+      <p v-else-if="mode === 'archive' && !hasAllSelection && !filteredResults.length" class="no-results">Please complete the form above.</p>
 
 
       <!-- Selection summary (for quick verification) -->
