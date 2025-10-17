@@ -2528,7 +2528,7 @@ function withQueryString(baseUrl) {
   .rebate-value {
     background-color: #fff;
     border-radius: 100vw;
-    box-shadow: 0 0 0.5rem rgb(3 6 9 / 1);
+    /* box-shadow: 0 0 0.5rem rgb(3 6 9 / 1); */
     outline: 3px solid #fff;
     color: #369;
     font-weight: 600;
