@@ -320,8 +320,36 @@
           No rebates match your current selections ({{ espTier }}).
         </p>
       </section>
+      
+      <section v-if="mode === 'archive' && hasAllSelection && !filteredResults.length" class="no-results">
+        <div class="results-message">
+          <h2>No matching rebates found</h2>
+          <p>Based on the information provided, your home does not qualify for rebates.</p>
+        </div>
+        <div class="results no-results">
+          <article class="rebate-card">
+                <figure class="wp-block-image size-full">
+                  <img decoding="async" width="1024" height="515" data-print-width="25"
+                    src="https://www.betterhomesbc.ca/app/uploads/sites/956/2020/09/iStock-155148974-scaled-1.jpg" alt="" title="" />
+                </figure>
+                <div>
+                  <header>
+                    <h3 class="rebate-title">
+                      <div>We're sorry...</div>
+                    </h3>
+                  </header>
+                  <div class="rebate-details">
+                    <div class="rebate-description">
+                      <div>We couldn’t find any rebates that match your home.</div>
+                    </div>
+                  </div>
+                </div>
+            </article>
+          </div>
+      </section>
 
-      <p v-else-if="mode === 'archive'" class="no-results">Please complete the form above.</p>
+      <p v-else class="no-results">Please complete the form above.</p>
+
 
       <!-- Selection summary (for quick verification) -->
       <div v-if="debug" class="selection-summary" aria-live="polite">
@@ -2414,6 +2442,14 @@ function withQueryString(baseUrl) {
     margin-top: 0.5rem;
 
     grid-template-columns: 1fr;
+
+    &.no-results {
+      grid-template-columns: repeat(3, 1fr);
+
+      .rebate-card {
+        grid-column: 2;
+      }
+    }
 
     @container (width > 500px) and (width < 800px) {
       grid-template-columns: repeat(2, 1fr);
