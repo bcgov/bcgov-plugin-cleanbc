@@ -44,7 +44,7 @@
                       @click="openEdit(field.key)" :ref="el => (buttonRefs[field.key] = el)">
                       <!-- Button version -->
                       <template v-if="field.key === 'heating'">
-                        {{ heatingField.displayValue(currentItem).value }}
+                        {{ heatingDisplayText(currentItem) }}
                       </template>
                       <template v-else>
                         {{ field.displayValue }}
@@ -96,7 +96,7 @@
                     <label class='small'>{{ field.shortDesc }}</label>
                     <p class="rebate-detail">
                       <template v-if="field.key === 'heating'">
-                        {{ heatingField.displayValue(currentItem).value }}
+                        {{ heatingDisplayText(currentItem) }}
                       </template>
                       <template v-else>
                         {{ field.displayValue }}
@@ -249,7 +249,7 @@
                       <figcaption v-if="field.filter_desc && !field.disabled">{{ field.filter_desc }}</figcaption>
                       <figcaption v-if="field.disabled_desc && field.disabled">{{ field.disabled_desc }}</figcaption>
                       <figcaption v-if="field.error_desc && fieldErrors[field.key]" class="hasError">{{ field.error_desc
-                      }}</figcaption>
+                        }}</figcaption>
                     </template>
                   </figure>
                 </div>
@@ -271,8 +271,8 @@
         <div class="results">
           <template v-for="(item, index) in filteredResults" :key="item.id">
             <article class="rebate-card" :class="item.rebate_type_class">
-              <a :href="withQueryString(item.post_url ?? item.url ?? '#')" style="position: relative; height: 100%;"
-                :aria-label="item.rebate_type_headline_card">
+              <a :href="withQueryString(item.post_url ?? item.url ?? '#', item)"
+                style="position: relative; height: 100%;" :aria-label="item.rebate_type_headline_card">
                 <div v-if="item.rebate_value_card" class="rebate-value" aria-hidden="true">
                   {{ item.rebate_value_card }}
                 </div>
@@ -282,10 +282,12 @@
                     :src="item.rebate_featured_image" alt="" title="" />
                 </figure>
 
-                <div v-if="item.rebate_description_card" class="rebate-icons" aria-label="Rebate available">
+                <div v-if="item.rebate_description_card" class="rebate-icons" :title="heatingTooltipText(item)"
+                  :aria-label="heatingTooltipText(item)">
                   <div v-for="(ht, i) in item.heating_types" :key="ht.id || i" :class="['rebate-icon', ht.slug]"
                     :title="`For homes fueled by ${ht.name}`" :aria-label="`For homes fueled by ${ht.name}`"></div>
                 </div>
+
 
                 <div>
                   <header>
@@ -408,7 +410,19 @@ async function updateRebateDetails() {
 
   try {
     isAjaxLoading.value = true
-    const res = await fetch(assembledUrl.value, { credentials: 'same-origin' })
+
+    // Preserve heating[]= array params from the current location
+    const currentParams = new URLSearchParams(window.location.search)
+    const heatingArray = currentParams.getAll('heating[]')
+
+    const url = new URL(assembledUrl.value, window.location.origin)
+    if (heatingArray.length > 0) {
+      url.searchParams.delete('heating')
+      heatingArray.forEach(h => url.searchParams.append('heating[]', h))
+    }
+
+    const res = await fetch(url.toString(), { credentials: 'same-origin' })
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
 
     const html = await res.text()
@@ -1044,37 +1058,7 @@ const fields = computed(() => [
     options: heatingOptions.value,
     missingMessage: 'Missing heating details',
     isInvalid: () => !selectedHeatingSlug.value,
-
-    // Dynamic display logic accepts a rebate item.
-    displayValue: (itemLike) => computed(() => {
-      const item = unref(itemLike) || {}
-
-      // In archive mode, show user's selected heating name as usual.
-      if (mode.value !== 'single') {
-        return selectedHeatingName.value
-      }
-
-      // --- Single mode logic ---
-      const heatingTypes = item?.heating_types ?? []
-      const allHeatingOptions = api.value?.['settings-selects']?.['heating-types'] ?? []
-
-      const headline = (item?.rebate_type_headline_card ?? '').toLowerCase()
-      const title = (item?.title ?? '').toLowerCase()
-      const mentionsAnyFuel = headline.includes('any fuel') || title.includes('any fuel')
-
-      const rebateHasAllHeatingTypes =
-        heatingTypes.length > 0 &&
-        allHeatingOptions.length > 0 &&
-        heatingTypes.every(ht => allHeatingOptions.some(opt => opt.slug === ht.slug)) &&
-        allHeatingOptions.every(opt => heatingTypes.some(ht => ht.slug === opt.slug))
-
-      if (mentionsAnyFuel || rebateHasAllHeatingTypes || heatingTypes.length === 0) {
-        return 'Any'
-      }
-
-      const names = heatingTypes.map(ht => ht.name).filter(Boolean)
-      return names.length > 1 ? names.join(' or ') : (names[0] || '')
-    })
+    displayValue: (itemLike) => computed(() => heatingDisplayText(itemLike))
   },
   {
     key: 'utility',
@@ -1100,8 +1084,66 @@ const currentItem = computed(() => singleItems.value[0] || null)
 // Safe getter for the heating field.
 const heatingField = computed(() => {
   const f = fields.value.find(f => f.key === 'heating')
-  return f || { displayValue: () => ({ value: '' }) }
+  console.log(f)
+  return f || { displayValue: () => ({ value: 'hi' }) }
 })
+
+/**
+ * Compute human-readable heating display text. Used by both edit buttons and readonly labels.
+ */
+function heatingDisplayText(itemLike) {
+  const item = unref(itemLike) || {}
+
+  // Archive mode → show the user's selected heating name
+  if (mode.value !== 'single') {
+    return selectedHeatingName.value
+  }
+
+  // --- Single mode logic ---
+  const urlParams = new URLSearchParams(window.location.search)
+  const heatingParams = urlParams.getAll('heating[]')
+  const heatingSingle = urlParams.get('heating')
+  const allHeatingValues = heatingParams.length ? heatingParams : (heatingSingle ? [heatingSingle] : [])
+
+  // 1. Prefer URL heating[] array if present
+  const heatingTypes =
+    allHeatingValues.length > 0
+      ? allHeatingValues.map(slug => {
+        const match = api.value?.['settings-selects']?.['heating-types']?.find(h => h.slug === slug)
+        return match ? match.name : slug
+      })
+      : (item?.heating_types ?? []).map(ht => ht.name)
+
+  // 2. Handle “Any fuel” or all heating types
+  const allHeatingOptions = api.value?.['settings-selects']?.['heating-types'] ?? []
+  const headline = (item?.rebate_type_headline_card ?? '').toLowerCase()
+  const title = (item?.title ?? '').toLowerCase()
+  const mentionsAnyFuel = headline.includes('any fuel') || title.includes('any fuel')
+
+  const rebateHasAllHeatingTypes =
+    heatingTypes.length > 0 &&
+    allHeatingOptions.length > 0 &&
+    heatingTypes.every(name => allHeatingOptions.some(opt => opt.name === name)) &&
+    allHeatingOptions.every(opt => heatingTypes.includes(opt.name))
+
+  if (mentionsAnyFuel || rebateHasAllHeatingTypes || heatingTypes.length === 0) {
+    return 'Any'
+  }
+
+  const names = heatingTypes.filter(Boolean)
+  return names.length > 1 ? names.join(' or ') : (names[0] || '')
+}
+
+/**
+ * Compute a combined tooltip/aria label for all heating types on an item.
+ */
+function heatingTooltipText(itemLike) {
+  const text = heatingDisplayText(itemLike)
+  return text === 'Any'
+    ? 'For homes fueled by any type of heating'
+    : `For homes fueled by ${text}`
+}
+
 
 const isExternalDirty = ref(false) // for outside Vue elements + button spin.
 
@@ -1569,8 +1611,45 @@ const assembledQueryString = computed(() => {
 })
 
 // --- Dirty states ---
-// URL does not match the settings currently showing.
-const urlOutOfSync = computed(() => assembledQueryString.value !== window.location.search)
+// Treat heating[]=… arrays and single heating=… as equivalent.
+const urlOutOfSync = computed(() => {
+  const currentParams = new URLSearchParams(window.location.search)
+  const assembledParams = new URLSearchParams(assembledQueryString.value.replace(/^\?/, ''))
+
+  // Normalize heating
+  const currentHeatingArray = currentParams.getAll('heating[]')
+  const currentHeatingSingle = currentParams.get('heating')
+  const currentHeating = currentHeatingArray.length
+    ? currentHeatingArray.sort()
+    : currentHeatingSingle
+      ? [currentHeatingSingle]
+      : []
+
+  const assembledHeatingArray = assembledParams.getAll('heating[]')
+  const assembledHeatingSingle = assembledParams.get('heating')
+  const assembledHeating = assembledHeatingArray.length
+    ? assembledHeatingArray.sort()
+    : assembledHeatingSingle
+      ? [assembledHeatingSingle]
+      : []
+
+  // Replace heating in both param sets with a normalized version for fair comparison
+  currentParams.delete('heating')
+  currentParams.delete('heating[]')
+  assembledParams.delete('heating')
+  assembledParams.delete('heating[]')
+
+  if (currentHeating.length) {
+    currentHeating.forEach(h => currentParams.append('heating', h))
+  }
+  if (assembledHeating.length) {
+    assembledHeating.forEach(h => assembledParams.append('heating', h))
+  }
+
+  // Compare normalized versions
+  return currentParams.toString() !== assembledParams.toString()
+})
+
 
 // Use this everywhere inside Vue for warnings/outline.
 const isDirty = urlOutOfSync
@@ -1580,10 +1659,12 @@ const isUrlHeatingMismatch = computed(() => {
   if (mode.value !== 'single' || !pageHeatingType.value) return false
 
   const params = new URLSearchParams(window.location.search)
-  const heatingParam = params.get('heating')
+  const heatingParams = params.getAll('heating[]')
+  const heatingSingle = params.get('heating')
+  const allHeatingValues = heatingParams.length ? heatingParams : (heatingSingle ? [heatingSingle] : [])
 
   // Mismatch occurs if the URL has a heating param that differs from SSR value
-  return heatingParam && heatingParam !== pageHeatingType.value
+  return allHeatingValues.length > 0 && !allHeatingValues.includes(pageHeatingType.value)
 })
 
 
@@ -1681,7 +1762,17 @@ function assembleUrl() {
     if (selectedRegionName.value) urlParams.set('region', selectedRegionName.value)
   }
 
-  if (selectedHeatingSlug.value) urlParams.set('heating', selectedHeatingName.value)
+  // Preserve any heating[]= values already in the URL
+  const existingParams = new URLSearchParams(window.location.search)
+  const existingHeatingArray = existingParams.getAll('heating[]')
+
+  if (mode.value === 'single' && existingHeatingArray.length > 1) {
+    urlParams.delete('heating')
+    existingHeatingArray.forEach(h => urlParams.append('heating[]', h))
+  } else if (selectedHeatingSlug.value) {
+    urlParams.set('heating', selectedHeatingName.value)
+  }
+
   if (selectedUtilitySlug.value) urlParams.set('utility', selectedUtilityName.value)
 
   return `${baseUrl}?${urlParams.toString()}`
@@ -1691,21 +1782,49 @@ function assembleUrl() {
  * Copy the assembled URL to clipboard and show a feedback message.
  */
 function addLinkToClipboard(event) {
-  const url = assembledUrl.value
-  navigator.clipboard
-    ?.writeText(url)
-    .then(() =>
-      handleLinkCopiedMessageContent(
-        event,
-        '.selection-summary',
-        'Link copied to clipboard'
+  try {
+    const currentParams = new URLSearchParams(window.location.search)
+    const heatingArray = currentParams.getAll('heating[]')
+
+    // Start from the current assembled URL
+    const urlObj = new URL(assembledUrl.value, window.location.origin)
+
+    // Preserve multiple heating values if they exist
+    if (heatingArray.length > 1) {
+      urlObj.searchParams.delete('heating')
+      urlObj.searchParams.delete('heating[]')
+      heatingArray.forEach(h => urlObj.searchParams.append('heating[]', h))
+    }
+
+    const finalUrl = urlObj.toString()
+
+    navigator.clipboard
+      ?.writeText(finalUrl)
+      .then(() =>
+        handleLinkCopiedMessageContent(
+          event,
+          '.selection-summary',
+          'Full rebate link copied!'
+        )
       )
+      .catch(err => {
+        console.error('Failed to copy URL:', err)
+        handleLinkCopiedMessageContent(
+          event,
+          '.selection-summary',
+          'Copy failed'
+        )
+      })
+  } catch (e) {
+    console.error('Copy link error:', e)
+    handleLinkCopiedMessageContent(
+      event,
+      '.selection-summary',
+      'Copy failed'
     )
-    .catch(err => {
-      console.error('Failed to copy URL:', err)
-      handleLinkCopiedMessageContent(event, '.selection-summary', 'Copy failed')
-    })
+  }
 }
+
 
 /**
  * Show a temporary feedback message in the UI when link copied.
@@ -1739,7 +1858,10 @@ function initFromQueryString() {
   const persons = urlParams.get('persons')
   const income = urlParams.get('income')
   const location = urlParams.get('location')
-  const heating = urlParams.get('heating')
+  // Support single or multiple heating values.
+  const heatingParams = urlParams.getAll('heating[]')
+  const heatingSingle = urlParams.get('heating')
+  const heatingValues = heatingParams.length ? heatingParams : (heatingSingle ? [heatingSingle] : [])
   const utility = urlParams.get('utility')
 
   if (group && buildingTypeGroups.value.some(g => g.slug === group)) {
@@ -1774,9 +1896,17 @@ function initFromQueryString() {
     if (foundLoc) selectedLocationSlug.value = foundLoc.slug
   }
 
-  if (heating) {
-    const foundHeat = heatingOptions.value.find(l => l.name === heating)
-    if (foundHeat) selectedHeatingSlug.value = foundHeat.slug
+  if (heatingValues.length) {
+    // Prefer to match the first valid heating slug from the list.
+    for (const h of heatingValues) {
+      const foundHeat =
+        heatingOptions.value.find(l => l.slug === h) ||
+        heatingOptions.value.find(l => l.name === h)
+      if (foundHeat) {
+        selectedHeatingSlug.value = foundHeat.slug
+        break
+      }
+    }
   }
 
   if (utility) {
@@ -1803,11 +1933,25 @@ const urlStateDeps = computed(() => ({
  * Update the browser address bar to match assembled state.
  */
 function updateAddressBar() {
-  const url = assembledUrl.value
   try {
-    window.history.replaceState(null, '', url)
+    const currentParams = new URLSearchParams(window.location.search)
+    const heatingArray = currentParams.getAll('heating[]')
+
+    const urlObj = new URL(assembledUrl.value, window.location.origin)
+
+    // Preserve multi-heating arrays in single mode
+    if (mode.value === 'single' && heatingArray.length > 1) {
+      urlObj.searchParams.delete('heating')
+      urlObj.searchParams.delete('heating[]')
+      heatingArray.forEach(h => urlObj.searchParams.append('heating[]', h))
+    }
+
+    // Only replace if actually different (prevents needless flicker)
+    if (decodeURIComponent(urlObj.search) !== decodeURIComponent(window.location.search)) {
+      window.history.replaceState(null, '', urlObj.toString())
+    }
   } catch (e) {
-    // no-op.
+    // no-op
   }
 }
 
@@ -1958,18 +2102,35 @@ const filteredResults = computed(() => {
 
 /**
  * Return a URL with the current query string appended.
+ * If an item is provided and has multiple heating types,
+ * append all of them as &heating[]=slug params.
  */
-function withQueryString(baseUrl) {
+function withQueryString(baseUrl, item = null) {
   if (!baseUrl) return '#'
-  const qs = assembledQueryString.value
-  if (!qs) return baseUrl
+
+  // Start from the assembled query string (user's current selections)
+  const params = new URLSearchParams(assembledQueryString.value.replace(/^\?/, ''))
+
+  // If item has multiple heating types, append all
+  if (item && Array.isArray(item.heating_types) && item.heating_types.length > 0) {
+    // Remove any single heating param first
+    params.delete('heating')
+
+    // Append each heating slug
+    item.heating_types.forEach(ht => {
+      if (ht?.slug) params.append('heating[]', ht.slug)
+    })
+  }
+
+  const query = params.toString()
   try {
     const urlObj = new URL(baseUrl, window.location.origin)
-    return urlObj.origin + urlObj.pathname + qs
+    return `${urlObj.origin + urlObj.pathname}?${query}`
   } catch (e) {
-    return baseUrl + qs
+    return `${baseUrl}?${query}`
   }
 }
+
 </script>
 
 <style scoped>

@@ -1,5 +1,6 @@
 ## 1.24.4 October 16, 2025
 – Single mode heating type handles multiple or any (for all) types.
+– Extensive updates to have heating type work with an array of options in the URL assembly, storage and updating.
 
 ## 1.24.3 October 15, 2025
 – Updated filtering results to include "available rebates" taxonomy + added murb/god meta check.
