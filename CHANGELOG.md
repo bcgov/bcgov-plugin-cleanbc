@@ -1,3 +1,6 @@
+## 1.24.5 October 28, 2025
+– Unifying select field form display across browser variants.
+
 ## 1.24.4 October 17, 2025
 – No results card and details.
 

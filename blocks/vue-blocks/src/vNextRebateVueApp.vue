@@ -1999,8 +1999,6 @@ function withQueryString(baseUrl) {
       grid-template-columns: 1fr 1fr;
     }
 
-
-
     &.stacked {
 
       counter-reset: question;
@@ -2309,21 +2307,33 @@ function withQueryString(baseUrl) {
         opacity: 0.9;
       }
 
+      :is(select) {
+        -webkit-appearance: unset;
+        appearance: unset;
+      }
+
       .select {
         color: #369;
         font-size: 1rem;
         margin-block: 0.25rem;
-        padding: .5rem;
+        padding: .5rem  2.5rem .5rem .5rem;
         outline-offset: 2px;
         outline: 2px solid var(--wp--preset--color--custom-info-border);
+        /* down arrow */
+        background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBvcGFjaXR5PSIuMSIgZD0iTTAgMjU2YTI1NiAyNTYgMCAxIDAgNTEyIDBBMjU2IDI1NiAwIDEgMCAwIDI1NnptMTI4LTQ4bDI1NiAwIDAgMzJMMjU2IDM2OCAxMjggMjQwbDAtMzJ6Ii8+PHBhdGggZmlsbD0iIzM2OSIgZD0iTTEyOCAyMDh2MzJMMjU2IDM2OCAzODQgMjQwVjIwOEgxMjh6Ii8+PC9zdmc+);
+        background-repeat: no-repeat;
+        background-position: right 0.5rem center;
+        background-size: 1.25rem;
 
         &:has(option[data-default="Select an option"]:checked) {
           outline: 2px solid #f6a044;
+           background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZjZhMDQ0IiBvcGFjaXR5PSIuMSIgZD0iTTAgMjU2YTI1NiAyNTYgMCAxIDAgNTEyIDBBMjU2IDI1NiAwIDEgMCAwIDI1NnptMTI4LTQ4bDI1NiAwIDAgMzJMMjU2IDM2OCAxMjggMjQwbDAtMzJ6Ii8+PHBhdGggZmlsbD0iI2Y2YTA0NCIgZD0iTTEyOCAyMDh2MzJMMjU2IDM2OCAzODQgMjQwVjIwOEgxMjh6Ii8+PC9zdmc+);
         }
 
         &:disabled:not(.transition) {
           color: #fff;
           outline: 2px solid lightgray !important;
+          background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJsaWdodGdyYXkiIG9wYWNpdHk9Ii4xIiBkPSJNMCAyNTZhMjU2IDI1NiAwIDEgMCA1MTIgMEEyNTYgMjU2IDAgMSAwIDAgMjU2em0xMjgtNDhsMjU2IDAgMCAzMkwyNTYgMzY4IDEyOCAyNDBsMC0zMnoiLz48cGF0aCBmaWxsPSJsaWdodGdyYXkiIGQ9Ik0xMjggMjA4djMyTDI1NiAzNjggMzg0IDI0MFYyMDhIMTI4eiIvPjwvc3ZnPg==) !important;
         }
       }
     }
