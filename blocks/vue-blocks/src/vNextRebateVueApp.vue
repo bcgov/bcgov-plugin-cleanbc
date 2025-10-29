@@ -7,7 +7,7 @@
     <a v-if="mode === 'archive'" href="#rebatesResults" class="sr-only skip-to-results">Skip to results</a>
 
     <!-- Loading / Error -->
-    <p v-if="isLoading" role="status" class="loader">Loading rebate settings…</p>
+    <p v-if="isLoading" role="status" class="loader">Initializing rebates qualifier questionaire from settings...</p>
     <p v-else-if="loadError" role="alert">Failed to load rebates: {{ loadError }}</p>
 
     <template v-else>
@@ -239,7 +239,7 @@
                       <figcaption v-if="field.filter_desc && !field.disabled">{{ field.filter_desc }}</figcaption>
                       <figcaption v-if="field.disabled_desc && field.disabled">{{ field.disabled_desc }}</figcaption>
                       <figcaption v-if="field.error_desc && fieldErrors[field.key]" class="hasError">{{ field.error_desc
-                      }}</figcaption>
+                        }}</figcaption>
                     </template>
                   </figure>
                 </div>
@@ -249,35 +249,44 @@
           <div v-if="hasAnySelection" class='clear-msg'><a href="#clear" @click.prevent="clearSettings">Clear
               settings</a> to
             start over</div>
+          <div v-else class='clear-msg'>Please answer the form questions to see possible rebates.</div>
         </template>
       </div>
 
       <!-- Results -->
       <section v-if="mode === 'archive' && filteredResults.length" id="rebatesResults" aria-label="Rebate results">
         <div class="results-message">
-          <h2>Congratulations!</h2>
-          <p>You may qualify for the following rebates.</p>
+          <div>
+            <h2>Congratulations!</h2>
+            <p>You may qualify for the following rebates.</p>
+          </div>
+          <div id='grid-or-list-container'>
+            <input id="grid-or-list" type="checkbox" v-model="displayGridOrList" class="sr-only" />
+            <label for="grid-or-list" class="toggle-label"><span class="sr-only">{{ displayGridOrList ? 'Switch to list view' : 'Switch to grid view' }}</span></label>
+          </div>
         </div>
-        <div class="results">
+        <div class="results" :class="displayGridOrList ? 'grid-view' : 'list-view'">
           <template v-for="(item, index) in filteredResults" :key="item.id">
             <article class="rebate-card" :class="item.rebate_type_class">
               <a :href="withQueryString(item.post_url ?? item.url ?? '#')" style="position: relative;"
                 :aria-label="item.rebate_type_headline_card">
-                <div v-if="item.rebate_value_card" class="rebate-value" aria-hidden="true">
-                  {{ item.rebate_value_card }}
+                <div class='card-meta'>
+                  <div v-if="item.rebate_value_card" class="rebate-value" aria-hidden="true">
+                    {{ item.rebate_value_card }}
+                  </div>
+  
+                  <figure v-if="item.rebate_featured_image" class="wp-block-image size-full">
+                    <img decoding="async" width="1024" height="515" data-print-width="25"
+                      :src="item.rebate_featured_image" alt="" title="" />
+                  </figure>
+  
+                  <div v-if="item.rebate_description_card" class="rebate-icons" aria-label="Rebate available">
+                    <div v-for="(ht, i) in item.heating_types" :key="ht.id || i" :class="['rebate-icon', ht.slug]"
+                      :title="`For homes fueled by ${ht.name}`" :aria-label="`For homes fueled by ${ht.name}`"></div>
+                  </div>
                 </div>
 
-                <figure v-if="item.rebate_featured_image" class="wp-block-image size-full">
-                  <img decoding="async" width="1024" height="515" data-print-width="25"
-                    :src="item.rebate_featured_image" alt="" title="" />
-                </figure>
-
-                <div v-if="item.rebate_description_card" class="rebate-icons" aria-label="Rebate available">
-                  <div v-for="(ht, i) in item.heating_types" :key="ht.id || i" :class="['rebate-icon', ht.slug]"
-                    :title="`For homes fueled by ${ht.name}`" :aria-label="`For homes fueled by ${ht.name}`"></div>
-                </div>
-
-                <div>
+                <div class='rebate-details-container'>
                   <header>
                     <h3 class="rebate-title">
                       <div>{{ item.rebate_type_headline_card }}</div>
@@ -305,12 +314,16 @@
               index === firstHeatPumpIndex" class="info-card">
               <div class="info-card-content">
                 <h3>What is a heat pump?</h3>
-                <p>A heat pump is an efficient heating and cooling system that uses electricity to move heat from one place to another. In the winter, a heat pump transfers heat from the outside air to the indoors through a cycle of compression and expansion of a refrigerant. In the summer, it operates in reverse and heat from inside your home to the outdoors, like an air conditioner.</p>
+                <p>A heat pump is an efficient heating and cooling system that uses electricity to move heat from one
+                  place to another. In the winter, a heat pump transfers heat from the outside air to the indoors
+                  through a cycle of compression and expansion of a refrigerant. In the summer, it operates in reverse
+                  and heat from inside your home to the outdoors, like an air conditioner.</p>
               </div>
               <figure class="wp-block-image size-full">
-                  <img decoding="async" width="1889" height="1259" data-print-width="25"
-                    src="https://www.betterhomesbc.ca/app/uploads/sites/956/2025/10/heat-pump-info-card.jpg" alt="" title="" />
-                </figure>
+                <img decoding="async" width="1889" height="1259" data-print-width="25"
+                  src="https://www.betterhomesbc.ca/app/uploads/sites/956/2025/10/heat-pump-info-card.jpg" alt=""
+                  title="" />
+              </figure>
             </div>
           </template>
         </div>
@@ -329,27 +342,29 @@
         </div>
         <div class="results no-results">
           <article class="rebate-card">
-                <figure class="wp-block-image size-full">
-                  <img decoding="async" width="1024" height="515" data-print-width="25"
-                    src="https://www.betterhomesbc.ca/app/uploads/sites/956/2020/09/iStock-155148974-scaled-1.jpg" alt="" title="" />
-                </figure>
-                <div>
-                  <header>
-                    <h3 class="rebate-title">
-                      <div>We're sorry...</div>
-                    </h3>
-                  </header>
-                  <div class="rebate-details">
-                    <div class="rebate-description">
-                      <div>We couldn’t find any rebates that match your home.</div>
-                    </div>
-                  </div>
+            <figure class="wp-block-image size-full">
+              <img decoding="async" width="1024" height="515" data-print-width="25"
+                src="https://www.betterhomesbc.ca/app/uploads/sites/956/2020/09/iStock-155148974-scaled-1.jpg" alt=""
+                title="" />
+            </figure>
+            <div>
+              <header>
+                <h3 class="rebate-title">
+                  <div>We're sorry...</div>
+                </h3>
+              </header>
+              <div class="rebate-details">
+                <div class="rebate-description">
+                  <div>We couldn’t find any rebates that match your home.</div>
                 </div>
-            </article>
-          </div>
+              </div>
+            </div>
+          </article>
+        </div>
       </section>
 
-      <p v-else-if="mode === 'archive' && !hasAllSelection && !filteredResults.length" class="no-results">Please complete the form above.</p>
+      <p v-else-if="mode === 'archive' && !hasAllSelection && !filteredResults.length" class="no-results loader">Please
+        complete the form above to see your rebate options.</p>
 
 
       <!-- Selection summary (for quick verification) -->
@@ -398,6 +413,8 @@ const api = ref({
 
 const isLoading = ref(true)
 const loadError = ref('')
+
+const displayGridOrList = ref(true);
 
 /**
  * Debounce a function so it runs only after a specified delay.
@@ -2316,7 +2333,7 @@ function withQueryString(baseUrl) {
         color: #369;
         font-size: 1rem;
         margin-block: 0.25rem;
-        padding: .5rem  2.5rem .5rem .5rem;
+        padding: .5rem 2.5rem .5rem .5rem;
         outline-offset: 2px;
         outline: 2px solid var(--wp--preset--color--custom-info-border);
         /* down arrow */
@@ -2327,7 +2344,7 @@ function withQueryString(baseUrl) {
 
         &:has(option[data-default="Select an option"]:checked) {
           outline: 2px solid #f6a044;
-           background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48cGF0aCBmaWxsPSIjZjZhMDQ0IiBkPSJNMjM5IDQ5OC43bDE2MC0xMjggMTguNy0xNS0zMC0zNy41LTE4LjcgMTUtMTQ1IDExNkw3OSAzMzMuM2wtMTguNy0xNS0zMCAzNy41IDE4LjcgMTUgMTYwIDEyOCAxNSAxMiAxNS0xMnptMC00ODUuNWwtMTUtMTItMTUgMTJMNDkgMTQxLjNsLTE4LjcgMTUgMzAgMzcuNSAxOC43LTE1IDE0NS0xMTYgMTQ1IDExNiAxOC43IDE1IDMwLTM3LjUtMTguNy0xNUwyMzkgMTMuM3oiLz48L3N2Zz4=);
+          background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48cGF0aCBmaWxsPSIjZjZhMDQ0IiBkPSJNMjM5IDQ5OC43bDE2MC0xMjggMTguNy0xNS0zMC0zNy41LTE4LjcgMTUtMTQ1IDExNkw3OSAzMzMuM2wtMTguNy0xNS0zMCAzNy41IDE4LjcgMTUgMTYwIDEyOCAxNSAxMiAxNS0xMnptMC00ODUuNWwtMTUtMTItMTUgMTJMNDkgMTQxLjNsLTE4LjcgMTUgMzAgMzcuNSAxOC43LTE1IDE0NS0xMTYgMTQ1IDExNiAxOC43IDE1IDMwLTM3LjUtMTguNy0xNUwyMzkgMTMuM3oiLz48L3N2Zz4=);
         }
 
         &:disabled:not(.transition) {
@@ -2398,6 +2415,10 @@ function withQueryString(baseUrl) {
   #rebatesResults {
     container-type: inline-size;
     container-name: results;
+
+    :is(a) {
+      height: 100%;
+    }
   }
 
   .info-card {
@@ -2431,43 +2452,54 @@ function withQueryString(baseUrl) {
 
   .results-message {
     margin-block-end: 2rem;
+    display: flex;
+    align-items: flex-end;
 
-    &::before {
-      content: "";
-      display: block;
-      background-color: var(--wp--preset--color--heading-line);
-      border-top-width: 3rem;
-      margin-block-end: 1rem;
-      height: 3px;
-      width: 3rem;
+    :is(div):first-child {
+      flex: 1;
     }
 
     :is(h2) {
+      &::before {
+        content: "";
+        display: block;
+        background-color: var(--wp--preset--color--heading-line);
+        border-top-width: 3rem;
+        margin-block-end: 1rem;
+        height: 3px;
+        width: 3rem;
+      }
+
       margin-block-end: 0;
     }
   }
 
   .results {
+    
     display: grid;
     gap: 2rem;
     margin-top: 0.5rem;
-
+    
     grid-template-columns: 1fr;
-
+    
     &.no-results {
       grid-template-columns: repeat(3, 1fr);
-
+      
       .rebate-card {
         grid-column: 2;
       }
     }
-
+    
     @container (width > 500px) and (width < 800px) {
       grid-template-columns: repeat(2, 1fr);
     }
-
+    
     @container (width > 801px) {
       grid-template-columns: repeat(3, 1fr);
+    }
+   
+    &.list-view {
+       grid-template-columns: 1fr;
     }
   }
 
@@ -2494,6 +2526,68 @@ function withQueryString(baseUrl) {
       outline-offset: 2px;
       box-shadow: inset 0 0 2px rgb(0 0 0 / 0.3);
     }
+  }
+
+  .results.list-view {
+
+    @container (width > 500px) {
+      .rebate-card :is(a) {
+        min-height: 200px;
+        width: 100%;
+        display: grid;
+        gap: 1rem;
+
+        .rebate-details-container {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+        .rebate-value {
+          position: absolute;
+          left: auto;
+          right: -1rem;
+          top: 0;
+          z-index: 1;
+          outline: none;
+          border-radius: 0 0 0 0.5rem;
+          padding-block: 0.25rem;
+        }
+        .wp-block-image {
+          margin: -4px;
+          max-width: 20%;
+          min-width: 230px;
+          order: -1;
+          z-index: 0;
+          
+          :is(img) {
+            max-width: 100%;
+            height: 100%;
+            aspect-ratio: 0.66;
+          }
+        }
+        .rebate-icons {
+          position: absolute;
+          bottom: 5rem;
+          top: auto;
+          z-index: 1;
+        }
+      
+         grid-template-columns: minmax(230px,20%) 1fr;
+      }
+      .info-card {
+          .wp-block-image {
+            max-width: 30%;
+          }
+        }
+    }
+    @container (width > 700px) {
+      .rebate-card :is(a) {
+        .wp-block-image :is(img) {
+          aspect-ratio: 1;
+        }
+      }
+    }
+    
   }
 
   .rebate-title {
@@ -2660,6 +2754,23 @@ function withQueryString(baseUrl) {
     &:is(:hover, :focus, :focus-visible)::after {
       content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNOTQgMTg3LjFDMTIwLjggMTI0LjEgMTgzLjMgODAgMjU2IDgwYzM5LjcgMCA3Ny44IDE1LjggMTA1LjkgNDMuOUw0MTQuMSAxNzYgMzYwIDE3NmMtMTMuMyAwLTI0IDEwLjctMjQgMjRzMTAuNyAyNCAyNCAyNGwxMTIgMGMxMy4zIDAgMjQtMTAuNyAyNC0yNGwwLTExMmMwLTEzLjMtMTAuNy0yNC0yNC0yNHMtMjQgMTAuNy0yNCAyNGwwIDU0LjFMMzk1LjkgODkuOUMzNTguOCA1Mi44IDMwOC41IDMyIDI1NiAzMkMxNjMuNCAzMiA4My45IDg4LjIgNDkuOCAxNjguM2MtNS4yIDEyLjIgLjUgMjYuMyAxMi43IDMxLjVzMjYuMy0uNSAzMS41LTEyLjd6bTM2OCAxNTdjNS4yLTEyLjItLjQtMjYuMy0xMi42LTMxLjVzLTI2LjMgLjQtMzEuNSAxMi42QzM5MSAzODguMSAzMjguNiA0MzIgMjU2IDQzMmMtMzkuNyAwLTc3LjgtMTUuOC0xMDUuOS00My45TDk3LjkgMzM2bDU0LjEgMGMxMy4zIDAgMjQtMTAuNyAyNC0yNHMtMTAuNy0yNC0yNC0yNEw0MCAyODhjLTEzLjMgMC0yNCAxMC43LTI0IDI0bDAgMTEyYzAgMTMuMyAxMC43IDI0IDI0IDI0czI0LTEwLjcgMjQtMjRsMC01NC4xIDUyLjEgNTIuMUMxNTMuMiA0NTkuMiAyMDMuNSA0ODAgMjU2IDQ4MGM5Mi41IDAgMTcxLjgtNTYgMjA2LTEzNS45eiIgZmlsbD0iI2ZmZiIgLz48L3N2Zz4=);
     }
+  }
+}
+
+#rebateFilterApp[data-mode="archive"] .loader {
+  display: grid;
+  height: 75px;
+  place-items: center;
+  background-color: #fff;
+  box-shadow: 0 0 .7rem #31313220;
+  border: 0;
+  border-radius: .66rem;
+  font-size: 1.125rem;
+  color: #369;
+
+  &.no-results {
+    width: calc(100% - 3rem);
+    margin-left: 3rem;
   }
 }
 
@@ -2920,5 +3031,112 @@ body.betterhomesbc #dialog .dialog-content h2 {
 
 #rebatesFilterControls.labels-hidden label.small {
   display: none !important;
+}
+
+
+#grid-or-list-container {
+  display: none;
+
+  @media (width > 564px) {
+    display: block;
+  }
+}
+
+#grid-or-list {
+
+  +label {
+    display: inline-block;
+  }
+
+  +label::before,
+  +label::after {
+    display: inline-block;
+    width: 2rem;
+    height: 2rem;
+    border: 2px solid #369;
+    padding-inline: 0.25rem;
+    background: #369;
+    cursor: pointer;
+  }
+
+  +label::before {
+    /* grid icon blue */
+    content: url(data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PScwIDAgMzIgMzInIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zyc+PHBhdGggZmlsbD0nIzM2OScgZD0nTTcgN3Y3aDd2LTd6IE0xNyA3djdoN3YtN3pNNyAxN3Y3aDd2LTd6TTE3IDE3djdoN3YtN3onLz48L3N2Zz4=);
+    border-radius: 100vw 0 0 100vw;
+    padding-inline: .5rem .25rem;
+    border-right: 0;
+  }
+
+  &:checked+label::before {
+    /* grid icon white */
+    content: url(data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PScwIDAgMzIgMzInIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zyc+PHBhdGggZmlsbD0nI2ZmZicgZD0nTTcgN3Y3aDd2LTd6IE0xNyA3djdoN3YtN3pNNyAxN3Y3aDd2LTd6TTE3IDE3djdoN3YtN3onLz48L3N2Zz4=);
+  }
+
+  +label::after {
+    /* list icon blue */
+    content: url(data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PScwIDAgMzIgMzInIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zyc+PHBhdGggZmlsbD0nIzM2OScgZD0nTTcgOXYyaDJ2LTJ6TTcgMTV2Mmgydi0yek03IDIxdjJoMnYtMnpNMTIgOXYyaDEydi0yek0xMiAxNXYyaDEydi0yek0xMiAyMXYyaDEydi0yeicvPjwvc3ZnPg==);
+    border-radius: 0 100vw 100vw 0;
+    padding-inline: .25rem .5rem;
+     border-left: 0;
+  }
+
+  &:not(:checked)+label::after {
+    /* list icon white */
+    content: url(data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PScwIDAgMzIgMzInIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zyc+PHBhdGggZmlsbD0nI2ZmZicgZD0nTTcgOXYyaDJ2LTJ6TTcgMTV2Mmgydi0yek03IDIxdjJoMnYtMnpNMTIgOXYyaDEydi0yek0xMiAxNXYyaDEydi0yek0xMiAyMXYyaDEydi0yeicvPjwvc3ZnPg==);
+  }
+
+  &:not(:checked)+label::before,
+  &:checked+label::after {
+    background: #ddd;
+  }
+
+  :is(ul) {
+    padding: 0;
+    display: flex;
+  }
+
+  :is(li) {
+    list-style: none;
+  }
+
+  &:not(:checked)~ul {
+    flex-flow: column;
+  }
+
+  &:not(:checked)~ul li {
+    padding: 0.5em 0;
+    border-top: 1px solid #369;
+    width: 100%;
+  }
+
+  &:not(:checked)~ul li:last-child {
+    border-bottom: 1px solid #369;
+  }
+
+  &:not(:checked)~ul h2,
+  &:not(:checked)~ul p {
+    display: inline-block;
+    font-size: 1em;
+    margin: 0 1em 0 0;
+  }
+
+  &:not(:checked)~ul p:last-child {
+    float: right;
+  }
+
+  &:checked~ul {
+    flex-flow: row wrap;
+    gap: 1em;
+  }
+
+  &:checked~ul li {
+    flex: 0 0 16em;
+    padding: 1em;
+    box-shadow: 0.5em 0.5em 0.5em #bbb;
+  }
+
+  &:checked~ul p {
+    margin: 0;
+  }
 }
 </style>

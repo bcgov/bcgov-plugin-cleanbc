@@ -1,3 +1,6 @@
+## 1.25.0 October 29, 2025
+– Added grid and list layout for results display.
+
 ## 1.24.5 October 28, 2025
 – Unifying select field form display across browser variants.
 
