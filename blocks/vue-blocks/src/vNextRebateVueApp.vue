@@ -239,7 +239,7 @@
                       <figcaption v-if="field.filter_desc && !field.disabled">{{ field.filter_desc }}</figcaption>
                       <figcaption v-if="field.disabled_desc && field.disabled">{{ field.disabled_desc }}</figcaption>
                       <figcaption v-if="field.error_desc && fieldErrors[field.key]" class="hasError">{{ field.error_desc
-                        }}</figcaption>
+                      }}</figcaption>
                     </template>
                   </figure>
                 </div>
@@ -260,9 +260,15 @@
             <h2>Congratulations!</h2>
             <p>You may qualify for the following rebates.</p>
           </div>
-          <div id='grid-or-list-container'>
-            <input id="grid-or-list" type="checkbox" v-model="displayGridOrList" class="sr-only" />
-            <label for="grid-or-list" class="toggle-label"><span class="sr-only">{{ displayGridOrList ? 'Switch to list view' : 'Switch to grid view' }}</span></label>
+          <div id="grid-or-list-container">
+            <input id="grid-or-list" type="checkbox" v-model="displayGridOrList" class="sr-only"
+              :aria-label="displayGridOrList ? 'Switch to list view' : 'Switch to grid view'"
+              @change="onViewToggleChange" @keydown.enter.prevent="toggleViewWithKeyboard" />
+            <label for="grid-or-list" class="toggle-label">
+              <span class="sr-only">
+                {{ displayGridOrList ? 'Switch to list view' : 'Switch to grid view' }}
+              </span>
+            </label>
           </div>
         </div>
         <div class="results" :class="displayGridOrList ? 'grid-view' : 'list-view'">
@@ -274,12 +280,12 @@
                   <div v-if="item.rebate_value_card" class="rebate-value" aria-hidden="true">
                     {{ item.rebate_value_card }}
                   </div>
-  
+
                   <figure v-if="item.rebate_featured_image" class="wp-block-image size-full">
                     <img decoding="async" width="1024" height="515" data-print-width="25"
                       :src="item.rebate_featured_image" alt="" title="" />
                   </figure>
-  
+
                   <div v-if="item.rebate_description_card" class="rebate-icons" aria-label="Rebate available">
                     <div v-for="(ht, i) in item.heating_types" :key="ht.id || i" :class="['rebate-icon', ht.slug]"
                       :title="`For homes fueled by ${ht.name}`" :aria-label="`For homes fueled by ${ht.name}`"></div>
@@ -414,7 +420,23 @@ const api = ref({
 const isLoading = ref(true)
 const loadError = ref('')
 
-const displayGridOrList = ref(true);
+/**
+ * Set the state of the results. Allow for retrieval from localStorage.
+ * true = grid view, false = list view.
+ */
+
+const displayGridOrList = ref(true)
+const STORAGE_KEY = 'displayGridOrList'
+
+
+function onViewToggleChange() {
+  localStorage.setItem(STORAGE_KEY, String(displayGridOrList.value))
+}
+
+function toggleViewWithKeyboard() {
+  displayGridOrList.value = !displayGridOrList.value
+  localStorage.setItem(STORAGE_KEY, String(displayGridOrList.value))
+}
 
 /**
  * Debounce a function so it runs only after a specified delay.
@@ -1640,6 +1662,11 @@ onMounted(() => {
     applyDirtyClasses(urlOutOfSync.value)
   })
   observer.observe(document.body, { childList: true, subtree: true })
+
+  const saved = localStorage.getItem(STORAGE_KEY)
+  if (saved !== null) {
+    displayGridOrList.value = (saved === 'true')
+  }
 })
 
 /**
@@ -2475,31 +2502,31 @@ function withQueryString(baseUrl) {
   }
 
   .results {
-    
+
     display: grid;
     gap: 2rem;
     margin-top: 0.5rem;
-    
+
     grid-template-columns: 1fr;
-    
+
     &.no-results {
       grid-template-columns: repeat(3, 1fr);
-      
+
       .rebate-card {
         grid-column: 2;
       }
     }
-    
+
     @container (width > 500px) and (width < 800px) {
       grid-template-columns: repeat(2, 1fr);
     }
-    
+
     @container (width > 801px) {
       grid-template-columns: repeat(3, 1fr);
     }
-   
+
     &.list-view {
-       grid-template-columns: 1fr;
+      grid-template-columns: 1fr;
     }
   }
 
@@ -2542,6 +2569,7 @@ function withQueryString(baseUrl) {
           flex-direction: column;
           justify-content: center;
         }
+
         .rebate-value {
           position: absolute;
           left: auto;
@@ -2552,34 +2580,38 @@ function withQueryString(baseUrl) {
           border-radius: 0 0 0 0.5rem;
           padding-block: 0.25rem;
         }
+
         .wp-block-image {
           margin: -4px;
           max-width: 20%;
           min-width: 230px;
           order: -1;
           z-index: 0;
-          
+
           :is(img) {
             max-width: 100%;
             height: 100%;
             aspect-ratio: 0.66;
           }
         }
+
         .rebate-icons {
           position: absolute;
           bottom: 5rem;
           top: auto;
           z-index: 1;
         }
-      
-         grid-template-columns: minmax(230px,20%) 1fr;
+
+        grid-template-columns: minmax(230px, 20%) 1fr;
       }
+
       .info-card {
-          .wp-block-image {
-            max-width: 30%;
-          }
+        .wp-block-image {
+          max-width: 30%;
         }
+      }
     }
+
     @container (width > 700px) {
       .rebate-card :is(a) {
         .wp-block-image :is(img) {
@@ -2587,7 +2619,7 @@ function withQueryString(baseUrl) {
         }
       }
     }
-    
+
   }
 
   .rebate-title {
@@ -3040,6 +3072,14 @@ body.betterhomesbc #dialog .dialog-content h2 {
   @media (width > 564px) {
     display: block;
   }
+
+  border: 2px solid #fff;
+  border-radius: 100vw;
+  max-height: 2.5rem;
+
+  &:focus-within {
+    outline: 2px solid #369;
+  }
 }
 
 #grid-or-list {
@@ -3077,7 +3117,7 @@ body.betterhomesbc #dialog .dialog-content h2 {
     content: url(data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PScwIDAgMzIgMzInIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zyc+PHBhdGggZmlsbD0nIzM2OScgZD0nTTcgOXYyaDJ2LTJ6TTcgMTV2Mmgydi0yek03IDIxdjJoMnYtMnpNMTIgOXYyaDEydi0yek0xMiAxNXYyaDEydi0yek0xMiAyMXYyaDEydi0yeicvPjwvc3ZnPg==);
     border-radius: 0 100vw 100vw 0;
     padding-inline: .25rem .5rem;
-     border-left: 0;
+    border-left: 0;
   }
 
   &:not(:checked)+label::after {

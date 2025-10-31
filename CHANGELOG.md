@@ -1,3 +1,6 @@
+## 1.25.1 October 31, 2025
+– State management for results list/grid views. Added enter key handling for toggling checkbox mechanism.
+
 ## 1.25.0 October 29, 2025
 – Added grid and list layout for results display.
 
