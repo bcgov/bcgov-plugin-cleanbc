@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 Created at 2025-11-07 1:04 pm
+=======
+Created at 2025-11-04 9:46 am
+>>>>>>> 7fcadaa (did prod build and hopefully this deletes all the extra build files)
 
 * [yes] Updated version in style.css or plugin file
 * [yes] Updated CHANGELOG.md to include jira ticket
