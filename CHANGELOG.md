@@ -1,3 +1,11 @@
+## 1.18.4 Nov 4, 2025
+- [DESCW-3206 bcgov-plugin-cleanbc dependabot fixes](https://citz-gdx.atlassian.net/browse/DESCW-3206)
+- Update Dev Dependencies to Resolve most warnings found by `npm audit`
+- Update composer.json reference to satis
+- rebuild for production
+- tested that build works without error
+- tested that tests (vite test) runs without error
+
 ## 1.18.3 May 22, 2025
 – Adding radio group interactions (keyboard support, roles and attributes) per AGP radio group: https://www.w3.org/WAI/ARIA/apg/patterns/radio/ for better accessibility in CleanBC filter mechanism.
 
@@ -27,13 +35,13 @@
 – Added following HTTP 301/302 redirects (up to a limit) for URLs passed into the proxy.
 
 ## 1.17.0 May 9, 2025
-– Automated PDF link label augmentation with type and size identifiers. 
+– Automated PDF link label augmentation with type and size identifiers.
 – PDF link PDF size proxy request to avoid CORS issues with third party PDF linking.
 
 ## 1.16.2 May 2, 2025
-– Enhanced accessibility and mobile table display, works with styles/public/tables.scss styles. 
-– Adds ARIA roles to all table elements. 
-– Copies the original cell content (`innerHTML`) and `data-label` into visually hidden cells. 
+– Enhanced accessibility and mobile table display, works with styles/public/tables.scss styles.
+– Adds ARIA roles to all table elements.
+– Copies the original cell content (`innerHTML`) and `data-label` into visually hidden cells.
 – Adds `aria-hidden="true"` to hidden cells to improve screen reader behavior.
 
 ## 1.16.1 May 2, 2025
@@ -86,7 +94,7 @@
 
 ## 1.14.2 February 14, 2025
 - Added APG Menubar Pattern support to navigation menu.
-– Rmoeved top level 'enter' handling. 
+– Rmoeved top level 'enter' handling.
 
 ## 1.14.1 February 11, 2025
 - Added escape key handling to the navigation control.
@@ -106,7 +114,7 @@
 – Vehicle items now behave as layout grid elements for screen readers per the APG (https://www.w3.org/WAI/ARIA/apg/patterns/grid/).
 
 ## 1.12.9 January 21, 2025
-- Modified vehicle sorting algorithm to use direct subtraction rather than ternary operations. 
+- Modified vehicle sorting algorithm to use direct subtraction rather than ternary operations.
 - Check the selection exists in sortFunctions before attempting to sort to avoid invalid selection.
 
 ## 1.12.8 January 20, 2025
@@ -131,7 +139,7 @@
 
 ## 1.12.3 January 9, 2025
 - Added Search escape suppression for keyboard accessibility.
-- Added a mutation observer to handle link wrapping of external icons injected by the Block Theme. 
+- Added a mutation observer to handle link wrapping of external icons injected by the Block Theme.
 - Modified styles to accomodate nowrap/no-wrap classing outside of the definitions links 'last-word' span.
 - Incentives layout adjuments for BetterBuildings.
 - Removed external link icons from mailto and tel links. Excluded last-word span maipulation from such links.
@@ -194,7 +202,7 @@
 - Added isolation of Vue component initialization.
 
 ## 1.7.2 November 28, 2024
-- Added Rebates query string ability to instantiate the tool based on preset values with copy link. 
+- Added Rebates query string ability to instantiate the tool based on preset values with copy link.
 - Update includes all relevant features from other tools eg: hide/show lower pagination, assemble URLs, clipboard copy, etc.
 - Added Rebates pagination to bottom of results table with scroll to top of results button.
 - Auto-expand Filter by upgrade accordion is any options are pre-selected.
@@ -208,7 +216,7 @@
 - Added user feedback interaction to Copy Link buttons.
 
 ## 1.7.0 November 26, 2024
-- Added watchEffect in Contractors, PQEAs and FAQs tools to look for query string values able to instantiate the tools based on preset values. 
+- Added watchEffect in Contractors, PQEAs and FAQs tools to look for query string values able to instantiate the tools based on preset values.
 - Also includes the ability to hide tools based on the '&show=off' query string addition.
 - Added the ability to assemble and copy a link to the clipboard with the specific filter values.
 - Added scaffolding to sort an array of objects asc or desc based on a specified property.
@@ -229,7 +237,7 @@
 - Added BH additional styles wrapping with body.betterhomesbc.
 
 ## 1.6.0 November 21, 2024
-- Added GitHub Actions linting and testing workflows. 
+- Added GitHub Actions linting and testing workflows.
 - Added and removed composer dependencies to fscilitate github.com deployment.
 - Added various node dependencies and support packages
 - Moved Vite based script test to "Vite-test", added jest config to exclude Vite specific tests.
@@ -270,9 +278,9 @@
 
 ## 1.2.4 January 15, 2024
 - Migrated patched css from customizer to plugin ([CLEANBC-153](https://apps.nrs.gov.bc.ca/int/jira/browse/CLEANBC-153))
-- Added design related update to Go Electric vehicle filter output. Fixed undefined value on plugin directory variable coming from WordPress using computed property. 
+- Added design related update to Go Electric vehicle filter output. Fixed undefined value on plugin directory variable coming from WordPress using computed property.
 - Fixed php notice for uninitialized string offset in vehicles custom API
-- Added Federal rebate pending option to vehicle fields and API output. Modified the Vue interface to show alternative rebate pending option and combined rebate calculation. 
+- Added Federal rebate pending option to vehicle fields and API output. Modified the Vue interface to show alternative rebate pending option and combined rebate calculation.
 - Fixed the "Show External Link Icons" setting inside BCGov Block Theme settings not working with previous plugin update. Updated front end scripts to utilise unique arrow function naming and window.requestAnimationFrame execution – removing previous setTimeout 0 – to modify the DOM and align with the browser's rendering cycle. ([CLEANBC-154](https://apps.nrs.gov.bc.ca/int/jira/browse/CLEANBC-154))
 - Includes a new addSafeEventListener utility function update and related tests used to fix external links icon issues and fixes outstanding body and navigation padding issues.
 
@@ -320,7 +328,7 @@
 ## 1.0.2 July 27, 2023
 - refactored plugin to OOP with PHP class loader
 - modified the Vue component to check for the site domain exposed by the Block Theme as part of data fetch
-- separated Vue and general scripts/styles into their own hook class files 
+- separated Vue and general scripts/styles into their own hook class files
 - minor logging and styles cleanup
 
 ## 1.0.1 July 25, 2023
