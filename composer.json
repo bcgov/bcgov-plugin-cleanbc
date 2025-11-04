@@ -1,33 +1,28 @@
 {
     "name": "bcgov-plugin/bcgov-plugin-cleanbc",
     "description": "Frontend plugin to augment Clean BC and Go Electric BC using Block Theme for BC Gov",
-    "version": "1.25.2",
     "type": "wordpress-plugin",
     "license": "Apache-2.0",
     "repositories": [
         {
-            "type": "vcs",
-            "url": "https://github.com/bcgov/wordpress-utils"
-        },
-        {
-            "type": "vcs",
-            "url": "https://github.com/Yoast/PHPUnit-Polyfills"
+            "type": "composer",
+            "url": "https://blog.gov.bc.ca/satis"
         }
     ],
     "require": {
 		"composer/installers": "^1.0"
 	},
 	"require-dev": {
-        "bcgov/wordpress-utils": "^2.3",
+        "bcgov/wordpress-utils": "2.7.0",
 		"yoast/phpunit-polyfills": "^2.0",
         "wp-coding-standards/wpcs": "^3.0",
         "wp-phpunit/wp-phpunit": "^6.7"
 	},
 	"scripts": {
-        "update-version":[ 
-            " bash update-version.sh" 
+        "update-version":[
+            " bash update-version.sh"
         ],
-        "test-setup": [ 
+        "test-setup": [
             "bash vendor/bcgov/wordpress-utils/bin/install-wp-tests.sh wordpress_test root 'rootpassword' 0.0.0.0 latest"
         ],
         "setup": [
