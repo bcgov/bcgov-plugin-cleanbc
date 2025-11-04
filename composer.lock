@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "429ef0ddfa2ada8eb0591ccb0cc514d0",
+    "content-hash": "ce25b60049bf5308a10b120899b576ed",
     "packages": [
         {
             "name": "composer/installers",
@@ -217,9 +217,9 @@
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/bcgov/wordpress-utils/zipball/d5f4731f944f39f8ffb4e6a625db979f8b97732a",
+                "url": "https://blog.gov.bc.ca/satis//dist/bcgov/wordpress-utils/bcgov-wordpress-utils-d5f4731f944f39f8ffb4e6a625db979f8b97732a-zip-a04ce3.zip",
                 "reference": "d5f4731f944f39f8ffb4e6a625db979f8b97732a",
-                "shasum": ""
+                "shasum": "a99eacb805f764f9e0a0824e063b542831fc2eea"
             },
             "require": {
                 "brain/monkey": "^2.6",
