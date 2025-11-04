@@ -35,9 +35,6 @@ NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
 # Update style.css or index.php
 perl -pi -e "s/Version: [0-9.]+/Version: ${NEW_VERSION}/" $VERSION_SOURCE
 
-# Update composer.json
-perl -pi -e "s/\"version\": \"[0-9.]+\"/\"version\": \"${NEW_VERSION}\"/" composer.json
-
 # Update package.json
 perl -pi -e "s/\"version\": \"[0-9.]+\"/\"version\": \"${NEW_VERSION}\"/" package.json
 
