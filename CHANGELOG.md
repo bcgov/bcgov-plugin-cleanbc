@@ -1,5 +1,6 @@
 ## 1.25.2 November 7, 2025
 – Added gas provider option to rebates tooling.
+– Added collapse capability to rebates single mode.
 
 ## 1.18.4 Nov 4, 2025 (changes made to main)
 - [DESCW-3206 bcgov-plugin-cleanbc dependabot fixes](https://citz-gdx.atlassian.net/browse/DESCW-3206)

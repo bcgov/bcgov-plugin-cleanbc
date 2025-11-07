@@ -13,20 +13,17 @@
     <template v-else>
       <!-- Filter Controls -->
       <div id="rebatesFilterControls" class="filter-container"
-        :class="{ 'filters-dirty': isDirty, 'labels-hidden': !labelsVisible }">
+        :class="{ 'filters-dirty': isDirty, 'labels-hidden': !labelsVisible }, isCollapseView ? 'collapsed' : ''">
 
         <div v-if="mode === 'single'" class="selection-summary" aria-live="polite">
 
-          <button class="editBtn toggle-edit-mode readonly-toggle"
-            :class="isSavingEditMode ? 'saving' : editModeView ? 'show-edit-mode' : 'show-readonly-mode'"
-            @click="toggleEditModeView" :aria-label="editModeView ? 'Exit edit mode' : 'Enter edit mode'"
-            :title="editModeView ? 'Exit edit mode' : 'Enter edit mode'">
-            <span>{{ isSavingEditMode ? 'Saving...' : editModeView ? 'Hide edit mode' : 'View edit mode' }}</span>
+          <h2 class='settings-headline'>Your home's details</h2>
+          <button class="rebate-collapse-setting"
+              :class="isCollapseView ? 'collapsed' : ''"
+              @click="toggleCollapseView">
+              collapse
           </button>
-          <button v-if='false' class='editBtn labels' :class="labelsVisible ? 'show-labels' : 'hide-labels'"
-            @click="toggleLabels" :title="labelsVisible ? 'Hide settings labels' : 'Show settings labels'">Show or hide
-            settings labels</button>
-          <h2 class='settings-headline'>Your home's details:</h2>
+
           <div v-if="selectedBuildingGroupSlug !== 'murb' && murbTenure === 'rent'" class='message error-message'>
             <p><span>Rentals of your home type are not eligible</span></p>
             <p>Only rentals in multi-unit residential buildings are currently eligible.</p>
@@ -133,14 +130,22 @@
               </template>
             </template>
             <div class="control instruction-group">
-              <label class='small sr-only' for="instructions">Settings instructions</label>
-              <p name="instructions" class="small-text">
-                <a v-if="!editModeView" href="#edit" @click.prevent="toggleEditModeView">Editing details</a><span
-                  v-else>Editing
-                  details</span> will update the page content. You may also <a href="#clear"
-                  @click.prevent="clearSettings">clear
-                  the settings</a> to start over.
-              </p>
+              <div>
+                <label class='small sr-only' for="instructions">Settings instructions</label>
+                <p name="instructions" class="small-text">
+                  <a v-if="!editModeView" href="#edit" @click.prevent="toggleEditModeView">Updating home details</a><span
+                    v-else>Updating home details</span> will refresh the page content. You may also <a href="#clear"
+                    @click.prevent="clearSettings">clear the settings</a> to start over.
+                </p>
+              </div>
+              <button class="editBtn toggle-edit-mode readonly-toggle"
+              :class="isSavingEditMode ? 'saving' : editModeView ? 'show-edit-mode' : 'show-readonly-mode'"
+              @click="toggleEditModeView" :aria-label="editModeView ? 'Exit edit mode' : 'Enter edit mode'"
+              :title="editModeView ? 'Exit edit mode' : 'Enter edit mode'">
+              <span>{{ isSavingEditMode ? 'Saving edit...' : editModeView ? 'Hide edit mode' : 'View edit mode' }}</span>
+              </button>
+              <button v-if='false' class='editBtn labels' :class="labelsVisible ? 'show-labels' : 'hide-labels'"
+                @click="toggleLabels" :title="labelsVisible ? 'Hide settings labels' : 'Show settings labels'">Show or hide settings labels</button>
             </div>
           </div>
 
@@ -567,6 +572,7 @@ const labelsVisible = ref(true)
 const showReadOnlyFields = ref(true)
 const showEditModeUI = ref(false)
 const editModeView = ref(false)
+const isCollapseView = ref(true)
 const isSavingEditMode = ref(false)
 const hasError = ref(false)
 const ariaStatusMessage = ref('')
@@ -620,6 +626,14 @@ function openEdit(field) {
 function toggleEditModeView() {
   editModeView.value = !editModeView.value
   localStorage.setItem('rebateEditModeView', JSON.stringify(editModeView.value))
+}
+
+/**
+ * Toggle the collapse mode view on/off.
+ */
+function toggleCollapseView() {
+  isCollapseView.value = !isCollapseView.value
+  localStorage.setItem('rebateCollapseView', JSON.stringify(isCollapseView.value))
 }
 
 function handleFocus() {
@@ -1692,6 +1706,11 @@ onMounted(() => {
     editModeView.value = JSON.parse(savedEditModeView)
   }
 
+  const savedCollapseView = localStorage.getItem('rebateCollapseView')
+  if (savedCollapseView !== null) {
+    isCollapseView.value = JSON.parse(savedCollapseView)
+  }
+
   const observer = new MutationObserver(() => {
     applyDirtyClasses(urlOutOfSync.value)
   })
@@ -2076,18 +2095,46 @@ function withQueryString(baseUrl) {
   }
 
   .settings-headline {
-    font-size: 1.33rem;
+    font-size: 1.15rem;
     margin-block-end: 0;
     margin-block-start: 1.25rem;
 
     @media (width > 550px) {
       margin-block-start: 0;
     }
+
+    &::before {
+      display: inline-block;
+      /* house icon */
+      content: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxOCAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE3Ljk2ODggOEMxNy45Njg4IDguNTYyNSAxNy41IDkgMTYuOTY4OCA5SDE1Ljk2ODhMMTYgMTRDMTYgMTQuMDkzOCAxNiAxNC4xODc1IDE2IDE0LjI1VjE0Ljc1QzE2IDE1LjQ2ODggMTUuNDM3NSAxNiAxNC43NSAxNkgxNC4yNUMxNC4xODc1IDE2IDE0LjE1NjIgMTYgMTQuMTI1IDE2QzE0LjA5MzggMTYgMTQuMDMxMiAxNiAxNCAxNkgxM0gxMi4yNUMxMS41MzEyIDE2IDExIDE1LjQ2ODggMTEgMTQuNzVWMTRWMTJDMTEgMTEuNDY4OCAxMC41MzEyIDExIDEwIDExSDhDNy40Mzc1IDExIDcgMTEuNDY4OCA3IDEyVjE0VjE0Ljc1QzcgMTUuNDY4OCA2LjQzNzUgMTYgNS43NSAxNkg1SDRDMy45Mzc1IDE2IDMuOTA2MjUgMTYgMy44NDM3NSAxNkMzLjgxMjUgMTYgMy43ODEyNSAxNiAzLjc1IDE2SDMuMjVDMi41MzEyNSAxNiAyIDE1LjQ2ODggMiAxNC43NVYxMS4yNUMyIDExLjI1IDIgMTEuMjE4OCAyIDExLjE4NzVWOUgxQzAuNDM3NSA5IDAgOC41NjI1IDAgOEMwIDcuNzE4NzUgMC4wOTM3NSA3LjQ2ODc1IDAuMzEyNSA3LjI1TDguMzEyNSAwLjI1QzguNTMxMjUgMC4wMzEyNSA4Ljc4MTI1IDAgOSAwQzkuMjE4NzUgMCA5LjQ2ODc1IDAuMDYyNSA5LjY1NjI1IDAuMjE4NzVMMTcuNjI1IDcuMjVDMTcuODc1IDcuNDY4NzUgMTggNy43MTg3NSAxNy45Njg4IDhaIiBmaWxsPSIjMzY5Ii8+Cjwvc3ZnPg==);
+      margin-right: 0.5rem;
+    }
   }
 
   #rebatesFilterControls {
     container-type: inline-size;
     container-name: filter;
+
+    &.collapsed {
+      height: 3.75rem;
+      overflow: hidden;
+    }
+
+    :is(button).rebate-collapse-setting {
+      all: unset;
+      height: 1.25rem;
+      width:  1.25rem;
+      font-size: 0;
+      cursor: pointer;
+      position: absolute;
+      right: 0;
+      top: 0.25rem;
+      /* down arrow */
+        background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBkPSJNMjM5IDQ5OC43bDE2MC0xMjggMTguNy0xNS0zMC0zNy41LTE4LjcgMTUtMTQ1IDExNkw3OSAzMzMuM2wtMTguNy0xNS0zMCAzNy41IDE4LjcgMTUgMTYwIDEyOCAxNSAxMiAxNS0xMnptMC00ODUuNWwtMTUtMTItMTUgMTJMNDkgMTQxLjNsLTE4LjcgMTUgMzAgMzcuNSAxOC43LTE1IDE0NS0xMTYgMTQ1IDExNiAxOC43IDE1IDMwLTM3LjUtMTguNy0xNUwyMzkgMTMuM3oiLz48L3N2Zz4=);
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 1rem;
+    }
 
     &:has(.stacked) {
       box-shadow: none;
@@ -2099,7 +2146,8 @@ function withQueryString(baseUrl) {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 0.5rem;
-
+    grid-column: 1 / -1;
+    
     @container filter (width < 680px) {
       grid-template-columns: 1fr 1fr;
     }
@@ -2330,18 +2378,29 @@ function withQueryString(baseUrl) {
       justify-content: stretch;
       gap: 0.5rem;
       margin-bottom: 0;
+      
 
       &.instruction-group {
-        border: 1px solid rgba(33, 66, 99, 0.33);
-        border-radius: 0.25rem;
-        padding: 0.25rem 0.5rem 0.5rem;
-        background-color: rgba(33, 66, 99, 0.05);
-        margin-block-start: 0.5rem;
+        margin-block-start: 1rem;
         height: fit-content;
         align-self: end;
+        text-align: center;
+        grid-column: 1 / -1;
+        grid-template-columns: 1fr 11rem;
+        gap: 1rem;
 
         :is(label) {
           margin-block-start: 0;
+        }
+
+        > div {
+          /* border: 1px solid rgba(33, 66, 99, 0.15);
+          border-radius: 0.25rem;
+          background-color: rgba(71, 141, 211, 0.05); */
+          padding: 0.25rem 0;
+          display: grid;
+          justify-content: start;
+          align-content: center;
         }
       }
 
@@ -2464,10 +2523,10 @@ function withQueryString(baseUrl) {
   .selection-summary {
     /* background: #f7f7f8; */
     background: #fff;
-    padding: 1rem;
+    padding: 0;
     border-radius: 0.5rem;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 4fr 1fr;
     gap: 0.5rem;
     position: relative;
   }
@@ -2944,32 +3003,30 @@ p.rebate-detail.rebate-detail.rebate-detail {
 }
 
 #rebateFilterApp:not([data-mode="archive"]) #rebatesFilterControls:has(.editBtn:is(:focus-visible, :focus, :hover)) {
-  background-color: hsl(210, 100%, 96%);
-  transition: all ease-in-out .3s;
+  /* background-color: hsl(210, 100%, 96%);
+  transition: all ease-in-out .3s; */
 }
 
 #rebateFilterApp:not([data-mode="archive"]) #rebatesFilterControls .editBtn {
-  position: absolute;
-  right: -1rem;
-  top: -1rem;
+  width: 100%;
   min-width: 10rem;
-  padding: 0 1rem 0 0;
+  padding: 0 0.66rem 0 0;
   height: 1rem;
   background-color: #fff;
-  border: 0 !important;
   outline: 0 !important;
   color: #369;
   display: flex;
   justify-content: end;
   align-items: center;
-  border-radius: 0 0.66rem 0 0.66rem;
+  border-radius: 0.25rem;
   transition: all ease-in-out .3s;
+  border: 1px solid hsl(210, 94%, 86%) !important;
 
   :is(span) {
     font-size: 0.85rem;
     display: inline-block;
-    text-align: center;
-    width: 100%;
+    text-align: right;
+    padding-inline-end: 1rem;
   }
 
   &:is(:focus-visible, :focus, :hover) {
@@ -2984,21 +3041,20 @@ p.rebate-detail.rebate-detail.rebate-detail {
   }
 
   &.saving {
-    min-width: 6.75rem;
+    width: 100%;
     background-color: var(--wp--preset--color--primary-brand);
+    text-align: center;
   }
 
   &.saving :is(span) {
     color: var(--wp--preset--color--white);
     text-align: right;
-    padding-inline-end: 1rem;
+    text-align: center;
   }
 
   &::after {
     content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NDAgNTEyIj48cGF0aCBmaWxsPSIjOWY5ZDljIiBkPSJNMzguOCA1LjFDMjguNC0zLjEgMTMuMy0xLjIgNS4xIDkuMlMtMS4yIDM0LjcgOS4yIDQyLjlsNTkyIDQ2NGMxMC40IDguMiAyNS41IDYuMyAzMy43LTQuMXM2LjMtMjUuNS00LjEtMzMuN0w1MjUuNiAzODYuN2MzOS42LTQwLjYgNjYuNC04Ni4xIDc5LjktMTE4LjRjMy4zLTcuOSAzLjMtMTYuNyAwLTI0LjZjLTE0LjktMzUuNy00Ni4yLTg3LjctOTMtMTMxLjFDNDY1LjUgNjguOCA0MDAuOCAzMiAzMjAgMzJjLTY4LjIgMC0xMjUgMjYuMy0xNjkuMyA2MC44TDM4LjggNS4xem0xNTEgMTE4LjNDMjI2IDk3LjcgMjY5LjUgODAgMzIwIDgwYzY1LjIgMCAxMTguOCAyOS42IDE1OS45IDY3LjdDNTE4LjQgMTgzLjUgNTQ1IDIyNiA1NTguNiAyNTZjLTEyLjYgMjgtMzYuNiA2Ni44LTcwLjkgMTAwLjlsLTUzLjgtNDIuMmM5LjEtMTcuNiAxNC4yLTM3LjUgMTQuMi01OC43YzAtNzAuNy01Ny4zLTEyOC0xMjgtMTI4Yy0zMi4yIDAtNjEuNyAxMS45LTg0LjIgMzEuNWwtNDYuMS0zNi4xek0zOTQuOSAyODQuMmwtODEuNS02My45YzQuMi04LjUgNi42LTE4LjIgNi42LTI4LjNjMC01LjUtLjctMTAuOS0yLTE2Yy43IDAgMS4zIDAgMiAwYzQ0LjIgMCA4MCAzNS44IDgwIDgwYzAgOS45LTEuOCAxOS40LTUuMSAyOC4yem05LjQgMTMwLjNDMzc4LjggNDI1LjQgMzUwLjcgNDMyIDMyMCA0MzJjLTY1LjIgMC0xMTguOC0yOS42LTE1OS45LTY3LjdDMTIxLjYgMzI4LjUgOTUgMjg2IDgxLjQgMjU2YzguMy0xOC40IDIxLjUtNDEuNSAzOS40LTY0LjhMODMuMSAxNjEuNUM2MC4zIDE5MS4yIDQ0IDIyMC44IDM0LjUgMjQzLjdjLTMuMyA3LjktMy4zIDE2LjcgMCAyNC42YzE0LjkgMzUuNyA0Ni4yIDg3LjcgOTMgMTMxLjFDMTc0LjUgNDQzLjIgMjM5LjIgNDgwIDMyMCA0ODBjNDcuOCAwIDg5LjktMTIuOSAxMjYuMi0zMi41bC00MS45LTMzek0xOTIgMjU2YzAgNzAuNyA1Ny4zIDEyOCAxMjggMTI4YzEzLjMgMCAyNi4xLTIgMzguMi01LjhMMzAyIDMzNGMtMjMuNS01LjQtNDMuMS0yMS4yLTUzLjctNDIuM2wtNTYuMS00NC4yYy0uMiAyLjgtLjMgNS42LS4zIDguNXoiLz48L3N2Zz4=);
     display: inline-block;
-    position: absolute;
-    right: 0.5rem;
   }
 
   &:is(:hover, :focus-visible)::after {
