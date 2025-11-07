@@ -13,7 +13,11 @@
     <template v-else>
       <!-- Filter Controls -->
       <div id="rebatesFilterControls" class="filter-container"
-        :class="{ 'filters-dirty': isDirty, 'labels-hidden': !labelsVisible }, isCollapseView ? 'collapsed' : ''">
+           :class="[
+            { 'filters-dirty': isDirty, 'labels-hidden': !labelsVisible },
+            { 'collapsed': isCollapseView && mode === 'single' },
+            { 'loading': isLoading }
+          ]">
 
         <div v-if="mode === 'single'" class="selection-summary" aria-live="polite">
 
@@ -2076,7 +2080,7 @@ function withQueryString(baseUrl) {
     height: 1px;
     padding: 0;
     margin: -1px;
-    overflow: hidden;
+    overflow: clip;
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
     border: 0;
@@ -2117,7 +2121,7 @@ function withQueryString(baseUrl) {
 
     &.collapsed {
       height: 3.75rem;
-      overflow: hidden;
+      overflow: clip;
     }
 
     :is(button).rebate-collapse-setting {
@@ -2655,7 +2659,7 @@ function withQueryString(baseUrl) {
     box-shadow: 0 0 .5rem rgb(0 0 0 / 0.3);
     border-radius: 0.5rem;
     padding: 0;
-    overflow: hidden;
+    overflow: clip;
 
     *,
     *:is(:hover, :focus-visible) {
@@ -2927,7 +2931,7 @@ function withQueryString(baseUrl) {
 }
 
 #rebateFilterApp[data-mode="single"] .loader {
-  height: 270px;
+  height: 3.75rem;
   display: grid;
   place-items: center;
   background-color: #fff;
