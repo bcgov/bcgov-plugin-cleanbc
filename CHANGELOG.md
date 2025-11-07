@@ -1,3 +1,6 @@
+## 1.25.2 November 7, 2025
+– Added gas provider option to rebates tooling.
+
 ## 1.25.1 October 31, 2025
 – State management for results list/grid views. Added enter key handling for toggling checkbox mechanism.
 

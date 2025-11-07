@@ -1030,6 +1030,7 @@ class EnableVueApp {
 		$all_locations      = $normalize_terms_hierarchical( 'prc-locations' );
 		$all_heating_types  = $normalize_terms_hierarchical( 'rebate-heating-types' );
 		$all_utilities      = $normalize_terms_hierarchical( 'rebate-utilities' );
+		$all_gas            = $normalize_terms_hierarchical( 'rebate-gas' );
 
 		// Unique list of regions for the settings block.
 		$all_regions = array_values( array_unique( array_filter( $all_regions ) ) );
@@ -1099,6 +1100,7 @@ class EnableVueApp {
 				'regions'        => $all_regions,
 				'heating-types'  => $all_heating_types,
 				'utilities'      => $all_utilities,
+				'gas'            => $all_gas,
 			),
 			'results'          => $posts_data,
 		);

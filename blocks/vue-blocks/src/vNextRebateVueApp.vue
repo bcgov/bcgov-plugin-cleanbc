@@ -973,6 +973,7 @@ function clearSettings(event) {
   }
 
   selectedUtilitySlug.value = ''
+  selectedGasSlug.value = ''
 
   const url = window.location.origin + window.location.pathname
   window.history.replaceState(null, '', url)
@@ -1103,12 +1104,22 @@ const fields = computed(() => [
   {
     key: 'utility',
     shortDesc: 'Electric utility company',
-    label: 'Which utility company provides your electrical service?',
+    label: 'Who is your electricity provider?',
     model: selectedUtilitySlug,
     options: utilityOptions.value,
     displayValue: selectedUtilityName.value,
     missingMessage: 'Missing service details',
     isInvalid: () => !selectedUtilitySlug.value
+  },
+  {
+    key: 'gas',
+    shortDesc: 'Natural gas or propane',
+    label: 'Who is your gas or propane provider?',
+    model: selectedGasSlug,
+    options: gasOptions.value,
+    displayValue: selectedGasName.value,
+    missingMessage: 'Missing service details',
+    isInvalid: () => !selectedGasSlug.value
   }
 ])
 
@@ -1302,6 +1313,13 @@ function initFromLocalStorage(data) {
       utilityOptions.value.find(u => u.slug === data.utility) ||
       utilityOptions.value.find(u => u.name === data.utility)
     if (utility) selectedUtilitySlug.value = utility.slug
+  }
+
+  if (data.gas) {
+    const gas =
+      gasOptions.value.find(g => g.slug === data.gas) ||
+      gasOptions.value.find(g => g.name === data.gas)
+    if (gas) selectedGasSlug.value = gas.slug
   }
 
   // After restoring state, update the URL and initialUrl.
@@ -1531,6 +1549,19 @@ const selectedUtilityName = computed(
   () => selectedUtility.value?.name || ''
 )
 
+// ----- Gas -----
+const gasOptions = computed(
+  () => api.value?.['settings-selects']?.['gas'] ?? []
+)
+const selectedGasSlug = ref('')
+const selectedGas = computed(
+  () =>
+    gasOptions.value.find(g => g.slug === selectedGasSlug.value) || null
+)
+const selectedGasName = computed(
+  () => selectedGas.value?.name || ''
+)
+
 // ----- Selections summary -----
 const hasAnySelection = computed(
   () =>
@@ -1542,7 +1573,8 @@ const hasAnySelection = computed(
       selectedIncomeRangeName.value ||
       selectedLocationName.value ||
       selectedHeatingName.value ||
-      selectedUtilityName.value
+      selectedUtilityName.value||
+      selectedGasName.value
     )
 )
 
@@ -1556,6 +1588,7 @@ const hasAllSelection = computed(() => {
   const hasLocation = !!selectedLocationName.value
   const hasHeating = !!selectedHeatingName.value
   const hasUtility = !!selectedUtilityName.value
+  const hasGas = !!selectedGasName.value
 
   return (
     hasBuilding &&
@@ -1565,7 +1598,8 @@ const hasAllSelection = computed(() => {
     hasIncome &&
     hasLocation &&
     hasHeating &&
-    hasUtility
+    hasUtility&&
+    hasGas
   )
 })
 
@@ -1697,6 +1731,7 @@ function assembleUrl() {
 
   if (selectedHeatingSlug.value) urlParams.set('heating', selectedHeatingName.value)
   if (selectedUtilitySlug.value) urlParams.set('utility', selectedUtilityName.value)
+  if (selectedGasSlug.value) urlParams.set('gas', selectedGasName.value)
 
   return `${baseUrl}?${urlParams.toString()}`
 }
@@ -1755,6 +1790,7 @@ function initFromQueryString() {
   const location = urlParams.get('location')
   const heating = urlParams.get('heating')
   const utility = urlParams.get('utility')
+  const gas = urlParams.get('gas')
 
   if (group && buildingTypeGroups.value.some(g => g.slug === group)) {
     selectedBuildingTypeSlug.value = group
@@ -1797,6 +1833,11 @@ function initFromQueryString() {
     const foundUtil = utilityOptions.value.find(l => l.name === utility)
     if (foundUtil) selectedUtilitySlug.value = foundUtil.slug
   }
+
+  if (gas) {
+    const foundGas = gasOptions.value.find(g => g.name === gas)
+    if (foundGas) selectedGasSlug.value = foundGas.slug
+  }
 }
 
 // ----- URL state deps -----
@@ -1810,6 +1851,7 @@ const urlStateDeps = computed(() => ({
   location: selectedLocationSlug.value,
   heating: selectedHeatingSlug.value,
   utility: selectedUtilitySlug.value,
+  gas: selectedGasSlug.value,
   region: selectedRegion.value
 }))
 
@@ -1878,6 +1920,16 @@ const normalizeUtilitySlug = (val) => {
   return v.replace(/\s+/g, '-') // fallback slugify.
 }
 
+const normalizeGasSlug = (val) => {
+  if (!val) return ''
+  const v = val.toLowerCase().trim()
+  if (v.includes('fortis')) return 'fortisbc-gas'
+  if (v.includes('no gas')) return 'no-gas'
+  if (v.includes('pacific')) return 'png-gas'
+  if (v.includes('tank propane')) return 'tank-gas'
+  return v.replace(/\s+/g, '-') // fallback slugify.
+}
+
 // Normalize region ("North" → "north").
 const normalizeRegionSlug = (val) => {
   if (!val) return ''
@@ -1893,6 +1945,7 @@ const normalizeLocationSlug = (val) => {
 const filteredResults = computed(() => {
   const normalizedHeating = normalizeHeatingSlug(selectedHeatingName.value)
   const normalizedUtility = normalizeUtilitySlug(selectedUtilityName.value)
+  const normalizedGas = normalizeGasSlug(selectedGasName.value)
   const normalizedRegion = normalizeRegionSlug(selectedRegionName.value)
   const normalizedLocation = normalizeLocationSlug(selectedLocationName.value)
   const normalizedEspTier = espTier.value?.toLowerCase?.()
@@ -1937,6 +1990,13 @@ const filteredResults = computed(() => {
       item.utilities.length === 0 ||
       item.utilities.some(u => u.slug?.toLowerCase?.() === normalizedUtility)
 
+    // --- Gas eligibility ---
+    const gasEligible =
+      !normalizedGas ||
+      !item.gas ||
+      item.gas.length === 0 ||
+      item.gas.some(g => g.slug?.toLowerCase?.() === normalizedGas)
+
     // --- Region eligibility ---
     const regionEligible =
       !normalizedRegion ||
@@ -1956,6 +2016,7 @@ const filteredResults = computed(() => {
       buildingTypeEligible &&
       heatingEligible &&
       utilityEligible &&
+      gasEligible &&
       regionEligible &&
       locationEligible
     )
