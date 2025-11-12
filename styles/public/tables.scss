@@ -69,3 +69,29 @@
 		}
 	}
 }
+
+/* -------------------------------------------------------------------------- */
+
+/* Base table pattern styling (desktop)  */
+
+/* -------------------------------------------------------------------------- */
+.table-pattern {
+
+	[role="table"] {
+		width: 100%;
+		border-collapse: collapse;
+	}
+
+	[role="row"] {
+		border-bottom: 1px solid var(--wp--preset--color--custom-border-gray);
+	}
+
+	[role="columnheader"],
+	[role="cell"] {
+		padding: 1rem;
+	}
+
+	> :last-child [role="row"] {
+		border-bottom: 1px solid transparent;
+	}
+}

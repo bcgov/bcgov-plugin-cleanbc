@@ -500,6 +500,7 @@ async function updateRebateDetails() {
       isSavingEditMode.value = false
       lastChangedField.value = ''
       rerenderScrollMenu()
+      nextTick(() => bcgovBlockThemePluginTablesPattern())
     }
   } catch (err) {
     console.error('Failed to update rebate details via AJAX:', err)
@@ -1146,14 +1147,16 @@ const isExternalDirty = ref(false) // for outside Vue elements + button spin.
 onMounted(() => {
   watch(
     urlStateDeps,
-    newDeps => {
-      if (hasAllSelection.value) {
-        localStorage.setItem('rebateToolSettings', JSON.stringify(newDeps))
-      }
+    (newDeps) => {
+      const compact = Object.fromEntries(
+        Object.entries(newDeps).filter(([, v]) => v !== '' && v != null)
+      )
+      localStorage.setItem('rebateToolSettings', JSON.stringify(compact))
     },
-    { deep: true }
+    { deep: true, immediate: true }
   )
 })
+
 
 watch(isExternalDirty, newVal => {
   const blocks = document.querySelectorAll(
@@ -1518,13 +1521,17 @@ watch(locationInputValue, newVal => {
 })
 
 // Unified proxy for v-model (✅ this is now a valid member expression)
+const setLocationDisplayDebounced = debounce((v) => {
+  locationInputDisplay.value = v
+}, 300)
+
 const locationInputProxy = computed({
   get() {
     return isMobile.value ? locationInputDisplay.value : locationInputValue.value
   },
   set(val) {
     if (isMobile.value) {
-      debounce(() => { locationInputDisplay.value = val }, 1000)
+      setLocationDisplayDebounced(val)   // <-- invoke the debounced setter
     } else {
       locationInputValue.value = val
     }
@@ -1742,9 +1749,9 @@ function assembleUrl() {
   if (selectedIncomeRangeSlug.value) urlParams.set('income', selectedIncomeRangeSlug.value)
 
   if (hasAllSelection.value && espTier.value) {
-    urlParams.set('esp_tier', espTier.value)
+    urlParams.set('rebate_tier', espTier.value)
   } else {
-    urlParams.delete('esp_tier')
+    urlParams.delete('rebate_tier')
   }
 
   if (selectedLocationSlug.value) {
@@ -1909,10 +1916,10 @@ const espTier = computed(() => {
     (!isMurb && hvSlug === '1230000-or-over') ||
     (!isMurb && murbTenure.value === 'rent')
 
-  if (/-t1$/.test(incomeSlug)) return overLimit ? 'Not Qualified' : 'ESP-1'
-  if (/-t2$/.test(incomeSlug)) return overLimit ? 'Not Qualified' : 'ESP-2'
+  if (/-t1$/.test(incomeSlug)) return overLimit ? 'HRR' : 'ESP-1'
+  if (/-t2$/.test(incomeSlug)) return overLimit ? 'HRR' : 'ESP-2'
   if (/-t3$/.test(incomeSlug)) return 'ESP-3'
-  if (/-t0$/.test(incomeSlug)) return 'Not Qualified'
+  if (/-t0$/.test(incomeSlug)) return 'HRR'
   return ''
 })
 
@@ -1988,7 +1995,7 @@ const filteredResults = computed(() => {
     // --- HRR fallback rule ---
     const hasHRR = applicable.includes('hrr')
     const hasESP3 = applicable.includes('esp-3')
-    const isHighTier = ['esp-3', 'not qualified'].includes(normalizedEspTier)
+    const isHighTier = ['esp-3', 'hrr'].includes(normalizedEspTier)
 
     const hrrEligible =
       hasHRR && !hasESP3 && isHighTier

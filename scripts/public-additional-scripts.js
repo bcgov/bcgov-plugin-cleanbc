@@ -7,6 +7,7 @@ import './public/navigation';
 import './public/search';
 import './public/side-scroll-generator';
 import './public/tables';
+import './public/tablesPattern';
 
 import './public/cleanbc/accessibility';
 import './public/betterhomes/accessibility';
