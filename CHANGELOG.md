@@ -1,4 +1,5 @@
-## 1.25.3 November 12, 2025
+## 1.25.4 November 13, 2025
+– Single mode tool warning update.
 – Table pattern development. Scripts and styles to drive visual as well as accessibility.
 – Updated 'ESP tier' to 'Rebate tier' and output HRR as value.
 – Added 'One of' and 'None of' evaluation rules to Conditional Query Group logic checks to allow for comma separated list of options against a query single key.

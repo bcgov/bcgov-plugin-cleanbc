@@ -11,6 +11,17 @@
     <p v-else-if="loadError" role="alert">Failed to load rebates: {{ loadError }}</p>
 
     <template v-else>
+
+      <p v-if="(!hasAllSelection || isDirty) && mode === 'single'" class='message warning-message'>
+        You may be looking at default or incomplete information.
+        <span v-if='!isDirty'>
+          Please update your settings.
+        </span>
+        <span v-if='isDirty'>
+          The page URL does not match your settings. Please update and save your selections.
+        </span>
+      </p>
+
       <!-- Filter Controls -->
       <div id="rebatesFilterControls" class="filter-container"
            :class="[
@@ -24,6 +35,7 @@
           <h2 class='settings-headline'>Your home's details</h2>
           <button class="rebate-collapse-setting"
               :class="isCollapseView ? 'collapsed' : ''"
+              :aria-pressed="isCollapseView ? false : true"
               @click="toggleCollapseView">
               collapse
           </button>
@@ -152,16 +164,6 @@
           </div>
 
         </div>
-
-        <p v-if="(!hasAllSelection || isDirty) && mode === 'single'" class='message warning-message'>
-          You may be looking at default or incomplete information.
-          <span v-if='!isDirty'>
-            Please update your settings.
-          </span>
-          <span v-if='isDirty'>
-            The page URL does not match your settings. Please update and save your selections.
-          </span>
-        </p>
 
         <template v-if="mode === 'archive'">
 
@@ -2127,6 +2129,10 @@ function withQueryString(baseUrl) {
 
     &.collapsed {
       height: 3.75rem;
+      overflow: clip;
+    }
+
+     &.collapsed:has(button:focus-visible) {
       overflow: visible clip;
     }
 
@@ -2134,7 +2140,7 @@ function withQueryString(baseUrl) {
       all: unset;
       height: calc(1.25rem + 2px);
       width: calc(100% - 2rem);
-      border-radius: 0.33rem;
+      border-radius: 0.5rem;
       font-size: 0;
       cursor: pointer;
       position: absolute;
