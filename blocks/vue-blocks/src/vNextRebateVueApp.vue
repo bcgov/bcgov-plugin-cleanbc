@@ -2127,14 +2127,14 @@ function withQueryString(baseUrl) {
 
     &.collapsed {
       height: 3.75rem;
-      overflow: clip;
+      overflow: visible clip;
     }
 
     :is(button).rebate-collapse-setting {
       all: unset;
       height: calc(1.25rem + 2px);
       width: calc(100% - 2rem);
-      border-radius: 1rem;
+      border-radius: 0.33rem;
       font-size: 0;
       cursor: pointer;
       position: absolute;
