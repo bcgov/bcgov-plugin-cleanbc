@@ -356,7 +356,7 @@ class BasicBlocks {
         $label    = sanitize_text_field( $attributes['label'] ?? 'Filter' );
 
         if ( empty( $taxonomy ) ) {
-            return '<div class="query-filter-block error"> ⚠️ No taxonomy selected for filter block.</div>';
+            return '<div class="query-filter-block error">No taxonomy selected for filter block.</div>';
         }
 
         $current_query = [];
@@ -387,65 +387,188 @@ class BasicBlocks {
     }
 
 
-    /**
-     * Evaluate conditional rules against query parameters.
-     *
-     * @param array  $rules        Rules to evaluate.
-     * @param array  $params       $_GET parameters.
-     * @param string $logic        'AND' or 'OR'.
-     * @param bool   $global_case  Whether comparisons are case sensitive.
-     *
-     * @return bool Whether the rules match the params.
-     */
-    private function query_conditional_group_evaluate_rules( $rules, $params, $logic = 'AND', $global_case = false ) {
-        if ( empty( $rules ) ) {
-            return false;
-        }
+	/**
+	 * Evaluate conditional rules against query parameters.
+	 *
+	 * @param array  $rules        Rules to evaluate.
+	 * @param array  $params       $_GET parameters.
+	 * @param string $logic        'AND' or 'OR'.
+	 * @param bool   $global_case  Whether comparisons are case sensitive.
+	 *
+	 * @return bool Whether the rules match the params.
+	 */
+	private function query_conditional_group_evaluate_rules( $rules, $params, $logic = 'AND', $global_case = false ) {
+		if ( empty( $rules ) ) { return false;
+		}
 
-        $results = array_map(
-            function ( $rule ) use ( $params, $global_case ) {
-                $key            = $rule['key'] ?? '';
-                $value          = $rule['value'] ?? '';
-                $operator       = $rule['operator'] ?? 'equals';
-                $case_sensitive = $rule['caseSensitive'] ?? $global_case;
+		$to_array        = static function ( $v ) {
+			if ( is_array( $v ) ) { return $v;
+			}
+			if ( null === $v || '' === $v ) { return array();
+			}
+			return array( $v );
+		};
+		$split_csv       = static function ( $s ) {
+			if ( ! is_string( $s ) ) { return array();
+			}
+			$parts = array_map( 'trim', explode( ',', $s ) );
+			return array_values( array_filter( $parts, fn( $x ) => '' !== $x ) );
+		};
+		$norm_array_case = static function ( array $arr, $case_sensitive ) {
+			if ( $case_sensitive ) { return $arr;
+			}
+			return array_map( static fn( $v ) => is_string( $v ) ? strtolower( $v ) : $v, $arr );
+		};
 
-                $param_value = $params[ $key ] ?? null;
-
-                if ( ! $case_sensitive && is_string( $param_value ) ) {
-                    $param_value = strtolower( $param_value );
-                    $value       = strtolower( $value );
+		$results = array_map(
+            function ( $rule ) use ( $params, $global_case, $to_array, $split_csv, $norm_array_case ) {
+                $key      = $rule['key'] ?? '';
+                $operator = $rule['operator'] ?? 'equals';
+                if ( 'oneOf' === $operator ) {  $operator = 'in';
                 }
+                if ( 'noneOf' === $operator ) { $operator = 'notIn';
+                }
+
+                $case_sensitive = array_key_exists( 'caseSensitive', $rule ) ? (bool) $rule['caseSensitive'] : (bool) $global_case;
+
+                $param_values = $norm_array_case( $to_array( $params[ $key ] ?? null ), $case_sensitive );
+
+                // Single.
+                $value = $rule['value'] ?? '';
+                if ( ! $case_sensitive && is_string( $value ) ) { $value = strtolower( $value );
+                }
+
+                // Multi (prefer values, else CSV from value/valueCSV).
+                $values = array();
+                if ( ! empty( $rule['values'] ) && is_array( $rule['values'] ) ) {
+                    $values = $rule['values'];
+                } else {
+                    $values = $split_csv( $rule['valueCSV'] ?? ( $rule['value'] ?? '' ) );
+                }
+                $values = $norm_array_case( $values, $case_sensitive );
 
                 switch ( $operator ) {
                     case 'equals':
-                        return $param_value === $value;
-                    case 'notEquals':
-                        return $param_value !== $value;
-                    case 'contains':
-                        return is_string( $param_value ) && strpos( $param_value, $value ) !== false;
-                    case 'startsWith':
-                        return is_string( $param_value ) && str_starts_with( $param_value, $value );
-                    case 'endsWith':
-                        return is_string( $param_value ) && str_ends_with( $param_value, $value );
-                    case 'regex':
-                        if ( is_string( $param_value ) ) {
-                            $result = preg_match( $value, $param_value );
-                            return 1 === $result;
+                        foreach ( $param_values as $p ) { if ( $p === $value ) { return true;
+                        }
                         }
                         return false;
+
+                    case 'notEquals':
+                        if ( empty( $param_values ) ) { return true;
+                        }
+                        foreach ( $param_values as $p ) { if ( $p === $value ) { return false;
+                        }
+                        }
+                        return true;
+
+                    case 'contains':
+                        foreach ( $param_values as $p ) {
+                            if ( is_string( $p ) && is_string( $value ) && str_contains( $p, $value ) ) { return true;
+                            }
+                        }
+                        return false;
+
+                    case 'startsWith':
+                        foreach ( $param_values as $p ) {
+                            if ( is_string( $p ) && is_string( $value ) && str_starts_with( $p, $value ) ) { return true;
+                            }
+                        }
+                        return false;
+
+                    case 'endsWith':
+                        foreach ( $param_values as $p ) {
+                            if ( is_string( $p ) && is_string( $value ) && str_ends_with( $p, $value ) ) { return true;
+                            }
+                        }
+                        return false;
+
+                    case 'regex':
+						if ( empty( $param_values ) || ! is_string( $value ) ) {
+							return false;
+						}
+
+						foreach ( $param_values as $p ) {
+							if ( ! is_string( $p ) ) {
+								continue;
+							}
+
+							$result = preg_match( $value, $p );
+
+							if ( false === $result ) {
+								// Invalid pattern: treat as non-match.
+								break;
+							}
+
+							if ( 1 === $result ) {
+								return true;
+							}
+						}
+
+                        return false;
+
                     case 'exists':
                         return array_key_exists( $key, $params );
+
                     case 'notExists':
                         return ! array_key_exists( $key, $params );
+
+                    case 'in': // equals any.
+                        if ( empty( $values ) ) { return false;
+                        }
+                        foreach ( $param_values as $p ) { if ( in_array( $p, $values, true ) ) { return true;
+                        }
+                        }
+                        return false;
+
+                    case 'notIn': // not equal to any.
+                        if ( empty( $values ) ) { return true;
+                        }
+                        if ( empty( $param_values ) ) { return true;
+                        }
+                        foreach ( $param_values as $p ) { if ( in_array( $p, $values, true ) ) { return false;
+                        }
+                        }
+                        return true;
+
+                    case 'containsAny':
+                        if ( empty( $values ) ) { return false;
+                        }
+                        foreach ( $param_values as $p ) {
+							foreach ( $values as $v ) {
+								if ( is_string( $p ) && is_string( $v ) && str_contains( $p, $v ) ) { return true;
+								}
+							}
+						}
+                        return false;
+
+                    case 'containsAll':
+                        if ( empty( $values ) ) { return false;
+                        }
+                        foreach ( $values as $v ) {
+                            $found = false;
+                            foreach ( $param_values as $p ) {
+                                if ( is_string( $p ) && is_string( $v ) && str_contains( $p, $v ) ) { $found = true;
+                                    break; }
+                            }
+                            if ( ! $found ) { return false;
+                            }
+                        }
+                        return true;
+
                     default:
                         return false;
                 }
             },
             $rules
-        );
+		);
 
-        return 'OR' === $logic ? in_array( true, $results, true ) : ! in_array( false, $results, true );
-    }
+		return ( 'OR' === $logic )
+        ? in_array( true, $results, true )
+        : ! in_array( false, $results, true );
+	}
+
+
 
     /**
      * Register custom block pattern for Single Incentive (akak rebates) page.

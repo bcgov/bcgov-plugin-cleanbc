@@ -200,7 +200,7 @@ const bcgovBlockThemePluginTablesPattern = () => {
 };
 
 // OPTIONAL: auto-run on DOM ready
-if (document.readyState === 'loading') {
+if ('loading' === document.readyState) {
   document.addEventListener('DOMContentLoaded', bcgovBlockThemePluginTablesPattern, { once: true });
 } else {
   bcgovBlockThemePluginTablesPattern();

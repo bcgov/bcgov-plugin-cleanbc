@@ -1,3 +1,5 @@
+// index.js (replace your file with this)
+
 import { registerBlockType } from '@wordpress/blocks';
 import {
   useBlockProps,
@@ -9,7 +11,7 @@ import {
   SelectControl,
   TextControl,
   Button,
-  ToggleControl
+  ToggleControl,
 } from '@wordpress/components';
 import { Fragment } from '@wordpress/element';
 
@@ -21,12 +23,20 @@ const OPERATORS = [
   { label: 'Ends With', value: 'endsWith' },
   { label: 'Regex Match', value: 'regex' },
   { label: 'Exists (any value)', value: 'exists' },
-  { label: 'Not Exists', value: 'notExists' }
+  { label: 'Not Exists', value: 'notExists' },
+  { label: 'One of (equals any)', value: 'in' },
+  { label: 'None of (not equals all)', value: 'notIn' },
+  { label: 'Contains any', value: 'containsAny' },
+  { label: 'Contains all', value: 'containsAll' },
 ];
+
+const isMultiValueOp = (op) =>
+  ['in', 'notIn', 'containsAny', 'containsAll'].includes(op);
 
 registerBlockType('bcgovcleanbc/query-conditional-group', {
   edit: ({ attributes, setAttributes }) => {
     const { rules = [], logic, invert, caseSensitive, clientSideCheck, hideUntilJs } = attributes;
+
     const blockProps = useBlockProps({
       className: 'query-conditional-group-block',
       style: hideUntilJs ? { outline: '1px dashed lightgray', outlineOffset: '0.5rem', marginBlock: '1rem' } : undefined
@@ -38,9 +48,18 @@ registerBlockType('bcgovcleanbc/query-conditional-group', {
       setAttributes({ rules: updated });
     };
 
+    const updateRuleCSV = (index, csv) => {
+      const values = csv
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+      updateRule(index, 'values', values);
+      updateRule(index, 'valueCSV', csv);
+    };
+
     const addRule = () => {
       setAttributes({
-        rules: [...rules, { key: '', value: '', operator: 'equals', caseSensitive: false }]
+        rules: [...rules, { key: '', value: '', values: [], valueCSV: '', operator: 'equals', caseSensitive: false }]
       });
     };
 
@@ -58,27 +77,47 @@ registerBlockType('bcgovcleanbc/query-conditional-group', {
               <div key={i} style={{ border: '1px solid #ddd', padding: '8px', marginBottom: '8px' }}>
                 <TextControl
                   label="Query key"
-                  value={r.key}
+                  value={r.key || ''}
                   onChange={(val) => updateRule(i, 'key', val)}
                 />
-                {!('exists' === r.operator || 'notExists' === r.operator) && (
-                  <TextControl
-                    label="Required value"
-                    value={r.value}
-                    onChange={(val) => updateRule(i, 'value', val)}
-                  />
-                )}
+
                 <SelectControl
                   label="Operator"
-                  value={r.operator}
+                  value={r.operator || 'equals'}
                   options={OPERATORS}
                   onChange={(val) => updateRule(i, 'operator', val)}
                 />
+
+                {(() => {
+                  const op = r.operator || 'equals';
+                  if ('exists' === op || 'notExists' === op) return null;
+
+                  if (isMultiValueOp(op)) {
+                    return (
+                      <TextControl
+                        label="Values (comma-separated)"
+                        help="Example: HRR, ESP-3, ESP-4"
+                        value={r.valueCSV ?? (r.values?.join(', ') || '')}
+                        onChange={(csv) => updateRuleCSV(i, csv)}
+                      />
+                    );
+                  }
+
+                  return (
+                    <TextControl
+                      label="Required value"
+                      value={r.value || ''}
+                      onChange={(val) => updateRule(i, 'value', val)}
+                    />
+                  );
+                })()}
+
                 <ToggleControl
                   label="Case Sensitive"
-                  checked={r.caseSensitive}
+                  checked={!!r.caseSensitive}
                   onChange={(val) => updateRule(i, 'caseSensitive', val)}
                 />
+
                 <div style={{ textAlign: 'right' }}>
                   <Button isLink isDestructive onClick={() => removeRule(i)}>Remove</Button>
                 </div>
@@ -99,22 +138,22 @@ registerBlockType('bcgovcleanbc/query-conditional-group', {
             />
             <ToggleControl
               label="Invert (Show when NOT matching)"
-              checked={invert}
+              checked={!!invert}
               onChange={(val) => setAttributes({ invert: val })}
             />
             <ToggleControl
               label="Case Sensitive (Global Default)"
-              checked={caseSensitive}
+              checked={!!caseSensitive}
               onChange={(val) => setAttributes({ caseSensitive: val })}
             />
             <ToggleControl
               label="Enable Client-Side Check"
-              checked={clientSideCheck}
+              checked={!!clientSideCheck}
               onChange={(val) => setAttributes({ clientSideCheck: val })}
             />
             <ToggleControl
               label="Hide Until JS Runs (Editor Hint)"
-              checked={hideUntilJs}
+              checked={!!hideUntilJs}
               onChange={(val) => setAttributes({ hideUntilJs: val })}
             />
           </PanelBody>
@@ -129,7 +168,5 @@ registerBlockType('bcgovcleanbc/query-conditional-group', {
       </Fragment>
     );
   },
-  save: () => {
-    return <InnerBlocks.Content />;
-  }
+  save: () => <InnerBlocks.Content />
 });
