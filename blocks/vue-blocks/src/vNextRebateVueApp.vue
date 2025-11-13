@@ -28,7 +28,7 @@
               collapse
           </button>
 
-          <div v-if="selectedBuildingGroupSlug !== 'murb' && murbTenure === 'rent'" class='message error-message'>
+          <div v-if="false && selectedBuildingGroupSlug !== 'murb' && murbTenure === 'rent'" class='message error-message'>
             <p><span>Rentals of your home type are not eligible</span></p>
             <p>Only rentals in multi-unit residential buildings are currently eligible.</p>
           </div>
@@ -1034,14 +1034,14 @@ const fields = computed(() => [
       { slug: 'rent', name: 'Rent' }
     ],
     displayValue: murbTenureLabel.value,
-    missingMessage: 'Missing ownership status',
-    description:
-      'Only rentals in multi-unit residential buildings are currently eligible.',
-    error_desc:
-      'Rentals of your home type are not eligible. Only rentals in multi-unit residential buildings are currently eligible.',
-    isInvalid: () =>
-      selectedBuildingGroupSlug.value === 'ground-oriented-dwellings' &&
-      murbTenure.value === 'rent'
+    missingMessage: 'Missing ownership status'
+    // description:
+    //   'Only rentals in multi-unit residential buildings are currently eligible.',
+    // error_desc:
+    //   'Rentals of your home type are not eligible. Only rentals in multi-unit residential buildings are currently eligible.',
+    // isInvalid: () =>
+    //   selectedBuildingGroupSlug.value === 'ground-oriented-dwellings' &&
+    //   murbTenure.value === 'rent'
   },
   {
     key: 'building',
@@ -2101,7 +2101,7 @@ function withQueryString(baseUrl) {
   .filter-container {
     display: grid !important;
     gap: 1rem;
-    padding: 1rem;
+    padding: 0;
     grid-template-columns: 1fr;
   }
 
@@ -2109,6 +2109,7 @@ function withQueryString(baseUrl) {
     font-size: 1.15rem;
     margin-block-end: 0;
     margin-block-start: 1.25rem;
+    padding: 1rem;
 
     @media (width > 550px) {
       margin-block-start: 0;
@@ -2134,16 +2135,17 @@ function withQueryString(baseUrl) {
     :is(button).rebate-collapse-setting {
       all: unset;
       height: 1.25rem;
-      width:  1.25rem;
+      width:  100%;
       font-size: 0;
       cursor: pointer;
       position: absolute;
       right: 0;
       top: 0.25rem;
+      padding: 1rem;
       /* down arrow */
         background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBkPSJNMjM5IDQ5OC43bDE2MC0xMjggMTguNy0xNS0zMC0zNy41LTE4LjcgMTUtMTQ1IDExNkw3OSAzMzMuM2wtMTguNy0xNS0zMCAzNy41IDE4LjcgMTUgMTYwIDEyOCAxNSAxMiAxNS0xMnptMC00ODUuNWwtMTUtMTItMTUgMTJMNDkgMTQxLjNsLTE4LjcgMTUgMzAgMzcuNSAxOC43LTE1IDE0NS0xMTYgMTQ1IDExNiAxOC43IDE1IDMwLTM3LjUtMTguNy0xNUwyMzkgMTMuM3oiLz48L3N2Zz4=);
         background-repeat: no-repeat;
-        background-position: center;
+        background-position: center right 1rem;
         background-size: 1rem;
     }
 
@@ -2158,6 +2160,7 @@ function withQueryString(baseUrl) {
     grid-template-columns: 1fr 1fr 1fr;
     gap: 0.5rem;
     grid-column: 1 / -1;
+    padding: 0 1rem 1rem;
     
     @container filter (width < 680px) {
       grid-template-columns: 1fr 1fr;

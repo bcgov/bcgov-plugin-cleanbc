@@ -2,6 +2,7 @@
 – Table pattern development. Scripts ansd styles to drive visual as well as accessibility.
 – Updated 'ESP tier' to 'Rebate tier' and output HRR as value.
 – Added 'One of' and 'None of' evaluation rules to Conditional Query Group logic checks to allow for comma separated list of options against a query single key.
+– Removed rental error state.
 
 ## 1.25.2 November 7, 2025
 – Added gas provider option to rebates tooling.
