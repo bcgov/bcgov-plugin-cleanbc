@@ -41,6 +41,7 @@
                   <div class="control button-group" v-if="activeEdit !== field.key">
                     <label class='small'>{{ field.shortDesc }}</label>
                     <button class="rebate-setting" :disabled="field.disabled"
+                      :tabindex="isCollapseView ? '-1' : '0'"
                       :class="{ 'is-external-dirty': isExternalDirty && lastChangedField === field.key }"
                       @click="openEdit(field.key)" :ref="el => (buttonRefs[field.key] = el)">
                       {{ field.displayValue }}
@@ -49,14 +50,11 @@
                   <!-- Show select if open -->
                   <div v-else-if="editable && activeEdit === field.key">
                     <figure class="control editable" :aria-label="`${field.shortDesc} setting`">
-                      <button :disabled="!field.model.value" type="button" class="close-btn" @click="activeEdit = ''"
+                      <button :disabled="!field.model.value" :tabindex="isCollapseView ? '0' : '-1'" type="button" class="close-btn" @click="activeEdit = ''"
                         aria-label="Close edit field"></button>
                       <label :for="`${field.key}Select`">{{ field.label }}</label>
                       <select :key="field.key + '-' + (fieldRenderKeys[field.key] ?? 0)" class="select"
-                        :id="`${field.key}Select`" v-model="field.model.value" :disabled="field.disabled"
-                        @change="handleSelectChange(field.key, $event.target.value)"
-                        @keydown="handleSelectKeydown($event, field.key, field.model.value)"
-                        :ref="el => (selectRefs[field.key] = el)">
+                        :id="`${field.key}Select`" v-model="field.model.value" :disabled="field.disabled" :tabindex="isCollapseView ? '0' : '-1'" @change="handleSelectChange(field.key, $event.target.value)" @keydown="handleSelectKeydown($event, field.key, field.model.value)" :ref="el => (selectRefs[field.key] = el)">
                         <option disabled :selected="!field.model.value" data-default='Select an option' value="">Select
                           an option</option>
 
@@ -96,7 +94,7 @@
                   </div>
                 </template>
 
-                <!-- If field is missing → show select immediately -->
+                <!-- If field is missing show select immediately -->
                 <template v-else>
                   <figure class="control editable" :aria-label="`${field.shortDesc} setting`">
                     <button :disabled="!field.model.value" type="button" class="close-btn" @click="activeEdit = ''"
@@ -138,11 +136,11 @@
                 <label class='small sr-only' for="instructions">Settings instructions</label>
                 <p name="instructions" class="small-text">
                   <a v-if="!editModeView" href="#edit" @click.prevent="toggleEditModeView">Updating home details</a><span
-                    v-else>Updating home details</span> will refresh the page content. You may also <a href="#clear"
+                    v-else>Updating home details</span> will refresh the page content. You may also <a href="#clear" :tabindex="isCollapseView ? '-1' : '0'"
                     @click.prevent="clearSettings">clear the settings</a> to start over.
                 </p>
               </div>
-              <button class="editBtn toggle-edit-mode readonly-toggle"
+              <button class="editBtn toggle-edit-mode readonly-toggle" :tabindex="isCollapseView ? '-1' : '0'"
               :class="isSavingEditMode ? 'saving' : editModeView ? 'show-edit-mode' : 'show-readonly-mode'"
               @click="toggleEditModeView" :aria-label="editModeView ? 'Exit edit mode' : 'Enter edit mode'"
               :title="editModeView ? 'Exit edit mode' : 'Enter edit mode'">
@@ -2134,8 +2132,9 @@ function withQueryString(baseUrl) {
 
     :is(button).rebate-collapse-setting {
       all: unset;
-      height: 1.25rem;
-      width:  100%;
+      height: calc(1.25rem + 2px);
+      width: calc(100% - 2rem);
+      border-radius: 1rem;
       font-size: 0;
       cursor: pointer;
       position: absolute;
@@ -2147,6 +2146,11 @@ function withQueryString(baseUrl) {
         background-repeat: no-repeat;
         background-position: center right 1rem;
         background-size: 1rem;
+
+        &:is(:focus-visible) {
+          outline: 2px solid #369;
+          outline-offset: 0 -4px;
+        }
     }
 
     &:has(.stacked) {
