@@ -323,7 +323,7 @@
             </article>
 
             <!-- Info card appears AFTER the first heat pump rebate -->
-            <div v-if="showHeatPumpInfo &&
+            <div v-if="false && showHeatPumpInfo &&
               (item.rebate_type_class === 'heat-pump-rebates' ||
                 item.rebate_type_class === 'heat-pump-water-heater-rebates') &&
               index === firstHeatPumpIndex" class="info-card">
@@ -1144,19 +1144,23 @@ const fields = computed(() => [
 
 const isExternalDirty = ref(false) // for outside Vue elements + button spin.
 
+// Bootstrap guard.
+const bootstrapped = ref(false)
+
 onMounted(() => {
+  // Save compact state to localStorage — but only after bootstrapping is complete.
   watch(
     urlStateDeps,
     (newDeps) => {
+      if (!bootstrapped.value) return
       const compact = Object.fromEntries(
         Object.entries(newDeps).filter(([, v]) => v !== '' && v != null)
       )
       localStorage.setItem('rebateToolSettings', JSON.stringify(compact))
     },
-    { deep: true, immediate: true }
+    { deep: true } // no immediate:true — avoids clobbering saved settings.
   )
 })
-
 
 watch(isExternalDirty, newVal => {
   const blocks = document.querySelectorAll(
@@ -1227,6 +1231,9 @@ onMounted(async () => {
       // First visit — nothing special.
       console.log('No saved settings — starting fresh')
     }
+
+    // Bootstrap completes here.
+    bootstrapped.value = true
 
     watch(
       urlStateDeps,
@@ -1528,7 +1535,8 @@ const setLocationDisplayDebounced = debounce((v) => {
 const locationInputProxy = computed({
   get() {
     return isMobile.value ? locationInputDisplay.value : locationInputValue.value
-  },
+  }
+  ,
   set(val) {
     if (isMobile.value) {
       setLocationDisplayDebounced(val)   // <-- invoke the debounced setter
@@ -1986,6 +1994,12 @@ const filteredResults = computed(() => {
       ? item.applicable_rebates.map(r => r.slug?.toLowerCase?.())
       : []
 
+    const applicableSet = new Set(applicable)
+
+    // --- Respect "no-show" unconditionally ---
+    const showInResults = !applicableSet.has('no-show')
+    if (!showInResults) return false
+
     // --- ESP tier eligibility ---
     const hasApplicableRebates = applicable.length > 0
     const rebateTierEligible = hasApplicableRebates
@@ -2076,6 +2090,7 @@ function withQueryString(baseUrl) {
   }
 }
 </script>
+
 
 <style scoped>
 #rebateFilterApp {
@@ -2168,7 +2183,7 @@ function withQueryString(baseUrl) {
   .control-container {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    gap: 0.5rem;
+    gap: 1rem;
     grid-column: 1 / -1;
     padding: 0 1rem 1rem;
     
@@ -2528,8 +2543,8 @@ function withQueryString(baseUrl) {
   }
 
   .clear-msg {
-    margin-inline-start: 4.75rem;
-    margin-block-start: -1.75rem;
+    margin-inline-start: 5.75rem;
+    margin-block-start: -2.75rem;
     font-size: 0.85rem;
 
     :is(a) {
@@ -2661,12 +2676,8 @@ function withQueryString(baseUrl) {
       }
     }
 
-    @container (width > 500px) and (width < 800px) {
-      grid-template-columns: repeat(2, 1fr);
-    }
-
-    @container (width > 801px) {
-      grid-template-columns: repeat(3, 1fr);
+    @container (width > 601px) {
+      grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
     }
 
     &.list-view {

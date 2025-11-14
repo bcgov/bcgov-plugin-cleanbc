@@ -1,5 +1,11 @@
-## 1.25.4 November 13, 2025
+## 1.25.6 November 14, 2025
+– Bootstrap guard manages initial mounted watch to ensure proper content initialisation.
+
+## 1.25.5 November 13, 2025
 – Single mode tool warning update.
+– Added 'no-show' condition to rebates to hide from archive mode search tool results.
+
+## 1.25.4 November 12, 2025
 – Table pattern development. Scripts and styles to drive visual as well as accessibility.
 – Updated 'ESP tier' to 'Rebate tier' and output HRR as value.
 – Added 'One of' and 'None of' evaluation rules to Conditional Query Group logic checks to allow for comma separated list of options against a query single key.
