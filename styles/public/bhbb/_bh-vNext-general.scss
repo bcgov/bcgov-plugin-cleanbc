@@ -1,0 +1,136 @@
+.how-it-works-container {
+
+	--four-up-grid-bp: 650px;
+	--five-up-grid-bp: 800px;
+
+	container: howitworks / inline-size;
+
+	.wp-block-heading {
+
+		&::before {
+			content: $flow_icon_dark;
+			width: 1.25rem;
+			margin-right: 0.5rem;
+			display: inline-block;
+			rotate: 90deg;
+		}
+	}
+
+	.how-it-works-grid {
+		container: howitworksgrid / inline-size;
+
+		display: grid;
+		grid-template-columns: minmax(40%, 200px) 1fr;
+		gap: 1rem;
+
+
+		#how-it-works-personal {
+
+			&::before {
+				content: $how_it_works_personal_horizontal;
+
+				@container howitworksgrid (width < 650px) {
+					content: $how_it_works_personal_vertical;
+				}
+			}
+		}
+
+		#how-it-works-contractor {
+
+			&::before {
+				content: $how_it_works_contractor_horizontal;
+
+				@container howitworksgrid (width < 800px) {
+					content: $how_it_works_contractor_vertical;
+				}
+			}
+		}
+
+		.how-it-works-diagram {
+
+			&::before {
+				display: flex;
+				float: inline-end;
+			}
+
+			min-height: 100px;
+
+			p {
+				font-size: 0;
+			}
+		}
+
+		.how-it-works-labels {
+			grid-template-columns: 1fr;
+			align-items: center;
+
+			p {
+				text-align: left;
+			}
+		}
+
+		&.four-up {
+
+			@container howitworks (width >= 650px) {
+				grid-template-columns: 1fr;
+			}
+
+			.how-it-works-diagram {
+				max-width: 840px;
+				width: 100%;
+
+				&::before {
+					max-width: 840px;
+					width: 100%;
+
+					@container howitworksgrid (width < 650px) {
+						max-width: 200px;
+					}
+				}
+			}
+
+			.how-it-works-labels {
+
+				@container howitworks (width >= 650px) {
+					grid-template-columns: repeat(4, minmax(0, 1fr));
+
+					p {
+						text-align: center;
+					}
+				}
+			}
+		}
+
+		&.five-up {
+
+			@container howitworks (width >= 800px) {
+				grid-template-columns: 1fr;
+			}
+
+			.how-it-works-diagram {
+				max-width: 1080px;
+				width: 100%;
+
+				&::before {
+					max-width: 1080px;
+					width: 100%;
+
+					@container howitworksgrid (width < 800px) {
+						max-width: 200px;
+					}
+				}
+			}
+
+			.how-it-works-labels {
+
+				@container howitworks (width >= 800px) {
+					grid-template-columns: repeat(5, minmax(0, 1fr));
+
+					p {
+						text-align: center;
+					}
+				}
+			}
+		}
+	}
+}

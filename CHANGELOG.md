@@ -1,3 +1,7 @@
+## 1.25.7 November 18, 2025
+– Pattern development for vNext specific designs. Added "How it works" styling.
+– Minor style adjustments for mobile.
+
 ## 1.25.6 November 14, 2025
 – Bootstrap guard manages initial mounted watch to ensure proper content initialisation.
 

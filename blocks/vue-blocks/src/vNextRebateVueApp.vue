@@ -167,7 +167,7 @@
 
         <template v-if="mode === 'archive'">
 
-          <div v-if="selectedBuildingGroupSlug === 'ground-oriented-dwellings' && murbTenure === 'rent'"
+          <div v-if="false && selectedBuildingGroupSlug === 'ground-oriented-dwellings' && murbTenure === 'rent'"
             class='message error-message'>
             <p><span>Rentals of your home type are not eligible</span></p>
             <p>Only rentals in multi-unit residential buildings are currently eligible.</p>
@@ -570,7 +570,7 @@ function rerenderScrollMenu() {
   sideNav.classList.remove('admin-instructions')
 }
 
-// --- Editable state ---
+// Editable state 
 const editable = ref(false)
 const activeEdit = ref('')
 const labelsVisible = ref(true)
@@ -583,7 +583,7 @@ const hasError = ref(false)
 const ariaStatusMessage = ref('')
 const pageHeatingType = ref('')
 
-// --- Focus map for selects ---
+// Focus map for selects 
 const selectRefs = ref({})
 const buttonRefs = ref({})
 const lastChangedField = ref('')
@@ -597,6 +597,7 @@ const fieldRenderKeys = ref({
 const fieldErrors = computed(() => {
   return {
     murbTenure:
+      false && 
       selectedBuildingGroupSlug.value === 'ground-oriented-dwellings' &&
       murbTenure.value === 'rent'
   }
@@ -1036,12 +1037,12 @@ const fields = computed(() => [
     displayValue: murbTenureLabel.value,
     missingMessage: 'Missing ownership status'
     // description:
-    //   'Only rentals in multi-unit residential buildings are currently eligible.',
+    // 'Only rentals in multi-unit residential buildings are currently eligible.',
     // error_desc:
-    //   'Rentals of your home type are not eligible. Only rentals in multi-unit residential buildings are currently eligible.',
+    // 'Rentals of your home type are not eligible. Only rentals in multi-unit residential buildings are currently eligible.',
     // isInvalid: () =>
-    //   selectedBuildingGroupSlug.value === 'ground-oriented-dwellings' &&
-    //   murbTenure.value === 'rent'
+    // selectedBuildingGroupSlug.value === 'ground-oriented-dwellings' &&
+    // murbTenure.value === 'rent'
   },
   {
     key: 'building',
@@ -1178,7 +1179,7 @@ function applyDirtyClasses(val) {
     .forEach(el => el.classList.toggle('is-dirty', val))
 }
 
-// ----- Mode (archive|single) -----
+// -- Mode (archive|single) --
 const mode = ref('archive')
 
 // Show the info card only if any heat pump rebate exists
@@ -1354,7 +1355,7 @@ function initFromLocalStorage(data) {
   updateAddressBar()
 }
 
-// ----- Building Types (hierarchical) -----
+// -- Building Types (hierarchical) --
 const buildingTypeGroups = computed(
   () => api.value?.['settings-selects']?.['building-types'] ?? []
 )
@@ -1402,7 +1403,7 @@ async function onBuildingTypeChange() {
   activeEdit.value = 'homeValue'
 }
 
-// ----- MURB tenure -----
+// -- MURB tenure --
 const murbTenure = ref('')
 const murbTenureLabel = computed(() =>
   murbTenure.value === 'own'
@@ -1412,7 +1413,7 @@ const murbTenureLabel = computed(() =>
       : ''
 )
 
-// ----- Home Value -----
+// -- Home Value --
 const homeValueOptions = computed(() => {
   const hvGroups = api.value?.['settings-selects']?.['home-value'] ?? []
   const groupSlug = selectedBuildingGroupSlug.value
@@ -1442,7 +1443,7 @@ const selectedHomeValueName = computed(() => {
   return match ? match.name : ''
 })
 
-// ----- Income Bands -----
+// -- Income Bands --
 const personCountOptions = computed(() =>
   (api.value?.['settings-selects']?.['income-bands'] ?? []).map(p => ({
     name: p.name,
@@ -1498,7 +1499,7 @@ async function onPersonsChange() {
   activeEdit.value = 'income'
 }
 
-// ----- Location -----
+// -- Location --
 const locationOptions = computed(
   () => api.value?.['settings-selects']?.['locations'] ?? []
 )
@@ -1556,7 +1557,7 @@ const selectedRegionName = computed(
   () => selectedLocation.value?.children?.[0]?.name || ''
 )
 
-// ----- Heating -----
+// -- Heating --
 const heatingOptions = computed(
   () => api.value?.['settings-selects']?.['heating-types'] ?? []
 )
@@ -1569,7 +1570,7 @@ const selectedHeatingName = computed(
   () => selectedHeating.value?.name || ''
 )
 
-// ----- Utility -----
+// -- Utility --
 const utilityOptions = computed(
   () => api.value?.['settings-selects']?.['utilities'] ?? []
 )
@@ -1582,7 +1583,7 @@ const selectedUtilityName = computed(
   () => selectedUtility.value?.name || ''
 )
 
-// ----- Gas -----
+// -- Gas --
 const gasOptions = computed(
   () => api.value?.['settings-selects']?.['gas'] ?? []
 )
@@ -1595,7 +1596,7 @@ const selectedGasName = computed(
   () => selectedGas.value?.name || ''
 )
 
-// ----- Selections summary -----
+// -- Selections summary --
 const hasAnySelection = computed(
   () =>
     !!(
@@ -1636,7 +1637,7 @@ const hasAllSelection = computed(() => {
   )
 })
 
-// ----- URL assembly -----
+// -- URL assembly --
 const assembledUrl = computed(() => assembleUrl())
 
 const assembledQueryString = computed(() => {
@@ -1644,7 +1645,7 @@ const assembledQueryString = computed(() => {
   return q ? `?${q}` : ''
 })
 
-// --- Dirty states ---
+// Dirty states 
 // URL does not match the settings currently showing.
 const urlOutOfSync = computed(() => assembledQueryString.value !== window.location.search)
 
@@ -1878,7 +1879,7 @@ function initFromQueryString() {
   }
 }
 
-// ----- URL state deps -----
+// -- URL state deps --
 const urlStateDeps = computed(() => ({
   type: selectedBuildingTypeSlug.value,
   group: selectedBuildingGroupSlug.value,
@@ -1905,7 +1906,7 @@ function updateAddressBar() {
   }
 }
 
-// ----- ESP Tier derivation -----
+// -- ESP Tier derivation --
 const espTier = computed(() => {
   const incomeSlug = selectedIncomeRangeSlug.value
   if (!incomeSlug) return ''
@@ -1931,7 +1932,7 @@ const espTier = computed(() => {
   return ''
 })
 
-// ----- HRR derivation -----
+// -- HRR derivation --
 // TBD
 
 
@@ -1981,82 +1982,105 @@ const normalizeLocationSlug = (val) => {
 }
 
 const filteredResults = computed(() => {
-  const normalizedHeating = normalizeHeatingSlug(selectedHeatingName.value)
-  const normalizedUtility = normalizeUtilitySlug(selectedUtilityName.value)
-  const normalizedGas = normalizeGasSlug(selectedGasName.value)
-  const normalizedRegion = normalizeRegionSlug(selectedRegionName.value)
-  const normalizedLocation = normalizeLocationSlug(selectedLocationName.value)
-  const normalizedEspTier = espTier.value?.toLowerCase?.()
+  const normalizedHeating       = normalizeHeatingSlug(selectedHeatingName.value)
+  const normalizedUtility       = normalizeUtilitySlug(selectedUtilityName.value)
+  const normalizedGas           = normalizeGasSlug(selectedGasName.value)
+  const normalizedRegion        = normalizeRegionSlug(selectedRegionName.value)
+  const normalizedLocation      = normalizeLocationSlug(selectedLocationName.value)
+  const normalizedEspTier       = espTier.value?.toLowerCase?.()
   const normalizedBuildingGroup = selectedBuildingGroupSlug.value?.toLowerCase?.()
 
   const results = api.value.results.filter(item => {
+    // Applicable rebates 
     const applicable = Array.isArray(item.applicable_rebates)
-      ? item.applicable_rebates.map(r => r.slug?.toLowerCase?.())
+      ? item.applicable_rebates
+          .map(r => r?.slug?.toLowerCase?.())
+          .filter(Boolean)
       : []
-
     const applicableSet = new Set(applicable)
 
-    // --- Respect "no-show" unconditionally ---
+    // Respect "no-show" unconditionally 
     const showInResults = !applicableSet.has('no-show')
     if (!showInResults) return false
 
-    // --- ESP tier eligibility ---
+    // ESP tier eligibility 
     const hasApplicableRebates = applicable.length > 0
     const rebateTierEligible = hasApplicableRebates
-      ? applicable.includes(normalizedEspTier)
-      : ['esp-1', 'esp-2', 'esp-3'].includes(normalizedEspTier)
+      ? (normalizedEspTier ? applicableSet.has(normalizedEspTier) : true)
+      : (!normalizedEspTier || ['esp-1', 'esp-2', 'esp-3'].includes(normalizedEspTier))
 
-    // --- HRR fallback rule ---
-    const hasHRR = applicable.includes('hrr')
-    const hasESP3 = applicable.includes('esp-3')
+    // HRR fallback rule 
+    const hasHRR     = applicableSet.has('hrr')
+    const hasESP3    = applicableSet.has('esp-3')
     const isHighTier = ['esp-3', 'hrr'].includes(normalizedEspTier)
+    const hrrEligible = hasHRR && !hasESP3 && isHighTier
 
-    const hrrEligible =
-      hasHRR && !hasESP3 && isHighTier
+    const tierEligible = rebateTierEligible || hrrEligible
 
-    // --- Building type eligibility ---
+    // Building type eligibility 
     const hasTypeInfo = Array.isArray(item.types) && item.types.length > 0
     const buildingTypeEligible = hasTypeInfo
-      ? item.types.some(t => t.slug?.toLowerCase?.() === normalizedBuildingGroup)
-      : true // include if no type defined
+      ? item.types.some(t => t?.slug?.toLowerCase?.() === normalizedBuildingGroup)
+      : true
 
-    // --- Heating type eligibility ---
+    // Heating eligibility 
     const heatingEligible =
       !normalizedHeating ||
-      !item.heating_types ||
-      item.heating_types.length === 0 ||
-      item.heating_types.some(sys => sys.slug?.toLowerCase?.() === normalizedHeating)
+      !Array.isArray(item.heating_types) || item.heating_types.length === 0 ||
+      item.heating_types.some(sys => sys?.slug?.toLowerCase?.() === normalizedHeating)
 
-    // --- Utility eligibility ---
-    const utilityEligible =
-      !normalizedUtility ||
-      !item.utilities ||
-      item.utilities.length === 0 ||
-      item.utilities.some(u => u.slug?.toLowerCase?.() === normalizedUtility)
+    // Region slugs + eligibility 
+    const regionSlugs = Array.isArray(item.regions)
+      ? item.regions.map(r => r?.toLowerCase?.()).filter(Boolean)
+      : []
 
-    // --- Gas eligibility ---
-    const gasEligible =
-      !normalizedGas ||
-      !item.gas ||
-      item.gas.length === 0 ||
-      item.gas.some(g => g.slug?.toLowerCase?.() === normalizedGas)
-
-    // --- Region eligibility ---
     const regionEligible =
       !normalizedRegion ||
-      !item.regions ||
-      item.regions.length === 0 ||
-      item.regions.map(r => r.toLowerCase()).includes(normalizedRegion)
+      regionSlugs.length === 0 ||
+      regionSlugs.includes(normalizedRegion)
 
-    // --- Location eligibility ---
+    // Utility slugs + eligibility 
+    const utilitySlugs = Array.isArray(item.utilities)
+      ? item.utilities.map(u => u?.slug?.toLowerCase?.()).filter(Boolean)
+      : []
+
+    const utilityEligible =
+      !normalizedUtility ||
+      utilitySlugs.length === 0 ||
+      utilitySlugs.includes(normalizedUtility)
+
+    // Gas slugs + eligibility 
+    const gasSlugs = Array.isArray(item.gas)
+      ? item.gas.map(g => g?.slug?.toLowerCase?.()).filter(Boolean)
+      : []
+
+    const gasEligible =
+      !normalizedGas ||
+      gasSlugs.length === 0 ||
+      gasSlugs.includes(normalizedGas)
+
+    // Location eligibility 
     const locationEligible =
       !normalizedLocation ||
-      !item.locations ||
-      item.locations.length === 0 ||
-      item.locations.some(l => l.slug?.toLowerCase?.() === normalizedLocation)
+      !Array.isArray(item.locations) || item.locations.length === 0 ||
+      item.locations.some(l => l?.slug?.toLowerCase?.() === normalizedLocation)
+
+    // cross-field slug matches (OR logic)
+    // If any applicable slug matches a region/utility/gas slug,
+    // treat that as eligible even if tier wouldn't otherwise match.
+    const geoOrServiceSlugMatch =
+      regionSlugs.some(slug => applicableSet.has(slug)) ||
+      utilitySlugs.some(slug => applicableSet.has(slug)) ||
+      gasSlugs.some(slug => applicableSet.has(slug))
+
+    // tier OR cross-field slug match
+    const tierOrSlugEligible = tierEligible || geoOrServiceSlugMatch
+ console.log(item.rebate_type_headline_card)
+    console.log('tierEligible', tierEligible)
+    console.log('geoOrServiceSlugMatch', geoOrServiceSlugMatch)
 
     return (
-      (rebateTierEligible || hrrEligible) &&
+      tierOrSlugEligible &&          
       buildingTypeEligible &&
       heatingEligible &&
       utilityEligible &&
@@ -2066,13 +2090,13 @@ const filteredResults = computed(() => {
     )
   })
 
-  // --- Sort alphabetically by rebate_type_headline_card ---
   return results.sort((a, b) => {
     const nameA = (a.rebate_type_headline_card || '').toLowerCase()
     const nameB = (b.rebate_type_headline_card || '').toLowerCase()
     return nameA.localeCompare(nameB)
   })
 })
+
 
 
 /**
@@ -2121,13 +2145,14 @@ function withQueryString(baseUrl) {
   }
 
   .settings-headline {
-    font-size: 1.15rem;
+    font-size: 0.75rem;
     margin-block-end: 0;
-    margin-block-start: 1.25rem;
+    margin-block-start: 0.25rem;
     padding: 1rem;
 
     @media (width > 550px) {
       margin-block-start: 0;
+      font-size: 1.15rem;
     }
 
     &::before {
