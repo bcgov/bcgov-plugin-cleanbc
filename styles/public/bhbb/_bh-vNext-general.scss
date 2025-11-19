@@ -1,3 +1,30 @@
+/* -------------------------------------------------------------------------- */
+
+/* CUSTOM CHECKLIST */
+
+/* -------------------------------------------------------------------------- */
+
+.wp-block-list.checklist {
+	padding: 0;
+	list-style-type: none;
+}
+
+.checklist li {
+	background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjNDI4MTRBIiBkPSJNMjU2IDUxMkEyNTYgMjU2IDAgMSAwIDI1NiAwYTI1NiAyNTYgMCAxIDAgMCA1MTJ6TTM2OSAyMDlMMjQxIDMzN2MtOS40IDkuNC0yNC42IDkuNC0zMy45IDBsLTY0LTY0Yy05LjQtOS40LTkuNC0yNC42IDAtMzMuOXMyNC42LTkuNCAzMy45IDBsNDcgNDdMMzM1IDE3NWM5LjQtOS40IDI0LjYtOS40IDMzLjkgMHM5LjQgMjQuNiAwIDMzLjl6Ii8+PC9zdmc+);
+	font-size: 1rem;
+	list-style-type: none;
+	margin-bottom: 0.25rem;
+	background-repeat: no-repeat;
+	background-size: 1.5rem;
+	padding-inline-start: 2rem;
+}
+
+/* -------------------------------------------------------------------------- */
+
+/* HEADLINES WITH ICONS */
+
+/* -------------------------------------------------------------------------- */
+
 .wp-block-heading {
 
 	&.has-icon-above {
@@ -41,6 +68,14 @@
 			content: $icon_announce;
 			rotate: -10deg;
 		}
+
+		&.icon-eligible::before {
+			content: $icon_eligible;
+		}
+
+		&.icon-apply::before {
+			content: $icon_apply;
+		}
 	}
 
 	&.wrap-normal.wrap-normal {
@@ -49,12 +84,24 @@
 
 }
 
+/* -------------------------------------------------------------------------- */
+
+/* CUSTOM GRID CLASSES */
+
+/* -------------------------------------------------------------------------- */
+
 .grid-center {
 	justify-items: center;
 	align-items: center;
 	height: 100%;
 	width: 100%;
 }
+
+/* -------------------------------------------------------------------------- */
+
+/* HOW IT WORKS CONTAINERS */
+
+/* -------------------------------------------------------------------------- */
 
 .how-it-works-container {
 
