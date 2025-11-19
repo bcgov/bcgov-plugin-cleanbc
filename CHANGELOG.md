@@ -1,3 +1,6 @@
+## 1.25.8 November 19, 2025
+– New page and layout styles.
+
 ## 1.25.7 November 18, 2025
 – Pattern development for vNext specific designs. Added "How it works" styling.
 – Minor style adjustments for mobile.
