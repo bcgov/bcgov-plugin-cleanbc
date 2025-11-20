@@ -501,6 +501,7 @@ async function updateRebateDetails() {
       lastChangedField.value = ''
       rerenderScrollMenu()
       nextTick(() => bcgovBlockThemePluginTablesPattern())
+      nextTick(() => bcgovBlockThemePluginDefnitions())
     }
   } catch (err) {
     console.error('Failed to update rebate details via AJAX:', err)
