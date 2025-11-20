@@ -59,22 +59,27 @@
 		&::before {
 			content: "";
 			display: inline-block;
-			height: 2rem;
-			width: 2rem;
 			padding-inline: 0;
 		}
 
 		&.icon-announce::before {
 			content: $icon_announce;
+			height: 2rem;
+			width: 2rem;
 			rotate: -10deg;
 		}
 
 		&.icon-eligible::before {
 			content: $icon_eligible;
+			margin-right: 0;
+			top: 0.15rem;
 		}
 
 		&.icon-apply::before {
 			content: $icon_apply;
+			margin-right: 0;
+			top: 0.15rem;
+			width: 1.75rem;
 		}
 	}
 
