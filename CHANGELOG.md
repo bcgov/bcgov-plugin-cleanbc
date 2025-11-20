@@ -1,5 +1,6 @@
 ## 1.25.9 November 20, 2025
 – Added definitions handling post rebate refresh.
+– Testing rebate blur on change effect.
 
 ## 1.25.8 November 19, 2025
 – New homepage and layout styles.
