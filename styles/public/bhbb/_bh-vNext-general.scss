@@ -182,11 +182,10 @@ ul.contact-list {
 	.wp-block-heading {
 
 		&::before {
-			content: $flow_icon_dark;
-			width: 1.25rem;
+			content: $icon_how_it_works;
+			width: 1.75rem;
 			margin-right: 0.5rem;
 			display: inline-block;
-			rotate: 90deg;
 		}
 	}
 
