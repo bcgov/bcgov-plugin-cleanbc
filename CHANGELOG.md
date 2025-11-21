@@ -1,3 +1,6 @@
+## 1.25.10 November 20, 2025
+– Rebate change effect updates.
+
 ## 1.25.9 November 20, 2025
 – Added definitions handling post rebate refresh.
 – Testing rebate blur on change effect.
