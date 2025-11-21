@@ -2076,10 +2076,16 @@ const filteredResults = computed(() => {
 
     // tier OR cross-field slug match
     const tierOrSlugEligible = tierEligible || geoOrServiceSlugMatch
- console.log(item.rebate_type_headline_card)
-    console.log('tierEligible', tierEligible)
-    console.log('geoOrServiceSlugMatch', geoOrServiceSlugMatch)
 
+      console.group(item.rebate_type_headline_card)
+      console.log('tierEligible:', tierEligible,'| tier:', normalizedEspTier)
+      console.log('regionEligible:',regionEligible,'| normalizedRegion:',normalizedRegion.split(' '))
+      console.log('heatingEligible:',heatingEligible,'| normalizedHeating:',normalizedHeating.split(' '))
+      console.log('utilityEligible:',utilityEligible,'| normalizedUtility:',normalizedUtility.split(' '))
+      console.log('gasEligible:',gasEligible,'| normalizedGas:',normalizedGas.split(' '))
+      console.log('applicableSet:',applicableSet)
+      console.log('geoOrServiceSlugMatch:', geoOrServiceSlugMatch)
+      console.groupEnd()
     return (
       tierOrSlugEligible &&          
       buildingTypeEligible &&
@@ -2097,8 +2103,6 @@ const filteredResults = computed(() => {
     return nameA.localeCompare(nameB)
   })
 })
-
-
 
 /**
  * Return a URL with the current query string appended.

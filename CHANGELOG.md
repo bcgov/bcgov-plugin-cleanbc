@@ -1,5 +1,6 @@
 ## 1.25.10 November 20, 2025
 – Rebate change effect updates. Fixed archive mode update effect collision.
+– Testing/logging archive mode settings and output.
 
 ## 1.25.9 November 20, 2025
 – Added definitions handling post rebate refresh.
