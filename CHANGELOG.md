@@ -1,3 +1,6 @@
+## 1.25.11 November 20, 2025
+– Revised filteredResults return for adaptive results.
+
 ## 1.25.10 November 20, 2025
 – Rebate change effect updates. Fixed archive mode update effect collision.
 – Testing/logging archive mode settings and output.

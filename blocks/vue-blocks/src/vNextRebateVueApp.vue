@@ -2071,32 +2071,56 @@ const filteredResults = computed(() => {
 
     // tier OR cross-field slug match
     const tierOrSlugEligible = tierEligible || geoOrServiceSlugMatch
-
+    
+    // STRICT: Heating must match
+    if (!heatingEligible) {
       console.group(item.rebate_type_headline_card, item.title.toLowerCase())
-      console.log('tierEligible:', tierEligible,'| tier:', normalizedEspTier)
-      console.log('heatingEligible:',heatingEligible, '| normalizedHeating:',normalizedHeating.split(' '))
-      console.log('regionEligible:',regionEligible, '| regionSlugs:',regionSlugs, '| normalizedRegion:',normalizedRegion.split(' '))
-      console.log('utilityEligible:',utilityEligible, '| utilitySlugs:',utilitySlugs, '| normalizedUtility:',normalizedUtility.split(' '))
-      console.log('gasEligible:',gasEligible, '| gasSlugs:',gasSlugs, '| normalizedGas:',normalizedGas.split(' '))
-      console.log('applicableSet:',applicableSet)
-      console.log('geoOrServiceSlugMatch:', geoOrServiceSlugMatch)
-      console.log('returns in rebate list:',(tierOrSlugEligible &&          
-                                            buildingTypeEligible &&
-                                            heatingEligible &&
-                                            utilityEligible &&
-                                            gasEligible &&
-                                            regionEligible &&
-                                            locationEligible))
+      console.log('Not in rebate list:', false, '(blocked by heating)')
       console.groupEnd()
-    return (
-      tierOrSlugEligible &&          
+      return false
+    }
+
+    // Standard strict checks (old behaviour)
+    const strictEligibility =
+      tierOrSlugEligible &&
       buildingTypeEligible &&
-      heatingEligible &&
       utilityEligible &&
       gasEligible &&
       regionEligible &&
       locationEligible
-    )
+
+    // "Others" that can fail before additive kicks in
+    const baseEligibility =
+      tierOrSlugEligible &&
+      buildingTypeEligible &&
+      locationEligible
+
+    // Additive eligibility: any match allows inclusion
+    const additiveEligibility =
+      utilityEligible || gasEligible || regionEligible
+
+    // Final rule:
+    // 1) Keep strict mode passing in all cases
+    // 2) If strict mode fails:
+    //    include item if heating passed (above)
+    //    AND baseEligibility failed
+    //    AND ANY additive field is true
+    const shouldInclude =
+      strictEligibility ||
+      (!baseEligibility && additiveEligibility)
+
+    console.group(item.rebate_type_headline_card, item.title.toLowerCase())
+    console.log('tierEligible:', tierEligible,'| tier:', normalizedEspTier)
+    console.log('heatingEligible:',heatingEligible, '| normalizedHeating:',normalizedHeating.split(' '))
+    console.log('regionEligible:',regionEligible, '| regionSlugs:',regionSlugs, '| normalizedRegion:',normalizedRegion.split(' '))
+    console.log('utilityEligible:',utilityEligible, '| utilitySlugs:',utilitySlugs, '| normalizedUtility:',normalizedUtility.split(' '))
+    console.log('gasEligible:',gasEligible, '| gasSlugs:',gasSlugs, '| normalizedGas:',normalizedGas.split(' '))
+    console.log('applicableSet:',applicableSet)
+    console.log('geoOrServiceSlugMatch:', geoOrServiceSlugMatch)
+    console.log('returns in rebate list:',shouldInclude)
+    console.groupEnd()
+    
+    return shouldInclude
   })
 
   return results.sort((a, b) => {
