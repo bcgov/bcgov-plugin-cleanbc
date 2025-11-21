@@ -1,5 +1,6 @@
 ## 1.25.11 November 20, 2025
 – Revised filteredResults return for adaptive results.
+– Added guard for BC Hydro + MURB + HRR.
 
 ## 1.25.10 November 20, 2025
 – Rebate change effect updates. Fixed archive mode update effect collision.

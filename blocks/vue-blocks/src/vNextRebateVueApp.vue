@@ -2080,6 +2080,29 @@ const filteredResults = computed(() => {
       return false
     }
 
+    // GUARD: Heating must match
+    const isMurb = normalizedBuildingGroup === 'murb'
+    const isHrrTier = normalizedEspTier === 'hrr'
+    const currentUtility = normalizedUtility // slug ('bc-hydro', 'fortisbc', etc.)
+
+    // Disallow ANY non-BC Hydro utility when MURB + HRR is selected
+    const murbUtilityBlocked =
+      isMurb &&
+      isHrrTier &&
+      currentUtility &&
+      !currentUtility.includes('bc-hydro')
+
+    if (murbUtilityBlocked) {
+      console.group(item.rebate_type_headline_card, item.title.toLowerCase())
+      console.log(
+        'Not in rebate list:',
+        false,
+        '(blocked by MURB+HRR: utility must be BC Hydro)'
+      )
+      console.groupEnd()
+      return false
+    }
+
     // Standard strict checks (old behaviour)
     const strictEligibility =
       tierOrSlugEligible &&
