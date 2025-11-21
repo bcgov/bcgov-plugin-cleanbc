@@ -2089,11 +2089,12 @@ const filteredResults = computed(() => {
     const baseEligibility =
       tierOrSlugEligible &&
       buildingTypeEligible &&
-      regionEligible
+      regionEligible && 
+      utilityEligible
 
     // Additive eligibility: any match allows inclusion
     const additiveEligibility =
-      utilityEligible || gasEligible || regionEligible
+      utilitySlugs.some(slug => applicableSet.has(slug)) || gasEligible || regionEligible
 
     // Final rule:
     // 1) Keep strict mode passing in all cases
@@ -2110,7 +2111,7 @@ const filteredResults = computed(() => {
     console.log('heatingEligible:',heatingEligible, '| normalizedHeating:',normalizedHeating.split(' '))
     console.log('locationEligible:',locationEligible, '| normalizedLocation:',normalizedLocation.split(' '))
     console.log('regionEligible:',regionEligible, '| regionSlugs:',regionSlugs, '| normalizedRegion:',normalizedRegion.split(' '))
-    console.log('utilityEligible:',utilityEligible, '| utilitySlugs:',utilitySlugs, '| normalizedUtility:',normalizedUtility.split(' '))
+    console.log('utilityEligible:',utilityEligible, '| utilitySlugs:',utilitySlugs.some(slug => applicableSet.has(slug)), '| normalizedUtility:',normalizedUtility.split(' '))
     console.log('gasEligible:',gasEligible, '| gasSlugs:',gasSlugs, '| normalizedGas:',normalizedGas.split(' '))
     console.log('applicableSet:',applicableSet)
     console.log('geoOrServiceSlugMatch:', geoOrServiceSlugMatch)
