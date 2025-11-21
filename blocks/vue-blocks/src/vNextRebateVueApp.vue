@@ -2075,11 +2075,18 @@ const filteredResults = computed(() => {
       console.group(item.rebate_type_headline_card, item.title.toLowerCase())
       console.log('tierEligible:', tierEligible,'| tier:', normalizedEspTier)
       console.log('heatingEligible:',heatingEligible, '| normalizedHeating:',normalizedHeating.split(' '))
-      console.log('regionEligible:',regionEligible, '| regionSlugs:',utilitySlugs, '| normalizedRegion:',normalizedRegion.split(' '))
+      console.log('regionEligible:',regionEligible, '| regionSlugs:',regionSlugs, '| normalizedRegion:',normalizedRegion.split(' '))
       console.log('utilityEligible:',utilityEligible, '| utilitySlugs:',utilitySlugs, '| normalizedUtility:',normalizedUtility.split(' '))
-      console.log('gasEligible:',gasEligible, '| gasSlugs:',utilitySlugs, '| normalizedGas:',normalizedGas.split(' '))
+      console.log('gasEligible:',gasEligible, '| gasSlugs:',gasSlugs, '| normalizedGas:',normalizedGas.split(' '))
       console.log('applicableSet:',applicableSet)
       console.log('geoOrServiceSlugMatch:', geoOrServiceSlugMatch)
+      console.log('returns in rebate list:',(tierOrSlugEligible &&          
+                                            buildingTypeEligible &&
+                                            heatingEligible &&
+                                            utilityEligible &&
+                                            gasEligible &&
+                                            regionEligible &&
+                                            locationEligible))
       console.groupEnd()
     return (
       tierOrSlugEligible &&          
