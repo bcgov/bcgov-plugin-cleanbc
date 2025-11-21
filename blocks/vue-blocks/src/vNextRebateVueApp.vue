@@ -1932,7 +1932,6 @@ const espTier = computed(() => {
   return ''
 })
 
-
 const normalizeHeatingSlug = (val) => {
   if (!val) return ''
   const v = val.toLowerCase().trim()
@@ -1947,7 +1946,7 @@ const normalizeUtilitySlug = (val) => {
   if (!val) return ''
   const v = val.toLowerCase().trim()
   if (v.includes('bc hydro')) return 'bc-hydro'
-  if (v.includes('fortis')) return 'fortisbc-electric'
+  if (v.includes('fortis')) return 'fortisbc'
   if (v.includes('grand forks')) return 'grand-forks'
   if (v.includes('nelson')) return 'nelson'
   if (v.includes('new west')) return 'new-westminster'
@@ -1966,13 +1965,13 @@ const normalizeGasSlug = (val) => {
   return v.replace(/\s+/g, '-') // fallback slugify.
 }
 
-// Normalize region ("North" → "north").
+// Normalize region ("North" to "north").
 const normalizeRegionSlug = (val) => {
   if (!val) return ''
   return val.toLowerCase().trim()
 }
 
-// Normalize location ("100 Mile House" → "100-mile-house").
+// Normalize location ("100 Mile House" to "100-mile-house").
 const normalizeLocationSlug = (val) => {
   if (!val) return ''
   return val.toLowerCase().trim().replace(/\s+/g, '-')
