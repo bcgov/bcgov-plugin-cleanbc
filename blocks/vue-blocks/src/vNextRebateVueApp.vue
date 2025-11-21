@@ -2083,17 +2083,13 @@ const filteredResults = computed(() => {
     // Standard strict checks (old behaviour)
     const strictEligibility =
       tierOrSlugEligible &&
-      buildingTypeEligible &&
-      utilityEligible &&
-      gasEligible &&
-      regionEligible &&
-      locationEligible
+      buildingTypeEligible
 
     // "Others" that can fail before additive kicks in
     const baseEligibility =
       tierOrSlugEligible &&
       buildingTypeEligible &&
-      locationEligible
+      regionEligible
 
     // Additive eligibility: any match allows inclusion
     const additiveEligibility =
@@ -2110,8 +2106,9 @@ const filteredResults = computed(() => {
       (!baseEligibility && additiveEligibility)
 
     console.group(item.rebate_type_headline_card, item.title.toLowerCase())
-    console.log('tierEligible:', tierEligible,'| tier:', normalizedEspTier)
+    console.log('tierOrSlugEligible:', tierOrSlugEligible,'| tier:', normalizedEspTier, '| geoOrServiceSlugMatch:', geoOrServiceSlugMatch)
     console.log('heatingEligible:',heatingEligible, '| normalizedHeating:',normalizedHeating.split(' '))
+    console.log('locationEligible:',locationEligible, '| normalizedLocation:',normalizedLocation.split(' '))
     console.log('regionEligible:',regionEligible, '| regionSlugs:',regionSlugs, '| normalizedRegion:',normalizedRegion.split(' '))
     console.log('utilityEligible:',utilityEligible, '| utilitySlugs:',utilitySlugs, '| normalizedUtility:',normalizedUtility.split(' '))
     console.log('gasEligible:',gasEligible, '| gasSlugs:',gasSlugs, '| normalizedGas:',normalizedGas.split(' '))
