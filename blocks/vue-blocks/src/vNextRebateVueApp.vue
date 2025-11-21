@@ -1921,20 +1921,16 @@ const espTier = computed(() => {
   const hvSlug = selectedHV?.slug || ''
   const isMurb = selectedBuildingGroupSlug.value === 'murb'
 
-  const overLimit =
-    (isMurb && murbTenure.value !== 'rent' && hvSlug === '772000-or-over') ||
-    (!isMurb && hvSlug === '1230000-or-over') ||
-    (!isMurb && murbTenure.value === 'rent')
+  const homeOverLimit =
+    (isMurb && hvSlug === '772000-or-over') ||
+    (!isMurb && hvSlug === '1230000-or-over')
 
-  if (/-t1$/.test(incomeSlug)) return overLimit ? 'HRR' : 'ESP-1'
-  if (/-t2$/.test(incomeSlug)) return overLimit ? 'HRR' : 'ESP-2'
+  if (/-t1$/.test(incomeSlug)) return homeOverLimit ? (isMurb ? 'HRR' : 'ESP-3') : 'ESP-1' // god: ESP-3
+  if (/-t2$/.test(incomeSlug)) return homeOverLimit ? (isMurb ? 'HRR' : 'ESP-3') : 'ESP-2' // god: ESP-3
   if (/-t3$/.test(incomeSlug)) return 'ESP-3'
   if (/-t0$/.test(incomeSlug)) return 'HRR'
   return ''
 })
-
-// -- HRR derivation --
-// TBD
 
 
 const normalizeHeatingSlug = (val) => {
@@ -2077,7 +2073,7 @@ const filteredResults = computed(() => {
     // tier OR cross-field slug match
     const tierOrSlugEligible = tierEligible || geoOrServiceSlugMatch
 
-      console.group(item.rebate_type_headline_card)
+      console.group(item.rebate_type_headline_card, item.title.toLowerCase())
       console.log('tierEligible:', tierEligible,'| tier:', normalizedEspTier)
       console.log('regionEligible:',regionEligible,'| normalizedRegion:',normalizedRegion.split(' '))
       console.log('heatingEligible:',heatingEligible,'| normalizedHeating:',normalizedHeating.split(' '))
