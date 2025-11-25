@@ -2073,15 +2073,15 @@ const filteredResults = computed(() => {
     // tier OR cross-field slug match
     const tierOrSlugEligible = tierEligible || geoOrServiceSlugMatch
     
-    // STRICT: Heating must match
+    // STRICT GUARD 1: Heating must match
     if (!heatingEligible) {
-      console.group(item.rebate_type_headline_card, item.title.toLowerCase())
+      console.group("GUARD 1: ", item.rebate_type_headline_card, item.title.toLowerCase())
       console.log('Not in rebate list:', false, '(blocked by heating)')
       console.groupEnd()
       return false
     }
 
-    // GUARD: MURB utiity rules
+    // GUARD 2: MURB utiity rules
     const isMurb = normalizedBuildingGroup === 'murb'
     const isHrrTier = normalizedEspTier === 'hrr'
     const currentUtility = normalizedUtility // slug ('bc-hydro', 'fortisbc', etc.)
@@ -2092,20 +2092,23 @@ const filteredResults = computed(() => {
       isMurb &&
       isHrrTier &&
       currentUtility &&
-      (!currentUtility.includes('bc-hydro') || !currentUtility.includes('new-west'))
+      (!currentUtility.includes('bc-hydro') && !currentUtility.includes('new-westminster'))
 
     if (murbUtilityBlocked) {
-      console.group(item.rebate_type_headline_card, item.title.toLowerCase())
+      console.group("GUARD 2: ", item.rebate_type_headline_card, item.title.toLowerCase())
       console.log(
         'Not in rebate list:',
         false,
-        '(blocked by MURB+HRR: utility must be BC Hydro)'
+        '(blocked by MURB+HRR: utility must be BC Hydro or New Westminster)'
       )
+      console.log('isMurb',isMurb)
+      console.log('isHrrTier',isHrrTier)
+      console.log('currentUtility',currentUtility)
       console.groupEnd()
       return false
     }
 
-    // GUARD: HRR must also match allowable HRR region
+    // GUARD 3: HRR must also match allowable HRR region
     const regionAndHRR = (() => {
       // If the user didn't end up in the HRR tier, this guard does nothing.
       if (normalizedEspTier !== 'hrr') return true
@@ -2118,8 +2121,8 @@ const filteredResults = computed(() => {
       const ok = hasHRR && regionMatch
 
       if (!ok) {
-        console.group(item.rebate_type_headline_card, item.title.toLowerCase())
-        console.log('Not in rebate list:', false, '(blocked: HRR requires region match)')
+        console.group("GUARD 3: ", item.rebate_type_headline_card, item.title.toLowerCase())
+        console.log('Not in rebate list:', false, '(blocked: HRR requires "north" region match)')
         console.log('normalizedEspTier:', normalizedEspTier)
         console.log('hasHRR:', hasHRR)
         console.log('requiredHRRRegions:', requiredHRRRegions)
@@ -2130,8 +2133,7 @@ const filteredResults = computed(() => {
       return ok
     })()
 
-    if (!regionAndHRR) return false
-
+    // if (!regionAndHRR) return false
 
     // Standard strict checks (old behaviour)
     const strictEligibility =
@@ -2141,9 +2143,9 @@ const filteredResults = computed(() => {
     // "Others" that can fail before additive kicks in
     const baseEligibility =
       tierOrSlugEligible &&
-      buildingTypeEligible &&
       regionEligible && 
-      utilityEligible
+      utilityEligible &&
+      buildingTypeEligible
 
     // Additive eligibility: any match allows inclusion
     const additiveEligibility =
@@ -2157,10 +2159,11 @@ const filteredResults = computed(() => {
     //    AND ANY additive field is true
     const shouldInclude =
       strictEligibility ||
-      (!baseEligibility && additiveEligibility)
+      (!baseEligibility && (buildingTypeEligible && additiveEligibility))
 
-    console.group(item.rebate_type_headline_card, item.title.toLowerCase())
+    console.group("PASSED: ", item.rebate_type_headline_card, item.title.toLowerCase())
     console.log('tierOrSlugEligible:', tierOrSlugEligible,'| tier:', normalizedEspTier, '| geoOrServiceSlugMatch:', geoOrServiceSlugMatch)
+    console.log('buildingTypeEligible:',buildingTypeEligible, '| normalizedBuildingGroup:',normalizedBuildingGroup.split(' '))
     console.log('heatingEligible:',heatingEligible, '| normalizedHeating:',normalizedHeating.split(' '))
     console.log('locationEligible:',locationEligible, '| normalizedLocation:',normalizedLocation.split(' '))
     console.log('regionEligible:',regionEligible, '| regionSlugs:',regionSlugs, '| normalizedRegion:',normalizedRegion.split(' '))
@@ -2168,6 +2171,9 @@ const filteredResults = computed(() => {
     console.log('gasEligible:',gasEligible, '| gasSlugs:',gasSlugs, '| normalizedGas:',normalizedGas.split(' '))
     console.log('applicableSet:',applicableSet)
     console.log('geoOrServiceSlugMatch:', geoOrServiceSlugMatch)
+    console.log('strictEligibility:',strictEligibility)
+    console.log('baseEligibility:',baseEligibility)
+    console.log('additiveEligibility:',additiveEligibility)
     console.log('returns in rebate list:',shouldInclude)
     console.groupEnd()
     
