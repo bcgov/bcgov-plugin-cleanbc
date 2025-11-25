@@ -1921,13 +1921,14 @@ const espTier = computed(() => {
   const hvSlug = selectedHV?.slug || ''
   const isMurb = selectedBuildingGroupSlug.value === 'murb'
 
+  // FIX LABELS HERE
   const homeOverLimit =
-    (isMurb && hvSlug === '772000-or-over') ||
-    (!isMurb && hvSlug === '1230000-or-over')
+    (isMurb && hvSlug === 'over-772000') ||
+    (!isMurb && hvSlug === 'over-1230000')
 
   if (/-t1$/.test(incomeSlug)) return homeOverLimit ? (isMurb ? 'HRR' : 'ESP-3') : 'ESP-1' // god: ESP-3
   if (/-t2$/.test(incomeSlug)) return homeOverLimit ? (isMurb ? 'HRR' : 'ESP-3') : 'ESP-2' // god: ESP-3
-  if (/-t3$/.test(incomeSlug)) return 'ESP-3'
+  if (/-t3$/.test(incomeSlug)) return isMurb ? 'HRR' : 'ESP-3'  // god: ESP-3
   if (/-t0$/.test(incomeSlug)) return 'HRR'
   return ''
 })
@@ -2080,17 +2081,18 @@ const filteredResults = computed(() => {
       return false
     }
 
-    // GUARD: Heating must match
+    // GUARD: MURB utiity rules
     const isMurb = normalizedBuildingGroup === 'murb'
     const isHrrTier = normalizedEspTier === 'hrr'
     const currentUtility = normalizedUtility // slug ('bc-hydro', 'fortisbc', etc.)
 
     // Disallow ANY non-BC Hydro utility when MURB + HRR is selected
+    // New Westminster utilities here too
     const murbUtilityBlocked =
       isMurb &&
       isHrrTier &&
       currentUtility &&
-      !currentUtility.includes('bc-hydro')
+      (!currentUtility.includes('bc-hydro') || !currentUtility.includes('new-west'))
 
     if (murbUtilityBlocked) {
       console.group(item.rebate_type_headline_card, item.title.toLowerCase())
@@ -2102,6 +2104,34 @@ const filteredResults = computed(() => {
       console.groupEnd()
       return false
     }
+
+    // GUARD: HRR must also match allowable HRR region
+    const regionAndHRR = (() => {
+      // If the user didn't end up in the HRR tier, this guard does nothing.
+      if (normalizedEspTier !== 'hrr') return true
+
+      // Allowed HRR regions
+      const requiredHRRRegions = ['north']
+
+      const regionMatch = requiredHRRRegions.some(r => applicableSet.has(r))
+
+      const ok = hasHRR && regionMatch
+
+      if (!ok) {
+        console.group(item.rebate_type_headline_card, item.title.toLowerCase())
+        console.log('Not in rebate list:', false, '(blocked: HRR requires region match)')
+        console.log('normalizedEspTier:', normalizedEspTier)
+        console.log('hasHRR:', hasHRR)
+        console.log('requiredHRRRegions:', requiredHRRRegions)
+        console.log('applicableSet:', applicableSet)
+        console.groupEnd()
+      }
+
+      return ok
+    })()
+
+    if (!regionAndHRR) return false
+
 
     // Standard strict checks (old behaviour)
     const strictEligibility =
