@@ -2014,6 +2014,8 @@ const filteredResults = computed(() => {
 
     const tierEligible = rebateTierEligible || hrrEligible
 
+    const northernRequired = applicableSet.has('hrr') && applicableSet.has('north')
+
     // Building type eligibility 
     const hasTypeInfo = Array.isArray(item.types) && item.types.length > 0
     const buildingTypeEligible = hasTypeInfo
@@ -2108,24 +2110,29 @@ const filteredResults = computed(() => {
       return false
     }
 
-    // GUARD 3: HRR must also match allowable HRR region
+    // GUARD 3: HRR + North restricted offers
     const regionAndHRR = (() => {
-      // If the user didn't end up in the HRR tier, this guard does nothing.
-      if (normalizedEspTier !== 'hrr') return true
+      const userTierHRR = normalizedEspTier === 'hrr'
+      const userRegionNorth = normalizedRegion === 'north'
 
-      // Allowed HRR regions
-      const requiredHRRRegions = ['north']
+      // This rebate is explicitly restricted to HRR + North
+      const rebateHRRNorthRestricted =
+        applicableSet.has('hrr') && applicableSet.has('north')
 
-      const regionMatch = requiredHRRRegions.some(r => applicableSet.has(r))
+      // If the rebate is NOT explicitly marked HRR+North, this guard does nothing.
+      if (!rebateHRRNorthRestricted) {
+        return true
+      }
 
-      const ok = hasHRR && regionMatch
+      // For HRR+North-restricted rebates, only HRR + North users are allowed.
+      const ok = userTierHRR && userRegionNorth
 
       if (!ok) {
         console.group("GUARD 3: ", item.rebate_type_headline_card, item.title.toLowerCase())
-        console.log('Not in rebate list:', false, '(blocked: HRR requires "north" region match)')
+        console.log('Not in rebate list:', false, '(blocked: HRR+North-restricted rebate)')
         console.log('normalizedEspTier:', normalizedEspTier)
-        console.log('hasHRR:', hasHRR)
-        console.log('requiredHRRRegions:', requiredHRRRegions)
+        console.log('normalizedRegion:', normalizedRegion)
+        console.log('rebateHRRNorthRestricted:', rebateHRRNorthRestricted)
         console.log('applicableSet:', applicableSet)
         console.groupEnd()
       }
@@ -2133,7 +2140,7 @@ const filteredResults = computed(() => {
       return ok
     })()
 
-    // if (!regionAndHRR) return false
+    if (!regionAndHRR) return false
 
     // Standard strict checks (old behaviour)
     const strictEligibility =
