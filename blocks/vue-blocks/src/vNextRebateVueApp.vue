@@ -2110,51 +2110,53 @@ const filteredResults = computed(() => {
       return false
     }
 
-    // GUARD 3: HRR + North restricted offers
+    // GUARD 3: HRR + North restricted offers.
     const regionAndHRR = (() => {
       const userTierHRR = normalizedEspTier === 'hrr'
       const userRegionNorth = normalizedRegion === 'north'
 
-      // This rebate is explicitly restricted to HRR + North
+      // Rebate is explicitly marked as HRR + North in applicableSet.
       const rebateHRRNorthRestricted =
         applicableSet.has('hrr') && applicableSet.has('north')
 
-      // If the rebate is NOT explicitly marked HRR+North, this guard does nothing.
+      // If the rebate is NOT explicitly HRR+North restricted, this guard does nothing.
       if (!rebateHRRNorthRestricted) {
         return true
       }
 
-      // For HRR+North-restricted rebates, only HRR + North users are allowed.
-      const ok = userTierHRR && userRegionNorth
+      // Only blocked case:
+      const blocked = userTierHRR && !userRegionNorth
 
-      if (!ok) {
+      if (blocked) {
         console.group("GUARD 3: ", item.rebate_type_headline_card, item.title.toLowerCase())
-        console.log('Not in rebate list:', false, '(blocked: HRR+North-restricted rebate)')
+        console.log('Not in rebate list:', false, '(blocked: HRR user must be in North for HRR+North-restricted rebate)')
         console.log('normalizedEspTier:', normalizedEspTier)
         console.log('normalizedRegion:', normalizedRegion)
         console.log('rebateHRRNorthRestricted:', rebateHRRNorthRestricted)
         console.log('applicableSet:', applicableSet)
         console.groupEnd()
+        return false
       }
 
-      return ok
+      // All other combinations are OK.
+      return true
     })()
 
     if (!regionAndHRR) return false
 
-    // Standard strict checks (old behaviour)
+    // Standard strict checks (old behaviour).
     const strictEligibility =
       tierOrSlugEligible &&
       buildingTypeEligible
 
-    // "Others" that can fail before additive kicks in
+    // "Others" that can fail before additive kicks in.
     const baseEligibility =
       tierOrSlugEligible &&
       regionEligible && 
       utilityEligible &&
       buildingTypeEligible
 
-    // Additive eligibility: any match allows inclusion
+    // Additive eligibility: any match allows inclusion.
     const additiveEligibility =
       utilitySlugs.some(slug => applicableSet.has(slug)) || gasEligible || regionEligible
 
