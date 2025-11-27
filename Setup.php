@@ -62,6 +62,7 @@ class Setup {
 	    add_filter( 'the_content', [ $plugin_search, 'bcgov_filter_content_for_search' ], 1 );
         add_filter( 'get_the_excerpt', [ $plugin_search, 'bcgov_filter_excerpt_for_search' ], 10, 2 );
         add_filter( 'wp_trim_excerpt', [ $plugin_search, 'bcgov_filter_excerpt_for_search' ], 10, 2 );
+        add_filter( 'the_title', [ $plugin_search, 'bcgov_prepend_rebates_type_to_search_title' ], 10, 2 );
 
         // Actions.
         add_action( 'pre_get_posts', [ $plugin_search, 'bcgov_included_post_types_in_search' ] );

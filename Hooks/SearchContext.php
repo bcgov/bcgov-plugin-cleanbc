@@ -99,12 +99,103 @@ class SearchContext {
 
 		$post = get_post( $post );
 
-		if ( is_search() && $post && isset( $post->post_content ) ) {
+		if ( ! is_search() || ! $post ) {
+			return $excerpt;
+		}
+
+		// If a manual excerpt exists, always use it (any post type).
+		if ( has_excerpt( $post ) ) {
+			// Optionally trim to match your current length.
+			return wp_trim_words(
+				wp_strip_all_tags( $post->post_excerpt ),
+				40,
+				'...'
+			);
+		}
+
+		// Otherwise, generate from filtered content (your existing behavior).
+		if ( isset( $post->post_content ) ) {
 			$cleaned_content = apply_filters( 'the_content', $post->post_content );
 
 			return wp_trim_words( $cleaned_content, 40, '...' );
 		}
 
 		return $excerpt;
+	}
+
+	/**
+	 * Prepend rebates_type term to incentives titles in search results.
+	 *
+	 * Example:
+	 *   Term: "Heat pump rebates"
+	 *   Title: "For all fuel types"
+	 *   Output: "Heat pump rebates for all fuel types"
+	 *
+	 * @since 1.25.13
+	 *
+	 * @param string $title   The original post title.
+	 * @param int    $post_id The post ID.
+	 * @return string         The modified title.
+	 */
+	public function bcgov_prepend_rebates_type_to_search_title( $title, $post_id ) {
+
+		// Only touch front-end main query search results.
+		if ( ! is_search() || ! in_the_loop() || ! is_main_query() ) {
+			return $title;
+		}
+
+		// Limit to the "incentives" post type.
+		if ( 'incentives' !== get_post_type( $post_id ) ) {
+			return $title;
+		}
+
+		if ( ! function_exists( 'get_field' ) ) {
+			return $title;
+		}
+
+		$rebate_types = get_field( 'rebate_types', $post_id );
+
+		if ( empty( $rebate_types ) ) {
+			return $title;
+		}
+
+		$rebate_type_name = '';
+
+		// ACF taxonomy field can return: array of terms, IDs, or strings.
+		if ( is_array( $rebate_types ) ) {
+			$first = reset( $rebate_types );
+
+			if ( $first instanceof \WP_Term ) {
+				$rebate_type_name = $first->name;
+			} elseif ( is_numeric( $first ) ) {
+				$term = get_term( (int) $first );
+				if ( $term && ! is_wp_error( $term ) ) {
+					$rebate_type_name = $term->name;
+				}
+			} else {
+				// Assume it's a label string.
+				$rebate_type_name = (string) $first;
+			}
+		} elseif ( $rebate_types instanceof \WP_Term ) {
+			$rebate_type_name = $rebate_types->name;
+		} elseif ( is_string( $rebate_types ) ) {
+			// If field is configured as "Return: Label".
+			$rebate_type_name = $rebate_types;
+		}
+
+		if ( '' === trim( $rebate_type_name ) ) {
+			return $title;
+		}
+
+		// Build "Term + original title".
+		$combined = trim( $rebate_type_name . ' ' . ltrim( $title ) );
+
+		// Convert to sentence case:
+		// lower-case everything, then uppercase first character.
+		$combined_lower = mb_strtolower( $combined, 'UTF-8' );
+		$first_char     = mb_substr( $combined_lower, 0, 1, 'UTF-8' );
+		$rest           = mb_substr( $combined_lower, 1, null, 'UTF-8' );
+
+		return mb_strtoupper( $first_char, 'UTF-8' ) . $rest;
 	}
 }

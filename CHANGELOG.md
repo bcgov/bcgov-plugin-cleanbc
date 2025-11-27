@@ -1,11 +1,16 @@
-## 1.25.12 November 20, 2025
+## 1.25.13 November 27, 2025
+– Search results modified output for rebates split title.
+– Modified search results to use excerpt ahead of filtered content if available.
+– Search output style adjustment.
+
+## 1.25.12 November 25, 2025
 – Revamped filteredResults guards and espTier income level logic.
 
-## 1.25.11 November 20, 2025
+## 1.25.11 November 24, 2025
 – Revised filteredResults return for adaptive results.
 – Added guard for BC Hydro + MURB + HRR.
 
-## 1.25.10 November 20, 2025
+## 1.25.10 November 21, 2025
 – Rebate change effect updates. Fixed archive mode update effect collision.
 – Testing/logging archive mode settings and output.
 

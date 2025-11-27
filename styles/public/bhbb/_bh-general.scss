@@ -70,6 +70,7 @@ html:has(body.betterhomesbc, body.betterbuildingsbc) {
 
 	body.search-results.search-results #post-content#post-content h2 a {
 		display: inline-block;
+		font-size: inherit;
 	}
 
 	body.search-results.search-results .result-details {
