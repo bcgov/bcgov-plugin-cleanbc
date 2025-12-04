@@ -1,3 +1,8 @@
+## 1.26.0 December 10, 2025
+– Questionnaire modifications for addition questions, style changes to sequence numbering, and related icon handling, as well as error states for questions with 'other' options (and related disabled questions), including sorting for 'other' to bottom of the select options.
+– Eligible home types details injection into 'building' field for visual editing of content.
+– Set Vite output chunkSizeWarningLimit to 600kB.
+
 ## 1.25.13 November 27, 2025
 – Search results modified output for rebates split title.
 – Modified search results to use excerpt ahead of filtered content if available.
@@ -7,7 +12,7 @@
 – Revamped filteredResults guards and espTier income level logic.
 
 ## 1.25.11 November 24, 2025
-– Revised filteredResults return for adaptive results.
+– Revised filtered Results return for adaptive results.
 – Added guard for BC Hydro + MURB + HRR.
 
 ## 1.25.10 November 21, 2025

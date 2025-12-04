@@ -229,12 +229,23 @@
 
                         <!-- Grouped (building) -->
                         <template v-if="field.isGrouped">
-                          <optgroup v-for="group in field.groups" :key="group.slug"
-                            :label="group.name === 'MURB' ? 'Multi-unit residential buildings' : group.name">
-                            <option v-for="child in group.children" :key="child.slug" :value="child.slug">
-                              {{ child.name }}
-                            </option>
-                          </optgroup>
+                          <template v-for="group in field.groups" :key="group.slug">
+                            <optgroup
+                              v-if="group.slug !== 'other'"
+                              :label="group.name === 'MURB' ? 'Multi-unit residential buildings' : group.name">
+                              <option v-for="child in group.children" :key="child.slug" :value="child.slug">
+                                {{ child.name }}
+                              </option>
+                            </optgroup>
+
+                            <template v-else>
+                              <option
+                                :key="group.slug"
+                                :value="group.slug">
+                                {{ group.name }}
+                              </option>
+                            </template>
+                          </template>
                         </template>
 
                         <!-- Flat (others) -->
@@ -247,8 +258,13 @@
 
                       <figcaption v-if="field.filter_desc && !field.disabled">{{ field.filter_desc }}</figcaption>
                       <figcaption v-if="field.disabled_desc && field.disabled">{{ field.disabled_desc }}</figcaption>
-                      <figcaption v-if="field.error_desc && fieldErrors[field.key]" class="hasError">{{ field.error_desc
-                      }}</figcaption>
+                      <p v-if="field.error_desc && fieldErrors[field.key]" class="message error-message" aria-live='polite'>{{ field.error_desc
+                      }}</p>
+
+                      <template v-if="field.key === 'building'">
+                        <div class='eligible-homes-insertion'></div>
+                      </template>
+
                     </template>
                   </figure>
                 </div>
@@ -502,6 +518,7 @@ async function updateRebateDetails() {
       rerenderScrollMenu()
       nextTick(() => bcgovBlockThemePluginTablesPattern())
       nextTick(() => bcgovBlockThemePluginDefnitions())
+      nextTick(() => betterhomesRebatesArchiveLoader())
     }
   } catch (err) {
     console.error('Failed to update rebate details via AJAX:', err)
@@ -583,6 +600,7 @@ const isSavingEditMode = ref(false)
 const hasError = ref(false)
 const ariaStatusMessage = ref('')
 const pageHeatingType = ref('')
+const pageWaterHeatingType = ref('')
 
 // Focus map for selects 
 const selectRefs = ref({})
@@ -597,10 +615,15 @@ const fieldRenderKeys = ref({
 
 const fieldErrors = computed(() => {
   return {
-    murbTenure:
-      false && 
-      selectedBuildingGroupSlug.value === 'ground-oriented-dwellings' &&
-      murbTenure.value === 'rent'
+    // murbTenure:
+    //   false && 
+    //   selectedBuildingGroupSlug.value === 'ground-oriented-dwellings' &&
+    //   murbTenure.value === 'rent',
+    building: selectedBuildingTypeSlug.value === 'other',
+    heating: selectedHeatingSlug.value === 'other',
+    water: selectedWaterHeatingSlug.value === 'other',
+    utility: selectedUtilitySlug.value === 'other'
+    // gas: selectedGasSlug.value === 'other'
   }
 })
 
@@ -981,6 +1004,9 @@ function clearSettings(event) {
   const isLockedHeating =
     mode.value === 'single' && !!pageHeatingType.value
 
+   const isLockedWaterHeating =
+    mode.value === 'single' && !!pageWaterHeatingType.value
+
   selectedBuildingTypeSlug.value = ''
   murbTenure.value = ''
   selectedHomeValueSlug.value = ''
@@ -991,6 +1017,9 @@ function clearSettings(event) {
   // Only clear heating type if it's not locked (archive mode or no SSR value)
   if (!isLockedHeating) {
     selectedHeatingSlug.value = ''
+  }
+  if (!isLockedWaterHeating) {
+    selectedWaterHeatingSlug.value = ''
   }
 
   selectedUtilitySlug.value = ''
@@ -1009,6 +1038,16 @@ function clearSettings(event) {
 }
 
 
+const sortOtherLast = (items = []) => {
+  if (!Array.isArray(items)) return items
+
+  const rest   = items.filter(i => i?.slug !== 'other')
+  const others = items.filter(i => i?.slug === 'other')
+
+  return [...rest, ...others]
+}
+
+
 /**
  * Unified fields config.
  */
@@ -1023,7 +1062,7 @@ const fields = computed(() => [
       ? `${selectedLocationName.value} (${selectedRegionName.value})`
       : '',
     missingMessage: 'Missing location details',
-    isInvalid: () => !selectedLocationSlug.value,
+    isInvalid: () => !selectedLocationSlug.value || selectedLocationSlug.value === 'other',
     filter_desc: 'Start typing to narrow down your choice of options. Select the icon to see available choices.'
   },
   {
@@ -1048,7 +1087,7 @@ const fields = computed(() => [
   {
     key: 'building',
     shortDesc: 'Type of home',
-    label: 'What type of home do you live in?',
+    label: 'What kind of home do you live in?',
     model: selectedBuildingTypeSlug,
     groups: buildingTypeGroups.value,
     isGrouped: true,
@@ -1058,7 +1097,9 @@ const fields = computed(() => [
       'Changing between Ground Oriented / MURB types will require you to update the assessed home value information.',
     filter_desc:
       'Each unit must have its own electricity meter and the utility account must be in the name of a resident in the household that is applying to the rebate.',
-    isInvalid: () => !selectedBuildingTypeSlug.value
+    error_desc:
+      'Only the listed home types are currently eligible for Better Homes rebates. Contact an Energy Coach to find out if your home type fits into one of these categories.',
+    isInvalid: () => selectedBuildingTypeSlug.value === 'other'
   },
   {
     key: 'homeValue',
@@ -1068,7 +1109,7 @@ const fields = computed(() => [
     options: homeValueOptions.value,
     displayValue: selectedHomeValueName.value,
     missingMessage: 'Missing home value',
-    disabled: !selectedBuildingGroupSlug.value,
+    disabled: !selectedBuildingGroupSlug.value || selectedBuildingTypeSlug.value === 'other',
     ready: homeValueOptions.value.length > 0,
     description:
       'The amount options shown change based on the set type of home.',
@@ -1077,7 +1118,7 @@ const fields = computed(() => [
     definition: 'How to find the assessed value of your home',
     glossary_link: '/definitions/assessed-home-value/',
     isInvalid: () =>
-      !selectedHomeValueSlug.value && !!selectedBuildingGroupSlug.value
+      !selectedHomeValueSlug.value && !!selectedBuildingGroupSlug.value || selectedBuildingTypeSlug.value === 'other'
   },
   {
     key: 'persons',
@@ -1114,13 +1155,32 @@ const fields = computed(() => [
   {
     key: 'heating',
     shortDesc: 'Heating type',
-    label: 'What is the primary type of heating in your home?',
+    label: 'How do you heat the rooms in your home?',
     disabled: mode.value === 'single' && !!pageHeatingType.value,
+    description:
+      'If you have multiple heat sources, choose the option that applies to most of your home. If your home is heated with both a wood stove and another source, choose the other source as your primary heating type.',
     model: selectedHeatingSlug,
     options: heatingOptions.value,
     displayValue: selectedHeatingName.value,
-    missingMessage: 'Missing heating details',
-    isInvalid: () => !selectedHeatingSlug.value
+    missingMessage: 'Missing room heating details',
+    error_desc:
+      'Only the listed heating types are currently eligible for Better Homes rebates. Contact an Energy Coach to find out if your heating type fits into one of these categories.',
+    isInvalid: () => !selectedHeatingSlug.value && selectedHeatingSlug.value === 'other',
+  },
+  {
+    key: 'water',
+    shortDesc: 'Hot water heating',
+    label: '    How do you heat your water?',
+    disabled: mode.value === 'single' && !!pageWaterHeatingType.value,
+    description:
+      'If you have more than one system, choose the one that heats most of your water.',
+    model: selectedWaterHeatingSlug,
+    options: waterHeatingOptions.value,
+    displayValue: selectedWaterHeatingName.value,
+    missingMessage: 'Missing water heating details',
+    error_desc:
+      'Only the listed heating types are eligible for Better Homes water heater rebates.  Contact an Energy Coach to find out if your heating type fits into one of these categories. ',
+    isInvalid: () => !selectedWaterHeatingSlug.value && selectedWaterHeatingSlug.value === 'other'
   },
   {
     key: 'utility',
@@ -1130,7 +1190,9 @@ const fields = computed(() => [
     options: utilityOptions.value,
     displayValue: selectedUtilityName.value,
     missingMessage: 'Missing service details',
-    isInvalid: () => !selectedUtilitySlug.value
+    error_desc:
+      'Your electricity must be from one of the listed providers. Contact an Energy Coach if you have questions or need help figuring out who your provider is. ',
+    isInvalid: () => !selectedUtilitySlug.value && selectedUtilitySlug.value === 'other'
   },
   {
     key: 'gas',
@@ -1204,6 +1266,7 @@ onMounted(() => {
     mode.value = el.dataset.mode
   }
 })
+
 
 onMounted(async () => {
   try {
@@ -1288,6 +1351,7 @@ onMounted(async () => {
 
   // load the definitions links nextTick.
   nextTick(() => bcgovBlockThemePluginDefnitions())
+  nextTick(() => betterhomesRebatesArchiveLoader())
 })
 
 /**
@@ -1338,6 +1402,13 @@ function initFromLocalStorage(data) {
     if (heating) selectedHeatingSlug.value = heating.slug
   }
 
+  if (data.water_heating) {
+    const waterHeating =
+      waterHeatingOptions.value.find(w => w.slug === data.water_heating) ||
+      waterHeatingOptions.value.find(w => w.name === data.water_heating)
+    if (waterHeating) selectedWaterHeatingSlug.value = waterHeating.slug
+  }
+
   if (data.utility) {
     const utility =
       utilityOptions.value.find(u => u.slug === data.utility) ||
@@ -1357,9 +1428,18 @@ function initFromLocalStorage(data) {
 }
 
 // -- Building Types (hierarchical) --
-const buildingTypeGroups = computed(
-  () => api.value?.['settings-selects']?.['building-types'] ?? []
-)
+const buildingTypeGroups = computed(() => {
+  const raw = api.value?.['settings-selects']?.['building-types'] ?? []
+
+  // Sort children inside each group, then move any `other` group to the end
+  const withChildrenSorted = raw.map(group => ({
+    ...group,
+    children: sortOtherLast(group.children ?? [])
+  }))
+
+  return sortOtherLast(withChildrenSorted)
+})
+
 
 const childToGroupSlug = computed(() => {
   const map = new Map()
@@ -1560,7 +1640,7 @@ const selectedRegionName = computed(
 
 // -- Heating --
 const heatingOptions = computed(
-  () => api.value?.['settings-selects']?.['heating-types'] ?? []
+  () => sortOtherLast(api.value?.['settings-selects']?.['heating-types'] ?? [])
 )
 const selectedHeatingSlug = ref('')
 const selectedHeating = computed(
@@ -1571,9 +1651,22 @@ const selectedHeatingName = computed(
   () => selectedHeating.value?.name || ''
 )
 
+// -- Water Heating --
+const waterHeatingOptions = computed(
+  () => sortOtherLast(api.value?.['settings-selects']?.['heating-types'] ?? [])
+)
+const selectedWaterHeatingSlug = ref('')
+const selectedWaterHeating = computed(
+  () =>
+    waterHeatingOptions.value.find(l => l.slug === selectedWaterHeatingSlug.value) || null
+)
+const selectedWaterHeatingName = computed(
+  () => selectedWaterHeating.value?.name || ''
+)
+
 // -- Utility --
 const utilityOptions = computed(
-  () => api.value?.['settings-selects']?.['utilities'] ?? []
+  () => sortOtherLast(api.value?.['settings-selects']?.['utilities'] ?? [])
 )
 const selectedUtilitySlug = ref('')
 const selectedUtility = computed(
@@ -1586,7 +1679,7 @@ const selectedUtilityName = computed(
 
 // -- Gas --
 const gasOptions = computed(
-  () => api.value?.['settings-selects']?.['gas'] ?? []
+  () => sortOtherLast(api.value?.['settings-selects']?.['gas'] ?? [])
 )
 const selectedGasSlug = ref('')
 const selectedGas = computed(
@@ -1608,6 +1701,7 @@ const hasAnySelection = computed(
       selectedIncomeRangeName.value ||
       selectedLocationName.value ||
       selectedHeatingName.value ||
+      selectedWaterHeatingName.value ||
       selectedUtilityName.value||
       selectedGasName.value
     )
@@ -1622,6 +1716,7 @@ const hasAllSelection = computed(() => {
   const hasIncome = !!selectedIncomeRangeName.value
   const hasLocation = !!selectedLocationName.value
   const hasHeating = !!selectedHeatingName.value
+  const hasWaterHeating = !!selectedWaterHeatingName.value
   const hasUtility = !!selectedUtilityName.value
   const hasGas = !!selectedGasName.value
 
@@ -1633,6 +1728,7 @@ const hasAllSelection = computed(() => {
     hasIncome &&
     hasLocation &&
     hasHeating &&
+    hasWaterHeating &&
     hasUtility&&
     hasGas
   )
@@ -1664,6 +1760,17 @@ const isUrlHeatingMismatch = computed(() => {
   return heatingParam && heatingParam !== pageHeatingType.value
 })
 
+const isUrlWaterHeatingMismatch = computed(() => {
+  // Only relevant in single mode where SSR heating type is defined
+  if (mode.value !== 'single' || !pageWaterHeatingType.value) return false
+
+  const params = new URLSearchParams(window.location.search)
+  const waterHeatingParam = params.get('water_heating')
+
+  // Mismatch occurs if the URL has a heating param that differs from SSR value
+  return waterHeatingParam && waterHeatingParam !== pageWaterHeatingType.value
+})
+
 
 // Keep external spans in sync with URL mismatch.
 watch(urlOutOfSync, val => applyDirtyClasses(val), { immediate: true })
@@ -1678,6 +1785,9 @@ onMounted(() => {
   if (el?.dataset?.mode) mode.value = el.dataset.mode
   if (el?.dataset?.pageHeatingType) {
     pageHeatingType.value = el.dataset.pageHeatingType
+  }
+  if (el?.dataset?.pageWaterHeatingType) {
+    pageWaterHeatingType.value = el.dataset.pageWaterHeatingType
   }
 
   // If SSR heating type exists, set the model directly
@@ -1701,6 +1811,32 @@ onMounted(() => {
     const currentHeating = params.get('heating')
     if (currentHeating && currentHeating !== pageHeatingType.value) {
       params.set('heating', pageHeatingType.value)
+      const newUrl = `${window.location.pathname}?${params.toString()}`
+      window.history.replaceState(null, '', newUrl)
+    }
+  }
+
+   // If SSR waterHeating type exists, set the model directly
+  if (mode.value === 'single' && pageWaterHeatingType.value) {
+    // find a matching option from waterHeatingOptions by slug
+    watch(
+      waterHeatingOptions,
+      (opts) => {
+        const match = opts.find(o => o.slug === pageWaterHeatingType.value)
+        if (match) {
+          selectedWaterHeatingSlug.value = match.slug
+        }
+      },
+      { immediate: true }
+    )
+  }
+
+   // Auto-correct URL waterHeating param if it doesn't match SSR heating type
+  if (mode.value === 'single' && pageWaterHeatingType.value) {
+    const params = new URLSearchParams(window.location.search)
+    const currentWaterHeating = params.get('water_heating')
+    if (currentWaterHeating && currentWaterHeating !== pageWaterHeatingType.value) {
+      params.set('water_heating', pageWaterHeatingType.value)
       const newUrl = `${window.location.pathname}?${params.toString()}`
       window.history.replaceState(null, '', newUrl)
     }
@@ -1770,6 +1906,7 @@ function assembleUrl() {
   }
 
   if (selectedHeatingSlug.value) urlParams.set('heating', selectedHeatingName.value)
+  if (selectedWaterHeatingSlug.value) urlParams.set('water_heating', selectedWaterHeatingName.value)
   if (selectedUtilitySlug.value) urlParams.set('utility', selectedUtilityName.value)
   if (selectedGasSlug.value) urlParams.set('gas', selectedGasName.value)
 
@@ -1829,6 +1966,7 @@ function initFromQueryString() {
   const income = urlParams.get('income')
   const location = urlParams.get('location')
   const heating = urlParams.get('heating')
+  const waterHeating = urlParams.get('water_heating')
   const utility = urlParams.get('utility')
   const gas = urlParams.get('gas')
 
@@ -1869,6 +2007,11 @@ function initFromQueryString() {
     if (foundHeat) selectedHeatingSlug.value = foundHeat.slug
   }
 
+  if (waterHeating) {
+    const foundWaterHeat = waterHeatingOptions.value.find(l => l.name === waterHeating)
+    if (foundWaterHeat) selectedWaterHeatingSlug.value = foundWaterHeat.slug
+  }
+
   if (utility) {
     const foundUtil = utilityOptions.value.find(l => l.name === utility)
     if (foundUtil) selectedUtilitySlug.value = foundUtil.slug
@@ -1890,6 +2033,7 @@ const urlStateDeps = computed(() => ({
   income: selectedIncomeRangeSlug.value,
   location: selectedLocationSlug.value,
   heating: selectedHeatingSlug.value,
+  water_heating: selectedWaterHeatingSlug.value,
   utility: selectedUtilitySlug.value,
   gas: selectedGasSlug.value,
   region: selectedRegion.value
@@ -2307,7 +2451,7 @@ function withQueryString(baseUrl) {
     grid-template-columns: 1fr 1fr 1fr;
     gap: 1rem;
     grid-column: 1 / -1;
-    padding: 0 1rem 1rem;
+    padding: 0 0 1rem;
     
     @container filter (width < 680px) {
       grid-template-columns: 1fr 1fr;
@@ -2319,23 +2463,24 @@ function withQueryString(baseUrl) {
 
       .question-container {
         display: grid;
-        grid-template-columns: 3px 8rem 1fr;
+        grid-template-columns: 0 2.5rem 1fr; /* was: 3px 8rem 1fr */
         position: relative;
 
         &::before {
-          border-left: 3px solid #369;
+          /* border-left: 3px solid #369; */
           content: "";
           height: 100%;
           width: 3px;
           position: relative;
-          left: calc(3rem + 2px);
+          /* left: calc(3rem + 2px); */
           z-index: 0;
         }
 
-        &:last-of-type::before {
+        /* &:last-of-type::before {
           border-bottom: 3px solid #369;
           width: 1rem;
-        }
+          margin-inline-start: 0.25rem;
+        } */
 
       }
 
@@ -2343,29 +2488,29 @@ function withQueryString(baseUrl) {
         display: grid;
         justify-content: center;
         align-content: center;
-        border: 3px solid #369;
-        border-radius: 100vw;
+        /* border: 3px solid #369;
+        border-radius: 100vw; */
         background-color: white;
-        width: 6rem;
-        height: 6rem;
+        width: 1.5rem;
+        height: 1.5rem;
         z-index: 1;
         position: relative;
 
-        &::before {
+        /* &::before {
           counter-increment: question;
           content: counter(question);
 
           color: #369;
           font-size: 2rem;
           font-family: Verdana, Arial, sans-serif;
-        }
+        } */
 
         &::after {
           border: 3px solid darkgreen;
           border-radius: 100vw;
           background-color: white;
           content: "";
-          /* Check mark */
+          /* Check mark – success */
           background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJsaW1lZ3JlZW4iICBvcGFjaXR5PSIuMyIgZD0iTTAgMjU2YTI1NiAyNTYgMCAxIDAgNTEyIDBBMjU2IDI1NiAwIDEgMCAwIDI1NnptMTI2LjEgMEwxNjAgMjIyLjFjLjMgLjMgLjYgLjYgMSAxYzUuMyA1LjMgMTAuNyAxMC43IDE2IDE2YzE1LjcgMTUuNyAzMS40IDMxLjQgNDcgNDdjMzctMzcgNzQtNzQgMTExLTExMWM1LjMtNS4zIDEwLjctMTAuNyAxNi0xNmMuMy0uMyAuNi0uNiAxLTFMMzg1LjkgMTkyYy0uMyAuMy0uNiAuNi0xIDFsLTE2IDE2TDI0MSAzMzdsLTE3IDE3LTE3LTE3LTY0LTY0Yy01LjMtNS4zLTEwLjctMTAuNy0xNi0xNmwtMS0xeiIvPjxwYXRoIGZpbGw9ImRhcmtncmVlbiIgZD0iTTM4NSAxOTNMMjQxIDMzN2wtMTcgMTctMTctMTctODAtODBMMTYxIDIyM2w2MyA2M0wzNTEgMTU5IDM4NSAxOTN6Ii8+PC9zdmc+);
           background-size: contain;
           height: 1.5rem;
@@ -2380,21 +2525,27 @@ function withQueryString(baseUrl) {
       /* Question mark */
       .question-container:has(.location-input.is-empty) .num-label:after,
       :has(.select option[data-default="Select an option"]:checked) .num-label::after {
-        border: 3px solid #f6a044;
-        background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iLjMiIGQ9Ik0wIDI1NmEyNTYgMjU2IDAgMSAwIDUxMiAwQTI1NiAyNTYgMCAxIDAgMCAyNTZ6bTE2OC03MmMwLS41IDAtMSAwIDB6bTY0IDE1Mmw0OCAwYzAgMTYgMCAzMiAwIDQ4bC00OCAwYzAtMTYgMC0zMiAwLTQ4eiIvPjxwYXRoIGZpbGw9IiNmNmEwNDQiIGQ9Ik0yMjQgMTI4Yy0zMC45IDAtNTYgMjUuMS01NiA1NmwwIDYuNSA0OCAwIDAtNi41YzAtNC40IDMuNi04IDgtOGw1Ni45IDBjOC40IDAgMTUuMSA2LjggMTUuMSAxNS4xYzAgNS40LTIuOSAxMC40LTcuNiAxMy4xbC00NC4zIDI1LjRMMjMyIDIzNi42bDAgMTMuOSAwIDIxLjUgMCAyNCA0OCAwIDAtMjQgMC03LjYgMzIuMy0xOC41YzE5LjYtMTEuMyAzMS43LTMyLjIgMzEuNy01NC44YzAtMzQuOS0yOC4zLTYzLjEtNjMuMS02My4xTDIyNCAxMjh6bTU2IDIwOGwtNDggMCAwIDQ4IDQ4IDAgMC00OHoiLz48L3N2Zz4=);
+        /* Pending */
+        border: 3px solid #bfdfe7;
+        background-image: none;
+        /* background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJ3aGl0ZSIgIGQ9Ik0wIDI1NmEyNTYgMjU2IDAgMSAwIDUxMiAwQTI1NiAyNTYgMCAxIDAgMCAyNTZ6bTE2OC03MmMwLS41IDAtMSAwIDB6bTY0IDE1Mmw0OCAwYzAgMTYgMCAzMiAwIDQ4bC00OCAwYzAtMTYgMC0zMiAwLTQ4eiIvPjxwYXRoIGZpbGw9IiMzNjkiIG9wYWNpdHk9IjAuNzUiIGQ9Ik0yMjQgMTI4Yy0zMC45IDAtNTYgMjUuMS01NiA1NmwwIDYuNSA0OCAwIDAtNi41YzAtNC40IDMuNi04IDgtOGw1Ni45IDBjOC40IDAgMTUuMSA2LjggMTUuMSAxNS4xYzAgNS40LTIuOSAxMC40LTcuNiAxMy4xbC00NC4zIDI1LjRMMjMyIDIzNi42bDAgMTMuOSAwIDIxLjUgMCAyNCA0OCAwIDAtMjQgMC03LjYgMzIuMy0xOC41YzE5LjYtMTEuMyAzMS43LTMyLjIgMzEuNy01NC44YzAtMzQuOS0yOC4zLTYzLjEtNjMuMS02My4xTDIyNCAxMjh6bTU2IDIwOGwtNDggMCAwIDQ4IDQ4IDAgMC00OHoiLz48L3N2Zz4=); */
       }
 
       /* Exclamation mark */
       .question-container:has(.location-input.is-invalid) .num-label:after,
       :has(.select:disabled:not(.transition)) .num-label::after {
-        border: 3px solid darkgray !important;
-        background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJkYXJrZ3JheSIgb3BhY2l0eT0iLjMiIGQ9Ik0wIDI1NmEyNTYgMjU2IDAgMSAwIDUxMiAwQTI1NiAyNTYgMCAxIDAgMCAyNTZ6TTIzMiAxMjhsNDggMCAwIDI0IDAgMTEyIDAgMjQtNDggMCAwLTI0IDAtMTEyIDAtMjR6bTAgMTkybDQ4IDAgMCA0OC00OCAwIDAtNDh6Ii8+PHBhdGggZmlsbD0iZGFya2dyYXkiIGQ9Ik0yODAgMTUybDAtMjQtNDggMCAwIDI0IDAgMTEyIDAgMjQgNDggMCAwLTI0IDAtMTEyem0wIDE2OGwtNDggMCAwIDQ4IDQ4IDAgMC00OHoiLz48L3N2Zz4=) !important;
+        border: 3px solid lightgray !important;
+        /* Invalid */
+        background-color: rgb(243, 243, 243);
+        background-image: none !important;
+        /* background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJkYXJrZ3JheSIgb3BhY2l0eT0iLjMiIGQ9Ik0wIDI1NmEyNTYgMjU2IDAgMSAwIDUxMiAwQTI1NiAyNTYgMCAxIDAgMCAyNTZ6TTIzMiAxMjhsNDggMCAwIDI0IDAgMTEyIDAgMjQtNDggMCAwLTI0IDAtMTEyIDAtMjR6bTAgMTkybDQ4IDAgMCA0OC00OCAwIDAtNDh6Ii8+PHBhdGggZmlsbD0iZGFya2dyYXkiIGQ9Ik0yODAgMTUybDAtMjQtNDggMCAwIDI0IDAgMTEyIDAgMjQgNDggMCAwLTI0IDAtMTEyem0wIDE2OGwtNDggMCAwIDQ4IDQ4IDAgMC00OHoiLz48L3N2Zz4=) !important; */
       }
 
       /* X mark */
       .question-container:has(.location-input.is-error) .num-label:after,
       :has(.select.error) .num-label::after {
         border: 3px solid darkred !important;
+        /* Error */
         background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJyZWQiIG9wYWNpdHk9Ii40IiBkPSJNMCAyNTZhMjU2IDI1NiAwIDEgMCA1MTIgMEEyNTYgMjU2IDAgMSAwIDAgMjU2em0xNTguMS02NGMxMS4zLTExLjMgMjIuNi0yMi42IDMzLjktMzMuOWM1LjcgNS43IDExLjMgMTEuMyAxNyAxN2MxNS43IDE1LjcgMzEuMyAzMS4zIDQ3IDQ3YzE1LjctMTUuNyAzMS4zLTMxLjMgNDctNDdjNS43LTUuNyAxMS4zLTExLjMgMTctMTdjMTEuMyAxMS4zIDIyLjYgMjIuNiAzMy45IDMzLjljLTUuNyA1LjctMTEuMyAxMS4zLTE3IDE3Yy0xNS43IDE1LjctMzEuMyAzMS4zLTQ3IDQ3YzE1LjcgMTUuNyAzMS40IDMxLjQgNDcgNDdjNS43IDUuNyAxMS4zIDExLjMgMTcgMTdMMzIwIDM1My45bC0xNy0xNy00Ny00N2MtMTUuNyAxNS43LTMxLjMgMzEuMy00NyA0N2MtNS43IDUuNy0xMS4zIDExLjMtMTcgMTdjLTExLjMtMTEuMy0yMi42LTIyLjYtMzMuOS0zMy45YzUuNy01LjcgMTEuMy0xMS4zIDE3LTE3YzE1LjctMTUuNyAzMS40LTMxLjQgNDctNDdjLTE1LjctMTUuNy0zMS4zLTMxLjMtNDctNDdjLTUuNy01LjctMTEuMy0xMS4zLTE3LTE3eiIvPjxwYXRoIGZpbGw9ImRhcmtyZWQiIGQ9Ik0zMzcgMjA5bDE3LTE3TDMyMCAxNTguMWwtMTcgMTctNDcgNDctNDctNDctMTctMTdMMTU4LjEgMTkybDE3IDE3IDQ3IDQ3LTQ3IDQ3LTE3IDE3TDE5MiAzNTMuOWwxNy0xNyA0Ny00NyA0NyA0NyAxNyAxN0wzNTMuOSAzMjBsLTE3LTE3LTQ3LTQ3IDQ3LTQ3eiIvPjwvc3ZnPg==) !important;
       }
 
@@ -2420,11 +2571,19 @@ function withQueryString(baseUrl) {
         gap: .5rem;
         padding-block-end: 3rem;
 
+
         :is(label) {
           text-wrap: wrap;
 
           @supports (text-wrap: pretty) {
             text-wrap: pretty;
+          }
+
+          &::before {
+            counter-increment: question;
+            content: counter(question) '.';
+            display: inline-block;
+            margin-right: 0.5rem;
           }
         }
 
@@ -2436,9 +2595,14 @@ function withQueryString(baseUrl) {
           border: 2px solid transparent;
 
           &.error {
-            background-color: #ffe5e5;
+            /* background-color: #ffe5e5; */
             color: darkred;
             outline-color: darkred !important;
+          }
+
+          &:disabled {
+            color: rgb(243, 243, 243) !important;
+            background-color: rgb(243, 243, 243);
           }
 
           &:is(:focus-visible, :focus) {
@@ -2494,8 +2658,8 @@ function withQueryString(baseUrl) {
         }
 
         .location-input.is-empty {
-          outline-color: #f6a044;
-          background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZmZkNDkzIiBvcGFjaXR5PSIuNSIgZD0iTTAgMjU2YTI1NiAyNTYgMCAxIDAgNTEyIDBBMjU2IDI1NiAwIDEgMCAwIDI1NnptMTY4LTcyYzAtLjUgMC0xIDAgMHptNjQgMTUybDQ4IDBjMCAxNiAwIDMyIDAgNDhsLTQ4IDBjMC0xNiAwLTMyIDAtNDh6Ii8+PHBhdGggZmlsbD0iI2Y2YTA0NCIgZD0iTTIyNCAxMjhjLTMwLjkgMC01NiAyNS4xLTU2IDU2bDAgNi41IDQ4IDAgMC02LjVjMC00LjQgMy42LTggOC04bDU2LjkgMGM4LjQgMCAxNS4xIDYuOCAxNS4xIDE1LjFjMCA1LjQtMi45IDEwLjQtNy42IDEzLjFsLTQ0LjMgMjUuNEwyMzIgMjM2LjZsMCAxMy45IDAgMjEuNSAwIDI0IDQ4IDAgMC0yNCAwLTcuNiAzMi4zLTE4LjVjMTkuNi0xMS4zIDMxLjctMzIuMiAzMS43LTU0LjhjMC0zNC45LTI4LjMtNjMuMS02My4xLTYzLjFMMjI0IDEyOHptNTYgMjA4bC00OCAwIDAgNDggNDggMCAwLTQ4eiIvPjwvc3ZnPg==);
+          outline-color: var(--wp--preset--color--custom-info-border, #bfdfe7);
+          background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBvcGFjaXR5PSIxIiBkPSJNMCAyNTZhMjU2IDI1NiAwIDEgMCA1MTIgMEEyNTYgMjU2IDAgMSAwIDAgMjU2em0xNjgtNzJjMC0uNSAwLTEgMCAwem02NCAxNTJsNDggMGMwIDE2IDAgMzIgMCA0OGwtNDggMGMwLTE2IDAtMzIgMC00OHoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjI0IDEyOGMtMzAuOSAwLTU2IDI1LjEtNTYgNTZsMCA2LjUgNDggMCAwLTYuNWMwLTQuNCAzLjYtOCA4LThsNTYuOSAwYzguNCAwIDE1LjEgNi44IDE1LjEgMTUuMWMwIDUuNC0yLjkgMTAuNC03LjYgMTMuMWwtNDQuMyAyNS40TDIzMiAyMzYuNmwwIDEzLjkgMCAyMS41IDAgMjQgNDggMCAwLTI0IDAtNy42IDMyLjMtMTguNWMxOS42LTExLjMgMzEuNy0zMi4yIDMxLjctNTQuOGMwLTM0LjktMjguMy02My4xLTYzLjEtNjMuMUwyMjQgMTI4em01NiAyMDhsLTQ4IDAgMCA0OCA0OCAwIDAtNDh6Ii8+PC9zdmc+);
           background-repeat: no-repeat;
           background-position: right 0.75rem center;
           background-size: 1.25rem
@@ -2643,7 +2807,8 @@ function withQueryString(baseUrl) {
         margin-block: 0.25rem;
         padding: .5rem 2.5rem .5rem .5rem;
         outline-offset: 2px;
-        outline: 2px solid var(--wp--preset--color--custom-info-border);
+        /* outline: 2px solid var(--wp--preset--color--custom-info-border); */
+        outline: 2px solid var(--wp--preset--color--custom-success-border, green);
         /* down arrow */
         background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBkPSJNMjM5IDQ5OC43bDE2MC0xMjggMTguNy0xNS0zMC0zNy41LTE4LjcgMTUtMTQ1IDExNkw3OSAzMzMuM2wtMTguNy0xNS0zMCAzNy41IDE4LjcgMTUgMTYwIDEyOCAxNSAxMiAxNS0xMnptMC00ODUuNWwtMTUtMTItMTUgMTJMNDkgMTQxLjNsLTE4LjcgMTUgMzAgMzcuNSAxOC43LTE1IDE0NS0xMTYgMTQ1IDExNiAxOC43IDE1IDMwLTM3LjUtMTguNy0xNUwyMzkgMTMuM3oiLz48L3N2Zz4=);
         background-repeat: no-repeat;
@@ -2651,8 +2816,7 @@ function withQueryString(baseUrl) {
         background-size: 0.85rem;
 
         &:has(option[data-default="Select an option"]:checked) {
-          outline: 2px solid #f6a044;
-          background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48cGF0aCBmaWxsPSIjZjZhMDQ0IiBkPSJNMjM5IDQ5OC43bDE2MC0xMjggMTguNy0xNS0zMC0zNy41LTE4LjcgMTUtMTQ1IDExNkw3OSAzMzMuM2wtMTguNy0xNS0zMCAzNy41IDE4LjcgMTUgMTYwIDEyOCAxNSAxMiAxNS0xMnptMC00ODUuNWwtMTUtMTItMTUgMTJMNDkgMTQxLjNsLTE4LjcgMTUgMzAgMzcuNSAxOC43LTE1IDE0NS0xMTYgMTQ1IDExNiAxOC43IDE1IDMwLTM3LjUtMTguNy0xNUwyMzkgMTMuM3oiLz48L3N2Zz4=);
+          outline: 2px solid #bfdfe7;
         }
 
         &:disabled:not(.transition) {
@@ -2665,7 +2829,7 @@ function withQueryString(baseUrl) {
   }
 
   .clear-msg {
-    margin-inline-start: 5.75rem;
+    margin-inline-start: 2.5rem;
     margin-block-start: -2.75rem;
     font-size: 0.85rem;
 
@@ -3256,7 +3420,33 @@ p.rebate-detail.rebate-detail.rebate-detail {
     max-width: 1.3rem !important;
   }
 
-
+  
+}
+.error-message:before {
+  content:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMSIgZD0iTTQ4IDI1NmEyMDggMjA4IDAgMSAwIDQxNiAwQTIwOCAyMDggMCAxIDAgNDggMjU2em0xMTAuMS02NEwxOTIgMTU4LjFsMTcgMTcgNDcgNDcgNDctNDcgMTctMTdMMzUzLjkgMTkybC0xNyAxNy00NyA0NyA0NyA0NyAxNyAxN0wzMjAgMzUzLjlsLTE3LTE3LTQ3LTQ3LTQ3IDQ3LTE3IDE3TDE1OC4xIDMyMGwxNy0xNyA0Ny00Ny00Ny00Ny0xNy0xN3oiLz48cGF0aCBmaWxsPSJkYXJrcmVkIiBkPSJNMjU2IDQ4YTIwOCAyMDggMCAxIDEgMCA0MTYgMjA4IDIwOCAwIDEgMSAwLTQxNnptMCA0NjRBMjU2IDI1NiAwIDEgMCAyNTYgMGEyNTYgMjU2IDAgMSAwIDAgNTEyem05Ny45LTMyMEwzMjAgMTU4LjFsLTE3IDE3LTQ3IDQ3LTQ3LTQ3LTE3LTE3TDE1OC4xIDE5MmwxNyAxNyA0NyA0Ny00NyA0Ny0xNyAxN0wxOTIgMzUzLjlsMTctMTcgNDctNDcgNDcgNDcgMTcgMTdMMzUzLjkgMzIwbC0xNy0xNy00Ny00NyA0Ny00NyAxNy0xN3oiLz48L3N2Zz4=);
+  display:inline-block;
+  height:1rem;
+  width:1rem;
+  position:absolute;
+  top:0.66rem;
+  left:0.5rem;
+  pointer-events:none
+}
+.message {
+  background:#fff7e5;
+  border:1px solid transparent;
+  color:#8b0000;
+  padding:0.5rem 0;
+  border-radius:.5rem;
+  font-weight:500;
+  font-size:1rem!important
+}
+.error-message {
+  background:#ffe5e5;
+  outline:2px solid darkred;
+  outline-offset: 2px;
+  padding-inline:2rem 1rem;
+  position:relative;
 }
 </style>
 <style>
@@ -3264,6 +3454,10 @@ body.betterhomesbc #dialog .dialog-content h2 {
   border-bottom: 3px solid var(--wp--preset--color--primary-brand);
   color: var(--wp--preset--color--primary-brand);
   margin-bottom: 1rem;
+}
+
+.template {
+  display: none;
 }
 
 .message {
@@ -3288,19 +3482,12 @@ body.betterhomesbc #dialog .dialog-content h2 {
 .error-message {
   background: #ffe5e5;
   border: 2px solid darkred;
-  padding-inline-start: 3rem;
-  margin-block-end: 2rem;
+  padding-inline: 0.5rem !important;
   position: relative;
 
   &::before {
-    content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMSIgZD0iTTQ4IDI1NmEyMDggMjA4IDAgMSAwIDQxNiAwQTIwOCAyMDggMCAxIDAgNDggMjU2em0xMTAuMS02NEwxOTIgMTU4LjFsMTcgMTcgNDcgNDcgNDctNDcgMTctMTdMMzUzLjkgMTkybC0xNyAxNy00NyA0NyA0NyA0NyAxNyAxN0wzMjAgMzUzLjlsLTE3LTE3LTQ3LTQ3LTQ3IDQ3LTE3IDE3TDE1OC4xIDMyMGwxNy0xNyA0Ny00Ny00Ny00Ny0xNy0xN3oiLz48cGF0aCBmaWxsPSJkYXJrcmVkIiBkPSJNMjU2IDQ4YTIwOCAyMDggMCAxIDEgMCA0MTYgMjA4IDIwOCAwIDEgMSAwLTQxNnptMCA0NjRBMjU2IDI1NiAwIDEgMCAyNTYgMGEyNTYgMjU2IDAgMSAwIDAgNTEyem05Ny45LTMyMEwzMjAgMTU4LjFsLTE3IDE3LTQ3IDQ3LTQ3LTQ3LTE3LTE3TDE1OC4xIDE5MmwxNyAxNyA0NyA0Ny00NyA0Ny0xNyAxN0wxOTIgMzUzLjlsMTctMTcgNDctNDcgNDcgNDcgMTcgMTdMMzUzLjkgMzIwbC0xNy0xNy00Ny00NyA0Ny00NyAxNy0xN3oiLz48L3N2Zz4=);
-    display: inline-block;
-    height: 1rem;
-    width: 1rem;
-    position: absolute;
-    top: 1rem;
-    left: 1.5rem;
-    pointer-events: none;
+    content: "" !important;
+    display: none !important;
   }
 }
 

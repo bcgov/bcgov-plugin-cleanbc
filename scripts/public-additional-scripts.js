@@ -11,5 +11,6 @@ import './public/tablesPattern';
 
 import './public/cleanbc/accessibility';
 import './public/betterhomes/accessibility';
+import './public/betterhomes/rebates-archive';
 import './public/betterbuildings/accessibility';
 import './public/goelectric/accessibility';
