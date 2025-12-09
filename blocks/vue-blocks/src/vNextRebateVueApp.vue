@@ -204,8 +204,7 @@
                         @blur="handleLocationInputCommit('blur')"
                         @focusout="handleLocationInputCommit('blur')"
                         @change="handleLocationInputCommit('change')"
-                        @keydown.enter.prevent="handleLocationInputCommit('enter')"
-                        onmouseover="focus()" />
+                        @keydown.enter.prevent="handleLocationInputCommit('enter')" />
                       <datalist :id="`${field.key}List`">
                         <option v-for="opt in field.options" :key="opt.slug" :value="opt.name"></option>
                       </datalist>
@@ -2207,18 +2206,29 @@ const filteredResults = computed(() => {
       heatingEligible = roomHeatingEligible
     }
 
-    // GUARD 0: No hot water HP rebate for gas water heating in MURBs
-    const blockGasWaterInApartments =
-      rebateClass === 'heat-pump-water-heater-rebates' &&
-      normalizedWaterHeating === 'gas' &&
-      normalizedBuildingGroup === 'murb'
+    const isHPWH           = rebateClass === 'heat-pump-water-heater-rebates'
+    const isMurbBuilding   = normalizedBuildingGroup === 'murb'
+    const utilityIsBCHydroOrNW =
+      normalizedUtility === 'bc-hydro' || normalizedUtility === 'new-westminster'
+    const roomIsElectric    = normalizedHeating === 'electricity'
+    const waterIsElectric   = normalizedWaterHeating === 'electricity'
 
-    if (blockGasWaterInApartments) {
-      console.group('GUARD 0:', item.rebate_type_headline_card, item.title?.toLowerCase?.())
-      console.log('Not in rebate list:', false, '(blocked: gas water heating in apartment/MURB)')
-      console.log('rebateClass:', rebateClass)
-      console.log('normalizedWaterHeating:', normalizedWaterHeating)
+    // GUARD 0: Heat pump water heater business rules for MURB
+    const hpwhIneligible =
+      ( isHPWH && isMurbBuilding ) && (
+        !roomIsElectric    ||   // room heating must be electricity
+        !waterIsElectric       // water heating must be electricity
+      ) || ( isHPWH && isMurbBuilding && isHighTier ) && (
+        !utilityIsBCHydroOrNW // utility must be BC Hydro or New Westminster
+      )
+
+    if (hpwhIneligible) {
+      console.group('GUARD 0 (HPWH MURB):', item.rebate_type_headline_card, item.title?.toLowerCase?.())
+      console.log('Not in rebate list:', false, '(HPWH MURB rules: utility BC Hydro/New West, room+water electric)')
       console.log('normalizedBuildingGroup:', normalizedBuildingGroup)
+      console.log('normalizedUtility:', normalizedUtility)
+      console.log('normalizedHeating (rooms):', normalizedHeating)
+      console.log('normalizedWaterHeating (water):', normalizedWaterHeating)
       console.groupEnd()
       return false
     }
@@ -2704,7 +2714,7 @@ function withQueryString(baseUrl) {
           filter: size(0);
         }
 
-        .location-input:is(:hover, :focus-visible) {
+        .location-input:is(:focus, :focus-visible) {
           border: 2px solid #369 !important;
         }
 

@@ -3,6 +3,7 @@
 – Removed scroll transition select disabling for better user interaction.
 – Better error handling support.
 – Archive mode page visual hierarchy layout styles updated.
+– Changed Guard 0 for HPWH & MURB.
 
 ## 1.26.0 December 4, 2025
 – Questionnaire modifications for addition questions, style changes to sequence numbering, and related icon handling, as well as error states for questions with 'other' options (and related disabled questions), including sorting for 'other' to bottom of the select options.
