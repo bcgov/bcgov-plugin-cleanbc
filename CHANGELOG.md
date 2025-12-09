@@ -1,3 +1,6 @@
+## 1.26.2 December 9, 2025
+– Added in-page no results message for visual editing.
+
 ## 1.26.1 December 8-9, 2025
 – Questionnaire (archive mode) updates for filtering the results against differing heating types.
 – Removed scroll transition select disabling for better user interaction.

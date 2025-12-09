@@ -369,32 +369,8 @@
         </section>
 
         <!-- No results -->
-        <section v-if="hasAllSelection && !filteredResults.length" class="no-results">
-          <div class="results-message">
-            <h2>No matching rebates found</h2>
-            <p>Based on the information provided, your home does not qualify for rebates.</p>
-          </div>
-          <div class="results no-results">
-            <article class="rebate-card">
-              <figure class="wp-block-image size-full">
-                <img decoding="async" width="1024" height="515" data-print-width="25"
-                  src="https://www.betterhomesbc.ca/app/uploads/sites/956/2020/09/iStock-155148974-scaled-1.jpg" alt=""
-                  title="" />
-              </figure>
-              <div>
-                <header>
-                  <h3 class="rebate-title">
-                    <div>We're sorry...</div>
-                  </h3>
-                </header>
-                <div class="rebate-details">
-                  <div class="rebate-description">
-                    <div>We couldn’t find any rebates that match your home.</div>
-                  </div>
-                </div>
-              </div>
-            </article>
-          </div>
+        <section v-if="hasAllSelection && !filteredResults.length" class="not-eligible">
+          <div class='not-eligible-insertion'></div>
         </section>
 
         <!-- Complete for for results -->
@@ -1170,13 +1146,13 @@ const fields = computed(() => [
     displayValue: selectedHeatingName.value,
     missingMessage: 'Missing room heating details',
     error_desc:
-      'Only the listed heating types are currently eligible for Better Homes <strong>heat pump</strong> rebates. Contact an Energy Coach to find out if your heating type fits into one of these categories.',
+      'Only the listed heating types are currently eligible for Better Homes rebates. Contact an Energy Coach to find out if your heating type fits into one of these categories.',
     isInvalid: () => !selectedHeatingSlug.value || selectedHeatingSlug.value === 'other',
   },
   {
     key: 'water',
     shortDesc: 'Hot water heating',
-    label: '    How do you heat your water?',
+    label: 'How do you heat your water?',
     disabled: mode.value === 'single' && !!pageWaterHeatingType.value,
     description:
       'If you have more than one system, choose the one that heats most of your water.',
@@ -2206,12 +2182,11 @@ const filteredResults = computed(() => {
       heatingEligible = roomHeatingEligible
     }
 
-    const isHPWH           = rebateClass === 'heat-pump-water-heater-rebates'
-    const isMurbBuilding   = normalizedBuildingGroup === 'murb'
-    const utilityIsBCHydroOrNW =
-      normalizedUtility === 'bc-hydro' || normalizedUtility === 'new-westminster'
-    const roomIsElectric    = normalizedHeating === 'electricity'
-    const waterIsElectric   = normalizedWaterHeating === 'electricity'
+    const isHPWH = rebateClass === 'heat-pump-water-heater-rebates'
+    const isMurbBuilding = normalizedBuildingGroup === 'murb'
+    const utilityIsBCHydroOrNW = normalizedUtility === 'bc-hydro' || normalizedUtility === 'new-westminster'
+    const roomIsElectric = normalizedHeating === 'electricity'
+    const waterIsElectric = normalizedWaterHeating === 'electricity'
 
     // GUARD 0: Heat pump water heater business rules for MURB
     const hpwhIneligible =
@@ -2397,6 +2372,8 @@ const filteredResults = computed(() => {
     
     return shouldInclude
   })
+
+  nextTick(() => betterhomesRebatesArchiveLoader())
 
   return results.sort((a, b) => {
     const nameA = (a.rebate_type_headline_card || '').toLowerCase()
@@ -3558,10 +3535,33 @@ body.betterhomesbc #dialog .dialog-content h2 {
   }
 }
 
+.p-2 {
+  padding: 2rem;
+}
+
+.not-eligible .warning-message {
+  padding: 2rem;
+}
 
 .warning-message {
   background: #fff7e5;
   border: 1px solid #facc15;
+}
+
+.warning-message .has-icon::before {
+  background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjIiIHZpZXdCb3g9IjAgMCAyNCAyMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE1LjcxOTYgMi4zNTY4N0MxNC45MzU3IDEuMDQyOSAxMy41NDU3IDAuMjM0Mzc1IDEyLjAwNDggMC4yMzQzNzVDMTAuNDYyNyAwLjIzNDM3NSA5LjA3MjY0IDEuMDE4MjMgOC4yODk5NSAyLjM1Njg3TDAuNjMyMDkgMTUuMTk1NkMtMC4yMDIxMDkgMTYuNTU5OSAtMC4yMDIxMDkgMTguMTc3IDAuNTgxNzQxIDE5LjU2N0MxLjM2NTYgMjAuOTMxMyAyLjc4MDI2IDIxLjc2NTUgNC4zNDY4NiAyMS43NjU1SDE5LjY2MjZDMjEuMjU1IDIxLjc2NTUgMjIuNjQ1IDIwLjk1NyAyMy40Mjc3IDE5LjU2N0MyNC4yMTE1IDE4LjIwMjcgMjQuMTg1OSAxNi41NjAxIDIzLjM3NzMgMTUuMTk0NkwxNS43MTk2IDIuMzU2ODdaTTEyLjAwNDggMTguNDA1QzExLjA0NDIgMTguNDA1IDEwLjI2MTQgMTcuNjIxMSAxMC4yNjE0IDE2LjY2MTZDMTAuMjYxNCAxNS43MDEgMTEuMDQ1MiAxNC45MTgyIDEyLjAwNDggMTQuOTE4MkMxMi45NjUzIDE0LjkxODIgMTMuNzQ4MiAxNS43MDIgMTMuNzQ4MiAxNi42NjE2QzEzLjc0ODIgMTcuNjIxMSAxMi45NjUzIDE4LjQwNSAxMi4wMDQ4IDE4LjQwNVpNMTMuODI0MiA2LjU3NzE1TDEzLjMxODcgMTIuMzM5NkMxMy4yOTMxIDEyLjY5MyAxMy4xMTY0IDEzLjAyMTcgMTIuODM5IDEzLjI0OThDMTIuNjExOSAxMy40NTIyIDEyLjMwNzggMTMuNTUyOCAxMS45ODAxIDEzLjU1MjhIMTEuODUzN0MxMS4yMjE5IDEzLjUwMjUgMTAuNjkwOCAxMi45OTcxIDEwLjY0MDUgMTIuMzM5NkwxMC4xMzUgNi41NzcxNUMxMC4wODQ3IDYuMDk3MzcgMTAuMjM1NyA1LjYxNjU5IDEwLjU2NDQgNS4yMzc1QzEwLjg5MzIgNC44NTg0MSAxMS4zMjI2IDQuNjMxMzYgMTEuODAyNCA0LjU4QzEyLjMwNzggNC41Mjk2NiAxMi43NjMgNC42ODA3IDEzLjE0MiA1LjAwOTQ0QzEzLjUyMTEgNS4zMTI1MSAxMy43NDgyIDUuNzY3NjEgMTMuNzk5NSA2LjI0NzM5QzEzLjg0OTkgNi4zNzQ3NCAxMy44NDk5IDYuNDc2NDIgMTMuODI0MiA2LjU3NzEyTDEzLjgyNDIgNi41NzcxNVoiIGZpbGw9IiNGRkMwMTciLz4KPC9zdmc+);
+  background-size: contain;
+  content: "";
+  display: inline-block;
+  height: 1.5rem;
+  min-width: 1.5rem;
+  width: 1.5rem;
+  margin-bottom: .5rem;
+  background-repeat: no-repeat;
+  background-position: center;
+  border: none;
+  position: relative;
+  top: .35rem;
 }
 
 .query-conditional-group-block.is-dirty-variable::before,

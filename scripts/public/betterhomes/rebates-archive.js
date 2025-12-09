@@ -7,12 +7,19 @@ const betterhomesRebatesArchiveLoader = () => {
 	 */
 	window.requestAnimationFrame(() => {
 
-	const source = document.querySelector('details.eligible-home-types');
-	const target = document.querySelector('div.eligible-homes-insertion');
-	if (!source || !target) return;
+		const source_details = document.querySelector('details.eligible-home-types');
+		const target_details = document.querySelector('div.eligible-homes-insertion');
+		if (!source_details || !target_details) return;
 
-	target.replaceChildren(source.cloneNode(true));
-	target.firstElementChild.classList.remove('template');
+		target_details.replaceChildren(source_details.cloneNode(true));
+		target_details.firstElementChild.classList.remove('template');
+
+		const source_not_eligible = document.querySelector('.wp-block-group.not-eligible-content');
+		const target_not_eligible = document.querySelector('div.not-eligible-insertion');
+		if (!source_not_eligible || !target_not_eligible) return;
+
+		target_not_eligible.replaceChildren(source_not_eligible.cloneNode(true));
+		target_not_eligible.firstElementChild.classList.remove('template');
 
 	});
 };
