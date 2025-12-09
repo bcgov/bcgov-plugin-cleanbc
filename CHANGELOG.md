@@ -1,4 +1,10 @@
-## 1.26.0 December 10, 2025
+## 1.26.1 December 8-9, 2025
+– Questionnaire (archive mode) updates for filtering the results against differing heating types.
+– Removed scroll transition select disabling for better user interaction.
+– Better error handling support.
+– Archive mode page visual hierarchy layout styles updated.
+
+## 1.26.0 December 4, 2025
 – Questionnaire modifications for addition questions, style changes to sequence numbering, and related icon handling, as well as error states for questions with 'other' options (and related disabled questions), including sorting for 'other' to bottom of the select options.
 – Eligible home types details injection into 'building' field for visual editing of content.
 – Set Vite output chunkSizeWarningLimit to 600kB.

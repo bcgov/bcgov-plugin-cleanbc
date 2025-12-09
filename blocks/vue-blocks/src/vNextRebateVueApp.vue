@@ -192,25 +192,30 @@
                       <input :list="`${field.key}List`" :id="`${field.key}Select`" type="text" autocomplete="off"
                         class="location-input" :class="{
                           'is-empty': !locationInputValue,
-                          'is-valid': isLocationValid,
-                          'is-invalid': isLocationFocused && locationInputValue && !isLocationValid,
-                          'is-error': !isLocationFocused && locationInputValue && !isLocationValid
-                        }" placeholder="Your community..." v-model="locationInputProxy" :disabled="field.disabled"
-                        @focus="handleFocus" @blur="handleLocationInputCommit('blur')"
-                        @focusout="handleLocationInputCommit('blur')" @change="handleLocationInputCommit('change')"
-                        @keydown.enter.prevent="handleLocationInputCommit('enter')" onmouseover="focus()" />
+                          'is-valid': !isLocationFocused && isLocationValid,
+                          'is-error': !isLocationFocused  && !isLocationValid && locationInputValue,
+                          'is-invalid': isLocationFocused && !isLocationValid && locationInputValue 
+                        }" :aria-invalid="locationInputValue && !isLocationValid ? 'true' : 'false'"
+                        :aria-describedby="fieldErrors[field.key] ? `${field.key}Error` : null"
+                        placeholder="Your community..."
+                        v-model="locationInputProxy"
+                        :disabled="field.disabled"
+                        @focus="handleFocus"
+                        @blur="handleLocationInputCommit('blur')"
+                        @focusout="handleLocationInputCommit('blur')"
+                        @change="handleLocationInputCommit('change')"
+                        @keydown.enter.prevent="handleLocationInputCommit('enter')"
+                        onmouseover="focus()" />
                       <datalist :id="`${field.key}List`">
                         <option v-for="opt in field.options" :key="opt.slug" :value="opt.name"></option>
                       </datalist>
+                      <p v-if="field.error_desc && fieldErrors[field.key]" class="message error-message" v-html="field.error_desc" aria-live='polite'></p>
 
                       <figcaption v-if="field.filter_desc && !field.disabled">
                         {{ field.filter_desc }}
                       </figcaption>
                       <figcaption v-if="field.disabled_desc && field.disabled">
                         {{ field.disabled_desc }}
-                      </figcaption>
-                      <figcaption v-if="field.error_desc && fieldErrors[field.key]" class="hasError">
-                        {{ field.error_desc }}
                       </figcaption>
                     </template>
 
@@ -258,8 +263,7 @@
 
                       <figcaption v-if="field.filter_desc && !field.disabled">{{ field.filter_desc }}</figcaption>
                       <figcaption v-if="field.disabled_desc && field.disabled">{{ field.disabled_desc }}</figcaption>
-                      <p v-if="field.error_desc && fieldErrors[field.key]" class="message error-message" aria-live='polite'>{{ field.error_desc
-                      }}</p>
+                      <p v-if="field.error_desc && fieldErrors[field.key]" class="message error-message" aria-live='polite' v-html='field.error_desc'></p>
 
                       <template v-if="field.key === 'building'">
                         <div class='eligible-homes-insertion'></div>
@@ -279,124 +283,124 @@
       </div>
 
       <!-- Results -->
-      <section v-if="mode === 'archive' && filteredResults.length" id="rebatesResults" aria-label="Rebate results">
-        <div class="results-message">
-          <div>
-            <h2>Congratulations!</h2>
-            <p>You may qualify for the following rebates.</p>
+      <template v-if="mode === 'archive'">
+        <!-- Show results -->
+        <section v-if="hasAllSelection && filteredResults.length" id="rebatesResults" aria-label="Rebate results">
+          <div class="results-message">
+            <div>
+              <h2>Congratulations!</h2>
+              <p>You may qualify for the following rebates.</p>
+            </div>
+            <div id="grid-or-list-container">
+              <input id="grid-or-list" type="checkbox" v-model="displayGridOrList" class="sr-only"
+                :aria-label="displayGridOrList ? 'Switch to list view' : 'Switch to grid view'"
+                @change="onViewToggleChange" @keydown.enter.prevent="toggleViewWithKeyboard" />
+              <label for="grid-or-list" class="toggle-label">
+                <span class="sr-only">
+                  {{ displayGridOrList ? 'Switch to list view' : 'Switch to grid view' }}
+                </span>
+              </label>
+            </div>
           </div>
-          <div id="grid-or-list-container">
-            <input id="grid-or-list" type="checkbox" v-model="displayGridOrList" class="sr-only"
-              :aria-label="displayGridOrList ? 'Switch to list view' : 'Switch to grid view'"
-              @change="onViewToggleChange" @keydown.enter.prevent="toggleViewWithKeyboard" />
-            <label for="grid-or-list" class="toggle-label">
-              <span class="sr-only">
-                {{ displayGridOrList ? 'Switch to list view' : 'Switch to grid view' }}
-              </span>
-            </label>
-          </div>
-        </div>
-        <div class="results" :class="displayGridOrList ? 'grid-view' : 'list-view'">
-          <template v-for="(item, index) in filteredResults" :key="item.id">
-            <article class="rebate-card" :class="item.rebate_type_class">
-              <a :href="withQueryString(item.post_url ?? item.url ?? '#')" style="position: relative;"
-                :aria-label="item.rebate_type_headline_card">
-                <div class='card-meta'>
-                  <div v-if="item.rebate_value_card" class="rebate-value" aria-hidden="true">
-                    {{ item.rebate_value_card }}
-                  </div>
-
-                  <figure v-if="item.rebate_featured_image" class="wp-block-image size-full">
-                    <img decoding="async" width="1024" height="515" data-print-width="25"
-                      :src="item.rebate_featured_image" alt="" title="" />
-                  </figure>
-
-                  <div v-if="item.rebate_description_card" class="rebate-icons" aria-label="Rebate available">
-                    <div v-for="(ht, i) in item.heating_types" :key="ht.id || i" :class="['rebate-icon', ht.slug]"
-                      :title="`For homes fueled by ${ht.name}`" :aria-label="`For homes fueled by ${ht.name}`"></div>
-                  </div>
-                </div>
-
-                <div class='rebate-details-container'>
-                  <header>
-                    <h3 class="rebate-title">
-                      <div>{{ item.rebate_type_headline_card }}</div>
-                      <small>{{ item.title }}</small>
-                    </h3>
-                  </header>
-
-                  <div class="rebate-details">
-                    <div v-if="item.rebate_value_card" class="sr-only">
-                      <div>{{ item.rebate_value_card }}</div>
+          <div class="results" :class="displayGridOrList ? 'grid-view' : 'list-view'">
+            <template v-for="(item, index) in filteredResults" :key="item.id">
+              <article class="rebate-card" :class="item.rebate_type_class">
+                <a :href="withQueryString(item.post_url ?? item.url ?? '#')" style="position: relative;"
+                  :aria-label="item.rebate_type_headline_card">
+                  <div class='card-meta'>
+                    <div v-if="item.rebate_value_card" class="rebate-value" aria-hidden="true">
+                      {{ item.rebate_value_card }}
                     </div>
 
-                    <div v-if="item.rebate_description_card" class="rebate-description">
-                      <div>{{ item.rebate_description_card }}</div>
+                    <figure v-if="item.rebate_featured_image" class="wp-block-image size-full">
+                      <img decoding="async" width="1024" height="515" data-print-width="25"
+                        :src="item.rebate_featured_image" alt="" title="" />
+                    </figure>
+
+                    <div v-if="item.rebate_description_card" class="rebate-icons" aria-label="Rebate available">
+                      <div v-for="(ht, i) in item.heating_types" :key="ht.id || i" :class="['rebate-icon', ht.slug]"
+                        :title="`For homes fueled by ${ht.name}`" :aria-label="`For homes fueled by ${ht.name}`"></div>
                     </div>
                   </div>
-                </div>
-              </a>
-            </article>
 
-            <!-- Info card appears AFTER the first heat pump rebate -->
-            <div v-if="false && showHeatPumpInfo &&
-              (item.rebate_type_class === 'heat-pump-rebates' ||
-                item.rebate_type_class === 'heat-pump-water-heater-rebates') &&
-              index === firstHeatPumpIndex" class="info-card">
-              <div class="info-card-content">
-                <h3>What is a heat pump?</h3>
-                <p>A heat pump is an efficient heating and cooling system that uses electricity to move heat from one
-                  place to another. In the winter, a heat pump transfers heat from the outside air to the indoors
-                  through a cycle of compression and expansion of a refrigerant. In the summer, it operates in reverse
-                  and heat from inside your home to the outdoors, like an air conditioner.</p>
+                  <div class='rebate-details-container'>
+                    <header>
+                      <h3 class="rebate-title">
+                        <div>{{ item.rebate_type_headline_card }}</div>
+                        <small>{{ item.title }}</small>
+                      </h3>
+                    </header>
+
+                    <div class="rebate-details">
+                      <div v-if="item.rebate_value_card" class="sr-only">
+                        <div>{{ item.rebate_value_card }}</div>
+                      </div>
+
+                      <div v-if="item.rebate_description_card" class="rebate-description">
+                        <div>{{ item.rebate_description_card }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </article>
+
+              <!-- Info card appears AFTER the first heat pump rebate -->
+              <div v-if="false && showHeatPumpInfo &&
+                (item.rebate_type_class === 'heat-pump-rebates' ||
+                  item.rebate_type_class === 'heat-pump-water-heater-rebates') &&
+                index === firstHeatPumpIndex" class="info-card">
+                <div class="info-card-content">
+                  <h3>What is a heat pump?</h3>
+                  <p>A heat pump is an efficient heating and cooling system that uses electricity to move heat from one
+                    place to another. In the winter, a heat pump transfers heat from the outside air to the indoors
+                    through a cycle of compression and expansion of a refrigerant. In the summer, it operates in reverse
+                    and heat from inside your home to the outdoors, like an air conditioner.</p>
+                </div>
+                <figure class="wp-block-image size-full">
+                  <img decoding="async" width="1889" height="1259" data-print-width="25"
+                    src="https://www.betterhomesbc.ca/app/uploads/sites/956/2025/10/heat-pump-info-card.jpg" alt=""
+                    title="" />
+                </figure>
               </div>
+            </template>
+          </div>
+          <p v-if="!filteredResults.length" class="no-results">
+            No rebates match your current selections ({{ espTier }}).
+          </p>
+        </section>
+
+        <!-- No results -->
+        <section v-if="hasAllSelection && !filteredResults.length" class="no-results">
+          <div class="results-message">
+            <h2>No matching rebates found</h2>
+            <p>Based on the information provided, your home does not qualify for rebates.</p>
+          </div>
+          <div class="results no-results">
+            <article class="rebate-card">
               <figure class="wp-block-image size-full">
-                <img decoding="async" width="1889" height="1259" data-print-width="25"
-                  src="https://www.betterhomesbc.ca/app/uploads/sites/956/2025/10/heat-pump-info-card.jpg" alt=""
+                <img decoding="async" width="1024" height="515" data-print-width="25"
+                  src="https://www.betterhomesbc.ca/app/uploads/sites/956/2020/09/iStock-155148974-scaled-1.jpg" alt=""
                   title="" />
               </figure>
-            </div>
-          </template>
-        </div>
-
-
-        <p v-if="!filteredResults.length" class="no-results">
-          No rebates match your current selections ({{ espTier }}).
-        </p>
-      </section>
-
-      <!-- No results -->
-      <section v-if="mode === 'archive' && hasAllSelection && !filteredResults.length" class="no-results">
-        <div class="results-message">
-          <h2>No matching rebates found</h2>
-          <p>Based on the information provided, your home does not qualify for rebates.</p>
-        </div>
-        <div class="results no-results">
-          <article class="rebate-card">
-            <figure class="wp-block-image size-full">
-              <img decoding="async" width="1024" height="515" data-print-width="25"
-                src="https://www.betterhomesbc.ca/app/uploads/sites/956/2020/09/iStock-155148974-scaled-1.jpg" alt=""
-                title="" />
-            </figure>
-            <div>
-              <header>
-                <h3 class="rebate-title">
-                  <div>We're sorry...</div>
-                </h3>
-              </header>
-              <div class="rebate-details">
-                <div class="rebate-description">
-                  <div>We couldn’t find any rebates that match your home.</div>
+              <div>
+                <header>
+                  <h3 class="rebate-title">
+                    <div>We're sorry...</div>
+                  </h3>
+                </header>
+                <div class="rebate-details">
+                  <div class="rebate-description">
+                    <div>We couldn’t find any rebates that match your home.</div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </article>
-        </div>
-      </section>
+            </article>
+          </div>
+        </section>
 
-      <p v-else-if="mode === 'archive' && !hasAllSelection && !filteredResults.length" class="no-results loader">Please
-        complete the form above to see your rebate options.</p>
-
+        <!-- Complete for for results -->
+        <p v-if="!hasAllSelection" class="no-results loader">Please complete the questionnaire form to see your rebate options.</p>
+      </template>
 
       <!-- Selection summary (for quick verification) -->
       <div v-if="debug" class="selection-summary" aria-live="polite">
@@ -615,6 +619,7 @@ const fieldRenderKeys = ref({
 
 const fieldErrors = computed(() => {
   return {
+    location: !isLocationFocused.value && !isLocationValid.value && !!locationInputValue.value,
     // murbTenure:
     //   false && 
     //   selectedBuildingGroupSlug.value === 'ground-oriented-dwellings' &&
@@ -737,11 +742,14 @@ const handleLocationInputCommit = debounce(async (trigger = 'change') => {
     updateAddressBar()
     debouncedUpdateRebateDetails()
     ariaStatusMessage.value = `${match.name} selected. Moving to next field.`
+
+    // NEW: mirror select behaviour in archive mode
+    await runArchiveFlowForField('location')
   } else {
     selectedLocationSlug.value = ''
   }
+  isLocationFocused.value = false
 }, 50)
-
 
 const isLocationFocused = ref(false)
 
@@ -753,27 +761,13 @@ const isLocationValid = computed(() =>
 )
 
 /**
- * Move focus to the next field after currentKey.
- */
-function focusNextField(currentKey) {
-  const fieldKeys = fields.value.map(f => f.key)
-  const currentIndex = fieldKeys.indexOf(currentKey)
-  if (currentIndex === -1 || currentIndex >= fieldKeys.length - 1) return
-
-  const nextKey = fieldKeys[currentIndex + 1]
-  const nextEl =
-    selectRefs.value?.[nextKey] ||
-    document.getElementById(`${nextKey}Select`) ||
-    document.getElementById(`${nextKey}Input`)
-
-  if (nextEl && typeof nextEl.focus === 'function') {
-    nextEl.focus({ preventScroll: false })
-  }
-}
-
-/**
  * Handle when a select input changes.
- * Closes the select, marks state dirty, and re-focuses associated button (when appropriate).
+ * - Closes edit bubble (single mode)
+ * - Marks state dirty
+ * - In archive mode:
+ *   • if there are errors – go to first invalid question
+ *   • else if all valid   – go to results
+ *   • else                – move focus to next question, keeping previous visible
  */
 async function handleSelectChange(fieldKey, newValue) {
   if (newValue === undefined || newValue === null) return
@@ -781,19 +775,38 @@ async function handleSelectChange(fieldKey, newValue) {
   lastChangedField.value = fieldKey
   isSavingEditMode.value = true
 
+  // Close edit "bubble" in single-mode summary UI
   await nextTick()
   activeEdit.value = ''
   await nextTick()
 
+  // Mark Vue + external blocks as dirty
   isExternalDirty.value = true
 
+  if (mode.value !== 'archive') {
+    isSavingEditMode.value = false
+    return
+  }
+
+  // Reuse the shared archive behaviour
+  await runArchiveFlowForField(fieldKey)
+
+  isSavingEditMode.value = false
+}
+
+
+/**
+ * After a field is successfully committed in archive mode, decide
+ * where to scroll next or whether to go to results.
+ */
+async function runArchiveFlowForField(fieldKey) {
   if (mode.value !== 'archive') return
 
   // Wait for all reactive updates to propagate.
   await nextTick()
   await nextTick()
 
-  const all = fields.value
+  const allFields = fields.value
 
   const isAnsweredAndValid = field => {
     const value = field.model?.value ?? null
@@ -801,12 +814,32 @@ async function handleSelectChange(fieldKey, newValue) {
     return !!value && !hasError
   }
 
-  const currentIndex = all.findIndex(f => f.key === fieldKey)
-  const aboveFields = all.slice(0, currentIndex)
-  const belowFields = all.slice(currentIndex + 1)
+  const anyError      = hasAnyError.value
+  const currentIndex  = allFields.findIndex(f => f.key === fieldKey)
+  const firstInvalid  = allFields.find(field => field.isInvalid?.())
+  const unansweredAbove =
+    currentIndex > 0
+      ? allFields
+          .slice(0, currentIndex)
+          .find(field => !isAnsweredAndValid(field))
+      : null
 
-  // Scroll to error message if any error exists.
-  if (mode.value === 'archive' && hasAnyError.value) {
+  const unansweredBelow =
+    currentIndex !== -1 && currentIndex < allFields.length - 1
+      ? allFields
+          .slice(currentIndex + 1)
+          .find(field => !isAnsweredAndValid(field))
+      : null
+
+  const allValid = allFields.every(field => isAnsweredAndValid(field))
+
+  // 1) If any error exists, go to the first invalid
+  if (anyError && firstInvalid) {
+    await scrollToQuestion(firstInvalid, {
+      keepPreviousVisible: false
+    })
+
+    // Optionally ensure the error message itself is announced
     await nextTick()
     const errorEl = document.querySelector('.message.error-message')
     if (errorEl) {
@@ -817,22 +850,24 @@ async function handleSelectChange(fieldKey, newValue) {
     return
   }
 
-  // Identify what needs attention.
-  const erroredAbove = aboveFields.find(field => field.isInvalid?.())
-  const unansweredBelow = belowFields.find(field => !isAnsweredAndValid(field))
-  const unansweredAbove = aboveFields.find(field => !isAnsweredAndValid(field))
+  // 2) If there is an unanswered field above, go back up to that
+  if (unansweredAbove) {
+    await scrollToQuestion(unansweredAbove, {
+      keepPreviousVisible: false
+    })
+    return
+  }
 
-  // Final validation state.
-  const allValid = all.every(field => isAnsweredAndValid(field))
+  // 3) Otherwise, if there is an unanswered field below, move down, keeping the previous question visible on screen
+  if (unansweredBelow) {
+    await scrollToQuestion(unansweredBelow, {
+      keepPreviousVisible: true
+    })
+    return
+  }
 
-  // Decision tree.
-  if (erroredAbove) {
-    await scrollToField(erroredAbove, { direction: 'up' })
-  } else if (unansweredBelow) {
-    await scrollToField(unansweredBelow, { direction: 'down' })
-  } else if (unansweredAbove) {
-    await scrollToField(unansweredAbove, { direction: 'up' })
-  } else if (allValid) {
+  // 4) If everything is answered and valid, go to results
+  if (allValid) {
     const resultsSection = document.getElementById('rebatesResults')
     if (resultsSection) {
       setTimeout(() => {
@@ -842,93 +877,64 @@ async function handleSelectChange(fieldKey, newValue) {
       }, 100)
     }
   }
-
-  /**
-   * Smooth scroll + focus (direction-aware).
-   */
-  async function scrollToField(field, { direction } = {}) {
-    await nextTick()
-    await new Promise(r => requestAnimationFrame(r))
-    await new Promise(r => setTimeout(r, 0))
-
-    const nextEl = document
-      .getElementById(`${field.key}Select`)
-      ?.closest('.question-container')
-
-    if (!nextEl) {
-      console.warn(`Could not find element for field: ${field.key}`)
-      return
-    }
-
-    // Figure out how much space to leave above so previous question stays visible.
-    let visibleOffset = 150 // fallback padding.
-    const previousEl = nextEl.previousElementSibling
-    if (direction === 'down' && previousEl) {
-      visibleOffset = previousEl.offsetHeight + 150
-    }
-
-    const rect = nextEl.getBoundingClientRect()
-    const offsetTop = window.scrollY + rect.top
-
-    window.scrollTo({
-      top: Math.max(0, offsetTop - visibleOffset),
-      behavior: 'smooth'
-    })
-
-    const nextSelect = nextEl.querySelector('select')
-    if (nextSelect) {
-      // small delay so focus happens after scroll settles.
-      setTimeout(() => {
-        nextSelect.classList.add('transition')
-        nextSelect.disabled = true
-        nextSelect.focus({ preventScroll: true })
-
-        setTimeout(() => {
-          nextSelect.disabled = false
-          nextSelect.classList.remove('transition')
-        }, 300)
-      }, 300)
-    }
-  }
-
-  // Always refocus the button if no scroll occurred.
-  const btn = buttonRefs.value[fieldKey]
-  if (btn) btn.focus()
 }
 
-/**
- * Move focus to the next field missing a selection.
- */
-function focusNextMissingField(currentKey) {
-  const all = fields.value
-  const idx = all.findIndex(f => f.key === currentKey)
-  if (idx === -1) return false
-
-  const nextMissing = all.slice(idx + 1).find(f => !f.displayValue)
-  if (nextMissing) {
-    activeEdit.value = nextMissing.key
-    return true
-  }
-  return false
-}
 
 /**
- * Move focus to the previous field missing a selection.
+ * Scroll to a specific question and focus its control.
+ *
+ * keepPreviousVisible: when true and we’re moving forward, we offset so
+ * the previous question remains visible above.
  */
-function focusPrevMissingField(currentKey) {
-  const all = fields.value
-  const idx = all.findIndex(f => f.key === currentKey)
-  if (idx === -1) return false
+async function scrollToQuestion(targetField, { keepPreviousVisible = false } = {}) {
+  await nextTick()
+  await new Promise(r => requestAnimationFrame(r))
 
-  const prevMissing = [...all.slice(0, idx)]
-    .reverse()
-    .find(f => !f.displayValue)
+  const allFields = fields.value
+  const idx = allFields.findIndex(f => f.key === targetField.key)
 
-  if (prevMissing) {
-    activeEdit.value = prevMissing.key
-    return true
+  const controlEl =
+    document.getElementById(`${targetField.key}Select`) ||
+    document.getElementById(`${targetField.key}Input`)
+
+  const container = controlEl?.closest('.question-container')
+  if (!container) {
+    console.warn(`Could not find question container for field: ${targetField.key}`)
+    return
   }
-  return false
+
+  const targetRect = container.getBoundingClientRect()
+  let offsetTop
+
+  if (keepPreviousVisible && idx > 0) {
+    // Use the height of the previous question to keep it on screen
+    const prevField = allFields[idx - 1]
+    const prevEl =
+      document.getElementById(`${prevField.key}Select`)?.closest('.question-container') ||
+      document.getElementById(`${prevField.key}Input`)?.closest('.question-container')
+
+    let visibleOffset = 150
+    if (prevEl) {
+      visibleOffset = prevEl.offsetHeight + 150
+    }
+
+    offsetTop = window.scrollY + targetRect.top - visibleOffset
+  } else {
+    // Simple "put it near the top"
+    offsetTop = window.scrollY + targetRect.top - 150
+  }
+
+  window.scrollTo({
+    top: Math.max(0, offsetTop),
+    behavior: 'smooth'
+  })
+
+  // Focus the control in the target question
+  if (controlEl && typeof controlEl.focus === 'function') {
+    setTimeout(() => {
+      controlEl.focus({ preventScroll: true })
+    }, 200)
+  }
 }
 
 /**
@@ -1062,8 +1068,9 @@ const fields = computed(() => [
       ? `${selectedLocationName.value} (${selectedRegionName.value})`
       : '',
     missingMessage: 'Missing location details',
-    isInvalid: () => !selectedLocationSlug.value || selectedLocationSlug.value === 'other',
-    filter_desc: 'Start typing to narrow down your choice of options. Select the icon to see available choices.'
+    isInvalid: () => !selectedLocationSlug.value,
+    filter_desc: 'Start typing to narrow down your choice of options. Select the icon to see available choices.',
+    error_desc: 'Please choose a community from the list of supported locations.'
   },
   {
     key: 'murbTenure',
@@ -1150,7 +1157,7 @@ const fields = computed(() => [
       'Please answer the "number of people in your home" question to enable this selection.',
     definition: 'Why we ask for annual household income',
     glossary_link: '/definitions/household-income/',
-    isInvalid: () => !selectedIncomeRangeSlug.value && !!selectedPersonsSlug.value
+    isInvalid: () => !!selectedPersonsSlug.value && !selectedIncomeRangeSlug.value
   },
   {
     key: 'heating',
@@ -1164,8 +1171,8 @@ const fields = computed(() => [
     displayValue: selectedHeatingName.value,
     missingMessage: 'Missing room heating details',
     error_desc:
-      'Only the listed heating types are currently eligible for Better Homes rebates. Contact an Energy Coach to find out if your heating type fits into one of these categories.',
-    isInvalid: () => !selectedHeatingSlug.value && selectedHeatingSlug.value === 'other',
+      'Only the listed heating types are currently eligible for Better Homes <strong>heat pump</strong> rebates. Contact an Energy Coach to find out if your heating type fits into one of these categories.',
+    isInvalid: () => !selectedHeatingSlug.value || selectedHeatingSlug.value === 'other',
   },
   {
     key: 'water',
@@ -1179,8 +1186,8 @@ const fields = computed(() => [
     displayValue: selectedWaterHeatingName.value,
     missingMessage: 'Missing water heating details',
     error_desc:
-      'Only the listed heating types are eligible for Better Homes water heater rebates.  Contact an Energy Coach to find out if your heating type fits into one of these categories. ',
-    isInvalid: () => !selectedWaterHeatingSlug.value && selectedWaterHeatingSlug.value === 'other'
+      'Only the listed heating types are eligible for Better Homes <strong>heat pump water heater</strong> rebates.  Contact an Energy Coach to find out if your heating type fits into one of these categories. ',
+    isInvalid: () => !selectedWaterHeatingSlug.value || selectedWaterHeatingSlug.value === 'other'
   },
   {
     key: 'utility',
@@ -1192,7 +1199,7 @@ const fields = computed(() => [
     missingMessage: 'Missing service details',
     error_desc:
       'Your electricity must be from one of the listed providers. Contact an Energy Coach if you have questions or need help figuring out who your provider is. ',
-    isInvalid: () => !selectedUtilitySlug.value && selectedUtilitySlug.value === 'other'
+    isInvalid: () => !selectedUtilitySlug.value || selectedUtilitySlug.value === 'other'
   },
   {
     key: 'gas',
@@ -2124,6 +2131,7 @@ const normalizeLocationSlug = (val) => {
 
 const filteredResults = computed(() => {
   const normalizedHeating       = normalizeHeatingSlug(selectedHeatingName.value)
+  const normalizedWaterHeating  = normalizeHeatingSlug(selectedWaterHeatingName.value)
   const normalizedUtility       = normalizeUtilitySlug(selectedUtilityName.value)
   const normalizedGas           = normalizeGasSlug(selectedGasName.value)
   const normalizedRegion        = normalizeRegionSlug(selectedRegionName.value)
@@ -2166,11 +2174,127 @@ const filteredResults = computed(() => {
       ? item.types.some(t => t?.slug?.toLowerCase?.() === normalizedBuildingGroup)
       : true
 
-    // Heating eligibility 
-    const heatingEligible =
+    const rebateClass = (item.rebate_type_class || '').toLowerCase()
+
+    // Heating types present on the rebate
+    const heatingTypeSlugs = Array.isArray(item.heating_types)
+      ? item.heating_types.map(sys => sys?.slug?.toLowerCase?.()).filter(Boolean)
+      : []
+
+    // Eligibility against "How do you heat the rooms in your home?"
+    const roomHeatingEligible =
       !normalizedHeating ||
-      !Array.isArray(item.heating_types) || item.heating_types.length === 0 ||
-      item.heating_types.some(sys => sys?.slug?.toLowerCase?.() === normalizedHeating)
+      heatingTypeSlugs.length === 0 ||
+      heatingTypeSlugs.includes(normalizedHeating)
+
+    // Eligibility against "How do you heat your water?"
+    const waterHeatingEligible =
+      !normalizedWaterHeating ||
+      heatingTypeSlugs.length === 0 ||
+      heatingTypeSlugs.includes(normalizedWaterHeating)
+
+    // Decide which heating question to use based on rebate type
+    let heatingEligible
+
+    if (rebateClass === 'heat-pump-water-heater-rebates') {
+      // Tie to "How do you heat your water?"
+      heatingEligible = waterHeatingEligible
+    } else if (rebateClass === 'heat-pump-rebates') {
+      // Tie to "How do you heat the rooms in your home?"
+      heatingEligible = roomHeatingEligible
+    } else {
+      // Default: space heating
+      heatingEligible = roomHeatingEligible
+    }
+
+    // GUARD 0: No hot water HP rebate for gas water heating in MURBs
+    const blockGasWaterInApartments =
+      rebateClass === 'heat-pump-water-heater-rebates' &&
+      normalizedWaterHeating === 'gas' &&
+      normalizedBuildingGroup === 'murb'
+
+    if (blockGasWaterInApartments) {
+      console.group('GUARD 0:', item.rebate_type_headline_card, item.title?.toLowerCase?.())
+      console.log('Not in rebate list:', false, '(blocked: gas water heating in apartment/MURB)')
+      console.log('rebateClass:', rebateClass)
+      console.log('normalizedWaterHeating:', normalizedWaterHeating)
+      console.log('normalizedBuildingGroup:', normalizedBuildingGroup)
+      console.groupEnd()
+      return false
+    }
+
+    // STRICT GUARD 1: Heating must match (after we've chosen which one matters)
+    if (!heatingEligible) {
+      console.group('GUARD 1: ', item.rebate_type_headline_card, item.title.toLowerCase())
+      console.log('Not in rebate list:', false, '(blocked by heating)')
+      console.log('rebateClass:', rebateClass)
+      console.log('normalizedHeating (rooms):', normalizedHeating)
+      console.log('normalizedWaterHeating (water):', normalizedWaterHeating)
+      console.log('heatingTypeSlugs:', heatingTypeSlugs)
+      console.groupEnd()
+      return false
+    }
+
+    // GUARD 2: MURB utility rules
+    const isMurb    = normalizedBuildingGroup === 'murb'
+    const isHrrTier = normalizedEspTier === 'hrr'
+    const currentUtility = normalizedUtility // slug ('bc-hydro', 'fortisbc', etc.)
+
+    // Disallow ANY non-BC Hydro utility when MURB + HRR is selected
+    // New Westminster utilities here too
+    const murbUtilityBlocked =
+      isMurb &&
+      isHrrTier &&
+      currentUtility &&
+      (!currentUtility.includes('bc-hydro') && !currentUtility.includes('new-westminster'))
+
+    if (murbUtilityBlocked) {
+      console.group('GUARD 2: ', item.rebate_type_headline_card, item.title.toLowerCase())
+      console.log(
+        'Not in rebate list:',
+        false,
+        '(blocked by MURB+HRR: utility must be BC Hydro or New Westminster)'
+      )
+      console.log('isMurb',isMurb)
+      console.log('isHrrTier',isHrrTier)
+      console.log('currentUtility',currentUtility)
+      console.groupEnd()
+      return false
+    }
+
+    // GUARD 3: HRR + North restricted offers.
+    const regionAndHRR = (() => {
+      const userTierHRR = normalizedEspTier === 'hrr'
+      const userRegionNorth = normalizedRegion === 'north'
+
+      // Rebate is explicitly marked as HRR + North in applicableSet.
+      const rebateHRRNorthRestricted =
+        applicableSet.has('hrr') && applicableSet.has('north')
+
+      // If the rebate is NOT explicitly HRR+North restricted, this guard does nothing.
+      if (!rebateHRRNorthRestricted) {
+        return true
+      }
+
+      // Only blocked case:
+      const blocked = userTierHRR && !userRegionNorth
+
+      if (blocked) {
+        console.group('GUARD 3: ', item.rebate_type_headline_card, item.title.toLowerCase())
+        console.log('Not in rebate list:', false, '(blocked: HRR user must be in North for HRR+North-restricted rebate)')
+        console.log('normalizedEspTier:', normalizedEspTier)
+        console.log('normalizedRegion:', normalizedRegion)
+        console.log('rebateHRRNorthRestricted:', rebateHRRNorthRestricted)
+        console.log('applicableSet:', applicableSet)
+        console.groupEnd()
+        return false
+      }
+
+      // All other combinations are OK.
+      return true
+    })()
+
+    if (!regionAndHRR) return false
 
     // Region slugs + eligibility 
     const regionSlugs = Array.isArray(item.regions)
@@ -2219,75 +2343,6 @@ const filteredResults = computed(() => {
     // tier OR cross-field slug match
     const tierOrSlugEligible = tierEligible || geoOrServiceSlugMatch
     
-    // STRICT GUARD 1: Heating must match
-    if (!heatingEligible) {
-      console.group("GUARD 1: ", item.rebate_type_headline_card, item.title.toLowerCase())
-      console.log('Not in rebate list:', false, '(blocked by heating)')
-      console.groupEnd()
-      return false
-    }
-
-    // GUARD 2: MURB utiity rules
-    const isMurb = normalizedBuildingGroup === 'murb'
-    const isHrrTier = normalizedEspTier === 'hrr'
-    const currentUtility = normalizedUtility // slug ('bc-hydro', 'fortisbc', etc.)
-
-    // Disallow ANY non-BC Hydro utility when MURB + HRR is selected
-    // New Westminster utilities here too
-    const murbUtilityBlocked =
-      isMurb &&
-      isHrrTier &&
-      currentUtility &&
-      (!currentUtility.includes('bc-hydro') && !currentUtility.includes('new-westminster'))
-
-    if (murbUtilityBlocked) {
-      console.group("GUARD 2: ", item.rebate_type_headline_card, item.title.toLowerCase())
-      console.log(
-        'Not in rebate list:',
-        false,
-        '(blocked by MURB+HRR: utility must be BC Hydro or New Westminster)'
-      )
-      console.log('isMurb',isMurb)
-      console.log('isHrrTier',isHrrTier)
-      console.log('currentUtility',currentUtility)
-      console.groupEnd()
-      return false
-    }
-
-    // GUARD 3: HRR + North restricted offers.
-    const regionAndHRR = (() => {
-      const userTierHRR = normalizedEspTier === 'hrr'
-      const userRegionNorth = normalizedRegion === 'north'
-
-      // Rebate is explicitly marked as HRR + North in applicableSet.
-      const rebateHRRNorthRestricted =
-        applicableSet.has('hrr') && applicableSet.has('north')
-
-      // If the rebate is NOT explicitly HRR+North restricted, this guard does nothing.
-      if (!rebateHRRNorthRestricted) {
-        return true
-      }
-
-      // Only blocked case:
-      const blocked = userTierHRR && !userRegionNorth
-
-      if (blocked) {
-        console.group("GUARD 3: ", item.rebate_type_headline_card, item.title.toLowerCase())
-        console.log('Not in rebate list:', false, '(blocked: HRR user must be in North for HRR+North-restricted rebate)')
-        console.log('normalizedEspTier:', normalizedEspTier)
-        console.log('normalizedRegion:', normalizedRegion)
-        console.log('rebateHRRNorthRestricted:', rebateHRRNorthRestricted)
-        console.log('applicableSet:', applicableSet)
-        console.groupEnd()
-        return false
-      }
-
-      // All other combinations are OK.
-      return true
-    })()
-
-    if (!regionAndHRR) return false
-
     // Standard strict checks (old behaviour).
     const strictEligibility =
       tierOrSlugEligible &&
@@ -2314,13 +2369,13 @@ const filteredResults = computed(() => {
       strictEligibility ||
       (!baseEligibility && (buildingTypeEligible && additiveEligibility))
 
-    console.group("PASSED: ", item.rebate_type_headline_card, item.title.toLowerCase())
+    console.group('PASSED: ', item.rebate_type_headline_card, item.title.toLowerCase())
     console.log('tierOrSlugEligible:', tierOrSlugEligible,'| tier:', normalizedEspTier, '| geoOrServiceSlugMatch:', geoOrServiceSlugMatch)
     console.log('buildingTypeEligible:',buildingTypeEligible, '| normalizedBuildingGroup:',normalizedBuildingGroup.split(' '))
-    console.log('heatingEligible:',heatingEligible, '| normalizedHeating:',normalizedHeating.split(' '))
+    console.log('heatingEligible:',heatingEligible, '| normalizedHeating:',normalizedHeating.split(' '), '| normalizedWaterHeating:', normalizedWaterHeating.split(' '))
     console.log('locationEligible:',locationEligible, '| normalizedLocation:',normalizedLocation.split(' '))
     console.log('regionEligible:',regionEligible, '| regionSlugs:',regionSlugs, '| normalizedRegion:',normalizedRegion.split(' '))
-    console.log('utilityEligible:',utilityEligible, '| utilitySlugs:',utilitySlugs.some(slug => applicableSet.has(slug)), '| normalizedUtility:',normalizedUtility.split(' '))
+    console.log('utilityEligible:',utilityEligible, '| utilitySlugsHasApplicable:',utilitySlugs.some(slug => applicableSet.has(slug)), '| normalizedUtility:',normalizedUtility.split(' '))
     console.log('gasEligible:',gasEligible, '| gasSlugs:',gasSlugs, '| normalizedGas:',normalizedGas.split(' '))
     console.log('applicableSet:',applicableSet)
     console.log('geoOrServiceSlugMatch:', geoOrServiceSlugMatch)
@@ -2969,7 +3024,8 @@ function withQueryString(baseUrl) {
 
   .rebate-card {
     isolation: isolate;
-    box-shadow: 0 0 .5rem rgb(0 0 0 / 0.3);
+    background-color: #fff;
+    box-shadow: 0 0 3px rgb(0 0 0 / 0.2), 0 0 6px rgb(0 0 0 / 0.1);
     border-radius: 0.5rem;
     padding: 0;
     overflow: clip;
@@ -2988,7 +3044,7 @@ function withQueryString(baseUrl) {
     &:has(a:is(:hover, :focus-visible)) {
       outline: 3px solid #369;
       outline-offset: 2px;
-      box-shadow: inset 0 0 2px rgb(0 0 0 / 0.3);
+      box-shadow: inset 0 0 3px rgb(0 0 0 / 0.2), 0 0 6px rgb(0 0 0 / 0.1);
     }
   }
 
@@ -3108,7 +3164,7 @@ function withQueryString(baseUrl) {
       background-size: 65%;
       background-repeat: no-repeat;
       background-position: center;
-      box-shadow: 0 0 0.25rem rgb(3 6 9 / 0.5);
+      box-shadow: 0 0 3px rgb(0 0 0 / 0.2), 0 0 6px rgb(0 0 0 / 0.1), 0 0 9px rgb(0 0 0 / 0.05);
       border-radius: 50%;
       /* electric */
       background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NDAgNTEyIj48IS0tZWxlY3RyaWMtLT48cGF0aCBmaWxsPSIjMzY5IiAgZD0iTTI1NiA1MTJjNzMuNyAwIDE0MC4xLTMxLjEgMTg2LjgtODFsNy41LTE1TDQzMiA0MTZjLTIwLjQgMC0zOC41LTEyLjktNDUuMy0zMi4xcy0uNi00MC42IDE1LjMtNTMuNGwxMDkuNi04Ny43QzUwNC44IDEwNy41IDM5MyAwIDI1NiAwQzExNC42IDAgMCAxMTQuNiAwIDI1NlMxMTQuNiA1MTIgMjU2IDUxMnpNMTkyIDE2MGwwIDMyYzAgMTcuNy0xNC4zIDMyLTMyIDMycy0zMi0xNC4zLTMyLTMybDAtMzJjMC0xNy43IDE0LjMtMzIgMzItMzJzMzIgMTQuMyAzMiAzMnptOTYgMGwwIDMyYzAgMTcuNy0xNC4zIDMyLTMyIDMycy0zMi0xNC4zLTMyLTMybDAtMzJjMC0xNy43IDE0LjMtMzIgMzItMzJzMzIgMTQuMyAzMiAzMnptOTYgMGwwIDMyYzAgMTcuNy0xNC4zIDMyLTMyIDMycy0zMi0xNC4zLTMyLTMybDAtMzJjMC0xNy43IDE0LjMtMzIgMzItMzJzMzIgMTQuMyAzMiAzMnptMjE4LjEgNjcuNmMtNS44LTQuNy0xNC4yLTQuNy0yMC4xLS4xbC0xNjAgMTI4Yy01LjMgNC4yLTcuNCAxMS40LTUuMSAxNy44czguMyAxMC43IDE1LjEgMTAuN2w3MC4xIDBMNDQ5LjcgNDg4LjhjLTMuNCA2LjctMS42IDE0LjkgNC4zIDE5LjZzMTQuMiA0LjcgMjAuMSAuMWwxNjAtMTI4YzUuMy00LjIgNy40LTExLjQgNS4xLTE3LjhzLTguMy0xMC43LTE1LjEtMTAuN2wtNzAuMSAwIDUyLjQtMTA0LjhjMy40LTYuNyAxLjYtMTQuOS00LjItMTkuNnoiLz48L3N2Zz4=);
@@ -3239,17 +3295,12 @@ function withQueryString(baseUrl) {
     display: grid;
     height: 75px;
     place-items: center;
-    background-color: #fff;
-    box-shadow: 0 0 .7rem #31313220;
-    border: 0;
+    background-color: #727272;
+    box-shadow: 0 0 3px rgb(0 0 0 / 0.2), 0 0 6px rgb(0 0 0 / 0.1);
+    border: 1px solid #666;
     border-radius: .66rem;
     font-size: 1.125rem;
-    color: #369;
-  
-    &.no-results {
-      width: calc(100% - 3rem);
-      margin-left: 3rem;
-    }
+    color: #fff;
   }
 }
 
@@ -3258,7 +3309,7 @@ function withQueryString(baseUrl) {
   display: grid;
   place-items: center;
   background-color: #fff;
-  box-shadow: 0 .25rem .7rem #31313240;
+  box-shadow: 0 0 3px rgb(0 0 0 / 0.2), 0 0 6px rgb(0 0 0 / 0.1);
   border: 0;
   border-radius: .66rem;
   font-size: 0.85rem;
@@ -3549,6 +3600,15 @@ body.betterhomesbc #dialog .dialog-content h2 {
     width: fit-content;
     white-space: nowrap;
     z-index: 9;
+  }
+}
+
+#post-content:has(#rebateFilterApp[data-mode="archive"]) {
+  background-color: #f0f0f0;
+
+  #rebatesFilterControls:has(.stacked) {
+   padding: 2rem;
+   box-shadow: 0 0 3px rgb(0 0 0 / 0.2), 0 0 6px rgb(0 0 0 / 0.1)
   }
 }
 
