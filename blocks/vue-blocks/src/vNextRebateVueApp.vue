@@ -3620,6 +3620,10 @@ body.betterhomesbc #dialog .dialog-content h2 {
    padding: 2rem;
    box-shadow: 0 0 3px rgb(0 0 0 / 0.2), 0 0 6px rgb(0 0 0 / 0.1)
   }
+
+  .not-eligible a, .not-eligible a > * {
+    font-size: inherit !important;
+  }
 }
 
 #rebatesFilterControls.labels-hidden label.small {
