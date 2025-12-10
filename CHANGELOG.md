@@ -1,5 +1,6 @@
-## 1.26.2 December 9, 2025
+## 1.26.2 December 10, 2025
 – Added in-page no results message for visual editing.
+– Reinforced and updated the ineligble guards for various cases outlined in the content ready for review documents.
 
 ## 1.26.1 December 8-9, 2025
 – Questionnaire (archive mode) updates for filtering the results against differing heating types.

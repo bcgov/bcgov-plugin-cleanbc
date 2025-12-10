@@ -2135,13 +2135,12 @@ const filteredResults = computed(() => {
 
     // HRR fallback rule 
     const hasHRR     = applicableSet.has('hrr')
+    const isHrrTier  = normalizedEspTier === 'hrr'
     const hasESP3    = applicableSet.has('esp-3')
     const isHighTier = ['esp-3', 'hrr'].includes(normalizedEspTier)
     const hrrEligible = hasHRR && !hasESP3 && isHighTier
 
     const tierEligible = rebateTierEligible || hrrEligible
-
-    const northernRequired = applicableSet.has('hrr') && applicableSet.has('north')
 
     // Building type eligibility 
     const hasTypeInfo = Array.isArray(item.types) && item.types.length > 0
@@ -2182,13 +2181,73 @@ const filteredResults = computed(() => {
       heatingEligible = roomHeatingEligible
     }
 
-    const isHPWH = rebateClass === 'heat-pump-water-heater-rebates'
+    // STRICT GUARD : Heating must match (after we've chosen which one matters)
+    if (!heatingEligible) {
+      if (debug) {
+        console.group('GUARD 1: ', item.rebate_type_headline_card, item.title.toLowerCase())
+        console.log('Not in rebate list:', false, '(blocked by heating)')
+        console.log('rebateClass:', rebateClass)
+        console.log('normalizedHeating (rooms):', normalizedHeating)
+        console.log('normalizedWaterHeating (water):', normalizedWaterHeating)
+        console.log('heatingTypeSlugs:', heatingTypeSlugs)
+        console.groupEnd()
+      }
+      return false
+    }
+
+    // BEGIN EDGE CASE GUARDS
+
+    // Additional guard helpers
     const isMurbBuilding = normalizedBuildingGroup === 'murb'
+    const isGodBuilding = normalizedBuildingGroup === 'ground-oriented-dwellings'
+    const isHP = rebateClass === 'heat-pump-rebates'
+    const isHPWH = rebateClass === 'heat-pump-water-heater-rebates'
+    const isWindowsDoors = rebateClass === 'windows-doors-rebates'
+    const isInsulation = rebateClass === 'insulation-rebates'
+    const utilityIsBCHydro = normalizedUtility === 'bc-hydro'
     const utilityIsBCHydroOrNW = normalizedUtility === 'bc-hydro' || normalizedUtility === 'new-westminster'
     const roomIsElectric = normalizedHeating === 'electricity'
+    const roomIsWood = normalizedHeating === 'wood'
     const waterIsElectric = normalizedWaterHeating === 'electricity'
+    const waterIsWood = normalizedWaterHeating === 'wood'
+    const northernRequired = applicableSet.has('hrr') && applicableSet.has('north')
+    const userRegionNorth = normalizedRegion === 'north'
+    const currentUtility = normalizedUtility // slug ('bc-hydro', 'fortisbc', etc.)
+    const locationIsVancouver = normalizedLocation === 'vancouver'
 
-    // GUARD 0: Heat pump water heater business rules for MURB
+
+     // Guard : Ground-oriented heat pump/hp water heaters rules for ESP-3 + HRR wood
+    const godHPIneligible =
+      isGodBuilding &&
+      isHighTier &&
+      (isHP || isHPWH) &&
+      roomIsWood
+    
+    if (godHPIneligible) {
+      return false
+    }
+
+    // Guard : Ground-oriented windows and doors rules for ESP-3 + HRR wood/Vancouver 
+    const godWindowsWoodVanIneligible =
+    ( isGodBuilding && isHighTier && isWindowsDoors ) && (
+      roomIsWood // room cannot be wood
+    ) || ( locationIsVancouver && isWindowsDoors )
+
+    if (godWindowsWoodVanIneligible) {
+      return false
+    }
+
+    // Guard : Ground-oriented insulation rules for ESP-3 + HRR wood
+    const godInsulationWoodIneligible =
+    ( isGodBuilding && isHighTier && isInsulation ) && (
+      roomIsWood // room cannot be wood
+    )
+
+    if (godInsulationWoodIneligible) {
+      return false
+    }
+
+    // GUARD : Heat pump water heater business rules for MURB
     const hpwhIneligible =
       ( isHPWH && isMurbBuilding ) && (
         !roomIsElectric    ||   // room heating must be electricity
@@ -2198,80 +2257,75 @@ const filteredResults = computed(() => {
       )
 
     if (hpwhIneligible) {
-      console.group('GUARD 0 (HPWH MURB):', item.rebate_type_headline_card, item.title?.toLowerCase?.())
-      console.log('Not in rebate list:', false, '(HPWH MURB rules: utility BC Hydro/New West, room+water electric)')
-      console.log('normalizedBuildingGroup:', normalizedBuildingGroup)
-      console.log('normalizedUtility:', normalizedUtility)
-      console.log('normalizedHeating (rooms):', normalizedHeating)
-      console.log('normalizedWaterHeating (water):', normalizedWaterHeating)
-      console.groupEnd()
+      if (debug) {
+        console.group('GUARD 0 (HPWH MURB):', item.rebate_type_headline_card, item.title?.toLowerCase?.())
+        console.log('Not in rebate list:', false, '(HPWH MURB rules: utility BC Hydro/New West, room+water electric)')
+        console.log('normalizedBuildingGroup:', normalizedBuildingGroup)
+        console.log('normalizedUtility:', normalizedUtility)
+        console.log('normalizedHeating (rooms):', normalizedHeating)
+        console.log('normalizedWaterHeating (water):', normalizedWaterHeating)
+        console.groupEnd()
+      }
       return false
     }
 
-    // STRICT GUARD 1: Heating must match (after we've chosen which one matters)
-    if (!heatingEligible) {
-      console.group('GUARD 1: ', item.rebate_type_headline_card, item.title.toLowerCase())
-      console.log('Not in rebate list:', false, '(blocked by heating)')
-      console.log('rebateClass:', rebateClass)
-      console.log('normalizedHeating (rooms):', normalizedHeating)
-      console.log('normalizedWaterHeating (water):', normalizedWaterHeating)
-      console.log('heatingTypeSlugs:', heatingTypeSlugs)
-      console.groupEnd()
-      return false
-    }
-
-    // GUARD 2: MURB utility rules
-    const isMurb    = normalizedBuildingGroup === 'murb'
-    const isHrrTier = normalizedEspTier === 'hrr'
-    const currentUtility = normalizedUtility // slug ('bc-hydro', 'fortisbc', etc.)
-
+    // GUARD : MURB utility rules
     // Disallow ANY non-BC Hydro utility when MURB + HRR is selected
     // New Westminster utilities here too
     const murbUtilityBlocked =
-      isMurb &&
+      isMurbBuilding &&
       isHrrTier &&
       currentUtility &&
       (!currentUtility.includes('bc-hydro') && !currentUtility.includes('new-westminster'))
 
     if (murbUtilityBlocked) {
-      console.group('GUARD 2: ', item.rebate_type_headline_card, item.title.toLowerCase())
-      console.log(
-        'Not in rebate list:',
-        false,
-        '(blocked by MURB+HRR: utility must be BC Hydro or New Westminster)'
-      )
-      console.log('isMurb',isMurb)
-      console.log('isHrrTier',isHrrTier)
-      console.log('currentUtility',currentUtility)
-      console.groupEnd()
+      if (debug) {
+        console.group('GUARD 2: ', item.rebate_type_headline_card, item.title.toLowerCase())
+        console.log(
+          'Not in rebate list:',
+          false,
+          '(blocked by MURB+HRR: utility must be BC Hydro or New Westminster)'
+        )
+        console.log('isMurbBuilding',isMurbBuilding)
+        console.log('isHrrTier',isHrrTier)
+        console.log('currentUtility',currentUtility)
+        console.groupEnd()
+      }
       return false
     }
 
-    // GUARD 3: HRR + North restricted offers.
-    const regionAndHRR = (() => {
-      const userTierHRR = normalizedEspTier === 'hrr'
-      const userRegionNorth = normalizedRegion === 'north'
+    // GUARD : Ground utility rules
+    // Disallow ANY non-BC Hydro utility for HRR + North restricted offers.
+    const regionAndHRRBCHydro = (() => {
 
       // Rebate is explicitly marked as HRR + North in applicableSet.
       const rebateHRRNorthRestricted =
-        applicableSet.has('hrr') && applicableSet.has('north')
+        isHrrTier && applicableSet.has('north')
 
       // If the rebate is NOT explicitly HRR+North restricted, this guard does nothing.
       if (!rebateHRRNorthRestricted) {
         return true
       }
 
+      const tierIsConstrained = isHrrTier
+
+      if (!(isGodBuilding && tierIsConstrained)) {
+        return true
+      }
       // Only blocked case:
-      const blocked = userTierHRR && !userRegionNorth
+      const blocked =  (!userRegionNorth) ||   // HRR user must be in North
+        (userRegionNorth && !utilityIsBCHydro) // and if North, must be BC Hydro
 
       if (blocked) {
-        console.group('GUARD 3: ', item.rebate_type_headline_card, item.title.toLowerCase())
-        console.log('Not in rebate list:', false, '(blocked: HRR user must be in North for HRR+North-restricted rebate)')
-        console.log('normalizedEspTier:', normalizedEspTier)
-        console.log('normalizedRegion:', normalizedRegion)
-        console.log('rebateHRRNorthRestricted:', rebateHRRNorthRestricted)
-        console.log('applicableSet:', applicableSet)
-        console.groupEnd()
+        if (debug) {
+          console.group('GUARD 3: ', item.rebate_type_headline_card, item.title.toLowerCase())
+          console.log('Not in rebate list:', false, '(blocked: HRR user must be in North for HRR+North/BC Hydro-restricted rebate)')
+          console.log('normalizedEspTier:', normalizedEspTier)
+          console.log('normalizedRegion:', normalizedRegion)
+          console.log('rebateHRRNorthRestricted:', rebateHRRNorthRestricted)
+          console.log('applicableSet:', applicableSet)
+          console.groupEnd()
+        }
         return false
       }
 
@@ -2279,7 +2333,9 @@ const filteredResults = computed(() => {
       return true
     })()
 
-    if (!regionAndHRR) return false
+    if (!regionAndHRRBCHydro) return false
+
+    // END OF EDGE CASE GUARDS
 
     // Region slugs + eligibility 
     const regionSlugs = Array.isArray(item.regions)
@@ -2353,22 +2409,24 @@ const filteredResults = computed(() => {
     const shouldInclude =
       strictEligibility ||
       (!baseEligibility && (buildingTypeEligible && additiveEligibility))
-
-    console.group('PASSED: ', item.rebate_type_headline_card, item.title.toLowerCase())
-    console.log('tierOrSlugEligible:', tierOrSlugEligible,'| tier:', normalizedEspTier, '| geoOrServiceSlugMatch:', geoOrServiceSlugMatch)
-    console.log('buildingTypeEligible:',buildingTypeEligible, '| normalizedBuildingGroup:',normalizedBuildingGroup.split(' '))
-    console.log('heatingEligible:',heatingEligible, '| normalizedHeating:',normalizedHeating.split(' '), '| normalizedWaterHeating:', normalizedWaterHeating.split(' '))
-    console.log('locationEligible:',locationEligible, '| normalizedLocation:',normalizedLocation.split(' '))
-    console.log('regionEligible:',regionEligible, '| regionSlugs:',regionSlugs, '| normalizedRegion:',normalizedRegion.split(' '))
-    console.log('utilityEligible:',utilityEligible, '| utilitySlugsHasApplicable:',utilitySlugs.some(slug => applicableSet.has(slug)), '| normalizedUtility:',normalizedUtility.split(' '))
-    console.log('gasEligible:',gasEligible, '| gasSlugs:',gasSlugs, '| normalizedGas:',normalizedGas.split(' '))
-    console.log('applicableSet:',applicableSet)
-    console.log('geoOrServiceSlugMatch:', geoOrServiceSlugMatch)
-    console.log('strictEligibility:',strictEligibility)
-    console.log('baseEligibility:',baseEligibility)
-    console.log('additiveEligibility:',additiveEligibility)
-    console.log('returns in rebate list:',shouldInclude)
-    console.groupEnd()
+    
+    if (debug) {    
+      console.group('PASSED: ', item.rebate_type_headline_card, item.title.toLowerCase())
+      console.log('tierOrSlugEligible:', tierOrSlugEligible,'| tier:', normalizedEspTier, '| geoOrServiceSlugMatch:', geoOrServiceSlugMatch)
+      console.log('buildingTypeEligible:',buildingTypeEligible, '| normalizedBuildingGroup:',normalizedBuildingGroup.split(' '))
+      console.log('heatingEligible:',heatingEligible, '| normalizedHeating:',normalizedHeating.split(' '), '| normalizedWaterHeating:', normalizedWaterHeating.split(' '))
+      console.log('locationEligible:',locationEligible, '| normalizedLocation:',normalizedLocation.split(' '))
+      console.log('regionEligible:',regionEligible, '| regionSlugs:',regionSlugs, '| normalizedRegion:',normalizedRegion.split(' '))
+      console.log('utilityEligible:',utilityEligible, '| utilitySlugsHasApplicable:',utilitySlugs.some(slug => applicableSet.has(slug)), '| normalizedUtility:',normalizedUtility.split(' '))
+      console.log('gasEligible:',gasEligible, '| gasSlugs:',gasSlugs, '| normalizedGas:',normalizedGas.split(' '))
+      console.log('applicableSet:',applicableSet)
+      console.log('geoOrServiceSlugMatch:', geoOrServiceSlugMatch)
+      console.log('strictEligibility:',strictEligibility)
+      console.log('baseEligibility:',baseEligibility)
+      console.log('additiveEligibility:',additiveEligibility)
+      console.log('returns in rebate list:',shouldInclude)
+      console.groupEnd()
+    }
     
     return shouldInclude
   })
