@@ -76,7 +76,7 @@ ul.contact-list {
 
 /* Rebates details container order */
 
-.query-conditional-group-block {
+.query-conditional-group-block.details-check {
 
 	.details-container {
 		grid-template-areas: "a" "b" "c" "d" "e";
@@ -103,8 +103,7 @@ ul.contact-list {
 
 	}
 
-	&[data-rules*='"HRR"'] .details-container {
-		grid-template-areas: "a" "c" "b" "d" "e";
+	.details-container:has(.is-details-hrr) {
 
 		> div:nth-child(3) { /* Find a contractor */
 			grid-area: b;
