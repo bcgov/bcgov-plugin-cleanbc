@@ -81,23 +81,23 @@ ul.contact-list {
 	.details-container {
 		grid-template-areas: "a" "b" "c" "d" "e";
 
-		.details-container > div:nth-child(1) {
+		> div:nth-child(1) {
 			grid-area: a;
 		}
 
-		.details-container > div:nth-child(2) { /* Find a contractor */
+		> div:nth-child(2) { /* Find a contractor */
 			grid-area: b;
 		}
 
-		.details-container > div:nth-child(3) { /* Apply online */
+		> div:nth-child(3) { /* Apply online */
 			grid-area: c;
 		}
 
-		.details-container > div:nth-child(4) {
+		> div:nth-child(4) {
 			grid-area: d;
 		}
 
-		.details-container > div:nth-child(5) {
+		> div:nth-child(5) {
 			grid-area: e;
 		}
 
