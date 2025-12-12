@@ -74,6 +74,45 @@ ul.contact-list {
 	}
 }
 
+/* Rebates details container order */
+
+.query-conditional-group-block {
+
+	.details-container {
+		grid-template-areas: "a" "b" "c" "d" "e";
+
+		.details-container > div:nth-child(1) {
+			grid-area: a;
+		}
+
+		.details-container > div:nth-child(2) { /* Find a contractor */
+			grid-area: b;
+		}
+
+		.details-container > div:nth-child(3) { /* Apply online */
+			grid-area: c;
+		}
+
+		.details-container > div:nth-child(4) {
+			grid-area: d;
+		}
+
+		.details-container > div:nth-child(5) {
+			grid-area: e;
+		}
+
+	}
+
+	&[data-rules*='"HRR"'] .details-container {
+		grid-template-areas: "a" "c" "b" "d" "e";
+
+		> div:nth-child(2) > .wp-block-columns,
+		> div:nth-child(3) > .wp-block-columns {
+			flex-direction: row-reverse; /* Position changed, so flip column orientation */
+		}
+	}
+}
+
 
 /* -------------------------------------------------------------------------- */
 
