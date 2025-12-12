@@ -288,7 +288,7 @@
           <div class="results-message">
             <div>
               <h2>Congratulations!</h2>
-              <p>You may qualify for the following rebates.</p>
+              <p>You might be eligible for these rebate offers:</p>
             </div>
             <div id="grid-or-list-container">
               <input id="grid-or-list" type="checkbox" v-model="displayGridOrList" class="sr-only"

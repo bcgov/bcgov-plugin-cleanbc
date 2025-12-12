@@ -1,3 +1,6 @@
+## 1.26.2 December 12, 2025
+– Rebate page styling.
+
 ## 1.26.2 December 10, 2025
 – Added in-page no results message for visual editing.
 – Reinforced and updated the ineligble guards for various cases outlined in the content ready for review documents.

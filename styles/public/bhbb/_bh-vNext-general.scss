@@ -131,6 +131,13 @@ ul.contact-list {
 			top: 0.15rem;
 		}
 
+		&.icon-find::before {
+			content: $icon_find;
+			margin-right: 0;
+			top: 0.15rem;
+			scale: 0.9;
+		}
+
 		&.icon-apply::before {
 			content: $icon_apply;
 			margin-right: 0;
