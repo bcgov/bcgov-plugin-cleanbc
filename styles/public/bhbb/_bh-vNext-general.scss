@@ -106,6 +106,14 @@ ul.contact-list {
 	&[data-rules*='"HRR"'] .details-container {
 		grid-template-areas: "a" "c" "b" "d" "e";
 
+		> div:nth-child(3) { /* Find a contractor */
+			grid-area: b;
+		}
+
+		> div:nth-child(2) { /* Apply online */
+			grid-area: c;
+		}
+
 		> div:nth-child(2) > .wp-block-columns,
 		> div:nth-child(3) > .wp-block-columns {
 			flex-direction: row-reverse; /* Position changed, so flip column orientation */
