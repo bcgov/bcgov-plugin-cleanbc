@@ -6,46 +6,63 @@
     <a href="#contractorsResults" class="sr-only skip-to-results">Skip to results</a>
     <!-- Filter Controls -->
     <div v-if="isVisible || (1 < totalPages && !isVisible)" id="contractorsFilterControls" class="contractorsFilterControls filter-container">
-        <!-- Type Select -->
-        <div v-if='isVisible' class="control type-select">
-          <label for="typeSelect" class="">Choose a type of upgrade</label>
-          <div class="custom-select">
-              <select @change="selectIsActive"
-                @click.prevent="selectIsActive"
-                @touchend="selectIsActive"
-                @keyup.esc="selectIsActive"
-                tabindex="0"
-                id="typeSelect"
-                class="select select--type"
-                v-model="selectedUpgradeType"
-                :required="true"
-                data-active="false">
-                  <option value="all">All Upgrade Types</option>
-                  <option v-for="(type, index) in types" :key="type" :value="type">{{ type }}</option>
-              </select>
+        <div class='filter-controls-container'>
+          <!--Name filter -->
+          <div v-if='isVisible' class="control type-input">
+            <label for="nameInput" class="">Filter by company name</label>
+            <div class="custom-input">
+              <input
+                id="nameInput"
+                type="search"
+                v-model.trim="nameQuery"
+                autocomplete="organization"
+                placeholder="Type a company name"
+              />
+            </div>
           </div>
-        </div>
 
-        <!-- Program Select -->
-        <div v-if='isVisible' class="control program-select">
-          <label for="programSelect" class="">Choose a rebate program</label>
-          <div class="custom-select">
-              <select @change="selectIsActive" @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive" tabindex="0" id="programSelect" class="select select--program" v-model="selectedProgram" :required="true" data-active="false">
-                  <option value="all">All Programs</option>
-                  <option v-for="(program, index) in programs" :key="program" :value="program">{{ program }}</option>
-              </select>
+          <!-- Location Select -->
+          <div v-if='isVisible' class="control location-select">
+            <label for="locationSelect" class="">Choose a service region</label>
+            <div class="custom-select">
+                <select @change="selectIsActive" @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive" tabindex="0" id="locationSelect" class="select select--location" v-model="selectedLocation">
+                    <option value="all">All Locations</option>
+                    <option v-for="location in locations" :key="location" :value="location">{{ location }}</option>
+                </select>
+            </div>
           </div>
-        </div>
+          
+          <!-- Type Select -->
+          <div v-if='isVisible' class="control type-select">
+            <label for="typeSelect" class="">Choose a type of upgrade</label>
+            <div class="custom-select">
+                <select @change="selectIsActive"
+                  @click.prevent="selectIsActive"
+                  @touchend="selectIsActive"
+                  @keyup.esc="selectIsActive"
+                  tabindex="0"
+                  id="typeSelect"
+                  class="select select--type"
+                  v-model="selectedUpgradeType"
+                  :required="true"
+                  data-active="false">
+                    <option value="all">All Upgrade Types</option>
+                    <option v-for="(type, index) in types" :key="type" :value="type">{{ type }}</option>
+                </select>
+            </div>
+          </div>
 
-        <!-- Location Select -->
-        <div v-if='isVisible' class="control location-select">
-          <label for="locationSelect" class="">Choose a service region</label>
-          <div class="custom-select">
-              <select @change="selectIsActive" @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive" tabindex="0" id="locationSelect" class="select select--location" v-model="selectedLocation">
-                  <option value="all">All Locations</option>
-                  <option v-for="location in locations" :key="location" :value="location">{{ location }}</option>
-              </select>
+          <!-- Program Select -->
+          <div v-if='isVisible' class="control program-select">
+            <label for="programSelect" class="">Choose a rebate program</label>
+            <div class="custom-select">
+                <select @change="selectIsActive" @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive" tabindex="0" id="programSelect" class="select select--program" v-model="selectedProgram" :required="true" data-active="false">
+                    <option value="all">All Programs</option>
+                    <option v-for="(program, index) in programs" :key="program" :value="program">{{ program }}</option>
+                </select>
+            </div>
           </div>
+
         </div>
 
         <!-- Clear Filters Button -->
@@ -100,19 +117,19 @@
         <!-- Table Columns -->
         <colgroup>
             <col class="col col--1 odd col--contractor__company-and-location"/>
-            <col class="col col--2 even col--contractor__head-office"/>
-            <col class="col col--3 odd col--contractor__email-and-phone"/>
-            <col class="col col--4 even col--contractor__upgrade-types"/>
-            <col class="col col--5 odd col--contractor__program-designations"/>
+            <!-- <col class="col col--2 even col--contractor__head-office"/> -->
+            <col class="col col--2 odd col--contractor__email-and-phone"/>
+            <col class="col col--3 even col--contractor__upgrade-types"/>
+            <col class="col col--4 odd col--contractor__program-designations"/>
         </colgroup>
         <!-- Table Header -->
         <thead>
             <tr>
-                <th class="contractor-heading odd contractor-heading--company-and-location">Company Name</th>
-                <th class="contractor-heading even contractor-heading--contact-name">Head Office</th>
+                <th class="contractor-heading odd contractor-heading--company-and-location">Company name &amp; <br/>Head office location</th>
+                <!-- <th class="contractor-heading even contractor-heading--contact-name">Head Office</th> -->
                 <th class="contractor-heading odd contractor-heading--email-and-phone">Email & Phone</th>
-                <th class="contractor-heading even contractor-heading--service-organizations">Upgrade Type(s)</th>
-                <th class="contractor-heading odd contractor-heading--services">Rebate Program(s)</th>
+                <th class="contractor-heading even contractor-heading--service-organizations">Upgrade type(s)</th>
+                <th class="contractor-heading odd contractor-heading--services">Rebate program(s)</th>
             </tr>
         </thead>
 
@@ -145,12 +162,13 @@
                         <span v-else class="contractor__company">
                             {{ contractor.company_name ? decodeHtmlEntities(contractor.company_name) : 'No company name provided' }}
                         </span>
+                        <p v-if='contractor.head_office_location'>{{ contractor.head_office_location ? contractor.head_office_location : 'Not provided' }}</p>
                     </td>
 
                     <!-- Company Location -->
-                    <td data-label="Head Office" class="contractor__head-office">
+                    <!-- <td data-label="Head Office" class="contractor__head-office">
                         <p>{{ contractor.head_office_location ? contractor.head_office_location : 'Not provided' }}</p>
-                    </td>
+                    </td> -->
 
                     <!-- Contact Email and Phone -->
                     <td data-label="Contact Email and Phone" class="contractor__email-and-phone">
@@ -240,6 +258,8 @@ const shuffledContractors = ref([]);
  * @type {Ref<Bool>} - A reference to the current visibility.
  */
  const isVisible = ref(true);
+
+ const nameQuery = ref('');
 
 /**
  * Ref for the default selected type.
@@ -447,6 +467,13 @@ const locations = computed(() => {
 	return [...sortedLocations];
 });
 
+const includesFuzzy = (haystack = '', needle = '') => {
+  const h = decodeHtmlEntities(String(haystack)).toLowerCase();
+  const n = String(needle).trim().toLowerCase();
+  if (!n) return true;
+  return h.includes(n);
+};
+
 /**
  * Computed property to handle filtering Contractors by type and/or location.
  *
@@ -459,6 +486,13 @@ const filteredContractors = computed(() => {
 	const selectedProg = selectedProgram.value;
 
 	let filteredContractors = [...filteredContractorsByType.value];
+
+  // Filter by company name (substring match, case-insensitive)
+  if (nameQuery.value) {
+    filteredContractors = filteredContractors.filter(c =>
+      includesFuzzy(c.company_name, nameQuery.value)
+    );
+  }
 
 	// Filter by location if 'all' is not selected.
 	if ('all' !== selectedLoc) {
@@ -671,6 +705,7 @@ const currentLocationFilterMessage = computed(() => {
 const clearFilters = () => {
 	resetSelectsActiveState();
 
+  nameQuery.value = ''
 	selectedUpgradeType.value = defaultSelectedUpgradeType.value;
 	selectedLocation.value = defaultSelectedLocation.value;
 	selectedProgram.value = defaultSelectedProgram.value;

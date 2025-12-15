@@ -46,6 +46,29 @@
 		flex-wrap: wrap;
 	}
 
+	.filter-controls-container {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+		gap: 1rem;
+		margin-block-end: 1rem;
+		width: 100%;
+	}
+
+	.custom-input input {
+		width: 100%;
+		background-color: #eceef0;
+		border: none;
+		border-radius: 0.33rem;
+		color: #005d99;
+		font-weight: bold;
+		padding: 0.25rem 0.66rem;
+
+		&:is(:focus, :focus-visible) {
+			outline: 2px solid #005d99;
+			outline-offset: 2px;
+		}
+	}
+
 	.clear-filters,
 	.custom-select,
 	input {
@@ -77,8 +100,8 @@
 		align-items: stretch;
 		width: 100%;
 		flex: 0 0 auto;
-		margin-bottom: 1rem;
-		gap: 1rem;
+		margin-bottom: 0.25rem;
+		gap: 0.25rem;
 
 		@media (min-width: $breakpoint-md) {
 			width: auto;

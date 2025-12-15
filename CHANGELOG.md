@@ -1,3 +1,6 @@
+## 1.26.3 December 15, 2025
+– Contractor tool filtering by company name + layout adjustments to combine details.
+
 ## 1.26.2 December 12, 2025
 – Rebate page styling.
 
