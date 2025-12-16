@@ -285,6 +285,12 @@
 		}
 	}
 
+	.view-mode.view-mode {
+		max-width: calc(25% - 1rem);
+		margin-inline-start: auto;
+		margin-inline-end: 0;
+	}
+
 	.custom-select {
 		display: inline-block;
 		position: relative;
@@ -1117,6 +1123,10 @@
 		&__program-designations,
 		&__service-organizations,
 		&__upgrade-types {
+
+			ul {
+				list-style: none;
+			}
 
 			a,
 			li {

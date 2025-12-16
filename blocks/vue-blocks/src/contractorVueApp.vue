@@ -99,14 +99,23 @@
 
             <!-- Results Information -->
             <div class="totals">
-                Showing <span class="results-count"><span class="numValue paginated-contractors">{{paginatedContractors.length }}</span> of <span class="numValue filtered-contractors">{{ filteredContractors.length }}</span></span> registered contractors
+                Showing <span class="results-count"><span class="numValue paginated-contractors">{{displayedContractors.length }}</span> of <span class="numValue filtered-contractors">{{ filteredContractors.length }}</span></span> registered contractors
             </div>
 
             <!-- ARIA live regions -->
             <span class="sr-status sr-only">
-                <span class="results-count" role="status" aria-live="polite">Showing <span class="numValue paginated-contractors">{{ paginatedContractors.length }}</span> of <span class="numValue filtered-contractors">{{ filteredContractors.length }}</span> registered contractors {{ currentTypeFilterMessage }} {{ currentLocationFilterMessage }}.</span>
+                <span class="results-count" role="status" aria-live="polite">Showing <span class="numValue paginated-contractors">{{ displayedContractors.length }}</span> of <span class="numValue filtered-contractors">{{ filteredContractors.length }}</span> registered contractors {{ currentTypeFilterMessage }} {{ currentLocationFilterMessage }}.</span>
                 <span class="pages" role="status" aria-live="polite">Page <span class="numValue current-page">{{ currentPage }}</span> of <span class="numValue total-pages">{{ totalPages }}</span></span>
             </span>
+
+            <!-- Load vs page mode Button -->
+            <div class="control view-mode custom-select">
+            <label for="displayMode" class='sr-only'>Choose how results are shown: page by page or continuously as you scroll.</label>
+            <select id="displayMode" v-model="displayMode" class="select select--type">
+              <option value="paginate">Page by page</option>
+              <option value="loadMore">Show more as you scroll (50 at a time)</option>
+            </select>
+          </div>
         </div>
     </div>
 
@@ -150,8 +159,11 @@
             </tr>
 
             <!-- Results Loop -->
-            <template v-if="contractors.length > 0" v-for="(contractor, index) in paginatedContractors" :key="index">
-                <tr :class="`contractor result result--${index+1} ${0 === (index+1) % 2 ? `even` : `odd`}`">
+            <template
+              v-if="contractors.length > 0"
+              v-for="(contractor, index) in displayedContractors"
+              :key="contractor.id || contractor.company_name || index"
+            ><tr :class="`contractor result result--${index+1} ${0 === (index+1) % 2 ? `even` : `odd`}`">
                     <!-- Company Name and Head Office -->
                     <td data-label="Company Name and Head Office" class="contractor__company-and-location">
                         <!-- Company Website Link -->
@@ -201,9 +213,20 @@
         </tbody>
     </table>
   </div>
-  <div  v-if="filteredContractors.length !== 0 && 1 !== totalPages" class="contractorsFilterControls filter-container filter-container--bottom">
-    <!-- Lower Pagination Controls -->
-    <div class="contractorsFilterPagination control pagination pagination--bottom">
+  <div  v-if="(displayedContractors.length && filteredContractors.length > displayedContractors.length) || (filteredContractors.length !== 0 && 1 !== totalPages)" class="contractorsFilterControls filter-container filter-container--bottom">
+      <!-- Load more Controls -->
+      <div v-if="displayMode === 'loadMore' && filteredContractors.length > displayedContractors.length"
+          class="control load-more">
+        <button type="button" @click="loadMore" ref="loadMoreBtn">
+          Load 30 more
+        </button>
+        <p class="totals">
+          Showing {{ displayedContractors.length }} of {{ filteredContractors.length }}
+        </p>
+      </div>
+    
+      <!-- Lower Pagination Controls -->
+    <div v-if="filteredContractors.length !== 0 && 1 !== totalPages" class="contractorsFilterPagination control pagination pagination--bottom">
             <!-- Previous Page Button -->
             <button class="prev-page" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0" type="button">Previous Page</button>
             <!-- Current Page & Totals -->
@@ -228,8 +251,10 @@
  */
  import {
     ref,
+    onBeforeUnmount,
     onMounted,
     computed,
+    nextTick,
     watch,
     watchEffect
 } from 'vue';
@@ -237,6 +262,9 @@
 import { decodeHtmlEntities, shuffleArray, scrollToElementID } from '../shared-functions.js';
 import { trackProviderFilterChange, trackProviderClick } from '../analytics-schemas.js';
 import { localAnalyticsReady } from '../standalone-snowplow.js';
+
+const loadMoreBtn = ref(null);
+let loadMoreObserver = null;
 
 /**
  * Ref for storing an array of Contractors.
@@ -327,12 +355,17 @@ const updatingClass = ref('is-updating');
 
 // Pagination related data
 
+const displayMode = ref('paginate'); // 'paginate' | 'loadMore'
+
 /**
  * Ref for storing the default page size for paginated results.
  *
  * @type {Ref<Number>} - A reference to the default page size.
  */
-const pageSize = ref(30); // Default page size
+const pageSize = ref(50); // Default page size
+
+
+const visibleCount = ref(pageSize.value); // used in loadMore mode
 
 /**
  * Ref for storing the current page number for paginated results.
@@ -482,45 +515,53 @@ const includesFuzzy = (haystack = '', needle = '') => {
  * @type {Array} - An array containing the filtered Contractors based on selected type and/or location.
  */
 const filteredContractors = computed(() => {
-	const selectedLoc = selectedLocation.value;
-	const selectedProg = selectedProgram.value;
+  const selectedLoc = selectedLocation.value;
+  const selectedProg = selectedProgram.value;
 
-	let filteredContractors = [...filteredContractorsByType.value];
+  let results = [...filteredContractorsByType.value];
 
-  // Filter by company name (substring match, case-insensitive)
+  // Company name filter
   if (nameQuery.value) {
-    filteredContractors = filteredContractors.filter(c =>
+    results = results.filter(c =>
       includesFuzzy(c.company_name, nameQuery.value)
     );
   }
 
-	// Filter by location if 'all' is not selected.
-	if ('all' !== selectedLoc) {
-		filteredContractors = filteredContractors.filter(contractor => contractor.locations && contractor.locations.some(location => location.name === selectedLoc));
-	}
-	// Filter by rebate program if 'all' is not selected.
-	if ('all' !== selectedProg) {
-		filteredContractors = filteredContractors.filter(contractor => contractor.program_designations && contractor.program_designations.some(program => program.name === selectedProg));
-	}
+  // Location filter
+  if (selectedLoc !== 'all') {
+    results = results.filter(
+      c => c.locations && c.locations.some(l => l.name === selectedLoc)
+    );
+  }
 
-  // return sortArray(filteredContractors, 'company_name', 'asc'); // Todo: Display sorted filtered contractors.
-	return shuffleArray(filteredContractors); // Add random display of filtered contractors.
+  // Program filter
+  if (selectedProg !== 'all') {
+    results = results.filter(
+      c =>
+        c.program_designations &&
+        c.program_designations.some(p => p.name === selectedProg)
+    );
+  }
+
+  return results;
 });
+
 
 // Define a computed property to filter contractors based on the selected type
 const filteredContractorsByType = computed(() => {
-	const selectedType = selectedUpgradeType.value;
+  const selectedType = selectedUpgradeType.value;
 
-	currentPage.value = 1;
+  if (selectedType === 'all') {
+    return shuffledContractors.value;
+  }
 
-	if (selectedType === 'all') {
-		return contractors.value;
-	} else {
-		return contractors.value.filter(contractor => contractor.types && contractor.types.some(type => type.name === selectedType));
-	}
-
-	return contractors.value;
+  return shuffledContractors.value.filter(
+    contractor =>
+      contractor.types &&
+      contractor.types.some(type => type.name === selectedType)
+  );
 });
+
 
 // Define a computed property to filter contractors based on the selected rebate program
 const filteredContractorsByProgram = computed(() => {
@@ -544,10 +585,17 @@ const filteredContractorsByProgram = computed(() => {
  *
  * @type {number} - The total number of pages for paginated Contractors.
  */
+// const totalPages = computed(() => {
+// 	const totalContractors = filteredContractors.value.length;
+// 	return totalContractors > 0 ? Math.ceil(totalContractors / pageSize.value) : 1;
+// });
 const totalPages = computed(() => {
-	const totalContractors = filteredContractors.value.length;
-	return totalContractors > 0 ? Math.ceil(totalContractors / pageSize.value) : 1;
+  if (displayMode.value !== 'paginate') return 1;
+  const total = filteredContractors.value.length;
+  return total > 0 ? Math.ceil(total / pageSize.value) : 1;
 });
+
+
 
 /**
  * Computed property to calculate the paginated Contractors.
@@ -561,6 +609,17 @@ const paginatedContractors = computed(() => {
 	const end = start + pageSize.value;
 	return filteredContractors.value.slice(start, end);
 });
+const displayedContractors = computed(() => {
+  if (displayMode.value === 'loadMore') {
+    return filteredContractors.value.slice(0, visibleCount.value);
+  }
+
+  // paginate mode
+  const start = (currentPage.value - 1) * pageSize.value;
+  const end = start + pageSize.value;
+  return filteredContractors.value.slice(start, end);
+});
+
 
 /**
  * Function assembles a URL with query string parameters for the selected type, program, and location.
@@ -709,6 +768,11 @@ const clearFilters = () => {
 	selectedUpgradeType.value = defaultSelectedUpgradeType.value;
 	selectedLocation.value = defaultSelectedLocation.value;
 	selectedProgram.value = defaultSelectedProgram.value;
+
+  // Reset display behavior
+  displayMode.value = 'paginate';
+  currentPage.value = 1;
+  visibleCount.value = pageSize.value;
 
 	history.replaceState(selectedUpgradeType.value, defaultSelectedUpgradeType.value);
 	history.replaceState(selectedLocation.value, defaultSelectedLocation.value);
@@ -867,6 +931,7 @@ const fetchData = async () => {
     // If cachedData is found (from either storage), use it and return early.
     if (cachedData) {
       contractors.value = cachedData;
+      shuffledContractors.value = shuffleArray([...cachedData]);
       showLoadingMessage.value = false;
       isLoading.value = false;
       return;  // <-- stop here, we have valid cache.
@@ -911,6 +976,7 @@ const fetchData = async () => {
 
     // Update state.
     contractors.value = json;
+    shuffledContractors.value = shuffleArray([...json]);
     showLoadingMessage.value = false;
     isLoading.value = false;
   } catch (error) {
@@ -958,6 +1024,25 @@ watch(selectedLocation, (newVal, oldVal) => {
   }
 });
 
+watch([selectedUpgradeType, selectedProgram, selectedLocation, nameQuery], () => {
+  currentPage.value = 1;
+  visibleCount.value = pageSize.value;
+});
+
+watch(displayMode, () => {
+  currentPage.value = 1;
+  visibleCount.value = pageSize.value;
+});
+
+
+const loadMore = () => {
+  visibleCount.value = Math.min(
+    visibleCount.value + pageSize.value,
+    filteredContractors.value.length
+  );
+};
+
+
 /**
  * Called when the user clicks a contractor link.
  * We pass in the link’s data plus the current selected filters,
@@ -997,6 +1082,64 @@ const onEmailPhoneClick = (contractor, linkType) => {
     label
   });
 }
+
+const setupLoadMoreObserver = () => {
+  if (!loadMoreBtn.value) return;
+
+  // Clean up any existing observer
+  if (loadMoreObserver) {
+    loadMoreObserver.disconnect();
+  }
+
+  loadMoreObserver = new IntersectionObserver(
+    ([entry]) => {
+      if (
+        entry.isIntersecting &&
+        displayMode.value === 'loadMore' &&
+        displayedContractors.value.length < filteredContractors.value.length
+      ) {
+        loadMore();
+      }
+    },
+    {
+      root: null,
+      rootMargin: '300px', // 👈 trigger BEFORE it fully enters view
+      threshold: 0
+    }
+  );
+
+  loadMoreObserver.observe(loadMoreBtn.value);
+};
+
+
+watch(
+  () => displayedContractors.value.length,
+  async () => {
+    await nextTick();
+    setupLoadMoreObserver();
+  }
+);
+
+
+watch(
+  [displayMode, filteredContractors],
+  async () => {
+    await nextTick();
+    setupLoadMoreObserver();
+  }
+);
+
+onMounted(async () => {
+  await nextTick();
+  setupLoadMoreObserver();
+});
+
+onBeforeUnmount(() => {
+  if (loadMoreObserver) {
+    loadMoreObserver.disconnect();
+  }
+});
+
 
 /**
  * Watcher for changes in the window.site?.domain variable.
