@@ -147,6 +147,10 @@ ul.contact-list {
 			content: $icon_find;
 		}
 
+		&.icon-find-filled::before {
+			content: $icon_find_filled;
+		}
+
 		&.icon-contact::before {
 			content: $icon_contact;
 		}
@@ -177,11 +181,11 @@ ul.contact-list {
 			top: 0.15rem;
 		}
 
-		&.icon-find::before {
-			content: $icon_find;
+		&.icon-find-filled::before {
+			content: $icon_find_filled;
 			margin-right: 0;
-			top: 0.15rem;
-			scale: 0.9;
+			top: 0;
+			scale: 1.1;
 		}
 
 		&.icon-apply::before {
