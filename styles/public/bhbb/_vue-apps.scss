@@ -1293,7 +1293,7 @@
 		}
 
 		@media (min-width: $breakpoint-sm) {
-			width: 20%;
+			width: 15%;
 			column-span: 1;
 		}
 
@@ -1303,7 +1303,7 @@
 			&__email-and-phone {
 
 				@media (min-width: $breakpoint-md) {
-					width: 25%;
+					width: 30%;
 				}
 			}
 
@@ -1311,7 +1311,7 @@
 			&__upgrade-types {
 
 				@media (min-width: $breakpoint-md) {
-					width: 15%;
+					width: 25%;
 				}
 			}
 		}
