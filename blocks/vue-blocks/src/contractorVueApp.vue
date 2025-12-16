@@ -67,6 +67,10 @@
 
         <!-- Clear Filters Button -->
         <div v-if='isVisible' class="control reset-filters">
+          <p class="totals" aria-live='polite'>
+            Showing {{ displayedContractors.length }} of {{ filteredContractors.length }} contractors
+          </p>
+
           <button class="clear-filters" @click.prevent="clearFilters"
             @touchend="clearFilters"
             @keydown.enter.prevent="clearFilters"
@@ -76,7 +80,7 @@
         </div>
 
          <!-- Add Link to Clipboard Button -->
-         <div v-if='isVisible' class="control copy-link-btn">
+         <div v-if='false && isVisible' class="control copy-link-btn">
             <button class="copy-link" 
                 @click.prevent="addLinkToClipboard"
                 @touchend="addLinkToClipboard"
@@ -109,7 +113,7 @@
             </span>
 
             <!-- Load vs page mode Button -->
-            <div class="control view-mode custom-select">
+            <div v-if="false" class="control view-mode custom-select">
             <label for="displayMode" class='sr-only'>Choose how results are shown: page by page or continuously as you scroll.</label>
             <select id="displayMode" v-model="displayMode" class="select select--type">
               <option value="paginate">Page by page</option>
@@ -138,12 +142,12 @@
                 <!-- <th class="contractor-heading even contractor-heading--contact-name">Head Office</th> -->
                 <th class="contractor-heading odd contractor-heading--email-and-phone">Email & Phone</th>
                 <th class="contractor-heading even contractor-heading--service-organizations">Upgrade type(s)</th>
-                <th class="contractor-heading odd contractor-heading--services">Rebate program(s)</th>
+                <th class="contractor-heading odd contractor-heading--services">Qualified program(s)</th>
             </tr>
         </thead>
 
         <!-- Table Body -->
-        <tbody :class="`page page--${currentPage}`">
+        <tbody ref="resultsTbody" :class="`page page--${currentPage}`">
             <!-- No Results Message -->
             <tr v-if="filteredContractors.length === 0 && !isLoading" class="no-results">
                 <td colspan="100%">
@@ -204,8 +208,19 @@
 
                     <!-- Program Designations -->
                     <td data-label="Program Designations" class="contractor__program-designations">
-                        <ul v-if="contractor.program_designations">
-                            <li v-for="(designation, index) in contractor.program_designations">{{ designation.name }}</li>
+                        <ul v-if="contractor.program_designations?.length">
+                          <template v-if="selectedProgram !== 'all'">
+                            <li v-for="d in contractor.program_designations.filter(d => d?.name === selectedProgram)"
+                                :key="d?.id || d?.name" :class='d.slug' class='has-icon' :aria-label="d.name + ' qualified'">
+                              {{ d.slug }}
+                            </li>
+                          </template>
+
+                          <template v-else>
+                            <li v-for="d in contractor.program_designations" :key="d?.id || d?.name" :class='d.slug'  class='has-icon' :aria-label="d.name + ' qualified'">
+                              {{ d.slug }}
+                            </li>
+                          </template>
                         </ul>
                     </td>
                 </tr>
@@ -215,18 +230,19 @@
   </div>
   <div  v-if="(displayedContractors.length && filteredContractors.length > displayedContractors.length) || (filteredContractors.length !== 0 && 1 !== totalPages)" class="contractorsFilterControls filter-container filter-container--bottom">
       <!-- Load more Controls -->
-      <div v-if="displayMode === 'loadMore' && filteredContractors.length > displayedContractors.length"
-          class="control load-more">
+      <div v-if="displayMode === 'loadMore' && remainingCount > 0" class="control load-more">
         <button type="button" @click="loadMore" ref="loadMoreBtn">
-          Load 30 more
+          Load {{ nextLoadCount }} more contractor{{ nextLoadCount === 1 ? '' : 's' }}
         </button>
+
         <p class="totals">
           Showing {{ displayedContractors.length }} of {{ filteredContractors.length }}
         </p>
       </div>
+
     
       <!-- Lower Pagination Controls -->
-    <div v-if="filteredContractors.length !== 0 && 1 !== totalPages" class="contractorsFilterPagination control pagination pagination--bottom">
+    <div v-if="false && filteredContractors.length !== 0 && 1 !== totalPages" class="contractorsFilterPagination control pagination pagination--bottom">
             <!-- Previous Page Button -->
             <button class="prev-page" @click.prevent="prevPage" :disabled="currentPage === 1" tabindex="0" type="button">Previous Page</button>
             <!-- Current Page & Totals -->
@@ -355,17 +371,42 @@ const updatingClass = ref('is-updating');
 
 // Pagination related data
 
-const displayMode = ref('paginate'); // 'paginate' | 'loadMore'
+const displayMode = ref('loadMore'); // 'paginate' | 'loadMore'
 
 /**
  * Ref for storing the default page size for paginated results.
  *
  * @type {Ref<Number>} - A reference to the default page size.
  */
-const pageSize = ref(50); // Default page size
-
+const pageSize = ref(30); // Default page size
 
 const visibleCount = ref(pageSize.value); // used in loadMore mode
+
+const resultsTbody = ref(null);
+
+const focusFirstNewLink = async (startIndex) => {
+  await nextTick();
+
+  const tbody = resultsTbody.value;
+  if (!tbody) return;
+
+  // Your rendered rows have class="contractor result ..."
+  const rows = tbody.querySelectorAll('tr.contractor');
+
+  for (let i = startIndex; i < rows.length; i++) {
+    // Prefer company website/email/phone links — any real link is fine
+    const link = rows[i].querySelector('a[href]:not([tabindex="-1"])');
+    if (link) {
+      link.focus({ preventScroll: true });
+      link.scrollIntoView({ block: 'center' });
+      return;
+    }
+  }
+
+  // Fallback: keep focus on Load More if no link exists in new rows
+  loadMoreBtn.value?.focus?.();
+};
+
 
 /**
  * Ref for storing the current page number for paginated results.
@@ -596,6 +637,15 @@ const totalPages = computed(() => {
 });
 
 
+const remainingCount = computed(() =>
+  Math.max(0, filteredContractors.value.length - displayedContractors.value.length)
+);
+
+const nextLoadCount = computed(() =>
+  Math.min(pageSize.value, remainingCount.value)
+);
+
+
 
 /**
  * Computed property to calculate the paginated Contractors.
@@ -770,7 +820,7 @@ const clearFilters = () => {
 	selectedProgram.value = defaultSelectedProgram.value;
 
   // Reset display behavior
-  displayMode.value = 'paginate';
+  displayMode.value = 'loadMore';
   currentPage.value = 1;
   visibleCount.value = pageSize.value;
 
@@ -1035,12 +1085,18 @@ watch(displayMode, () => {
 });
 
 
-const loadMore = () => {
+const loadMore = async () => {
+  const startIndex = displayedContractors.value.length; // e.g. 30
+
   visibleCount.value = Math.min(
     visibleCount.value + pageSize.value,
     filteredContractors.value.length
   );
+
+  // After DOM updates, focus first link in row 31+
+  await focusFirstNewLink(startIndex);
 };
+
 
 
 /**
@@ -1083,62 +1139,62 @@ const onEmailPhoneClick = (contractor, linkType) => {
   });
 }
 
-const setupLoadMoreObserver = () => {
-  if (!loadMoreBtn.value) return;
+// const setupLoadMoreObserver = () => {
+//   if (!loadMoreBtn.value) return;
 
-  // Clean up any existing observer
-  if (loadMoreObserver) {
-    loadMoreObserver.disconnect();
-  }
+//   // Clean up any existing observer
+//   if (loadMoreObserver) {
+//     loadMoreObserver.disconnect();
+//   }
 
-  loadMoreObserver = new IntersectionObserver(
-    ([entry]) => {
-      if (
-        entry.isIntersecting &&
-        displayMode.value === 'loadMore' &&
-        displayedContractors.value.length < filteredContractors.value.length
-      ) {
-        loadMore();
-      }
-    },
-    {
-      root: null,
-      rootMargin: '300px', // 👈 trigger BEFORE it fully enters view
-      threshold: 0
-    }
-  );
+//   loadMoreObserver = new IntersectionObserver(
+//     ([entry]) => {
+//       if (
+//         entry.isIntersecting &&
+//         displayMode.value === 'loadMore' &&
+//         displayedContractors.value.length < filteredContractors.value.length
+//       ) {
+//         loadMore();
+//       }
+//     },
+//     {
+//       root: null,
+//       rootMargin: '300px', // 👈 trigger BEFORE it fully enters view
+//       threshold: 0
+//     }
+//   );
 
-  loadMoreObserver.observe(loadMoreBtn.value);
-};
-
-
-watch(
-  () => displayedContractors.value.length,
-  async () => {
-    await nextTick();
-    setupLoadMoreObserver();
-  }
-);
+//   loadMoreObserver.observe(loadMoreBtn.value);
+// };
 
 
-watch(
-  [displayMode, filteredContractors],
-  async () => {
-    await nextTick();
-    setupLoadMoreObserver();
-  }
-);
+// watch(
+//   () => displayedContractors.value.length,
+//   async () => {
+//     await nextTick();
+//     setupLoadMoreObserver();
+//   }
+// );
 
-onMounted(async () => {
-  await nextTick();
-  setupLoadMoreObserver();
-});
 
-onBeforeUnmount(() => {
-  if (loadMoreObserver) {
-    loadMoreObserver.disconnect();
-  }
-});
+// watch(
+//   [displayMode, filteredContractors],
+//   async () => {
+//     await nextTick();
+//     setupLoadMoreObserver();
+//   }
+// );
+
+// onMounted(async () => {
+//   await nextTick();
+//   setupLoadMoreObserver();
+// });
+
+// onBeforeUnmount(() => {
+//   if (loadMoreObserver) {
+//     loadMoreObserver.disconnect();
+//   }
+// });
 
 
 /**
