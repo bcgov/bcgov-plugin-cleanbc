@@ -1244,6 +1244,19 @@
 		&.even {
 			background-color: $bahamablue;
 		}
+
+		&.contractor-heading {
+			width: 15%;
+
+			&--company-and-location,
+			&--email-and-phone {
+				width: 30%;
+			}
+
+			&--service-organizations {
+				width: 25%;
+			}
+		}
 	}
 
 	tr {
