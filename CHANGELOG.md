@@ -3,6 +3,7 @@
 – Modified contractors tool load more interface.
 – Added focus state to find the first focusable link in the newly-added rows and focus it for accessibility.
 – Modified "Rebates program(s)" column to output only the selected program if set + styling.
+– Updated head office location information with icon.
 
 ## 1.26.3 December 15, 2025
 – Contractor tool filtering by company name + layout adjustments to combine details.

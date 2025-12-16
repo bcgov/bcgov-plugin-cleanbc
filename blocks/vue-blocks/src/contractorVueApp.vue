@@ -178,7 +178,7 @@
                         <span v-else class="contractor__company">
                             {{ contractor.company_name ? decodeHtmlEntities(contractor.company_name) : 'No company name provided' }}
                         </span>
-                        <p v-if='contractor.head_office_location'>{{ contractor.head_office_location ? contractor.head_office_location : 'Not provided' }}</p>
+                        <p class='has-icon location' v-if='contractor.head_office_location'>{{ contractor.head_office_location ? contractor.head_office_location : 'Not provided' }}</p>
                     </td>
 
                     <!-- Company Location -->
@@ -211,13 +211,13 @@
                         <ul v-if="contractor.program_designations?.length">
                           <template v-if="selectedProgram !== 'all'">
                             <li v-for="d in contractor.program_designations.filter(d => d?.name === selectedProgram)"
-                                :key="d?.id || d?.name" :class='d.slug' class='has-icon' :aria-label="d.name + ' qualified'">
+                                :key="d?.id || d?.name" :class='d.slug' class='has-icon is-uppercase' :aria-label="d.name + ' qualified'">
                               {{ d.slug }}
                             </li>
                           </template>
 
                           <template v-else>
-                            <li v-for="d in contractor.program_designations" :key="d?.id || d?.name" :class='d.slug'  class='has-icon' :aria-label="d.name + ' qualified'">
+                            <li v-for="d in contractor.program_designations" :key="d?.id || d?.name" :class='d.slug'  class='has-icon is-uppercase' :aria-label="d.name + ' qualified'">
                               {{ d.slug }}
                             </li>
                           </template>
