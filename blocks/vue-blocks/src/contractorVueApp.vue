@@ -188,9 +188,9 @@
 
                     <!-- Contact Email and Phone -->
                     <td data-label="Contact Email and Phone" class="contractor__email-and-phone">
-                        <address>
+                        <address class='clip-text'>
                             <!-- Email Link -->
-                            <a v-if="contractor.email" class="contractor__email" :href="'mailto:' + contractor.email" @click.prevent="onEmailPhoneClick(contractor, 'email')"><span v-html="insertBreakableChar(contractor.email)"></span></a>
+                            <a v-if="contractor.email" class="contractor__email clip-text" :href="'mailto:' + contractor.email" @click.prevent="onEmailPhoneClick(contractor, 'email')"><span v-if="false" v-html="insertBreakableChar(contractor.email)"></span>{{ contractor.email }}</a>
                             <p class="contractor__email" v-else>No email provided</p>
 
                             <!-- Phone Link -->

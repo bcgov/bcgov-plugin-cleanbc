@@ -80,4 +80,11 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 		}
 	}
 
+	.ellipsis,
+	.clip-text {
+		white-space: nowrap !important;
+		overflow: clip;
+		text-overflow: ellipsis;
+	}
+
 }
