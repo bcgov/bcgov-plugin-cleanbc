@@ -1,4 +1,5 @@
 ## 1.26.5 December 16, 2025
+– Added text based search filtering to contractor service region filtering to better match archive rebates tooling.
 – Updated search placement style + template.
 – Adjusted tool design to match rebate in-page headline.
 

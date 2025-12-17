@@ -20,8 +20,8 @@
             </div>
           </div>
 
-          <!-- Location Select -->
-          <div v-if='isVisible' class="control location-select">
+          <!-- Deprecated Location Select -->
+          <div v-if='false && isVisible' class="control location-select">
             <label for="locationSelect" class="">Choose a service region</label>
             <div class="custom-select">
                 <select @change="selectIsActive" @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive" tabindex="0" id="locationSelect" class="select select--location" v-model="selectedLocation">
@@ -30,6 +30,40 @@
                 </select>
             </div>
           </div>
+
+          <!-- Location input -->
+          <div v-if="isVisible" class="control type-input location-input-control">
+            <label for="locationInput">Filter by service region</label>
+
+            <div class="custom-input">
+              <input
+                id="locationInput"
+                class="location-input"
+                type="text"
+                inputmode="search"
+                autocomplete="off"
+                :placeholder="locationInputPlaceholder"
+                list="locationList"
+                v-model.trim="locationInputValue"
+                @focus="isLocationFocused = true"
+                @blur="commitLocation('blur')"
+                @change="commitLocation('change')"
+                @keydown.enter.prevent="commitLocation('enter')"
+                :aria-invalid="locationTouched && !isLocationValid ? 'true' : 'false'"
+                :aria-describedby="locationTouched && locationError ? 'locationError' : null"
+              />
+            </div>
+            <!-- Location datalist -->
+            <datalist id="locationList">
+              <option value="All Locations"></option>
+              <option v-for="loc in locations" :key="loc" :value="loc"></option>
+            </datalist>
+            <!-- Error information -->
+            <p v-if="locationTouched && locationError" id="locationError" class="message error-message" role="alert">
+              {{ locationError }}
+            </p>
+          </div>
+
           
           <!-- Type Select -->
           <div v-if='isVisible' class="control type-select">
@@ -404,6 +438,74 @@ const focusFirstNewLink = async (startIndex) => {
 
   // Fallback: keep focus on Load More if no link exists in new rows
   loadMoreBtn.value?.focus?.();
+};
+
+
+const locationInputValue = ref('');     // what the user is typing
+const locationInputPlaceholder = ref('Add closest listed community');
+const isLocationFocused = ref(false);
+const locationTouched = ref(false);
+const locationError = ref('');
+
+// Fast lookup (case-insensitive) + canonical name map
+const locationIndex = computed(() => {
+  const map = new Map(); // lower -> canonical
+  for (const loc of locations.value || []) {
+    if (!loc) continue;
+    map.set(String(loc).trim().toLowerCase(), loc);
+  }
+  // add "all locations" as a friendly alias
+  map.set('all locations', 'all');
+  map.set('all', 'all');
+  return map;
+});
+
+const isLocationValid = computed(() => {
+  const raw = String(locationInputValue.value || '').trim();
+  if (!raw) return true;
+  const result = findClosestLocation(raw);
+  return !!result.match;
+});
+
+
+const commitLocation = (trigger = 'blur') => {
+  locationTouched.value = true;
+  isLocationFocused.value = false;
+
+  const raw = String(locationInputValue.value || '').trim();
+
+  // Empty => treat as "all"
+  if (!raw) {
+    selectedLocation.value = 'all';
+    locationError.value = '';
+    return;
+  }
+
+  const { match, reason, candidates = [] } = findClosestLocation(raw);
+
+  if (match) {
+    // Valid (exact OR uniquely closest)
+    selectedLocation.value = match; // 'all' or canonical location name
+    locationError.value = '';
+
+    // Normalize input to canonical label
+    locationInputValue.value = match === 'all' ? '' : match;
+
+    return;
+  }
+
+  // Ambiguous or none: do not apply filter, but show guidance
+  selectedLocation.value = 'all';
+
+  if (reason.startsWith('ambiguous')) {
+    locationError.value =
+      `That matches multiple service regions. Please choose one from the list of available options${
+        candidates.length ? ` (e.g., ${candidates.slice(0, 3).join(', ')}${candidates.length > 3 ? '…' : ''}).` : '.'
+      }`;
+  } else {
+    locationError.value =
+      'That service region wasn’t recognized. Please choose one from the list of available options.';
+  }
 };
 
 
@@ -818,6 +920,11 @@ const clearFilters = () => {
 	selectedLocation.value = defaultSelectedLocation.value;
 	selectedProgram.value = defaultSelectedProgram.value;
 
+  locationInputValue.value = '';
+  locationTouched.value = false;
+  locationError.value = '';
+  isLocationFocused.value = false;
+
   // Reset display behavior
   displayMode.value = 'loadMore';
   currentPage.value = 1;
@@ -943,6 +1050,38 @@ const isDataValid = (timestamp) => {
   return hoursElapsed < 24;
 };
 
+const normalize = (s = '') =>
+  decodeHtmlEntities(String(s)).trim().toLowerCase();
+
+const findClosestLocation = (raw) => {
+  const q = normalize(raw);
+  if (!q) return { match: 'all', reason: 'empty' };
+
+  // Special-case "all"
+  if (q === 'all' || q === 'all locations') {
+    return { match: 'all', reason: 'all' };
+  }
+
+  const list = (locations.value || []).filter(Boolean);
+
+  // 1) Exact (case-insensitive)
+  const exact = list.find(loc => normalize(loc) === q);
+  if (exact) return { match: exact, reason: 'exact' };
+
+  // 2) startsWith matches
+  const starts = list.filter(loc => normalize(loc).startsWith(q));
+  if (starts.length === 1) return { match: starts[0], reason: 'startsWith' };
+  if (starts.length > 1) return { match: null, reason: 'ambiguous_starts', candidates: starts };
+
+  // 3) includes matches
+  const includes = list.filter(loc => normalize(loc).includes(q));
+  if (includes.length === 1) return { match: includes[0], reason: 'includes' };
+  if (includes.length > 1) return { match: null, reason: 'ambiguous_includes', candidates: includes };
+
+  return { match: null, reason: 'none' };
+};
+
+
 /**
  * Fetches rebate data from session or local storage if valid; otherwise fetches from the API.
  * Updates `contractors.value` with the fetched data and toggles loading indicators accordingly.
@@ -1039,7 +1178,7 @@ const fetchData = async () => {
  * https://vuejs.org/guide/essentials/watchers.html
  */
 
- watch(selectedUpgradeType, (newVal, oldVal) => {
+watch(selectedUpgradeType, (newVal, oldVal) => {
   if (newVal !== oldVal) {
     trackProviderFilterChange({
       filterName: 'contractor',
@@ -1050,6 +1189,7 @@ const fetchData = async () => {
     });
   }
 });
+
 watch(selectedProgram, (newVal, oldVal) => {
   if (newVal !== oldVal) {
     trackProviderFilterChange({
@@ -1061,8 +1201,18 @@ watch(selectedProgram, (newVal, oldVal) => {
     });
   }
 });
+
 watch(selectedLocation, (newVal, oldVal) => {
   if (newVal !== oldVal) {
+    // keep the visible input aligned with the applied filter
+    locationInputValue.value = newVal === 'all' ? '' : newVal;
+
+    // optional: clear errors if a valid selection is applied
+    if (newVal === 'all' || locations.value.includes(newVal)) {
+      locationError.value = '';
+      locationTouched.value = false;
+    }
+
     trackProviderFilterChange({
       filterName: 'contractor',
       upgradeType: selectedUpgradeType.value,
@@ -1095,7 +1245,6 @@ const loadMore = async () => {
   // After DOM updates, focus first link in row 31+
   await focusFirstNewLink(startIndex);
 };
-
 
 
 /**
@@ -1394,8 +1543,15 @@ watchEffect(() => {
       const decodedServiceRegion = decodeURIComponent(serviceRegion);
       if (locations.value.includes(decodedServiceRegion)) {
         selectedLocation.value = decodedServiceRegion;
+        locationInputValue.value = decodedServiceRegion; // keep UI aligned
+        locationError.value = '';
+        locationTouched.value = false;
       } else {
-        console.warn(`Invalid service region: ${decodedServiceRegion}`);
+        // invalid query param: show error but don't filter
+        selectedLocation.value = 'all';
+        locationInputValue.value = decodedServiceRegion; // show what was provided
+        locationError.value = 'That service region wasn’t recognized. Please choose one from the list of available options.';
+        locationTouched.value = true;
       }
     }
 
