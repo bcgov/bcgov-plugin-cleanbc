@@ -48,7 +48,6 @@
                 @focus="isLocationFocused = true"
                 @blur="commitLocation('blur')"
                 @change="commitLocation('change')"
-                @input="isMobile ? commitLocation('input') : null"
                 @keydown.enter.prevent="commitLocation('enter')"
                 :aria-invalid="locationTouched && locationError ? 'true' : 'false'"
                 :aria-describedby="locationTouched && locationError ? 'locationError' : null"
@@ -502,21 +501,23 @@ onMounted(() => {
 });
 
 const commitLocationNow = (trigger = 'blur') => {
-  locationTouched.value = true;
+  // Only mark touched when the user is done
+  if (trigger === 'blur' || trigger === 'enter' || trigger === 'change') {
+    locationTouched.value = true;
+  }
+
   isLocationFocused.value = false;
 
-  // On mobile blur/enter, re-read the DOM value (captures datalist pick reliably)
-  if (isMobile.value && (trigger === 'blur' || trigger === 'enter')) {
+  // Mobile: capture datalist selection reliably on blur/change/enter
+  if (isMobile.value && (trigger === 'blur' || trigger === 'enter' || trigger === 'change')) {
     const el = document.querySelector('#locationInput');
     if (el) locationInputDisplay.value = el.value;
   }
 
   const raw = (isMobile.value ? locationInputDisplay.value : locationInputValue.value) || '';
-  locationInputValue.value = raw; // commit the display into committed value
+  const { match, reason, candidates = [] } = findClosestLocation(raw);
 
-  // --- then run your closest-match logic using locationInputValue.value ---
-  const { match, reason, candidates = [] } = findClosestLocation(locationInputValue.value);
-
+  // Empty gets reset
   if (!raw.trim()) {
     selectedLocation.value = 'all';
     locationError.value = '';
@@ -525,6 +526,7 @@ const commitLocationNow = (trigger = 'blur') => {
     return;
   }
 
+  // Only commit selection when we have a real match
   if (match) {
     selectedLocation.value = match;
     locationError.value = '';
@@ -534,30 +536,24 @@ const commitLocationNow = (trigger = 'blur') => {
     return;
   }
 
+  // No match: do NOT force filters to churn; keep selection as-is (or set to all),
+  // but show error only on "done" triggers.
   selectedLocation.value = 'all';
-  locationError.value = reason.startsWith('ambiguous')
-    ? `That matches multiple service regions. Please choose one from the list (e.g., ${candidates.slice(0, 3).join(', ')}${candidates.length > 3 ? '…' : ''}).`
-    : 'That service region wasn’t recognized. Please choose one from the list.';
-};
 
-// Debounce only for mobile + only for “typing-ish” triggers
-const commitLocationDebounced = debounce(commitLocationNow, 250);
+  if (trigger === 'blur' || trigger === 'enter' || trigger === 'change') {
+    locationError.value = reason.startsWith('ambiguous')
+      ? `That matches multiple service regions. Please choose one from the list (e.g., ${candidates.slice(0, 3).join(', ')}${candidates.length > 3 ? '…' : ''}).`
+      : 'That service region wasn’t recognized. Please choose one from the list.';
+  }
+};
 
 const commitLocation = (trigger = 'blur') => {
-  // Only mobile gets typing commits.
-  if (isMobile.value && (trigger === 'change' || trigger === 'input')) {
-    commitLocationDebounced(trigger);
-    return;
-  }
+  // No commits during typing — ever
+  if (trigger === 'input') return;
 
-  // Desktop commits only on blur/change/enter (NOT input).
-  if (!isMobile.value && trigger === 'input') {
-    return;
-  }
-
+  // Optional tiny debounce for change/blur/enter only (not required, but fine)
   commitLocationNow(trigger);
 };
-
 
 /**
  * Ref for storing the current page number for paginated results.
