@@ -1,5 +1,6 @@
 ## 1.26.5 December 16, 2025
 – Updated search placement style + template.
+– Adjusted tool design to match rebate in-page headline.
 
 ## 1.26.4 December 16, 2025
 – Removed pagination default for "load more" button feature and disabled progressive loading.

@@ -1,11 +1,10 @@
 <template>
   <div class="inner">
-    <!-- Heading for screen readers -->
-    <h2 class="sr-only">Contractor Listings</h2>
     <!-- Skip to results link -->
     <a href="#contractorsResults" class="sr-only skip-to-results">Skip to results</a>
     <!-- Filter Controls -->
     <div v-if="isVisible || (1 < totalPages && !isVisible)" id="contractorsFilterControls" class="contractorsFilterControls filter-container">
+      <h2 class='settings-headline'>Filter registered contractor list</h2>
         <div class='filter-controls-container'>
           <!--Name filter -->
           <div v-if='isVisible' class="control type-input">
