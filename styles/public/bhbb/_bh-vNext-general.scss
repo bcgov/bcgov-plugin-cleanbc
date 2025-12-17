@@ -145,10 +145,12 @@ ul.contact-list {
 
 		&.icon-find::before {
 			content: $icon_find;
+			scale: 1.2;
 		}
 
 		&.icon-find-filled::before {
 			content: $icon_find_filled;
+			scale: 1.2;
 		}
 
 		&.icon-contact::before {

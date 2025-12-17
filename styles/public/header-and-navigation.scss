@@ -10,11 +10,11 @@ header {
 }
 
 .main-nav-container {
-	order: 1;
+	order: -2;
 }
 
 .toggle-search-icon-container {
-	order: 0;
+	order: 2;
 
 	@media (min-width: $breakpoint-sm) {
 		order: 2;
