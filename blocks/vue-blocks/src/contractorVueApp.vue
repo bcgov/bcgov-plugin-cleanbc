@@ -42,16 +42,18 @@
                 type="text"
                 inputmode="search"
                 autocomplete="off"
-                :placeholder="locationInputPlaceholder"
+                placeholder="The community you live closest to"
                 list="locationList"
-                v-model.trim="locationInputValue"
+                v-model.trim="locationInputModel"
                 @focus="isLocationFocused = true"
                 @blur="commitLocation('blur')"
                 @change="commitLocation('change')"
+                @input="isMobile ? commitLocation('input') : null"
                 @keydown.enter.prevent="commitLocation('enter')"
-                :aria-invalid="locationTouched && !isLocationValid ? 'true' : 'false'"
+                :aria-invalid="locationTouched && locationError ? 'true' : 'false'"
                 :aria-describedby="locationTouched && locationError ? 'locationError' : null"
               />
+
             </div>
             <!-- Location datalist -->
             <datalist id="locationList">
@@ -202,7 +204,7 @@
               :key="contractor.id || contractor.company_name || index"
             ><tr :class="`contractor result result--${index+1} ${0 === (index+1) % 2 ? `even` : `odd`}`">
                     <!-- Company Name and Head Office -->
-                    <td data-label="Company Name and Head Office" class="contractor__company-and-location">
+                    <td data-label="Company name and head office location" class="contractor__company-and-location">
                         <!-- Company Website Link -->
                         <a v-if="contractor.company_website" class="contractor__company external-app-link" :href="contractor.company_website" target="_blank" @click="onProviderLinkClick(contractor)" :aria-label="decodeHtmlEntities(contractor.company_name) + ' website, opens in a new tab/window.'">
                             {{ contractor.company_name ? decodeHtmlEntities(contractor.company_name) : 'Website' }}
@@ -220,7 +222,7 @@
                     </td> -->
 
                     <!-- Contact Email and Phone -->
-                    <td data-label="Contact Email and Phone" class="contractor__email-and-phone">
+                    <td data-label="Company email and phone" class="contractor__email-and-phone">
                         <address class='clip-text'>
                             <!-- Email Link -->
                             <a v-if="contractor.email" class="contractor__email clip-text" :href="'mailto:' + contractor.email" @click.prevent="onEmailPhoneClick(contractor, 'email')"><span v-if="false" v-html="insertBreakableChar(contractor.email)"></span>{{ contractor.email }}</a>
@@ -233,14 +235,14 @@
                     </td>
 
                     <!-- Business Types -->
-                    <td data-label="Business Type(s)" class="contractor__upgrade-types">
+                    <td data-label="Upgrade type(s)" class="contractor__upgrade-types">
                         <ul v-if="contractor.types">
                             <li v-for="(type, index) in contractor.types">{{ type.name }}</li>
                         </ul>
                     </td>
 
                     <!-- Program Designations -->
-                    <td data-label="Program Designations" class="contractor__program-designations">
+                    <td data-label="Qualified program(s)" class="contractor__program-designations">
                         <ul v-if="contractor.program_designations?.length">
                           <template v-if="selectedProgram !== 'all'">
                             <li v-for="d in contractor.program_designations.filter(d => d?.name === selectedProgram)"
@@ -440,9 +442,12 @@ const focusFirstNewLink = async (startIndex) => {
   loadMoreBtn.value?.focus?.();
 };
 
+const isMobile = ref(false);
 
-const locationInputValue = ref('');     // what the user is typing
+const locationInputValue = ref('');     // committed (used for validation/filter)
+const locationInputDisplay = ref('');   // mobile typing buffer
 const locationInputPlaceholder = ref('Add closest listed community');
+
 const isLocationFocused = ref(false);
 const locationTouched = ref(false);
 const locationError = ref('');
@@ -467,45 +472,90 @@ const isLocationValid = computed(() => {
   return !!result.match;
 });
 
+// Simple debounce (no deps)
+const debounce = (fn, wait = 200) => {
+  let t;
+  return (...args) => {
+    clearTimeout(t);
+    t = setTimeout(() => fn(...args), wait);
+  };
+};
 
-const commitLocation = (trigger = 'blur') => {
+// v-model proxy: mobile uses display buffer, desktop writes directly
+const locationInputModel = computed({
+  get() {
+    return isMobile.value ? locationInputDisplay.value : locationInputValue.value;
+  },
+  set(v) {
+    if (isMobile.value) locationInputDisplay.value = v;
+    else locationInputValue.value = v;
+  }
+});
+
+onMounted(() => {
+  const mq = window.matchMedia('(max-width: 768px)');
+  const apply = () => { isMobile.value = !!mq.matches; };
+
+  apply();
+  mq.addEventListener?.('change', apply);
+  onBeforeUnmount(() => mq.removeEventListener?.('change', apply));
+});
+
+const commitLocationNow = (trigger = 'blur') => {
   locationTouched.value = true;
   isLocationFocused.value = false;
 
-  const raw = String(locationInputValue.value || '').trim();
+  // On mobile blur/enter, re-read the DOM value (captures datalist pick reliably)
+  if (isMobile.value && (trigger === 'blur' || trigger === 'enter')) {
+    const el = document.querySelector('#locationInput');
+    if (el) locationInputDisplay.value = el.value;
+  }
 
-  // Empty => treat as "all"
-  if (!raw) {
+  const raw = (isMobile.value ? locationInputDisplay.value : locationInputValue.value) || '';
+  locationInputValue.value = raw; // commit the display into committed value
+
+  // --- then run your closest-match logic using locationInputValue.value ---
+  const { match, reason, candidates = [] } = findClosestLocation(locationInputValue.value);
+
+  if (!raw.trim()) {
     selectedLocation.value = 'all';
     locationError.value = '';
+    locationInputValue.value = '';
+    locationInputDisplay.value = '';
     return;
   }
-
-  const { match, reason, candidates = [] } = findClosestLocation(raw);
 
   if (match) {
-    // Valid (exact OR uniquely closest)
-    selectedLocation.value = match; // 'all' or canonical location name
+    selectedLocation.value = match;
     locationError.value = '';
-
-    // Normalize input to canonical label
-    locationInputValue.value = match === 'all' ? '' : match;
-
+    const canonical = match === 'all' ? '' : match;
+    locationInputValue.value = canonical;
+    locationInputDisplay.value = canonical;
     return;
   }
 
-  // Ambiguous or none: do not apply filter, but show guidance
   selectedLocation.value = 'all';
+  locationError.value = reason.startsWith('ambiguous')
+    ? `That matches multiple service regions. Please choose one from the list (e.g., ${candidates.slice(0, 3).join(', ')}${candidates.length > 3 ? '…' : ''}).`
+    : 'That service region wasn’t recognized. Please choose one from the list.';
+};
 
-  if (reason.startsWith('ambiguous')) {
-    locationError.value =
-      `That matches multiple service regions. Please choose one from the list of available options${
-        candidates.length ? ` (e.g., ${candidates.slice(0, 3).join(', ')}${candidates.length > 3 ? '…' : ''}).` : '.'
-      }`;
-  } else {
-    locationError.value =
-      'That service region wasn’t recognized. Please choose one from the list of available options.';
+// Debounce only for mobile + only for “typing-ish” triggers
+const commitLocationDebounced = debounce(commitLocationNow, 250);
+
+const commitLocation = (trigger = 'blur') => {
+  // Only mobile gets typing commits.
+  if (isMobile.value && (trigger === 'change' || trigger === 'input')) {
+    commitLocationDebounced(trigger);
+    return;
   }
+
+  // Desktop commits only on blur/change/enter (NOT input).
+  if (!isMobile.value && trigger === 'input') {
+    return;
+  }
+
+  commitLocationNow(trigger);
 };
 
 
@@ -920,7 +970,10 @@ const clearFilters = () => {
 	selectedLocation.value = defaultSelectedLocation.value;
 	selectedProgram.value = defaultSelectedProgram.value;
 
+  selectedLocation.value = 'all';
+
   locationInputValue.value = '';
+  locationInputDisplay.value = '';
   locationTouched.value = false;
   locationError.value = '';
   isLocationFocused.value = false;
@@ -1204,6 +1257,9 @@ watch(selectedProgram, (newVal, oldVal) => {
 
 watch(selectedLocation, (newVal, oldVal) => {
   if (newVal !== oldVal) {
+    // don't clobber user typing
+    if (isLocationFocused.value) return;
+
     // keep the visible input aligned with the applied filter
     locationInputValue.value = newVal === 'all' ? '' : newVal;
 

@@ -1,7 +1,9 @@
 ## 1.26.5 December 16, 2025
 – Added text based search filtering to contractor service region filtering to better match archive rebates tooling.
+– Mobile debouncing of location filtering.
 – Updated search placement style + template.
 – Adjusted tool design to match rebate in-page headline.
+– Mobile table headings adjusted.
 
 ## 1.26.4 December 16, 2025
 – Removed pagination default for "load more" button feature and disabled progressive loading.
