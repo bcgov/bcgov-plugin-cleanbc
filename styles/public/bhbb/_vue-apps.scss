@@ -1389,6 +1389,28 @@
 		.totals {
 			text-align: center;
 		}
+
+	}
+
+	.custom-select::after {
+		display: none;
+	}
+
+	:is(select) {
+		color: #369;
+		font-size: 1rem;
+		padding: 0.5rem 2.5rem 0.5rem 0.5rem;
+
+		/* down arrow */
+		background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBkPSJNMjM5IDQ5OC43bDE2MC0xMjggMTguNy0xNS0zMC0zNy41LTE4LjcgMTUtMTQ1IDExNkw3OSAzMzMuM2wtMTguNy0xNS0zMCAzNy41IDE4LjcgMTUgMTYwIDEyOCAxNSAxMiAxNS0xMnptMC00ODUuNWwtMTUtMTItMTUgMTJMNDkgMTQxLjNsLTE4LjcgMTUgMzAgMzcuNSAxOC43LTE1IDE0NS0xMTYgMTQ1IDExNiAxOC43IDE1IDMwLTM3LjUtMTguNy0xNUwyMzkgMTMuM3oiLz48L3N2Zz4=);
+		background-repeat: no-repeat;
+		background-position: right 0.65rem center;
+		background-size: 0.85rem;
+
+		&:is(:focus, :focus-visible) {
+			outline: 2px solid #369;
+			outline-offset: 2px;
+		}
 	}
 
 
