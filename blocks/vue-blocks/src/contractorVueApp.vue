@@ -236,18 +236,18 @@
 
                     <!-- Contact Email and Phone -->
                     <td data-label="Company email and phone" class="contractor__email-and-phone">
-                        <address>
-                            <!-- Email Link -->
-                            <div class='table-link-wrapper'>
-                              <a v-if="contractor.email" class="contractor__email clip-text" :href="'mailto:' + contractor.email" @click.prevent="onEmailPhoneClick(contractor, 'email')"><span v-if="false" v-html="insertBreakableChar(contractor.email)"></span>{{ contractor.email }}</a>
+                        <div class='clip-text'>
+                          <div class='table-link-wrapper'>
+                              <!-- Email Link -->
+                              <a v-if="contractor.email" class="contractor__email ellipsis" :href="'mailto:' + contractor.email" @click.prevent="onEmailPhoneClick(contractor, 'email')"><span v-if="false" v-html="insertBreakableChar(contractor.email)"></span>{{ contractor.email }}</a>
                               <p class="contractor__email" v-else>No email provided</p>
                             </div>
-                            <!-- Phone Link -->
-                           <div class='table-link-wrapper'>
+                            <div class='table-link-wrapper'>
+                             <!-- Phone Link -->
                               <a v-if="contractor.phone" class="contractor__telephone" :href="'tel:+1' + contractor.phone.replace(/-/g, '')" @click.prevent="onEmailPhoneClick(contractor, 'phone')">{{ contractor.phone }}</a>
                               <p class="contractor__telephone" v-else>No phone number provided</p>
                             </div>
-                        </address>
+                        </div>
                     </td>
 
                     <!-- Business Types -->

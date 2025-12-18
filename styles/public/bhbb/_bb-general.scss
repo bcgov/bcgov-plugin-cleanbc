@@ -81,15 +81,46 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 	}
 
 	.table-link-wrapper {
-		margin-block-end: 0.5rem;
-		width: fit-content;
+		display: flex;
+		flex-direction: column;
+
+		// .location {
+		// 	margin-block-start: 0.25rem !important;
+		// }
 	}
 
-	.ellipsis,
-	.clip-text {
-		white-space: nowrap !important;
-		overflow: clip;
-		text-overflow: ellipsis;
+	.table-link-wrapper > * {
+		min-width: 0;
+		width: fit-content;
+		margin-block-end: 0.5rem !important;
+
+		&:is(:focus-visible) {
+			background-color: #369 !important;
+			color: #fff !important;
+			font-weight: bold;
+			outline: 2px solid #369 !important;
+			outline-offset: 2px !important;
+			padding: 0.25rem;
+			margin-block-end: 0 !important;
+
+			&::after {
+				filter: invert(100%) grayscale(100%);
+			}
+		}
 	}
+
+	.ellipsis {
+		display: block !important;
+		max-width: 100% !important;
+		white-space: nowrap !important;
+		overflow: clip !important;
+		text-overflow: ellipsis !important;
+	}
+
+	.clip-text,
+	.table-link-wrapper {
+		min-width: 0;
+	}
+
 
 }
