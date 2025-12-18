@@ -37,16 +37,17 @@
 
             <div class="custom-input">
               <input
-                id="locationInput"
+                id="contractorLocation"
                 class="location-input"
                 type="text"
                 inputmode="search"
                 autocomplete="off"
                 placeholder="The community you live closest to"
                 list="locationList"
-                v-model.trim="locationInputModel"
-                @focus="isLocationFocused = true"
+                v-model="locationInputProxy"
+                @focus="handleLocationFocus"
                 @blur="commitLocation('blur')"
+                @focusout="commitLocation('blur')"
                 @change="commitLocation('change')"
                 @keydown.enter.prevent="commitLocation('enter')"
                 :aria-invalid="locationTouched && locationError ? 'true' : 'false'"
@@ -308,1002 +309,581 @@
     watch,
     watchEffect
 } from 'vue';
-
-import { decodeHtmlEntities, shuffleArray, scrollToElementID } from '../shared-functions.js';
-import { trackProviderFilterChange, trackProviderClick } from '../analytics-schemas.js';
-import { localAnalyticsReady } from '../standalone-snowplow.js';
-
-const loadMoreBtn = ref(null);
-let loadMoreObserver = null;
+import { decodeHtmlEntities, shuffleArray } from '../shared-functions.js'
+import { trackProviderFilterChange, trackProviderClick } from '../analytics-schemas.js'
+import { localAnalyticsReady } from '../standalone-snowplow.js'
 
 /**
- * Ref for storing an array of Contractors.
- *
- * @type {Ref<Array>} - A reference to an array containing Contractors.
+ * Debounce a function so it runs only after a delay.
+ * @template {(...args: any[]) => any} T
+ * @param {T} fn
+ * @param {number} [wait=200]
+ * @returns {(...args: Parameters<T>) => void}
  */
-const contractors = ref([]);
-
-/**
- * Ref for storing an array of randomized Contractors.
- *
- * @type {Ref<Array>} - A reference to an array containing randomized Contractors.
- */
-const shuffledContractors = ref([]);
-
-/**
- * Ref for for controlling tool visibility.
- *
- * @type {Ref<Bool>} - A reference to the current visibility.
- */
- const isVisible = ref(true);
-
- const nameQuery = ref('');
-
-/**
- * Ref for the default selected type.
- *
- * @type {Ref<String>} - A reference to the default selected type.
- */
-const defaultSelectedUpgradeType = ref('all');
-
-/**
- * Ref for the currently selected upgrade type.
- *
- * @type {Ref<String>} - A reference to the currently selected upgrade type.
- */
-const selectedUpgradeType = ref('all');
-
-/**
- * Ref for the default selected program.
- *
- * @type {Ref<String>} - A reference to the default selected program.
- */
-const defaultSelectedProgram = ref('all');
-
-/**
- * Ref for the currently selected program.
- *
- * @type {Ref<String>} - A reference to the currently selected program.
- */
-const selectedProgram = ref('all');
-
-/**
- * Ref for the default selected location.
- *
- * @type {Ref<String>} - A reference to the default selected location.
- */
-const defaultSelectedLocation = ref('all');
-
-/**
- * Ref for the currently selected location.
- *
- * @type {Ref<String>} - A reference to the currently selected location.
- */
-const selectedLocation = ref('all');
-
-/**
- * Ref for controlling the visibility of loading messages.
- *
- * @type {Ref<Boolean>} - A reference to a boolean indicating whether to show loading messages.
- */
-const showLoadingMessage = ref(true);
-
-/**
- * Ref for controlling the loading state.
- *
- * @type {Ref<Boolean>} - A reference to a boolean indicating whether data is currently being loaded.
- */
-const isLoading = ref(false);
-
-/**
- * Ref for storing the CSS class name for an active state.
- *
- * @type {Ref<String>} - A reference to the CSS class name for an active state.
- */
-const activeClass = ref('is-active');
-const updatingClass = ref('is-updating');
-
-// Pagination related data
-
-const displayMode = ref('loadMore'); // 'paginate' | 'loadMore'
-
-/**
- * Ref for storing the default page size for paginated results.
- *
- * @type {Ref<Number>} - A reference to the default page size.
- */
-const pageSize = ref(30); // Default page size
-
-const visibleCount = ref(pageSize.value); // used in loadMore mode
-
-const resultsTbody = ref(null);
-
-const focusFirstNewLink = async (startIndex) => {
-  await nextTick();
-
-  const tbody = resultsTbody.value;
-  if (!tbody) return;
-
-  // Your rendered rows have class="contractor result ..."
-  const rows = tbody.querySelectorAll('tr.contractor');
-
-  for (let i = startIndex; i < rows.length; i++) {
-    // Prefer company website/email/phone links — any real link is fine
-    const link = rows[i].querySelector('a[href]:not([tabindex="-1"])');
-    if (link) {
-      link.focus({ preventScroll: true });
-      link.scrollIntoView({ block: 'center' });
-      return;
-    }
-  }
-
-  // Fallback: keep focus on Load More if no link exists in new rows
-  loadMoreBtn.value?.focus?.();
-};
-
-const isMobile = ref(false);
-
-const locationInputValue = ref('');     // committed (used for validation/filter)
-const locationInputDisplay = ref('');   // mobile typing buffer
-const locationInputPlaceholder = ref('Add closest listed community');
-
-const isLocationFocused = ref(false);
-const locationTouched = ref(false);
-const locationError = ref('');
-
-// Fast lookup (case-insensitive) + canonical name map
-const locationIndex = computed(() => {
-  const map = new Map(); // lower -> canonical
-  for (const loc of locations.value || []) {
-    if (!loc) continue;
-    map.set(String(loc).trim().toLowerCase(), loc);
-  }
-  // add "all locations" as a friendly alias
-  map.set('all locations', 'all');
-  map.set('all', 'all');
-  return map;
-});
-
-const isLocationValid = computed(() => {
-  const raw = String(locationInputValue.value || '').trim();
-  if (!raw) return true;
-  const result = findClosestLocation(raw);
-  return !!result.match;
-});
-
-// Simple debounce (no deps)
-const debounce = (fn, wait = 200) => {
-  let t;
+function debounce(fn, wait = 200) {
+  let t
   return (...args) => {
-    clearTimeout(t);
-    t = setTimeout(() => fn(...args), wait);
-  };
-};
-
-// v-model proxy: mobile uses display buffer, desktop writes directly
-const locationInputModel = computed({
-  get() {
-    return isMobile.value ? locationInputDisplay.value : locationInputValue.value;
-  },
-  set(v) {
-    if (isMobile.value) locationInputDisplay.value = v;
-    else locationInputValue.value = v;
+    clearTimeout(t)
+    t = setTimeout(() => fn(...args), wait)
   }
-});
-
-onMounted(() => {
-  const mq = window.matchMedia('(max-width: 768px)');
-  const apply = () => { isMobile.value = !!mq.matches; };
-
-  apply();
-  mq.addEventListener?.('change', apply);
-  onBeforeUnmount(() => mq.removeEventListener?.('change', apply));
-});
-
-const commitLocationNow = (trigger = 'blur') => {
-  // Only mark touched when the user is done
-  if (trigger === 'blur' || trigger === 'enter' || trigger === 'change') {
-    locationTouched.value = true;
-  }
-
-  isLocationFocused.value = false;
-
-  // Mobile: capture datalist selection reliably on blur/change/enter
-  if (isMobile.value && (trigger === 'blur' || trigger === 'enter' || trigger === 'change')) {
-    const el = document.querySelector('#locationInput');
-    if (el) locationInputDisplay.value = el.value;
-  }
-
-  const raw = (isMobile.value ? locationInputDisplay.value : locationInputValue.value) || '';
-  const { match, reason, candidates = [] } = findClosestLocation(raw);
-
-  // Empty gets reset
-  if (!raw.trim()) {
-    selectedLocation.value = 'all';
-    locationError.value = '';
-    locationInputValue.value = '';
-    locationInputDisplay.value = '';
-    return;
-  }
-
-  // Only commit selection when we have a real match
-  if (match) {
-    selectedLocation.value = match;
-    locationError.value = '';
-    const canonical = match === 'all' ? '' : match;
-    locationInputValue.value = canonical;
-    locationInputDisplay.value = canonical;
-    return;
-  }
-
-  // No match: do NOT force filters to churn; keep selection as-is (or set to all),
-  // but show error only on "done" triggers.
-  selectedLocation.value = 'all';
-
-  if (trigger === 'blur' || trigger === 'enter' || trigger === 'change') {
-    locationError.value = reason.startsWith('ambiguous')
-      ? `That matches multiple service regions. Please choose one from the list (e.g., ${candidates.slice(0, 3).join(', ')}${candidates.length > 3 ? '…' : ''}).`
-      : 'That service region wasn’t recognized. Please choose one from the list.';
-  }
-};
-
-const commitLocation = (trigger = 'blur') => {
-  // No commits during typing — ever
-  if (trigger === 'input') return;
-
-  // Optional tiny debounce for change/blur/enter only (not required, but fine)
-  commitLocationNow(trigger);
-};
+}
 
 /**
- * Ref for storing the current page number for paginated results.
- *
- * @type {Ref<Number>} - A reference to the current page number.
+ * Normalize a string for case-insensitive comparisons.
+ * @param {string} [s]
+ * @returns {string}
  */
-const currentPage = ref(1);
+const normalize = (s = '') => decodeHtmlEntities(String(s)).trim().toLowerCase()
 
 /**
- * Ref array containing keys for session storage items to clear.
- *
- * This ref array contains keys corresponding to session storage items that should be cleared to avoid storage limit issues.
- *
- * @type {Ref<Array<String>>}
+ * Lightweight fuzzy include (HTML-decoded, case-insensitive).
+ * @param {string} [haystack]
+ * @param {string} [needle]
+ * @returns {boolean}
  */
- const itemsToClearFromSessionStorage = ref([
-    'faqsData',
-    'faqsTimestamp',
-    'pqeasData',
-    'pqeasTimestamp',
-    'rebatesData',
-    'rebatesTimestamp'
-]);
-
-/**
- * Ref for storing the previous number of paginated contractors and filtered contractors.
- *
- * @type {Ref<Number>}
- */
-const oldPaginatedContractorsCount = ref(0);
-
-/**
- * Ref for storing the previous number of filtered contractors.
- *
- * @type {Ref<Number>}
- */
-const oldFilteredContractorsCount = ref(0);
-
-/**
- * Ref for storing the public domain URL.
- *
- * @type {Ref<String>} - A reference to the public domain URL.
- */
-const publicDomain = ref('https://betterhomes.gov.bc.ca');
-
-/**
- * Variable for constructing the API URL for fetching Contractors.
- *
- * @type {String} - The constructed API URL for fetching Contractors.
- */
-const contractorsAPI = `${window.site?.domain ? window.site.domain : publicDomain}/wp-json/custom/v1/contractors`;
-
-/**
- * Computed property to extract unique EA Project Types (ea-project-types) from Contractors.
- * Iterates through the Contractors to collect distinct project type names and sorts them alphabetically.
- *
- * @type {Array} - An array containing unique EA Project Types sorted alphabetically.
- */
-const types = computed(() => {
-	const uniqueTypes = new Set();
-
-	// Iterate through Contractors to collect distinct project type names.
-	contractors.value.forEach(contractor => {
-		if (contractor.types) {
-			if (typeof contractor.types === 'string') {
-				uniqueTypes.add(contractor.types.name);
-			} else if (Array.isArray(contractor.types)) {
-				contractor.types.forEach(type => {
-					uniqueTypes.add(type.name);
-				});
-			}
-		}
-	});
-
-	// Convert Set to array and sort alphabetically.
-	const sortedTypes = Array.from(uniqueTypes).sort((a, b) => a.localeCompare(b));
-	return [...sortedTypes];
-});
-
-/**
- * Computed property to extract unique EA Rebate Programs (ea-project-types) from Contractors.
- * Iterates through the Contractors to collect distinct project type names and sorts them alphabetically.
- *
- * @type {Array} - An array containing unique EA Project Types sorted alphabetically.
- */
-const programs = computed(() => {
-	const uniquePrograms = new Set();
-
-	// Iterate through Contractors to collect distinct project type names.
-	contractors.value.forEach(contractor => {
-		if (contractor.program_designations) {
-			if (typeof contractor.program_designations === 'string') {
-				uniquePrograms.add(contractor.program_designations.name);
-			} else if (Array.isArray(contractor.program_designations)) {
-				contractor.program_designations.forEach(program => {
-					uniquePrograms.add(program.name);
-				});
-			}
-		}
-	});
-
-	// Convert Set to array and sort alphabetically.
-	const sortedPrograms = Array.from(uniquePrograms).sort((a, b) => a.localeCompare(b));
-	return [...sortedPrograms];
-});
-
-/**
- * Computed property to extract unique EA Locations (ea-locations) from Contractors.
- * Iterates through the Contractors to collect distinct location names and sorts them alphabetically.
- *
- * @type {Array} - An array containing unique EA Locations sorted alphabetically.
- */
-const locations = computed(() => {
-	const uniqueLocations = new Set();
-
-	// Iterate through Contractors to collect distinct location names.
-	contractors.value.forEach(contractor => {
-		if (contractor.locations) {
-			if (typeof contractor.locations === 'string') {
-				uniqueLocations.add(contractor.locations.name);
-			} else if (Array.isArray(contractor.locations)) {
-				contractor.locations.forEach(location => {
-					uniqueLocations.add(location.name);
-				});
-			}
-		}
-	});
-
-	// Convert Set to array and sort alphabetically.
-	const sortedLocations = Array.from(uniqueLocations).sort((a, b) => a.localeCompare(b));
-
-	return [...sortedLocations];
-});
-
 const includesFuzzy = (haystack = '', needle = '') => {
-  const h = decodeHtmlEntities(String(haystack)).toLowerCase();
-  const n = String(needle).trim().toLowerCase();
-  if (!n) return true;
-  return h.includes(n);
-};
+  const h = normalize(haystack)
+  const n = String(needle).trim().toLowerCase()
+  if (!n) return true
+  return h.includes(n)
+}
 
 /**
- * Computed property to handle filtering Contractors by type and/or location.
+ * Finds the closest matching location name from the set of known locations.
+ * Mirrors the "rebate tool" matching approach (exact, startsWith, includes).
  *
- * Uses the selected location to filter Contractors based on location and incorporates the results from type filtering.
- *
- * @type {Array} - An array containing the filtered Contractors based on selected type and/or location.
+ * @param {string} raw
+ * @param {string[]} locationList
+ * @returns {{ match: string|null, reason: string, candidates?: string[] }}
  */
-const filteredContractors = computed(() => {
-  const selectedLoc = selectedLocation.value;
-  const selectedProg = selectedProgram.value;
+function findClosestLocation(raw, locationList) {
+  const q = normalize(raw)
+  if (!q) return { match: 'all', reason: 'empty' }
+  if (q === 'all' || q === 'all locations') return { match: 'all', reason: 'all' }
 
-  let results = [...filteredContractorsByType.value];
+  const list = (locationList || []).filter(Boolean)
 
-  // Company name filter
-  if (nameQuery.value) {
-    results = results.filter(c =>
-      includesFuzzy(c.company_name, nameQuery.value)
-    );
-  }
+  // 1) exact
+  const exact = list.find(loc => normalize(loc) === q)
+  if (exact) return { match: exact, reason: 'exact' }
 
-  // Location filter
-  if (selectedLoc !== 'all') {
-    results = results.filter(
-      c => c.locations && c.locations.some(l => l.name === selectedLoc)
-    );
-  }
+  // 2) startsWith
+  const starts = list.filter(loc => normalize(loc).startsWith(q))
+  if (starts.length === 1) return { match: starts[0], reason: 'startsWith' }
+  if (starts.length > 1) return { match: null, reason: 'ambiguous_starts', candidates: starts }
 
-  // Program filter
-  if (selectedProg !== 'all') {
-    results = results.filter(
-      c =>
-        c.program_designations &&
-        c.program_designations.some(p => p.name === selectedProg)
-    );
-  }
+  // 3) includes
+  const includes = list.filter(loc => normalize(loc).includes(q))
+  if (includes.length === 1) return { match: includes[0], reason: 'includes' }
+  if (includes.length > 1) return { match: null, reason: 'ambiguous_includes', candidates: includes }
 
-  return results;
-});
+  return { match: null, reason: 'none' }
+}
 
+/* -----------------------------------------------------------------------------
+ * Core state
+ * -------------------------------------------------------------------------- */
 
-// Define a computed property to filter contractors based on the selected type
-const filteredContractorsByType = computed(() => {
-  const selectedType = selectedUpgradeType.value;
+const loadMoreBtn = ref(null)
 
-  if (selectedType === 'all') {
-    return shuffledContractors.value;
-  }
+const resultsTbody = ref(null)
 
-  return shuffledContractors.value.filter(
-    contractor =>
-      contractor.types &&
-      contractor.types.some(type => type.name === selectedType)
-  );
-});
+const contractors = ref([])
+const shuffledContractors = ref([])
 
+const isVisible = ref(true)
+const showLoadingMessage = ref(true)
+const isLoading = ref(false)
 
-// Define a computed property to filter contractors based on the selected rebate program
-const filteredContractorsByProgram = computed(() => {
-	const selectedProg = selectedProgram.value;
+const nameQuery = ref('')
 
-	currentPage.value = 1;
+const defaultSelectedUpgradeType = ref('all')
+const selectedUpgradeType = ref('all')
 
-	if (selectedProg === 'all') {
-		return contractors.value;
-	} else {
-		return contractors.value.filter(contractor => contractor.program_designations && contractor.program_designations.some(type => type.name === selectedProg));
-	}
+const defaultSelectedProgram = ref('all')
+const selectedProgram = ref('all')
 
-	return contractors.value;
-});
+const defaultSelectedLocation = ref('all')
+const selectedLocation = ref('all')
+
+const activeClass = ref('is-active')
+const updatingClass = ref('is-updating')
+
+/** Results display mode. */
+const displayMode = ref('loadMore') // 'paginate' | 'loadMore'
+const pageSize = ref(30)
+const visibleCount = ref(pageSize.value)
+const currentPage = ref(1)
+
+const oldPaginatedContractorsCount = ref(0)
+const oldFilteredContractorsCount = ref(0)
+
+/* -----------------------------------------------------------------------------
+ * Mobile-optimized location input (rebate-tool style)
+ * -------------------------------------------------------------------------- */
+
+const isMobile = ref(false)
+onMounted(() => {
+  isMobile.value = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+})
 
 /**
- * Computed property to calculate the total number of pages for paginated Contractors.
- *
- * Uses the length of filtered Contractors and the page size to determine the total number of pages.
- *
- * @type {number} - The total number of pages for paginated Contractors.
+ * Canonical committed value (desktop typing) and mobile typing buffer.
+ * - Desktop: writes directly to locationInputValue while typing
+ * - Mobile: writes to locationInputDisplay while typing, commit happens on blur/change/enter
  */
-// const totalPages = computed(() => {
-// 	const totalContractors = filteredContractors.value.length;
-// 	return totalContractors > 0 ? Math.ceil(totalContractors / pageSize.value) : 1;
-// });
-const totalPages = computed(() => {
-  if (displayMode.value !== 'paginate') return 1;
-  const total = filteredContractors.value.length;
-  return total > 0 ? Math.ceil(total / pageSize.value) : 1;
-});
+const locationInputValue = ref('')     // committed display value
+const locationInputDisplay = ref('')   // mobile typing buffer
 
+const isLocationFocused = ref(false)
+const locationTouched = ref(false)
+const locationError = ref('')
 
-const remainingCount = computed(() =>
-  Math.max(0, filteredContractors.value.length - displayedContractors.value.length)
-);
-
-const nextLoadCount = computed(() =>
-  Math.min(pageSize.value, remainingCount.value)
-);
-
-
+watch(locationInputValue, v => {
+  if (isMobile.value) locationInputDisplay.value = v || ''
+})
 
 /**
- * Computed property to calculate the paginated Contractors.
- *
- * Uses the current page and page size to determine the slice of filtered Contractors to display.
- *
- * @type {Array} - An array containing the paginated Contractors for the current page.
+ * Debounced mobile display setter – keeps typing smooth by reducing reactive churn.
  */
-const paginatedContractors = computed(() => {
-	const start = (currentPage.value - 1) * pageSize.value;
-	const end = start + pageSize.value;
-	return filteredContractors.value.slice(start, end);
-});
-const displayedContractors = computed(() => {
-  if (displayMode.value === 'loadMore') {
-    return filteredContractors.value.slice(0, visibleCount.value);
-  }
-
-  // paginate mode
-  const start = (currentPage.value - 1) * pageSize.value;
-  const end = start + pageSize.value;
-  return filteredContractors.value.slice(start, end);
-});
-
+const setLocationDisplayDebounced = debounce((v) => {
+  locationInputDisplay.value = v
+}, 300)
 
 /**
- * Function assembles a URL with query string parameters for the selected type, program, and location.
- *
- * @returns {string} - The assembled URL with query string parameters.
+ * v-model proxy matching the rebate tool.
+ * @type {import('vue').ComputedRef<string>}
  */
-const assembleUrl = () => {
-  const baseUrl = window.location.origin + window.location.pathname;
-
-  const urlParams = new URLSearchParams();
-
-  // Add tool identifier
-  urlParams.set('tool', 'contractors');
-
-  // Add type filter if not default
-  if (selectedUpgradeType.value && selectedUpgradeType.value !== 'all') {
-    urlParams.set('type', encodeURIComponent(selectedUpgradeType.value));
+const locationInputProxy = computed({
+  get() {
+    return isMobile.value ? locationInputDisplay.value : locationInputValue.value
+  },
+  set(val) {
+    if (isMobile.value) {
+      setLocationDisplayDebounced(val)
+    } else {
+      locationInputValue.value = val
+    }
   }
-
-  // Add program filter if not default
-  if (selectedProgram.value && selectedProgram.value !== 'all') {
-    urlParams.set('program', encodeURIComponent(selectedProgram.value));
-  }
-
-  // Add location filter if not default
-  if (selectedLocation.value && selectedLocation.value !== 'all') {
-    urlParams.set('region', encodeURIComponent(selectedLocation.value));
-  }
-
-  // Combine base URL with query string
-  return `${baseUrl}?${urlParams.toString()}`;
-};
+})
 
 /**
- * Copies the dynamically assembled URL with filters to the clipboard.
- *
- * This function generates a URL containing query string parameters based on
- * the selected type, program, and location, and copies it to the clipboard.
- * It provides feedback via a success or error message.
- *
- * @function
- * @returns {void}
- *
- * @example
- * // Example usage:
- * addLinkToClipboard();
- * // Copies a URL like:
- * // https://betterhomesbc.ca?tool=contractors&type=Heat%20Pump&program=Energy%20Savings&region=Vancouver
+ * Handle focus on the contractor location input.
+ * Includes a small "refocus" trick that improves iOS keyboard behaviour.
  */
- const addLinkToClipboard = (event) => {
-  
-  const url = assembleUrl();
+function handleLocationFocus() {
+  isLocationFocused.value = true
 
-  navigator.clipboard
-    .writeText(url)
-    .then(() => {
-      handleLinkCopiedMessageContent(event, '.filter-container', 'Link copied to clipboard successfully!');
-    })
-    .catch((err) => {
-      console.error('Failed to copy URL:', err);
-      alert('Failed to copy the link. Please try again.');
-    });
-};
-
-
-/**
- * Injects messageToUser into ARIA live region node.
- *
- * @param {Event} event - The event object triggered by the click action.
- */
- function handleLinkCopiedMessageContent(event, target = '.filter-container', msg) {
-  const item = event.target.closest(target);
-  const messageToUser = ref(msg);
-  const messageArea = item ? item.querySelector('.copy-message') : null;
-
-  if (messageArea && messageArea.classList.contains('isFadedOut')) {
-    // Inject message to user, triggering ARIA live region.
-    messageArea.innerText = messageToUser.value;
-
-    // Show copy message and fade out after a delay.
-    messageArea.classList.remove('isFadedOut');
-    // Wait before re-adding the opacity class.
-    setTimeout(() => { messageArea.classList.add('isFadedOut'); }, 1000);
-    // Check again, in case of double-click.
+  if (isMobile.value) {
     setTimeout(() => {
-      if (messageArea.classList.contains('isFadedOut')) {
-        messageArea.innerText = '';
-      }
-    }, 1600);
-
+      document.querySelector('#contractorLocation')?.focus()
+    }, 300)
   }
 }
 
 /**
- * Function to navigate to the previous page in paginated results.
+ * Commit location selection only when the user is "done" (blur/change/enter).
+ * Never commit/filter on every keystroke on mobile.
  *
- * Decrements the current page if it is greater than 1.
- *
- * @returns {number|null} - The updated current page value or null if already on the first page.
+ * @param {'blur'|'change'|'enter'} [trigger='blur']
  */
-const prevPage = () => {
-	return currentPage.value > 1 ? currentPage.value-- : null;
-};
+function commitLocation(trigger = 'blur') {
+  // mark touched only when user completes interaction
+  locationTouched.value = true
 
-/**
- * Function to navigate to the next page in paginated results.
- *
- * Increments the current page if it is less than the total number of pages.
- *
- * @returns {number|null} - The updated current page value or null if already on the last page.
- */
-const nextPage = () => {
-	return currentPage.value < totalPages.value ? currentPage.value++ : null;
-};
+  // mobile: re-read DOM value to capture datalist selection reliably
+  if (isMobile.value) {
+    const el = document.querySelector('#contractorLocation')
+    if (el) locationInputDisplay.value = el.value
+  }
 
-/**
- * Computed property for generating a filter results message based on the selected type.
- * Indicates whether the selected type is the default, and provides a message accordingly.
- *
- * @type {String} - A string indicating the filter results message based on the selected type.
- */
-const currentTypeFilterMessage = computed(() => {
-	return defaultSelectedUpgradeType.value === selectedUpgradeType.value ? ' no upgrade type selected ' : ' specializing in ' + selectedUpgradeType.value.toLowerCase() + ' upgrades ';
-});
+  const raw = (isMobile.value ? locationInputDisplay.value : locationInputValue.value) || ''
+  const list = locations.value || []
+  const { match, reason, candidates = [] } = findClosestLocation(raw, list)
 
-/**
- * Computed property for generating a filter results message based on the selected location.
- * If the selected location is not 'all', the message indicates servicing the selected location.
- *
- * @type {String|null} - A string indicating the filter results message or null if 'all' is selected.
- */
-const currentLocationFilterMessage = computed(() => {
-	return 'all' !== selectedLocation.value ? 'servicing ' + selectedLocation.value : null;
-});
+  // empty => reset
+  if (!raw.trim()) {
+    selectedLocation.value = 'all'
+    locationInputValue.value = ''
+    locationInputDisplay.value = ''
+    locationError.value = ''
+    isLocationFocused.value = false
+    return
+  }
 
-/**
- * Clears all selected locations and types and resets the filter, removes the hash from the URL,
- * scrolls smoothly to the types filter container, and checks for external links.
- *
- * @returns {void}
- */
-const clearFilters = () => {
-	resetSelectsActiveState();
+  if (match) {
+    selectedLocation.value = match
+    locationError.value = ''
+    locationInputValue.value = match === 'all' ? '' : match
+    locationInputDisplay.value = match === 'all' ? '' : match
+  } else {
+    // invalid => don’t filter on garbage; show helpful message
+    selectedLocation.value = 'all'
+    const example = candidates.slice(0, 3).join(', ')
+    locationError.value =
+      reason.startsWith('ambiguous')
+        ? `That matches multiple service regions. Please choose one from the list (e.g., ${example}${candidates.length > 3 ? '…' : ''}).`
+        : 'That service region wasn’t recognized. Please choose one from the list.'
+  }
 
-  nameQuery.value = ''
-	selectedUpgradeType.value = defaultSelectedUpgradeType.value;
-	selectedLocation.value = defaultSelectedLocation.value;
-	selectedProgram.value = defaultSelectedProgram.value;
-
-  selectedLocation.value = 'all';
-
-  locationInputValue.value = '';
-  locationInputDisplay.value = '';
-  locationTouched.value = false;
-  locationError.value = '';
-  isLocationFocused.value = false;
-
-  // Reset display behavior
-  displayMode.value = 'loadMore';
-  currentPage.value = 1;
-  visibleCount.value = pageSize.value;
-
-	history.replaceState(selectedUpgradeType.value, defaultSelectedUpgradeType.value);
-	history.replaceState(selectedLocation.value, defaultSelectedLocation.value);
-	history.replaceState(selectedProgram.value, defaultSelectedProgram.value);
-
-	currentPage.value !== 1 ? handleUpdatingAnimationClass('.control.pagination .pages') : null;
-	currentPage.value = 1;
-};
-
-/**
- * Function to add invisible html entity as breakpoints for email address as label.
- *
- * @returns {string} - The updated current page value or null if already on the first page.
- */
- const insertBreakableChar = (email) => {
-    return email.replace(/@/g, '&#8203;@').replace(/\./g, '&#8203;.');
-};
-
-/**
- * Function to reset the active state of custom-select dropdowns.
- *
- * This function queries and resets the active state (`is-active` class) of custom-select dropdowns within the `#contractorFilterApp` container.
- * If there are active custom-select dropdowns found, it removes the `is-active` class from each of them to deactivate them.
- *
- * @returns {void}
- */
- const resetSelectsActiveState = () => {
-    // Query all active custom-select dropdowns within the #contractorFilterApp container.
-    let activeSelects = document.querySelectorAll('#contractorFilterApp .custom-select.is-active');
-
-    // Check if there are active custom-select dropdowns found.
-    if (activeSelects.length >= 1) {
-        // Iterate over each active custom-select dropdown and remove the is-active class to deactivate them.
-        activeSelects.forEach((item) => {
-            item.classList.remove('is-active');
-        });
-    }
-};
-
-/**
- * Event listener bound to @click and @keyup.esc
- * Toggle active class for presentation on <select> element wrapper .custom-select.
- *
- * @param {Event} event - The click or keyup event.
- * @returns {void}
- */
-const selectIsActive = (event) => {
-	return 'click' !== event.type ? event.target.parentNode.classList.remove(activeClass.value) : event.target.parentNode.classList.toggle(activeClass.value);
+  isLocationFocused.value = false
 }
 
-/**
- * Function to handle updating animation class on specified elements.
- *
- * This function applies an updating animation class to elements selected by the given CSS path (`elementCssPath`).
- * It adds the animation class (`updatingClass.value`) to each element and removes it after a short delay (125ms),
- * simulating an update animation effect.
- *
- * @param {string} elementCssPath - The CSS path selector to target elements for animation.
- * @returns {void}
- */
- const handleUpdatingAnimationClass = (elementCssPath) => {
-    // Query all elements matching the provided CSS path.
-    const elements = document.querySelectorAll(elementCssPath);
+/* -----------------------------------------------------------------------------
+ * API + caching
+ * -------------------------------------------------------------------------- */
 
-    // Check if there are elements found.
-    if (elements.length > 0) {
-        // Iterate over each element and apply the updating animation class.
-        elements.forEach((element) => {
-            // Add the updating animation class to the element.
-            element.classList.add(updatingClass.value);
+const publicDomain = ref('https://betterhomes.gov.bc.ca')
+const contractorsAPI = `${window.site?.domain ? window.site.domain : publicDomain.value}/wp-json/custom/v1/contractors`
 
-            // Remove the updating animation class after a short delay (125ms).
-            setTimeout(() => {
-                element.classList.remove(updatingClass.value);
-            }, 125);
-        });
-    }
-};
+const itemsToClearFromSessionStorage = ref([
+  'faqsData',
+  'faqsTimestamp',
+  'pqeasData',
+  'pqeasTimestamp',
+  'rebatesData',
+  'rebatesTimestamp'
+])
 
 /**
- * Checks if the DOM (Document Object Model) is fully loaded and interactive.
- *
- * @returns {boolean} - True if the DOM is fully loaded or interactive, otherwise false.
+ * @param {any} error
+ * @returns {boolean}
  */
-const isDOMReady = () => {
-	return document.readyState === 'complete' || document.readyState === 'interactive';
-};
-
-/**
- * Fetches rebate data either from sessionStorage cache (if available and not expired) or from the WordPress API.
- * If data is fetched from the API, it is stored in sessionStorage for caching purposes.
- */
-
- /**
- * Determines if the provided error indicates that storage quota has been exceeded.
- *
- * @param {any} error - The error object to test.
- * @returns {boolean} `true` if the error is a QuotaExceededError; otherwise, `false`.
- */
- const isQuotaExceededError = (error) => {
-  if (!error) return false;
+const isQuotaExceededError = (error) => {
+  if (!error) return false
   return (
     error.code === 22 ||
     error.code === 1014 ||
     error.name === 'QuotaExceededError' ||
     error.name === 'NS_ERROR_DOM_QUOTA_REACHED'
-  );
-};
+  )
+}
 
 /**
- * Helper function to check whether the provided timestamp is within the past 24 hours.
- *
- * @param {string|number} timestamp - The timestamp to evaluate (in milliseconds).
- * @returns {boolean} `true` if the timestamp is less than 24 hours old, otherwise `false`.
+ * Check whether a timestamp is within the last 24 hours.
+ * @param {string|number} timestamp
+ * @returns {boolean}
  */
 const isDataValid = (timestamp) => {
-  const timeElapsed = Date.now() - parseInt(timestamp, 10);
-  const hoursElapsed = timeElapsed / (1000 * 60 * 60);
-  return hoursElapsed < 24;
-};
-
-const normalize = (s = '') =>
-  decodeHtmlEntities(String(s)).trim().toLowerCase();
-
-const findClosestLocation = (raw) => {
-  const q = normalize(raw);
-  if (!q) return { match: 'all', reason: 'empty' };
-
-  // Special-case "all"
-  if (q === 'all' || q === 'all locations') {
-    return { match: 'all', reason: 'all' };
-  }
-
-  const list = (locations.value || []).filter(Boolean);
-
-  // 1) Exact (case-insensitive)
-  const exact = list.find(loc => normalize(loc) === q);
-  if (exact) return { match: exact, reason: 'exact' };
-
-  // 2) startsWith matches
-  const starts = list.filter(loc => normalize(loc).startsWith(q));
-  if (starts.length === 1) return { match: starts[0], reason: 'startsWith' };
-  if (starts.length > 1) return { match: null, reason: 'ambiguous_starts', candidates: starts };
-
-  // 3) includes matches
-  const includes = list.filter(loc => normalize(loc).includes(q));
-  if (includes.length === 1) return { match: includes[0], reason: 'includes' };
-  if (includes.length > 1) return { match: null, reason: 'ambiguous_includes', candidates: includes };
-
-  return { match: null, reason: 'none' };
-};
-
+  const timeElapsed = Date.now() - parseInt(String(timestamp), 10)
+  const hoursElapsed = timeElapsed / (1000 * 60 * 60)
+  return hoursElapsed < 24
+}
 
 /**
- * Fetches rebate data from session or local storage if valid; otherwise fetches from the API.
- * Updates `contractors.value` with the fetched data and toggles loading indicators accordingly.
- * Tries to store the data in sessionStorage, falling back to localStorage on quota errors.
- *
- * @async
- * @function fetchData
- * @returns {Promise<void>} Resolves when the fetch and state updates complete.
- * @throws {Error} Throws an error if the network request fails or data parsing fails.
+ * Fetch contractors from cache (session/local) or API.
+ * Populates 'contractors' and 'shuffledContractors'.
+ * @returns {Promise<void>}
  */
 const fetchData = async () => {
   try {
-    // Set loading indicators.
-    isLoading.value = true;
-    showLoadingMessage.value = true;
-    
-    // Check sessionStorage.
-    let data = sessionStorage.getItem('contractorsData');
-    let timestamp = sessionStorage.getItem('contractorsTimestamp');
-    let cachedData = null;
+    isLoading.value = true
+    showLoadingMessage.value = true
+
+    // sessionStorage
+    let data = sessionStorage.getItem('contractorsData')
+    let timestamp = sessionStorage.getItem('contractorsTimestamp')
+    let cachedData = null
 
     if (data && timestamp && isDataValid(timestamp)) {
-      // data in sessionStorage is valid.
-      cachedData = JSON.parse(data);
+      cachedData = JSON.parse(data)
     } else {
-      // Check localStorage.
-      data = localStorage.getItem('contractorsData');
-      timestamp = localStorage.getItem('contractorsTimestamp');
+      // localStorage
+      data = localStorage.getItem('contractorsData')
+      timestamp = localStorage.getItem('contractorsTimestamp')
       if (data && timestamp && isDataValid(timestamp)) {
-        // data in localStorage is valid.
-        cachedData = JSON.parse(data);
+        cachedData = JSON.parse(data)
       }
     }
 
-    // If cachedData is found (from either storage), use it and return early.
     if (cachedData) {
-      contractors.value = cachedData;
-      shuffledContractors.value = shuffleArray([...cachedData]);
-      showLoadingMessage.value = false;
-      isLoading.value = false;
-      return;  // <-- stop here, we have valid cache.
+      contractors.value = cachedData
+      shuffledContractors.value = shuffleArray([...cachedData])
+      showLoadingMessage.value = false
+      isLoading.value = false
+      return
     }
 
-    // Fetch from API if no valid cache found.
-    const response = await fetch(contractorsAPI, { cache: 'no-store' });
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
+    const response = await fetch(contractorsAPI, { cache: 'no-store' })
+    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`)
 
-    const json = await response.json();
+    const json = await response.json()
 
-    // Optionally clear sessionStorage to avoid piling up.
+    // reduce storage pressure
     try {
-      itemsToClearFromSessionStorage.value.forEach((item) => {
-        sessionStorage.removeItem(item);
-      });
-      sessionStorage.clear();
+      itemsToClearFromSessionStorage.value.forEach((item) => sessionStorage.removeItem(item))
+      sessionStorage.clear()
     } catch (clearError) {
-      console.warn('Error clearing sessionStorage:', clearError);
+      console.warn('Error clearing sessionStorage:', clearError)
     }
 
-    // Save to sessionStorage; fall back to localStorage on quota error.
     try {
-      sessionStorage.setItem('contractorsData', JSON.stringify(json));
-      sessionStorage.setItem('contractorsTimestamp', Date.now().toString());
+      sessionStorage.setItem('contractorsData', JSON.stringify(json))
+      sessionStorage.setItem('contractorsTimestamp', Date.now().toString())
     } catch (storageError) {
       if (isQuotaExceededError(storageError)) {
-        console.warn('SessionStorage quota exceeded. Falling back to localStorage.');
+        console.warn('SessionStorage quota exceeded. Falling back to localStorage.')
         try {
-          localStorage.setItem('contractorsData', JSON.stringify(json));
-          localStorage.setItem('contractorsTimestamp', Date.now().toString());
+          localStorage.setItem('contractorsData', JSON.stringify(json))
+          localStorage.setItem('contractorsTimestamp', Date.now().toString())
         } catch (lsError) {
-          console.error('Error setting data in localStorage:', lsError);
+          console.error('Error setting data in localStorage:', lsError)
         }
       } else {
-        console.error('Error setting data in sessionStorage:', storageError);
-        throw storageError; // or handle differently.
+        console.error('Error setting data in sessionStorage:', storageError)
+        throw storageError
       }
     }
 
-    // Update state.
-    contractors.value = json;
-    shuffledContractors.value = shuffleArray([...json]);
-    showLoadingMessage.value = false;
-    isLoading.value = false;
+    contractors.value = json
+    shuffledContractors.value = shuffleArray([...json])
+    showLoadingMessage.value = false
+    isLoading.value = false
   } catch (error) {
-    console.error('Error fetching contractors data:', error);
-    throw error;
+    console.error('Error fetching contractors data:', error)
+    throw error
   }
-};
+}
+
+/* -----------------------------------------------------------------------------
+ * Derived filter option lists
+ * -------------------------------------------------------------------------- */
+
+const types = computed(() => {
+  const unique = new Set()
+  contractors.value.forEach(contractor => {
+    if (!contractor?.types) return
+    if (typeof contractor.types === 'string') unique.add(contractor.types?.name)
+    else if (Array.isArray(contractor.types)) contractor.types.forEach(t => unique.add(t?.name))
+  })
+  return Array.from(unique).filter(Boolean).sort((a, b) => a.localeCompare(b))
+})
+
+const programs = computed(() => {
+  const unique = new Set()
+  contractors.value.forEach(contractor => {
+    if (!contractor?.program_designations) return
+    if (typeof contractor.program_designations === 'string') unique.add(contractor.program_designations?.name)
+    else if (Array.isArray(contractor.program_designations)) contractor.program_designations.forEach(p => unique.add(p?.name))
+  })
+  return Array.from(unique).filter(Boolean).sort((a, b) => a.localeCompare(b))
+})
+
+const locations = computed(() => {
+  const unique = new Set()
+  contractors.value.forEach(contractor => {
+    if (!contractor?.locations) return
+    if (typeof contractor.locations === 'string') unique.add(contractor.locations?.name)
+    else if (Array.isArray(contractor.locations)) contractor.locations.forEach(l => unique.add(l?.name))
+  })
+  return Array.from(unique).filter(Boolean).sort((a, b) => a.localeCompare(b))
+})
+
+/* -----------------------------------------------------------------------------
+ * Filtering + pagination/load more
+ * -------------------------------------------------------------------------- */
+
+const filteredContractorsByType = computed(() => {
+  const selectedType = selectedUpgradeType.value
+  if (selectedType === 'all') return shuffledContractors.value
+
+  return shuffledContractors.value.filter(contractor =>
+    contractor.types && contractor.types.some(type => type.name === selectedType)
+  )
+})
+
+const filteredContractors = computed(() => {
+  const selectedLoc = selectedLocation.value
+  const selectedProg = selectedProgram.value
+
+  let results = [...filteredContractorsByType.value]
+
+  if (nameQuery.value) {
+    results = results.filter(c => includesFuzzy(c.company_name, nameQuery.value))
+  }
+
+  // Location filter (NOTE: selectedLocation is a NAME string or 'all')
+  if (selectedLoc !== 'all') {
+    results = results.filter(c =>
+      c.locations && c.locations.some(l => l.name === selectedLoc)
+    )
+  }
+
+  // Program filter
+  if (selectedProg !== 'all') {
+    results = results.filter(c =>
+      c.program_designations && c.program_designations.some(p => p.name === selectedProg)
+    )
+  }
+
+  return results
+})
+
+const totalPages = computed(() => {
+  if (displayMode.value !== 'paginate') return 1
+  const total = filteredContractors.value.length
+  return total > 0 ? Math.ceil(total / pageSize.value) : 1
+})
+
+const displayedContractors = computed(() => {
+  if (displayMode.value === 'loadMore') {
+    return filteredContractors.value.slice(0, visibleCount.value)
+  }
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return filteredContractors.value.slice(start, end)
+})
+
+const remainingCount = computed(() =>
+  Math.max(0, filteredContractors.value.length - displayedContractors.value.length)
+)
+
+const nextLoadCount = computed(() =>
+  Math.min(pageSize.value, remainingCount.value)
+)
 
 /**
- * Watchers
- * https://vuejs.org/guide/essentials/watchers.html
+ * Focus the first link available in newly shown rows after "Load more".
+ * @param {number} startIndex - index where new results begin
  */
+const focusFirstNewLink = async (startIndex) => {
+  await nextTick()
+  const tbody = resultsTbody.value
+  if (!tbody) return
 
-watch(selectedUpgradeType, (newVal, oldVal) => {
-  if (newVal !== oldVal) {
-    trackProviderFilterChange({
-      filterName: 'contractor',
-      upgradeType: newVal,
-      program: selectedProgram.value,
-      location: selectedLocation.value,
-      label: `Upgrade Type changed to: ${newVal}`
-    });
-  }
-});
-
-watch(selectedProgram, (newVal, oldVal) => {
-  if (newVal !== oldVal) {
-    trackProviderFilterChange({
-      filterName: 'contractor',
-      upgradeType: selectedUpgradeType.value,
-      program: newVal,
-      location: selectedLocation.value,
-      label: `Program changed to: ${newVal}`
-    });
-  }
-});
-
-watch(selectedLocation, (newVal, oldVal) => {
-  if (newVal !== oldVal) {
-    // don't clobber user typing
-    if (isLocationFocused.value) return;
-
-    // keep the visible input aligned with the applied filter
-    locationInputValue.value = newVal === 'all' ? '' : newVal;
-
-    // optional: clear errors if a valid selection is applied
-    if (newVal === 'all' || locations.value.includes(newVal)) {
-      locationError.value = '';
-      locationTouched.value = false;
+  const rows = tbody.querySelectorAll('tr.contractor')
+  for (let i = startIndex; i < rows.length; i++) {
+    const link = rows[i].querySelector('a[href]:not([tabindex="-1"])')
+    if (link) {
+      link.focus({ preventScroll: true })
+      link.scrollIntoView({ block: 'center' })
+      return
     }
-
-    trackProviderFilterChange({
-      filterName: 'contractor',
-      upgradeType: selectedUpgradeType.value,
-      program: selectedProgram.value,
-      location: newVal,
-      label: `Location changed to: ${newVal}`
-    });
   }
-});
 
-watch([selectedUpgradeType, selectedProgram, selectedLocation, nameQuery], () => {
-  currentPage.value = 1;
-  visibleCount.value = pageSize.value;
-});
+  loadMoreBtn.value?.focus?.()
+}
 
-watch(displayMode, () => {
-  currentPage.value = 1;
-  visibleCount.value = pageSize.value;
-});
-
-
+/**
+ * Load more results (loadMore mode) then move focus to the first link in the new chunk.
+ * @returns {Promise<void>}
+ */
 const loadMore = async () => {
-  const startIndex = displayedContractors.value.length; // e.g. 30
-
+  const startIndex = displayedContractors.value.length
   visibleCount.value = Math.min(
     visibleCount.value + pageSize.value,
     filteredContractors.value.length
-  );
+  )
+  await focusFirstNewLink(startIndex)
+}
 
-  // After DOM updates, focus first link in row 31+
-  await focusFirstNewLink(startIndex);
-};
+/** Go to previous page (paginate mode). */
+const prevPage = () => (currentPage.value > 1 ? currentPage.value-- : null)
+/** Go to next page (paginate mode). */
+const nextPage = () => (currentPage.value < totalPages.value ? currentPage.value++ : null)
 
+/* -----------------------------------------------------------------------------
+ * URL assembly + copy link
+ * -------------------------------------------------------------------------- */
 
 /**
- * Called when the user clicks a contractor link.
- * We pass in the link’s data plus the current selected filters,
- * so the analytics function has everything it needs.
+ * Assemble a sharable URL from current filter state.
+ * @returns {string}
  */
+const assembleUrl = () => {
+  const baseUrl = window.location.origin + window.location.pathname
+  const urlParams = new URLSearchParams()
+  urlParams.set('tool', 'contractors')
+
+  if (selectedUpgradeType.value && selectedUpgradeType.value !== 'all') {
+    urlParams.set('type', encodeURIComponent(selectedUpgradeType.value))
+  }
+  if (selectedProgram.value && selectedProgram.value !== 'all') {
+    urlParams.set('program', encodeURIComponent(selectedProgram.value))
+  }
+  if (selectedLocation.value && selectedLocation.value !== 'all') {
+    urlParams.set('region', encodeURIComponent(selectedLocation.value))
+  }
+
+  return `${baseUrl}?${urlParams.toString()}`
+}
+
+/**
+ * Show a temporary feedback message in the UI when link copied.
+ * @param {Event} event
+ * @param {string} [target='.filter-container']
+ * @param {string} msg
+ */
+function handleLinkCopiedMessageContent(event, target = '.filter-container', msg) {
+  const root = event?.target?.closest?.(target) || document.querySelector(target) || document.body
+  const el = root?.querySelector?.('.copy-message')
+  if (!el) return
+
+  el.textContent = msg
+  el.classList.remove('isFadedOut')
+
+  setTimeout(() => el.classList.add('isFadedOut'), 1000)
+  setTimeout(() => {
+    if (el.classList.contains('isFadedOut')) el.textContent = ''
+  }, 1600)
+}
+
+/**
+ * Copy assembled URL to clipboard.
+ * @param {Event} event
+ */
+const addLinkToClipboard = (event) => {
+  const url = assembleUrl()
+  navigator.clipboard
+    ?.writeText(url)
+    .then(() => handleLinkCopiedMessageContent(event, '.filter-container', 'Link copied to clipboard successfully!'))
+    .catch((err) => {
+      console.error('Failed to copy URL:', err)
+      handleLinkCopiedMessageContent(event, '.filter-container', 'Copy failed')
+    })
+}
+
+/* -----------------------------------------------------------------------------
+ * UI helpers (existing behaviour)
+ * -------------------------------------------------------------------------- */
+
+/**
+ * Insert breakpoints into an email string for nicer wrapping.
+ * @param {string} email
+ * @returns {string}
+ */
+const insertBreakableChar = (email) => String(email || '').replace(/@/g, '&#8203;@').replace(/\./g, '&#8203;.')
+
+const resetSelectsActiveState = () => {
+  const activeSelects = document.querySelectorAll('#contractorFilterApp .custom-select.is-active')
+  activeSelects.forEach((item) => item.classList.remove('is-active'))
+}
+
+/**
+ * Toggle active state on a custom select wrapper.
+ * @param {Event} event
+ */
+const selectIsActive = (event) => {
+  if (event.type !== 'click') event.target.parentNode.classList.remove(activeClass.value)
+  else event.target.parentNode.classList.toggle(activeClass.value)
+}
+
+/**
+ * Apply a brief "updating" animation class to DOM nodes matching selector.
+ * @param {string} elementCssPath
+ */
+const handleUpdatingAnimationClass = (elementCssPath) => {
+  const elements = document.querySelectorAll(elementCssPath)
+  elements.forEach((element) => {
+    element.classList.add(updatingClass.value)
+    setTimeout(() => element.classList.remove(updatingClass.value), 125)
+  })
+}
+
+/* -----------------------------------------------------------------------------
+ * Analytics hooks
+ * -------------------------------------------------------------------------- */
+
 const onProviderLinkClick = (contractor) => {
   trackProviderClick({
     filterName: 'contractor',
@@ -1312,20 +892,19 @@ const onProviderLinkClick = (contractor) => {
     location: selectedLocation.value,
     companyName: contractor.company_name || '',
     destination: contractor.company_website || ''
-  });
+  })
 }
 
 const onEmailPhoneClick = (contractor, linkType) => {
-  let label = '';
-  let destination = '';
+  let label = ''
+  let destination = ''
 
   if (linkType === 'email') {
-    label = contractor.email ? `Email: ${contractor.email}` : 'Email link';
-    destination = `mailto:${contractor.email}`;
+    label = contractor.email ? `Email: ${contractor.email}` : 'Email link'
+    destination = `mailto:${contractor.email}`
   } else {
-    // linkType === 'phone'
-    label = contractor.phone ? `Phone: ${contractor.phone}` : 'Phone link';
-    destination = `tel:+1${contractor.phone?.replace(/-/g, '')}`;
+    label = contractor.phone ? `Phone: ${contractor.phone}` : 'Phone link'
+    destination = `tel:+1${contractor.phone?.replace(/-/g, '')}`
   }
 
   trackProviderClick({
@@ -1336,285 +915,210 @@ const onEmailPhoneClick = (contractor, linkType) => {
     companyName: contractor.company_name || '',
     destination,
     label
-  });
+  })
 }
 
-// const setupLoadMoreObserver = () => {
-//   if (!loadMoreBtn.value) return;
+/* -----------------------------------------------------------------------------
+ * Clear filters
+ * -------------------------------------------------------------------------- */
 
-//   // Clean up any existing observer
-//   if (loadMoreObserver) {
-//     loadMoreObserver.disconnect();
-//   }
+const clearFilters = () => {
+  resetSelectsActiveState()
 
-//   loadMoreObserver = new IntersectionObserver(
-//     ([entry]) => {
-//       if (
-//         entry.isIntersecting &&
-//         displayMode.value === 'loadMore' &&
-//         displayedContractors.value.length < filteredContractors.value.length
-//       ) {
-//         loadMore();
-//       }
-//     },
-//     {
-//       root: null,
-//       rootMargin: '300px', // 👈 trigger BEFORE it fully enters view
-//       threshold: 0
-//     }
-//   );
+  nameQuery.value = ''
+  selectedUpgradeType.value = defaultSelectedUpgradeType.value
+  selectedProgram.value = defaultSelectedProgram.value
 
-//   loadMoreObserver.observe(loadMoreBtn.value);
-// };
+  // location reset + input reset
+  selectedLocation.value = 'all'
+  locationInputValue.value = ''
+  locationInputDisplay.value = ''
+  locationTouched.value = false
+  locationError.value = ''
+  isLocationFocused.value = false
 
+  displayMode.value = 'loadMore'
+  currentPage.value = 1
+  visibleCount.value = pageSize.value
 
-// watch(
-//   () => displayedContractors.value.length,
-//   async () => {
-//     await nextTick();
-//     setupLoadMoreObserver();
-//   }
-// );
+  history.replaceState(selectedUpgradeType.value, defaultSelectedUpgradeType.value)
+  history.replaceState(selectedLocation.value, defaultSelectedLocation.value)
+  history.replaceState(selectedProgram.value, defaultSelectedProgram.value)
 
+  if (currentPage.value !== 1) handleUpdatingAnimationClass('.control.pagination .pages')
+  currentPage.value = 1
+}
 
-// watch(
-//   [displayMode, filteredContractors],
-//   async () => {
-//     await nextTick();
-//     setupLoadMoreObserver();
-//   }
-// );
+/* -----------------------------------------------------------------------------
+ * Watchers (paging resets + analytics + UI animation)
+ * -------------------------------------------------------------------------- */
 
-// onMounted(async () => {
-//   await nextTick();
-//   setupLoadMoreObserver();
-// });
-
-// onBeforeUnmount(() => {
-//   if (loadMoreObserver) {
-//     loadMoreObserver.disconnect();
-//   }
-// });
-
-
-/**
- * Watcher for changes in the window.site?.domain variable.
- * Invokes the fetchData() function when the window.site?.domain becomes truthy.
- *
- * @param {Function} callback - The callback function to execute when the watched property changes.
- * @returns {void}
- */
-watch(() => window.site?.domain, (newVal) => {
-	if (newVal) {
-		fetchData();
-	}
-});
-
-/**
- * Watcher to trigger an animation when paginated contractors change.
- *
- * This watcher monitors changes in the `paginatedContractors` array's length (`paginatedContractors.value.length`).
- * When the length of `paginatedContractors` changes (indicating a change in paginated contractors),
- * it triggers an animation by adding and removing a CSS class to the specified elements using the `handleUpdatingAnimationClass` function.
- *
- * @param {Function} callback - The callback function to execute when the watched property changes.
- * @returns {void}
- */
- watch(paginatedContractors, () => {
-    // Check if the length of paginatedContractors array has changed.
-    if (oldPaginatedContractorsCount.value !== paginatedContractors.value.length) {
-        // Update the oldPaginatedContractorsCount to match the current length.
-        oldPaginatedContractorsCount.value = paginatedContractors.value.length;
-
-        // Trigger an animation by applying the updating animation class to specified elements.
-        handleUpdatingAnimationClass('.control.pagination .paginated-contractors');
-    }
-});
-
-/**
- * Watcher to trigger an animation when filtered contractors change.
- *
- * This watcher monitors changes in the `filteredContractors` array's length (`filteredContractors.value.length`).
- * When the length of `filteredContractors` changes (indicating a change in filtered contractors),
- * it triggers an animation by adding and removing a CSS class to the specified elements using the `handleUpdatingAnimationClass` function.
- *
- * @param {Function} callback - The callback function to execute when the watched property changes.
- * @returns {void}
- */
- watch(filteredContractors, () => {
-    // Check if the length of filteredContractors array has changed.
-    if (oldFilteredContractorsCount.value !== filteredContractors.value.length) {
-        // Update the oldFilteredContractorsCount to match the current length.
-        oldFilteredContractorsCount.value = filteredContractors.value.length;
-
-        // Trigger an animation by applying the updating animation class to specified elements.
-        handleUpdatingAnimationClass('.control.pagination .filtered-contractors');
-        handleUpdatingAnimationClass('.counter__value');
-    }
-});
-
-/**
- * Watcher to trigger an animation when the current page changes.
- *
- * This watcher monitors changes in the `currentPage` reactive reference.
- * When the `currentPage` value changes (indicating a change in the current page),
- * it triggers an animation by adding and removing a CSS class to the specified elements using the `handleUpdatingAnimationClass` function.
- *
- * @param {Function} callback - The callback function to execute when the watched property changes.
- * @returns {void}
- */
- watch(currentPage, () => {
-    // Trigger an animation by applying the updating animation class to specified elements.
-    handleUpdatingAnimationClass('.control.pagination .current-page');
-});
-
-/**
- * Watcher to trigger an animation when the total pages change.
- *
- * This watcher monitors changes in the `totalPages` computed property.
- * When the `totalPages` value changes (indicating a change in the total number of pages),
- * it triggers an animation by adding and removing a CSS class to the specified elements using the `handleUpdatingAnimationClass` function.
- *
- * @param {Function} callback - The callback function to execute when the watched property changes.
- * @returns {void}
- */
- watch(totalPages, () => {
-    // Trigger an animation by applying the updating animation class to specified elements.
-    handleUpdatingAnimationClass('.control.pagination .total-pages');
-});
-
-/**
- * Watcher for changes in selectedUpgradeType and selectedLocation.
- * Resets the currentPage to 1 whenever either of the watched properties changes.
- *
- * @param {Array} dependencies - An array of reactive properties to watch.
- * @param {Function} callback - The callback function to execute when any of the watched properties change.
- * @returns {void}
- */
-watch([selectedUpgradeType, selectedProgram, selectedLocation], () => {
-	currentPage.value = 1;
-});
-
-/**
- * Event listener for handling custom-select deactivation on click outside.
- *
- * This event listener is triggered on a click event anywhere in the window (`window.addEventListener('click')`).
- * It checks if the click target is not within an active custom-select dropdown (`!event.target.closest('.custom-select.is-active')`).
- * If the click is outside of any active custom-select dropdown, it calls the `resetSelectsActiveState()` function to deactivate them.
- *
- * @param {Event} event - The click event object.
- * @returns {void}
- */
- window.addEventListener('click', (event) => {
-    // Check if the click target is not within an active custom-select dropdown.
-    if (!event.target.closest('.custom-select.is-active')) {
-        // Call the resetSelectsActiveState function to deactivate active custom-select dropdowns.
-        resetSelectsActiveState();
-    }
-});
-
-window.addEventListener('click', (event) => {
-	!event.target.closest('.custom-select.is-active') ? resetSelectsActiveState() : null;
-});
-
-/**
- * Lifecycle Hooks
- * https://vuejs.org/api/composition-api-lifecycle
- */
-
-/**
- * A Vue lifecycle hook that is called after the instance has been mounted.
- * It retrieves various attributes from the 'postFilterApp' element and assigns them to reactive properties.
- * It also shows a loading message, fetches data, and then handles the URL hash.
- *
- * @returns {void}
- */
- onMounted(() => {
-
-  localAnalyticsReady();
-
-  const appElement = document.getElementById('contractorFilterApp');
-  const showControls = appElement.getAttribute('data-show-controls') === 'false';
-  isVisible.value = showControls;
-
-  fetchData(); // Start fetching data
-  showLoadingMessage.value = true;
-
-  const urlParams = new URLSearchParams(window.location.search);
-  const showParam = urlParams.get('show');
-
-  if (showParam === 'off') {
-      isVisible.value = true;
+watch(selectedUpgradeType, (newVal, oldVal) => {
+  if (newVal !== oldVal) {
+    trackProviderFilterChange({
+      filterName: 'contractor',
+      upgradeType: newVal,
+      program: selectedProgram.value,
+      location: selectedLocation.value,
+      label: `Upgrade Type changed to: ${newVal}`
+    })
   }
-});
+})
+
+watch(selectedProgram, (newVal, oldVal) => {
+  if (newVal !== oldVal) {
+    trackProviderFilterChange({
+      filterName: 'contractor',
+      upgradeType: selectedUpgradeType.value,
+      program: newVal,
+      location: selectedLocation.value,
+      label: `Program changed to: ${newVal}`
+    })
+  }
+})
+
+watch(selectedLocation, (newVal, oldVal) => {
+  if (newVal === oldVal) return
+
+  // If user is typing, don't clobber their input mid-edit.
+  if (isLocationFocused.value) return
+
+  // Keep the input aligned with applied filter.
+  locationInputValue.value = newVal === 'all' ? '' : newVal
+
+  // Clear error for valid states.
+  if (newVal === 'all' || locations.value.includes(newVal)) {
+    locationError.value = ''
+    locationTouched.value = false
+  }
+
+  trackProviderFilterChange({
+    filterName: 'contractor',
+    upgradeType: selectedUpgradeType.value,
+    program: selectedProgram.value,
+    location: newVal,
+    label: `Location changed to: ${newVal}`
+  })
+})
+
+// Reset paging on any filter change.
+watch([selectedUpgradeType, selectedProgram, selectedLocation, nameQuery], () => {
+  currentPage.value = 1
+  visibleCount.value = pageSize.value
+})
+
+watch(displayMode, () => {
+  currentPage.value = 1
+  visibleCount.value = pageSize.value
+})
+
+// UI animations (existing behaviour)
+watch(() => displayedContractors.value.length, () => {
+  // If you want to re-enable auto-load observer later, this is where you'd hook it.
+})
+
+watch(totalPages, () => handleUpdatingAnimationClass('.control.pagination .total-pages'))
+
+watch(currentPage, () => handleUpdatingAnimationClass('.control.pagination .current-page'))
+
+watch(displayedContractors, () => {
+  if (oldPaginatedContractorsCount.value !== displayedContractors.value.length) {
+    oldPaginatedContractorsCount.value = displayedContractors.value.length
+    handleUpdatingAnimationClass('.control.pagination .paginated-contractors')
+  }
+})
+
+watch(filteredContractors, () => {
+  if (oldFilteredContractorsCount.value !== filteredContractors.value.length) {
+    oldFilteredContractorsCount.value = filteredContractors.value.length
+    handleUpdatingAnimationClass('.control.pagination .filtered-contractors')
+    handleUpdatingAnimationClass('.counter__value')
+  }
+})
+
+/* -----------------------------------------------------------------------------
+ * Initialization: fetch + query-string hydration
+ * -------------------------------------------------------------------------- */
+
+watch(() => window.site?.domain, (newVal) => {
+  if (newVal) fetchData()
+})
+
+onMounted(() => {
+  localAnalyticsReady()
+
+  const appElement = document.getElementById('contractorFilterApp')
+  const showControls = appElement?.getAttribute('data-show-controls') === 'false'
+  isVisible.value = showControls
+
+  fetchData()
+  showLoadingMessage.value = true
+
+  const urlParams = new URLSearchParams(window.location.search)
+  const showParam = urlParams.get('show')
+  if (showParam === 'off') isVisible.value = true
+})
 
 watchEffect(() => {
-  // Ensure types, programs, and locations are populated before proceeding
-  if (types.value.length && programs.value.length && locations.value.length) {
-    // Get query string parameters
-    const urlParams = new URLSearchParams(window.location.search);
+  if (!types.value.length || !programs.value.length || !locations.value.length) return
 
-    const showParam = urlParams.get('show');
+  const urlParams = new URLSearchParams(window.location.search)
+  const showParam = urlParams.get('show')
 
-    // Ensure the tool matches "contractors" before processing
-    if (null !== urlParams.get('tool') && urlParams.get('tool') !== 'contractors') {
-      console.warn('Tool parameter does not match "contractors". Initialization skipped.');
-      return;
-    }
-
-    // Hide tools if `show=off` is in the query string
-    if (showParam === 'off') {
-        isVisible.value = false;
-    }
-
-    // Initialize selected filters from query string
-    const upgradeType = urlParams.get('type');
-    const rebateProgram = urlParams.get('program');
-    const serviceRegion = urlParams.get('region');
-
-    // Update the corresponding reactive properties with URI-decoded values
-    if (upgradeType) {
-      const decodedUpgradeType = decodeURIComponent(upgradeType);
-      if (types.value.includes(decodedUpgradeType)) {
-        selectedUpgradeType.value = decodedUpgradeType;
-      } else {
-        console.warn(`Invalid upgrade type: ${decodedUpgradeType}`);
-      }
-    }
-
-    if (rebateProgram) {
-      const decodedRebateProgram = decodeURIComponent(rebateProgram);
-      if (programs.value.includes(decodedRebateProgram)) {
-        selectedProgram.value = decodedRebateProgram;
-      } else {
-        console.warn(`Invalid rebate program: ${decodedRebateProgram}`);
-      }
-    }
-
-    if (serviceRegion) {
-      const decodedServiceRegion = decodeURIComponent(serviceRegion);
-      if (locations.value.includes(decodedServiceRegion)) {
-        selectedLocation.value = decodedServiceRegion;
-        locationInputValue.value = decodedServiceRegion; // keep UI aligned
-        locationError.value = '';
-        locationTouched.value = false;
-      } else {
-        // invalid query param: show error but don't filter
-        selectedLocation.value = 'all';
-        locationInputValue.value = decodedServiceRegion; // show what was provided
-        locationError.value = 'That service region wasn’t recognized. Please choose one from the list of available options.';
-        locationTouched.value = true;
-      }
-    }
-
-    // Stop showing the loading message once data is initialized
-    showLoadingMessage.value = false;
+  // Tool guard
+  if (urlParams.get('tool') !== null && urlParams.get('tool') !== 'contractors') {
+    console.warn('Tool parameter does not match "contractors". Initialization skipped.')
+    return
   }
-});
 
+  if (showParam === 'off') isVisible.value = false
 
+  const upgradeType = urlParams.get('type')
+  const rebateProgram = urlParams.get('program')
+  const serviceRegion = urlParams.get('region')
 
+  if (upgradeType) {
+    const decoded = decodeURIComponent(upgradeType)
+    if (types.value.includes(decoded)) selectedUpgradeType.value = decoded
+    else console.warn(`Invalid upgrade type: ${decoded}`)
+  }
+
+  if (rebateProgram) {
+    const decoded = decodeURIComponent(rebateProgram)
+    if (programs.value.includes(decoded)) selectedProgram.value = decoded
+    else console.warn(`Invalid rebate program: ${decoded}`)
+  }
+
+  if (serviceRegion) {
+    const decoded = decodeURIComponent(serviceRegion)
+    if (locations.value.includes(decoded)) {
+      selectedLocation.value = decoded
+      locationInputValue.value = decoded
+      locationError.value = ''
+      locationTouched.value = false
+    } else {
+      selectedLocation.value = 'all'
+      locationInputValue.value = decoded // show what was provided
+      locationError.value = 'That service region was not recognized. Please choose one from the list of available options.'
+      locationTouched.value = true
+    }
+  }
+
+  showLoadingMessage.value = false
+})
+
+/* -----------------------------------------------------------------------------
+ * Global click handlers — keep ONE, not two duplicates.
+ * -------------------------------------------------------------------------- */
+onMounted(() => {
+  const onWindowClick = (event) => {
+    if (!event.target.closest('.custom-select.is-active')) resetSelectsActiveState()
+  }
+  window.addEventListener('click', onWindowClick)
+  onBeforeUnmount(() => window.removeEventListener('click', onWindowClick))
+})
 </script>
+
 
 <style lang='scss' scoped>
 // See bcgov-plugin-cleanbc/styles/public/betterhomes/_vue-apps.scss
