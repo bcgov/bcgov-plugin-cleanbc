@@ -80,6 +80,11 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 		}
 	}
 
+	.table-link-wrapper {
+		margin-block-end: 0.5rem;
+		width: fit-content;
+	}
+
 	.ellipsis,
 	.clip-text {
 		white-space: nowrap !important;

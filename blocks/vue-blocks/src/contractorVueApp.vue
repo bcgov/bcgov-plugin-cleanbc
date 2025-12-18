@@ -217,14 +217,16 @@
                     <!-- Company Name and Head Office -->
                     <td data-label="Company name and head office location" class="contractor__company-and-location">
                         <!-- Company Website Link -->
-                        <a v-if="contractor.company_website" class="contractor__company external-app-link" :href="contractor.company_website" target="_blank" @click="onProviderLinkClick(contractor)" :aria-label="decodeHtmlEntities(contractor.company_name) + ' website, opens in a new tab/window.'">
-                            {{ contractor.company_name ? decodeHtmlEntities(contractor.company_name) : 'Website' }}
-                        </a>
-                        <!-- Company Name if No Website -->
-                        <span v-else class="contractor__company">
+                        <div class='table-link-wrapper'>
+                          <a v-if="contractor.company_website" class="contractor__company external-app-link" :href="contractor.company_website" target="_blank" @click="onProviderLinkClick(contractor)" :aria-label="decodeHtmlEntities(contractor.company_name) + ' website, opens in a new tab/window.'">
+                              {{ contractor.company_name ? decodeHtmlEntities(contractor.company_name) : 'Website' }}
+                          </a>
+                          <!-- Company Name if No Website -->
+                          <span v-else class="contractor__company">
                             {{ contractor.company_name ? decodeHtmlEntities(contractor.company_name) : 'No company name provided' }}
-                        </span>
-                        <p class='has-icon location' v-if='contractor.head_office_location'>{{ contractor.head_office_location ? contractor.head_office_location : 'Not provided' }}</p>
+                          </span>
+                          <p class='has-icon location' v-if='contractor.head_office_location'>{{ contractor.head_office_location ? contractor.head_office_location : 'Not provided' }}</p>
+                        </div>
                     </td>
 
                     <!-- Company Location -->
@@ -234,14 +236,17 @@
 
                     <!-- Contact Email and Phone -->
                     <td data-label="Company email and phone" class="contractor__email-and-phone">
-                        <address class='clip-text'>
+                        <address>
                             <!-- Email Link -->
-                            <a v-if="contractor.email" class="contractor__email clip-text" :href="'mailto:' + contractor.email" @click.prevent="onEmailPhoneClick(contractor, 'email')"><span v-if="false" v-html="insertBreakableChar(contractor.email)"></span>{{ contractor.email }}</a>
-                            <p class="contractor__email" v-else>No email provided</p>
-
+                            <div class='table-link-wrapper'>
+                              <a v-if="contractor.email" class="contractor__email clip-text" :href="'mailto:' + contractor.email" @click.prevent="onEmailPhoneClick(contractor, 'email')"><span v-if="false" v-html="insertBreakableChar(contractor.email)"></span>{{ contractor.email }}</a>
+                              <p class="contractor__email" v-else>No email provided</p>
+                            </div>
                             <!-- Phone Link -->
-                            <a v-if="contractor.phone" class="contractor__telephone" :href="'tel:+1' + contractor.phone.replace(/-/g, '')" @click.prevent="onEmailPhoneClick(contractor, 'phone')">{{ contractor.phone }}</a>
-                            <p class="contractor__telephone" v-else>No phone number provided</p>
+                           <div class='table-link-wrapper'>
+                              <a v-if="contractor.phone" class="contractor__telephone" :href="'tel:+1' + contractor.phone.replace(/-/g, '')" @click.prevent="onEmailPhoneClick(contractor, 'phone')">{{ contractor.phone }}</a>
+                              <p class="contractor__telephone" v-else>No phone number provided</p>
+                            </div>
                         </address>
                     </td>
 
