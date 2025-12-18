@@ -510,12 +510,17 @@ function handleLocationFocus() {
  */
 const commitLocation = (trigger = 'change') => {
 
+  const el = document.querySelector('#contractorLocation')
+
+  if (!isMobile && (trigger === 'enter' || trigger === 'change')) {
+    if (el) el.focus()
+  }
+
   // mark touched only when user completes interaction
   locationTouched.value = true
 
   // mobile: re-read DOM value to capture datalist selection reliably
   if (isMobile.value && trigger === 'blur') {
-    const el = document.querySelector('#contractorLocation')
     if (el) locationInputDisplay.value = el.value
   }
 
@@ -545,7 +550,7 @@ const commitLocation = (trigger = 'change') => {
     locationError.value =
       reason.startsWith('ambiguous')
         ? `That matches multiple service regions. Please choose one from the list (e.g., ${example}${candidates.length > 3 ? '…' : ''}).`
-        : 'That service region was not recognized. Please choose one from the list.'
+        : 'That service region was not recognized. Please the community you live in or are closest to from the available options.'
   }
 
   isLocationFocused.value = false

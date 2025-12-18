@@ -59,12 +59,12 @@
 		background-color: #eceef0;
 		border: none;
 		border-radius: 0.33rem;
-		color: #005d99;
+		color: #369;
 		font-weight: bold;
 		padding: 0.25rem 0.66rem;
 
 		&:is(:focus, :focus-visible) {
-			outline: 2px solid #005d99;
+			outline: 2px solid #369;
 			outline-offset: 2px;
 		}
 	}
