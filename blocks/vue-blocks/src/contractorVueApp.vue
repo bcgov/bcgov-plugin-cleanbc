@@ -43,11 +43,10 @@
                 inputmode="search"
                 autocomplete="off"
                 placeholder="The community you live closest to"
-                list="locationList"
+                :list="isMobile ? 'locationListMobile' : 'locationList'"
                 v-model="locationInputProxy"
                 @focus="handleLocationFocus"
                 @blur="commitLocation('blur')"
-                @focusout="commitLocation('blur')"
                 @change="commitLocation('change')"
                 @keydown.enter.prevent="commitLocation('enter')"
                 :aria-invalid="locationTouched && locationError ? 'true' : 'false'"
@@ -55,11 +54,23 @@
               />
 
             </div>
-            <!-- Location datalist -->
-            <datalist id="locationList">
+            <!-- Desktop: full datalist -->
+            <datalist v-if="!isMobile" id="locationList">
               <option value="All Locations"></option>
               <option v-for="loc in locations" :key="loc" :value="loc"></option>
             </datalist>
+            <!-- Mobile: proxy datalist (top 10 only) -->
+           <datalist v-else id="locationListMobile">
+            <!-- Empty: show only a hint -->
+            <option v-if="locationQueryIsEmpty" value="Please type to find your community"></option>
+
+            <!-- Not empty: show All Locations + top 10 suggestions -->
+            <template v-else>
+              <option value="All Locations"></option>
+              <option v-for="loc in mobileLocationOptions" :key="loc" :value="loc"></option>
+            </template>
+          </datalist>
+
             <!-- Error information -->
             <p v-if="locationTouched && locationError" id="locationError" class="message error-message" role="alert">
               {{ locationError }}
@@ -320,11 +331,11 @@ import { localAnalyticsReady } from '../standalone-snowplow.js'
  * @param {number} [wait=200]
  * @returns {(...args: Parameters<T>) => void}
  */
-function debounce(fn, wait = 200) {
-  let t
+function debounce(fn, delay = 500) {
+  let timer
   return (...args) => {
-    clearTimeout(t)
-    t = setTimeout(() => fn(...args), wait)
+    clearTimeout(timer)
+    timer = setTimeout(() => fn(...args), delay)
   }
 }
 
@@ -350,6 +361,7 @@ const includesFuzzy = (haystack = '', needle = '') => {
 
 /**
  * Finds the closest matching location name from the set of known locations.
+ * Returns at most 10 candidates when ambiguous.
  * Mirrors the "rebate tool" matching approach (exact, startsWith, includes).
  *
  * @param {string} raw
@@ -358,6 +370,12 @@ const includesFuzzy = (haystack = '', needle = '') => {
  */
 function findClosestLocation(raw, locationList) {
   const q = normalize(raw)
+
+  // Ignore hint options if they ever get selected/copied into the input
+  if (q === normalize(MOBILE_HINT_EMPTY) || q === normalize(MOBILE_HINT_MORE)) {
+    return { match: 'all', reason: 'empty' }
+  }
+
   if (!q) return { match: 'all', reason: 'empty' }
   if (q === 'all' || q === 'all locations') return { match: 'all', reason: 'all' }
 
@@ -368,12 +386,21 @@ function findClosestLocation(raw, locationList) {
   if (exact) return { match: exact, reason: 'exact' }
 
   // 2) startsWith
-  const starts = list.filter(loc => normalize(loc).startsWith(q))
+  const starts = list
+    .filter(loc => normalize(loc).startsWith(q))
+    .slice(0, 10)
+
   if (starts.length === 1) return { match: starts[0], reason: 'startsWith' }
   if (starts.length > 1) return { match: null, reason: 'ambiguous_starts', candidates: starts }
 
-  // 3) includes
-  const includes = list.filter(loc => normalize(loc).includes(q))
+  // 3) includes (rank "closer" by earlier match position, then shorter string)
+  const includes = list
+    .map(loc => ({ loc, idx: normalize(loc).indexOf(q) }))
+    .filter(x => x.idx >= 0)
+    .sort((a, b) => (a.idx - b.idx) || (a.loc.length - b.loc.length) || a.loc.localeCompare(b.loc))
+    .map(x => x.loc)
+    .slice(0, 10)
+
   if (includes.length === 1) return { match: includes[0], reason: 'includes' }
   if (includes.length > 1) return { match: null, reason: 'ambiguous_includes', candidates: includes }
 
@@ -444,13 +471,6 @@ watch(locationInputValue, v => {
 })
 
 /**
- * Debounced mobile display setter – keeps typing smooth by reducing reactive churn.
- */
-const setLocationDisplayDebounced = debounce((v) => {
-  locationInputDisplay.value = v
-}, 300)
-
-/**
  * v-model proxy matching the rebate tool.
  * @type {import('vue').ComputedRef<string>}
  */
@@ -460,12 +480,13 @@ const locationInputProxy = computed({
   },
   set(val) {
     if (isMobile.value) {
-      setLocationDisplayDebounced(val)
+      locationInputDisplay.value = val
     } else {
       locationInputValue.value = val
     }
   }
 })
+
 
 /**
  * Handle focus on the contractor location input.
@@ -487,12 +508,13 @@ function handleLocationFocus() {
  *
  * @param {'blur'|'change'|'enter'} [trigger='blur']
  */
-function commitLocation(trigger = 'blur') {
+const commitLocation = (trigger = 'change') => {
+
   // mark touched only when user completes interaction
   locationTouched.value = true
 
   // mobile: re-read DOM value to capture datalist selection reliably
-  if (isMobile.value) {
+  if (isMobile.value && trigger === 'blur') {
     const el = document.querySelector('#contractorLocation')
     if (el) locationInputDisplay.value = el.value
   }
@@ -523,11 +545,55 @@ function commitLocation(trigger = 'blur') {
     locationError.value =
       reason.startsWith('ambiguous')
         ? `That matches multiple service regions. Please choose one from the list (e.g., ${example}${candidates.length > 3 ? '…' : ''}).`
-        : 'That service region wasn’t recognized. Please choose one from the list.'
+        : 'That service region was not recognized. Please choose one from the list.'
   }
 
   isLocationFocused.value = false
 }
+
+const MOBILE_HINT_EMPTY = 'Please type to find your community'
+const MOBILE_HINT_MORE  = 'Continue typing to see more results'
+
+// Use whatever the user is currently typing (mobile uses display buffer)
+const locationQuery = computed(() => {
+  const raw = isMobile.value ? locationInputDisplay.value : locationInputValue.value
+  return normalize(raw || '')
+})
+
+const locationQueryIsEmpty = computed(() => !locationQuery.value)
+
+/**
+ * Mobile-only proxy list for the datalist.
+ * - starts with first 10 options when empty
+ * - filters to top 10 as user types
+ * - uses startsWith first, then includes as fallback
+ */
+const mobileLocationOptions = computed(() => {
+  const list = locations.value || []
+  const q = locationQuery.value
+  if (!q) return []
+
+  const starts = []
+  const includes = []
+
+  for (const loc of list) {
+    const n = normalize(loc)
+    if (n.startsWith(q)) starts.push(loc)
+    else if (n.includes(q)) includes.push(loc)
+    if (starts.length >= 10) break
+  }
+
+  if (starts.length < 10) {
+    for (const loc of includes) {
+      starts.push(loc)
+      if (starts.length >= 10) break
+    }
+  }
+
+  return starts.slice(0, 10)
+})
+
+
 
 /* -----------------------------------------------------------------------------
  * API + caching

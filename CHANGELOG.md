@@ -1,5 +1,6 @@
 ## 1.27.0 December 18, 2025
 – Extensive refactor of the contractor filter tool to enable location text input filter with mobile support.
+– Added mobile proxy of datalist to keep the device from being overloaded when filtering.
 
 ## 1.26.5 December 16, 2025
 – Added text based search filtering to contractor service region filtering to better match archive rebates tooling.

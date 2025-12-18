@@ -1249,6 +1249,7 @@
 		&.contractor-heading {
 			width: 15%;
 
+
 			&--company-and-location,
 			&--email-and-phone {
 				width: 30%;
@@ -1296,6 +1297,11 @@
 		li {
 			font-size: var(--wp--preset--font-size--small);
 		}
+	}
+
+	.contractor__company {
+		color: #369;
+		font-weight: bold;
 	}
 
 	.col {
@@ -1468,19 +1474,19 @@
 		&.email::before {
 			background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBkPSJNMjU2IDY0QzE1MCA2NCA2NCAxNTAgNjQgMjU2czg2IDE5MiAxOTIgMTkybDMyIDAgMCA2NC0zMiAwQzExNC42IDUxMiAwIDM5Ny40IDAgMjU2UzExNC42IDAgMjU2IDBTNTEyIDExNC42IDUxMiAyNTZsMCA5NiAwIDMyLTMyIDAtNDAgMGMtMzYgMC02OC4yLTE1LjgtOTAuMi00MC45QzMyNi40IDM2OC4zIDI5MyAzODQgMjU2IDM4NGMtNzAuNyAwLTEyOC01Ny4zLTEyOC0xMjhzNTcuMy0xMjggMTI4LTEyOGMzMi41IDAgNjIuMSAxMi4xIDg0LjcgMzJsNDMuMyAwIDAgMzIgMCA2NCAwIDhjMCAzMC45IDI1LjEgNTYgNTYgNTZsOCAwIDAtNjRjMC0xMDYtODYtMTkyLTE5Mi0xOTJ6bTY0IDE5MmE2NCA2NCAwIDEgMCAtMTI4IDAgNjQgNjQgMCAxIDAgMTI4IDB6Ii8+PC9zdmc+);
 			margin-right: 0.25rem;
-			opacity: 0.35;
+			opacity: 0.75;
 		}
 
 		&.location::before {
 			background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzODQgNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBkPSJNMTkyIDUxMnMxOTItMjA4IDE5Mi0zMjBDMzg0IDg2IDI5OCAwIDE5MiAwUzAgODYgMCAxOTJDMCAzMDQgMTkyIDUxMiAxOTIgNTEyem0wLTM4NGE2NCA2NCAwIDEgMSAwIDEyOCA2NCA2NCAwIDEgMSAwLTEyOHoiLz48L3N2Zz4=);
 			margin-right: 0.25rem;
-			opacity: 0.35;
+			opacity: 0.75;
 		}
 
 		&.phone::before {
 			background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBkPSJNMCAzMkwxNDQgMGw4MCAxNDQtODMuOCA2N2MzNi4xIDY4LjQgOTIuMyAxMjQuNiAxNjAuOCAxNjAuOEwzNjggMjg4bDE0NCA4MEw0ODAgNTEySDQ0OEMyMDAuNiA1MTIgMCAzMTEuNCAwIDY0TDAgMzJ6Ii8+PC9zdmc+);
 			margin-right: 0.25rem;
-			opacity: 0.35;
+			opacity: 0.75;
 		}
 	}
 }

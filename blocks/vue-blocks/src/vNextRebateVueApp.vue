@@ -202,7 +202,6 @@
                         :disabled="field.disabled"
                         @focus="handleFocus"
                         @blur="handleLocationInputCommit('blur')"
-                        @focusout="handleLocationInputCommit('blur')"
                         @change="handleLocationInputCommit('change')"
                         @keydown.enter.prevent="handleLocationInputCommit('enter')" />
                       <datalist :id="`${field.key}List`">
