@@ -1,3 +1,6 @@
+## 1.27.1 December 18, 2025
+– Icon style update.
+
 ## 1.27.0 December 18, 2025
 – Extensive refactor of the contractor filter tool to enable location text input filter with mobile support.
 – Added mobile proxy of datalist to keep the device from being overloaded when filtering. 

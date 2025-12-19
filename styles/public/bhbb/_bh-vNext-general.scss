@@ -153,6 +153,11 @@ ul.contact-list {
 			scale: 1.2;
 		}
 
+		&.icon-find-ea::before {
+			content: $icon_find_ea;
+			scale: 1.2;
+		}
+
 		&.icon-contact::before {
 			content: $icon_contact;
 		}
