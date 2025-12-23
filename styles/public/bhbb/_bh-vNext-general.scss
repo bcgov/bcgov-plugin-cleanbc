@@ -1,375 +1,379 @@
-/* -------------------------------------------------------------------------- */
+html:has(body.betterbuildingsbc, body.betterhomesbc) {
 
-/* CUSTOM CHECKLIST */
+	/* -------------------------------------------------------------------------- */
 
-/* -------------------------------------------------------------------------- */
+	/* CUSTOM CHECKLIST */
 
-.wp-block-list.checklist {
-	padding: 0;
-	list-style-type: none;
-}
+	/* -------------------------------------------------------------------------- */
 
-.checklist li {
-	background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjNDI4MTRBIiBkPSJNMjU2IDUxMkEyNTYgMjU2IDAgMSAwIDI1NiAwYTI1NiAyNTYgMCAxIDAgMCA1MTJ6TTM2OSAyMDlMMjQxIDMzN2MtOS40IDkuNC0yNC42IDkuNC0zMy45IDBsLTY0LTY0Yy05LjQtOS40LTkuNC0yNC42IDAtMzMuOXMyNC42LTkuNCAzMy45IDBsNDcgNDdMMzM1IDE3NWM5LjQtOS40IDI0LjYtOS40IDMzLjkgMHM5LjQgMjQuNiAwIDMzLjl6Ii8+PC9zdmc+);
-	font-size: 1rem;
-	list-style-type: none;
-	margin-bottom: 0.25rem;
-	background-repeat: no-repeat;
-	background-size: 1.5rem;
-	padding-inline-start: 2rem;
-}
-
-/* -------------------------------------------------------------------------- */
-
-/* CONTACT LIST */
-
-/* -------------------------------------------------------------------------- */
-
-
-ul.contact-list {
-	display: flex;
-	flex-direction: row;
-	flex-wrap: wrap;
-	align-items: flex-start;
-	padding-left: 0;
-
-	li {
-		margin-right: 1.5rem;
-		margin-bottom: 0.5rem;
+	.wp-block-list.checklist {
+		padding: 0;
 		list-style-type: none;
-		width: fit-content;
-
-		a {
-			display: flex;
-			flex-direction: row;
-			flex-wrap: nowrap;
-		}
-
-		a::before {
-			content: "";
-			display: block;
-			height: 1rem;
-			width: 1rem;
-			position: relative;
-		}
-
-		&.phone a::before {
-			content: $phone_icon;
-			top: 0.25rem;
-			margin-right: 0.2rem;
-		}
-
-		&.email a::before {
-			content: $mail_icon;
-			top: 0.15rem;
-			margin-right: 0.25rem;
-			width: 1.3rem;
-		}
-
-		&.website a::before {
-			content: $site_icon;
-			top: 0.175rem;
-			margin-right: 0.45rem;
-		}
-	}
-}
-
-/* Rebates details container order */
-
-.query-conditional-group-block.details-check {
-
-	.details-container {
-		grid-template-areas: "a" "b" "c" "d" "e";
-
-		> div:nth-child(1) {
-			grid-area: a;
-		}
-
-		> div:nth-child(2) { /* Find a contractor */
-			grid-area: b;
-		}
-
-		> div:nth-child(3) { /* Apply online */
-			grid-area: c;
-		}
-
-		> div:nth-child(4) {
-			grid-area: d;
-		}
-
-		> div:nth-child(5) {
-			grid-area: e;
-		}
-
 	}
 
-	.details-container:has(.is-details-hrr) {
-
-		> div:nth-child(3) { /* Find a contractor */
-			grid-area: b;
-		}
-
-		> div:nth-child(2) { /* Apply online */
-			grid-area: c;
-		}
-
-		> div:nth-child(2) > .wp-block-columns,
-		> div:nth-child(3) > .wp-block-columns {
-			flex-direction: row-reverse; /* Position changed, so flip column orientation */
-		}
+	.checklist li {
+		background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjNDI4MTRBIiBkPSJNMjU2IDUxMkEyNTYgMjU2IDAgMSAwIDI1NiAwYTI1NiAyNTYgMCAxIDAgMCA1MTJ6TTM2OSAyMDlMMjQxIDMzN2MtOS40IDkuNC0yNC42IDkuNC0zMy45IDBsLTY0LTY0Yy05LjQtOS40LTkuNC0yNC42IDAtMzMuOXMyNC42LTkuNCAzMy45IDBsNDcgNDdMMzM1IDE3NWM5LjQtOS40IDI0LjYtOS40IDMzLjkgMHM5LjQgMjQuNiAwIDMzLjl6Ii8+PC9zdmc+);
+		font-size: 1rem;
+		list-style-type: none;
+		margin-bottom: 0.25rem;
+		background-repeat: no-repeat;
+		background-size: 1.5rem;
+		padding-inline-start: 2rem;
 	}
-}
+
+	/* -------------------------------------------------------------------------- */
+
+	/* CONTACT LIST */
+
+	/* -------------------------------------------------------------------------- */
 
 
-/* -------------------------------------------------------------------------- */
+	ul.contact-list {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		padding-left: 0;
 
-/* HEADLINES WITH ICONS */
+		li {
+			margin-right: 1.5rem;
+			margin-bottom: 0.5rem;
+			list-style-type: none;
+			width: fit-content;
 
-/* -------------------------------------------------------------------------- */
+			a {
+				display: flex;
+				flex-direction: row;
+				flex-wrap: nowrap;
+			}
 
-.wp-block-heading {
+			a::before {
+				content: "";
+				display: block;
+				height: 1rem;
+				width: 1rem;
+				position: relative;
+			}
 
-	&.has-icon-above {
+			&.phone a::before {
+				content: $phone_icon;
+				top: 0.25rem;
+				margin-right: 0.2rem;
+			}
 
-		&::before {
-			content: "";
-			display: block;
-			height: 2rem;
-			width: 2rem;
-			padding-block: 1rem;
-		}
+			&.email a::before {
+				content: $mail_icon;
+				top: 0.15rem;
+				margin-right: 0.25rem;
+				width: 1.3rem;
+			}
 
-		&.icon-learn::before {
-			content: $icon_learn;
-		}
-
-		&.icon-find::before {
-			content: $icon_find;
-			scale: 1.2;
-		}
-
-		&.icon-find-filled::before {
-			content: $icon_find_filled;
-			scale: 1.2;
-		}
-
-		&.icon-find-ea::before {
-			content: $icon_find_ea;
-			scale: 1.2;
-		}
-
-		&.icon-contact::before {
-			content: $icon_contact;
-		}
-
-		&.icon-understand::before {
-			content: $icon_understand;
+			&.website a::before {
+				content: $site_icon;
+				top: 0.175rem;
+				margin-right: 0.45rem;
+			}
 		}
 	}
 
-	&.has-icon {
+	/* Rebates details container order */
 
-		&::before {
-			content: "";
-			display: inline-block;
-			padding-inline: 0;
+	.query-conditional-group-block.details-check {
+
+		.details-container {
+			grid-template-areas: "a" "b" "c" "d" "e";
+
+			> div:nth-child(1) {
+				grid-area: a;
+			}
+
+			> div:nth-child(2) { /* Find a contractor */
+				grid-area: b;
+			}
+
+			> div:nth-child(3) { /* Apply online */
+				grid-area: c;
+			}
+
+			> div:nth-child(4) {
+				grid-area: d;
+			}
+
+			> div:nth-child(5) {
+				grid-area: e;
+			}
+
 		}
 
-		&.icon-announce::before {
-			content: $icon_announce;
-			height: 2rem;
-			width: 2rem;
-			rotate: -10deg;
-		}
+		.details-container:has(.is-details-hrr) {
 
-		&.icon-eligible::before {
-			content: $icon_eligible;
-			margin-right: 0;
-			top: 0.15rem;
-		}
+			> div:nth-child(3) { /* Find a contractor */
+				grid-area: b;
+			}
 
-		&.icon-find-filled::before {
-			content: $icon_find_filled;
-			margin-right: 0;
-			top: 0;
-			scale: 1.1;
-		}
+			> div:nth-child(2) { /* Apply online */
+				grid-area: c;
+			}
 
-		&.icon-apply::before {
-			content: $icon_apply;
-			margin-right: 0;
-			top: 0.15rem;
-			width: 1.75rem;
-		}
-
-		&.icon-contact::before {
-			content: $phone_icon;
-			margin-right: 0;
-			top: -0.15rem;
-			scale: 1.25;
-			left: 0.5rem;
+			> div:nth-child(2) > .wp-block-columns,
+			> div:nth-child(3) > .wp-block-columns {
+				flex-direction: row-reverse; /* Position changed, so flip column orientation */
+			}
 		}
 	}
 
-	&.wrap-normal.wrap-normal {
-		text-wrap: pretty !important;
-	}
 
-}
+	/* -------------------------------------------------------------------------- */
 
-/* -------------------------------------------------------------------------- */
+	/* HEADLINES WITH ICONS */
 
-/* CUSTOM GRID CLASSES */
-
-/* -------------------------------------------------------------------------- */
-
-.grid-center {
-	justify-items: center;
-	align-items: center;
-	height: 100%;
-	width: 100%;
-}
-
-/* -------------------------------------------------------------------------- */
-
-/* HOW IT WORKS CONTAINERS */
-
-/* -------------------------------------------------------------------------- */
-
-.how-it-works-container {
-
-	--four-up-grid-bp: 650px;
-	--five-up-grid-bp: 800px;
-
-	container: howitworks / inline-size;
+	/* -------------------------------------------------------------------------- */
 
 	.wp-block-heading {
 
-		&::before {
-			content: $icon_how_it_works;
-			width: 1.75rem;
-			margin-right: 0.5rem;
-			display: inline-block;
+		&.has-icon-above {
+
+			&::before {
+				content: "";
+				display: block;
+				height: 2rem;
+				width: 2rem;
+				padding-block: 1rem;
+			}
+
+			&.icon-learn::before {
+				content: $icon_learn;
+			}
+
+			&.icon-find::before {
+				content: $icon_find;
+				scale: 1.2;
+			}
+
+			&.icon-find-filled::before {
+				content: $icon_find_filled;
+				scale: 1.2;
+			}
+
+			&.icon-find-ea::before {
+				content: $icon_find_ea;
+				scale: 1.2;
+			}
+
+			&.icon-contact::before {
+				content: $icon_contact;
+			}
+
+			&.icon-understand::before {
+				content: $icon_understand;
+			}
 		}
+
+		&.has-icon {
+
+			&::before {
+				content: "";
+				display: inline-block;
+				padding-inline: 0;
+			}
+
+			&.icon-announce::before {
+				content: $icon_announce;
+				height: 2rem;
+				width: 2rem;
+				rotate: -10deg;
+			}
+
+			&.icon-eligible::before {
+				content: $icon_eligible;
+				margin-right: 0;
+				top: 0.15rem;
+			}
+
+			&.icon-find-filled::before {
+				content: $icon_find_filled;
+				margin-right: 0;
+				top: 0;
+				scale: 1.1;
+			}
+
+			&.icon-apply::before {
+				content: $icon_apply;
+				margin-right: 0;
+				top: 0.15rem;
+				width: 1.75rem;
+			}
+
+			&.icon-contact::before {
+				content: $phone_icon;
+				margin-right: 0;
+				top: -0.15rem;
+				scale: 1.25;
+				left: 0.5rem;
+			}
+		}
+
+		&.wrap-normal.wrap-normal {
+			text-wrap: pretty !important;
+		}
+
 	}
 
-	.how-it-works-grid {
-		container: howitworksgrid / inline-size;
+	/* -------------------------------------------------------------------------- */
 
-		display: grid;
-		grid-template-columns: minmax(40%, 200px) 1fr;
-		gap: 1rem;
+	/* CUSTOM GRID CLASSES */
 
+	/* -------------------------------------------------------------------------- */
 
-		#how-it-works-personal {
+	.grid-center {
+		justify-items: center;
+		align-items: center;
+		height: 100%;
+		width: 100%;
+	}
+
+	/* -------------------------------------------------------------------------- */
+
+	/* HOW IT WORKS CONTAINERS */
+
+	/* -------------------------------------------------------------------------- */
+
+	.how-it-works-container {
+
+		--four-up-grid-bp: 650px;
+		--five-up-grid-bp: 800px;
+
+		container: howitworks / inline-size;
+
+		.wp-block-heading {
 
 			&::before {
-				content: $how_it_works_personal_horizontal;
-				display: block;
+				content: $icon_how_it_works;
+				width: 1.75rem;
+				margin-right: 0.5rem;
+				display: inline-block;
+			}
+		}
 
-				@container howitworksgrid (width < 650px) {
-					content: $how_it_works_personal_vertical;
+		.how-it-works-grid {
+			container: howitworksgrid / inline-size;
+
+			display: grid;
+			grid-template-columns: minmax(40%, 200px) 1fr;
+			gap: 1rem;
+
+
+			#how-it-works-personal {
+
+				&::before {
+					content: $how_it_works_personal_horizontal;
+					display: block;
+
+					@container howitworksgrid (width < 650px) {
+						content: $how_it_works_personal_vertical;
+					}
 				}
 			}
-		}
 
-		#how-it-works-contractor {
+			#how-it-works-contractor {
 
-			&::before {
-				content: $how_it_works_contractor_horizontal;
-				display: block;
+				&::before {
+					content: $how_it_works_contractor_horizontal;
+					display: block;
 
-				@container howitworksgrid (width < 800px) {
-					content: $how_it_works_contractor_vertical;
+					@container howitworksgrid (width < 800px) {
+						content: $how_it_works_contractor_vertical;
+					}
 				}
-			}
-		}
-
-		.how-it-works-diagram {
-
-			&::before {
-				display: flex;
-				float: inline-end;
-			}
-
-			min-height: 100px;
-
-			p {
-				font-size: 0;
-			}
-		}
-
-		.how-it-works-labels {
-			grid-template-columns: 1fr;
-			align-items: center;
-
-			p {
-				text-align: left;
-			}
-		}
-
-		&.four-up {
-
-			@container howitworks (width >= 650px) {
-				grid-template-columns: 1fr;
 			}
 
 			.how-it-works-diagram {
-				max-width: 840px;
-				width: 100%;
 
 				&::before {
+					display: flex;
+					float: inline-end;
+				}
+
+				min-height: 100px;
+
+				p {
+					font-size: 0;
+				}
+			}
+
+			.how-it-works-labels {
+				grid-template-columns: 1fr;
+				align-items: center;
+
+				p {
+					text-align: left;
+				}
+			}
+
+			&.four-up {
+
+				@container howitworks (width >= 650px) {
+					grid-template-columns: 1fr;
+				}
+
+				.how-it-works-diagram {
 					max-width: 840px;
 					width: 100%;
 
-					@container howitworksgrid (width < 650px) {
-						max-width: 200px;
+					&::before {
+						max-width: 840px;
+						width: 100%;
+
+						@container howitworksgrid (width < 650px) {
+							max-width: 200px;
+						}
+					}
+				}
+
+				.how-it-works-labels {
+
+					@container howitworks (width >= 650px) {
+						grid-template-columns: repeat(4, minmax(0, 1fr));
+
+						p {
+							text-align: center;
+						}
 					}
 				}
 			}
 
-			.how-it-works-labels {
+			&.five-up {
 
-				@container howitworks (width >= 650px) {
-					grid-template-columns: repeat(4, minmax(0, 1fr));
-
-					p {
-						text-align: center;
-					}
+				@container howitworks (width >= 800px) {
+					grid-template-columns: 1fr;
 				}
-			}
-		}
 
-		&.five-up {
-
-			@container howitworks (width >= 800px) {
-				grid-template-columns: 1fr;
-			}
-
-			.how-it-works-diagram {
-				max-width: 1080px;
-				width: 100%;
-
-				&::before {
+				.how-it-works-diagram {
 					max-width: 1080px;
 					width: 100%;
 
-					@container howitworksgrid (width < 800px) {
-						max-width: 200px;
+					&::before {
+						max-width: 1080px;
+						width: 100%;
+
+						@container howitworksgrid (width < 800px) {
+							max-width: 200px;
+						}
 					}
 				}
-			}
 
-			.how-it-works-labels {
+				.how-it-works-labels {
 
-				@container howitworks (width >= 800px) {
-					grid-template-columns: repeat(5, minmax(0, 1fr));
+					@container howitworks (width >= 800px) {
+						grid-template-columns: repeat(5, minmax(0, 1fr));
 
-					p {
-						text-align: center;
+						p {
+							text-align: center;
+						}
 					}
 				}
 			}
 		}
 	}
 }
+

@@ -1,3 +1,7 @@
+## 1.28.0 December 23, 2025
+– PQEA tooling updated to use text based search filtering for company name and location.
+– Full refactoring of PQEA tool to match contractors.
+
 ## 1.27.1 December 18, 2025
 – Icon style update.
 

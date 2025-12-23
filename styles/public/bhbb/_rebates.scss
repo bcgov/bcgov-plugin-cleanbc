@@ -582,4 +582,28 @@
 			gap: 2rem;
 		}
 	}
+
+	.rebate-amount-row {
+
+		@media (max-width: $breakpoint-sm) {
+			flex-direction: column;
+
+			> * {
+				margin-block-start: 0;
+			}
+
+			.rebate-amount-tag {
+				border-radius: 0 !important;
+				order: -1;
+				padding-inline: 2rem !important;
+				width: 100%;
+				text-align: center !important;
+			}
+		}
+
+		.rebate-amount-tag {
+			white-space: nowrap;
+		}
+	}
+
 }

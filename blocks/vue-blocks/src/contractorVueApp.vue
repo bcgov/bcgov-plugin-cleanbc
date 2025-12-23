@@ -33,7 +33,7 @@
 
           <!-- Location input -->
           <div v-if="isVisible" class="control type-input location-input-control">
-            <label for="locationInput">Filter by service region</label>
+            <label for="contractorLocation">Filter by service region</label>
 
             <div class="custom-input">
               <input
@@ -186,7 +186,7 @@
             <tr>
                 <th class="contractor-heading odd contractor-heading--company-and-location">Company name &amp; <br/>Head office location</th>
                 <!-- <th class="contractor-heading even contractor-heading--contact-name">Head Office</th> -->
-                <th class="contractor-heading odd contractor-heading--email-and-phone">Email & Phone</th>
+                <th class="contractor-heading odd contractor-heading--email-and-phone">Email &amp; Phone</th>
                 <th class="contractor-heading even contractor-heading--service-organizations">Upgrade type(s)</th>
                 <th class="contractor-heading odd contractor-heading--services">Qualified program(s)</th>
             </tr>
@@ -1194,7 +1194,6 @@ onMounted(() => {
   onBeforeUnmount(() => window.removeEventListener('click', onWindowClick))
 })
 </script>
-
 
 <style lang='scss' scoped>
 // See bcgov-plugin-cleanbc/styles/public/betterhomes/_vue-apps.scss

@@ -1,3 +1,9 @@
+// Filter colours
+:root {
+	--blue-filter: brightness(0) saturate(100%) invert(34%) sepia(76%) saturate(472%) hue-rotate(169deg) brightness(89%) contrast(85%); // #369;
+	--white-filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(7483%) hue-rotate(232deg) brightness(106%) contrast(104%); // #fff;
+}
+
 // Better Homes Project Colours
 $apple: #61a744;
 $dark_tangerine: #ffc017;
