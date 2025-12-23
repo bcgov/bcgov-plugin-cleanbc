@@ -166,6 +166,9 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 
 			&.icon-understand::before {
 				content: $icon_understand;
+				padding-block-start: 0.5rem;
+				width: 2.25rem;
+				filter: var(--blue-filter);
 			}
 		}
 
