@@ -1310,7 +1310,6 @@
 	}
 
 	.col {
-		width: 100%;
 		column-span: all;
 
 		@media (max-width: $breakpoint-sm) {
@@ -1318,7 +1317,6 @@
 		}
 
 		@media (min-width: $breakpoint-sm) {
-			width: 15%;
 			column-span: 1;
 		}
 
@@ -1337,6 +1335,13 @@
 
 				@media (min-width: $breakpoint-sm) {
 					width: 25%;
+				}
+			}
+
+			&__program-designation {
+
+				@media (min-width: $breakpoint-sm) {
+					width: 15%;
 				}
 			}
 		}
