@@ -1,3 +1,7 @@
+## 1.28.1 December 24, 2025
+– Contractor tool refactoring for vNext functionality.
+– Filtering typography updates + styles.
+
 ## 1.28.0 December 23, 2025
 – PQEA tooling updated to use text based search filtering for company name and location.
 – Full refactoring of PQEA tool to match contractors.

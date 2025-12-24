@@ -184,9 +184,9 @@
         <!-- Table Header -->
         <thead>
             <tr>
-                <th class="contractor-heading odd contractor-heading--company-and-location">Company name &amp; <br/>Head office location</th>
+                <th class="contractor-heading odd contractor-heading--company-and-location">Company name &amp; head&nbsp;office&nbsp;location</th>
                 <!-- <th class="contractor-heading even contractor-heading--contact-name">Head Office</th> -->
-                <th class="contractor-heading odd contractor-heading--email-and-phone">Email &amp; Phone</th>
+                <th class="contractor-heading odd contractor-heading--email-and-phone">Email &amp; phone</th>
                 <th class="contractor-heading even contractor-heading--service-organizations">Upgrade type(s)</th>
                 <th class="contractor-heading odd contractor-heading--services">Qualified program(s)</th>
             </tr>
@@ -306,34 +306,31 @@
 </template>
 
 <script setup>
-/**
+  /**
  * Vue Composition API imports for reactive data and lifecycle hooks.
- *
- * @namespace VueCompositionAPI
- * @type {object}
- * @property {Function} ref - Function for creating a reactive reference.
- * @property {Function} onMounted - Lifecycle hook that is called after the component is mounted.
- * @property {Function} computed - Function for creating a computed property that automatically updates based on its dependencies.
- * @property {Function} watch - Function for watching a reactive reference or computed property for changes.
  */
- import {
-    ref,
-    onBeforeUnmount,
-    onMounted,
-    computed,
-    nextTick,
-    watch,
-    watchEffect
-} from 'vue';
+  import {
+  ref,
+  onBeforeUnmount,
+  onMounted,
+  computed,
+  nextTick,
+  watch,
+  watchEffect
+} from 'vue'
 import { decodeHtmlEntities, shuffleArray } from '../shared-functions.js'
 import { trackProviderFilterChange, trackProviderClick } from '../analytics-schemas.js'
 import { localAnalyticsReady } from '../standalone-snowplow.js'
+
+/* -----------------------------------------------------------------------------
+ * Small utilities
+ * -------------------------------------------------------------------------- */
 
 /**
  * Debounce a function so it runs only after a delay.
  * @template {(...args: any[]) => any} T
  * @param {T} fn
- * @param {number} [wait=200]
+ * @param {number} [delay=500]
  * @returns {(...args: Parameters<T>) => void}
  */
 function debounce(fn, delay = 500) {
@@ -344,36 +341,49 @@ function debounce(fn, delay = 500) {
   }
 }
 
+const MOBILE_HINT_EMPTY = 'Please type to find your community'
+const MOBILE_HINT_MORE  = 'Continue typing to see more results'
+
 /**
  * Normalize a string for case-insensitive comparisons.
+ * (HTML-decoded, trimmed, lowercased)
  * @param {string} [s]
  * @returns {string}
  */
 const normalize = (s = '') => decodeHtmlEntities(String(s)).trim().toLowerCase()
 
 /**
- * Lightweight fuzzy include (HTML-decoded, case-insensitive).
- * @param {string} [haystack]
- * @param {string} [needle]
+ * Precompute a normalized lookup for a list of strings.
+ * @param {string[]} list
+ * @returns {{ raw: string, norm: string }[]}
+ */
+const toNormalizedList = (list = []) =>
+  list
+    .filter(Boolean)
+    .map(raw => ({ raw, norm: normalize(raw) }))
+
+/**
+ * Fuzzy include (uses pre-normalized haystack).
+ * @param {string} haystackNorm
+ * @param {string} needleNorm
  * @returns {boolean}
  */
-const includesFuzzy = (haystack = '', needle = '') => {
-  const h = normalize(haystack)
-  const n = String(needle).trim().toLowerCase()
-  if (!n) return true
-  return h.includes(n)
+const includesFuzzyNorm = (haystackNorm, needleNorm) => {
+  if (!needleNorm) return true
+  return (haystackNorm || '').includes(needleNorm)
 }
 
 /**
- * Finds the closest matching location name from the set of known locations.
+ * Finds the closest matching location name from known locations.
  * Returns at most 10 candidates when ambiguous.
- * Mirrors the "rebate tool" matching approach (exact, startsWith, includes).
+ *
+ * IMPORTANT: expects pre-normalized location list for speed.
  *
  * @param {string} raw
- * @param {string[]} locationList
+ * @param {{raw:string,norm:string}[]} normalizedLocations
  * @returns {{ match: string|null, reason: string, candidates?: string[] }}
  */
-function findClosestLocation(raw, locationList) {
+function findClosestLocation(raw, normalizedLocations) {
   const q = normalize(raw)
 
   // Ignore hint options if they ever get selected/copied into the input
@@ -384,30 +394,35 @@ function findClosestLocation(raw, locationList) {
   if (!q) return { match: 'all', reason: 'empty' }
   if (q === 'all' || q === 'all locations') return { match: 'all', reason: 'all' }
 
-  const list = (locationList || []).filter(Boolean)
+  const list = normalizedLocations || []
 
   // 1) exact
-  const exact = list.find(loc => normalize(loc) === q)
-  if (exact) return { match: exact, reason: 'exact' }
+  const exact = list.find(x => x.norm === q)
+  if (exact) return { match: exact.raw, reason: 'exact' }
 
-  // 2) startsWith
-  const starts = list
-    .filter(loc => normalize(loc).startsWith(q))
-    .slice(0, 10)
-
+  // 2) startsWith (up to 10)
+  const starts = []
+  for (const x of list) {
+    if (x.norm.startsWith(q)) {
+      starts.push(x.raw)
+      if (starts.length >= 10) break
+    }
+  }
   if (starts.length === 1) return { match: starts[0], reason: 'startsWith' }
   if (starts.length > 1) return { match: null, reason: 'ambiguous_starts', candidates: starts }
 
-  // 3) includes (rank "closer" by earlier match position, then shorter string)
-  const includes = list
-    .map(loc => ({ loc, idx: normalize(loc).indexOf(q) }))
-    .filter(x => x.idx >= 0)
-    .sort((a, b) => (a.idx - b.idx) || (a.loc.length - b.loc.length) || a.loc.localeCompare(b.loc))
-    .map(x => x.loc)
-    .slice(0, 10)
+  // 3) includes (rank by earlier match, then shorter string)
+  const includes = []
+  for (const x of list) {
+    const idx = x.norm.indexOf(q)
+    if (idx >= 0) includes.push({ raw: x.raw, idx })
+  }
 
-  if (includes.length === 1) return { match: includes[0], reason: 'includes' }
-  if (includes.length > 1) return { match: null, reason: 'ambiguous_includes', candidates: includes }
+  includes.sort((a, b) => (a.idx - b.idx) || (a.raw.length - b.raw.length) || a.raw.localeCompare(b.raw))
+  const top = includes.slice(0, 10).map(x => x.raw)
+
+  if (top.length === 1) return { match: top[0], reason: 'includes' }
+  if (top.length > 1) return { match: null, reason: 'ambiguous_includes', candidates: top }
 
   return { match: null, reason: 'none' }
 }
@@ -417,7 +432,6 @@ function findClosestLocation(raw, locationList) {
  * -------------------------------------------------------------------------- */
 
 const loadMoreBtn = ref(null)
-
 const resultsTbody = ref(null)
 
 const contractors = ref([])
@@ -451,7 +465,7 @@ const oldPaginatedContractorsCount = ref(0)
 const oldFilteredContractorsCount = ref(0)
 
 /* -----------------------------------------------------------------------------
- * Mobile-optimized location input (rebate-tool style)
+ * Mobile-optimized location input
  * -------------------------------------------------------------------------- */
 
 const isMobile = ref(false)
@@ -459,11 +473,6 @@ onMounted(() => {
   isMobile.value = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
 })
 
-/**
- * Canonical committed value (desktop typing) and mobile typing buffer.
- * - Desktop: writes directly to locationInputValue while typing
- * - Mobile: writes to locationInputDisplay while typing, commit happens on blur/change/enter
- */
 const locationInputValue = ref('')     // committed display value
 const locationInputDisplay = ref('')   // mobile typing buffer
 
@@ -475,31 +484,18 @@ watch(locationInputValue, v => {
   if (isMobile.value) locationInputDisplay.value = v || ''
 })
 
-/**
- * v-model proxy matching the rebate tool.
- * @type {import('vue').ComputedRef<string>}
- */
 const locationInputProxy = computed({
   get() {
     return isMobile.value ? locationInputDisplay.value : locationInputValue.value
   },
   set(val) {
-    if (isMobile.value) {
-      locationInputDisplay.value = val
-    } else {
-      locationInputValue.value = val
-    }
+    if (isMobile.value) locationInputDisplay.value = val
+    else locationInputValue.value = val
   }
 })
 
-
-/**
- * Handle focus on the contractor location input.
- * Includes a small "refocus" trick that improves iOS keyboard behaviour.
- */
 function handleLocationFocus() {
   isLocationFocused.value = true
-
   if (isMobile.value) {
     setTimeout(() => {
       document.querySelector('#contractorLocation')?.focus()
@@ -507,31 +503,23 @@ function handleLocationFocus() {
   }
 }
 
-/**
- * Commit location selection only when the user is "done" (blur/change/enter).
- * Never commit/filter on every keystroke on mobile.
- *
- * @param {'blur'|'change'|'enter'} [trigger='blur']
- */
 const commitLocation = (trigger = 'change') => {
-
   const el = document.querySelector('#contractorLocation')
 
-  if (!isMobile && (trigger === 'enter' || trigger === 'change')) {
-    if (el) el.focus()
+  if (!isMobile.value && (trigger === 'enter' || trigger === 'change')) {
+    el?.focus()
   }
 
-  // mark touched only when user completes interaction
   locationTouched.value = true
 
-  // mobile: re-read DOM value to capture datalist selection reliably
+  // mobile: re-read DOM value on blur to capture datalist selection reliably
   if (isMobile.value && trigger === 'blur') {
     if (el) locationInputDisplay.value = el.value
   }
 
   const raw = (isMobile.value ? locationInputDisplay.value : locationInputValue.value) || ''
-  const list = locations.value || []
-  const { match, reason, candidates = [] } = findClosestLocation(raw, list)
+  const normalizedList = normalizedLocations.value
+  const { match, reason, candidates = [] } = findClosestLocation(raw, normalizedList)
 
   // empty => reset
   if (!raw.trim()) {
@@ -549,7 +537,6 @@ const commitLocation = (trigger = 'change') => {
     locationInputValue.value = match === 'all' ? '' : match
     locationInputDisplay.value = match === 'all' ? '' : match
   } else {
-    // invalid => don’t filter on garbage; show helpful message
     selectedLocation.value = 'all'
     const example = candidates.slice(0, 3).join(', ')
     locationError.value =
@@ -561,49 +548,12 @@ const commitLocation = (trigger = 'change') => {
   isLocationFocused.value = false
 }
 
-const MOBILE_HINT_EMPTY = 'Please type to find your community'
-const MOBILE_HINT_MORE  = 'Continue typing to see more results'
-
-// Use whatever the user is currently typing (mobile uses display buffer)
 const locationQuery = computed(() => {
   const raw = isMobile.value ? locationInputDisplay.value : locationInputValue.value
   return normalize(raw || '')
 })
 
 const locationQueryIsEmpty = computed(() => !locationQuery.value)
-
-/**
- * Mobile-only proxy list for the datalist.
- * - starts with first 10 options when empty
- * - filters to top 10 as user types
- * - uses startsWith first, then includes as fallback
- */
-const mobileLocationOptions = computed(() => {
-  const list = locations.value || []
-  const q = locationQuery.value
-  if (!q) return []
-
-  const starts = []
-  const includes = []
-
-  for (const loc of list) {
-    const n = normalize(loc)
-    if (n.startsWith(q)) starts.push(loc)
-    else if (n.includes(q)) includes.push(loc)
-    if (starts.length >= 10) break
-  }
-
-  if (starts.length < 10) {
-    for (const loc of includes) {
-      starts.push(loc)
-      if (starts.length >= 10) break
-    }
-  }
-
-  return starts.slice(0, 10)
-})
-
-
 
 /* -----------------------------------------------------------------------------
  * API + caching
@@ -621,10 +571,6 @@ const itemsToClearFromSessionStorage = ref([
   'rebatesTimestamp'
 ])
 
-/**
- * @param {any} error
- * @returns {boolean}
- */
 const isQuotaExceededError = (error) => {
   if (!error) return false
   return (
@@ -635,46 +581,31 @@ const isQuotaExceededError = (error) => {
   )
 }
 
-/**
- * Check whether a timestamp is within the last 24 hours.
- * @param {string|number} timestamp
- * @returns {boolean}
- */
 const isDataValid = (timestamp) => {
   const timeElapsed = Date.now() - parseInt(String(timestamp), 10)
-  const hoursElapsed = timeElapsed / (1000 * 60 * 60)
-  return hoursElapsed < 24
+  return (timeElapsed / (1000 * 60 * 60)) < 24
 }
 
-/**
- * Fetch contractors from cache (session/local) or API.
- * Populates 'contractors' and 'shuffledContractors'.
- * @returns {Promise<void>}
- */
 const fetchData = async () => {
   try {
     isLoading.value = true
     showLoadingMessage.value = true
 
-    // sessionStorage
-    let data = sessionStorage.getItem('contractorsData')
-    let timestamp = sessionStorage.getItem('contractorsTimestamp')
-    let cachedData = null
-
-    if (data && timestamp && isDataValid(timestamp)) {
-      cachedData = JSON.parse(data)
-    } else {
-      // localStorage
-      data = localStorage.getItem('contractorsData')
-      timestamp = localStorage.getItem('contractorsTimestamp')
-      if (data && timestamp && isDataValid(timestamp)) {
-        cachedData = JSON.parse(data)
+    // Try sessionStorage then localStorage
+    const readCache = (store) => {
+      const data = store.getItem('contractorsData')
+      const ts = store.getItem('contractorsTimestamp')
+      if (data && ts && isDataValid(ts)) {
+        try { return JSON.parse(data) } catch { return null }
       }
+      return null
     }
 
-    if (cachedData) {
-      contractors.value = cachedData
-      shuffledContractors.value = shuffleArray([...cachedData])
+    let cached = readCache(sessionStorage) || readCache(localStorage)
+
+    if (cached) {
+      contractors.value = cached
+      shuffledContractors.value = shuffleArray([...cached])
       showLoadingMessage.value = false
       isLoading.value = false
       return
@@ -682,7 +613,6 @@ const fetchData = async () => {
 
     const response = await fetch(contractorsAPI, { cache: 'no-store' })
     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`)
-
     const json = await response.json()
 
     // reduce storage pressure
@@ -693,16 +623,17 @@ const fetchData = async () => {
       console.warn('Error clearing sessionStorage:', clearError)
     }
 
+    const writeCache = (store) => {
+      store.setItem('contractorsData', JSON.stringify(json))
+      store.setItem('contractorsTimestamp', Date.now().toString())
+    }
+
     try {
-      sessionStorage.setItem('contractorsData', JSON.stringify(json))
-      sessionStorage.setItem('contractorsTimestamp', Date.now().toString())
+      writeCache(sessionStorage)
     } catch (storageError) {
       if (isQuotaExceededError(storageError)) {
         console.warn('SessionStorage quota exceeded. Falling back to localStorage.')
-        try {
-          localStorage.setItem('contractorsData', JSON.stringify(json))
-          localStorage.setItem('contractorsTimestamp', Date.now().toString())
-        } catch (lsError) {
+        try { writeCache(localStorage) } catch (lsError) {
           console.error('Error setting data in localStorage:', lsError)
         }
       } else {
@@ -722,77 +653,106 @@ const fetchData = async () => {
 }
 
 /* -----------------------------------------------------------------------------
- * Derived filter option lists
+ * Derived option lists (now single-pass, more defensive)
  * -------------------------------------------------------------------------- */
 
-const types = computed(() => {
+function collectUniqueNames(array, key) {
   const unique = new Set()
-  contractors.value.forEach(contractor => {
-    if (!contractor?.types) return
-    if (typeof contractor.types === 'string') unique.add(contractor.types?.name)
-    else if (Array.isArray(contractor.types)) contractor.types.forEach(t => unique.add(t?.name))
-  })
-  return Array.from(unique).filter(Boolean).sort((a, b) => a.localeCompare(b))
-})
+  for (const c of array) {
+    const items = c?.[key]
+    if (!items) continue
 
-const programs = computed(() => {
-  const unique = new Set()
-  contractors.value.forEach(contractor => {
-    if (!contractor?.program_designations) return
-    if (typeof contractor.program_designations === 'string') unique.add(contractor.program_designations?.name)
-    else if (Array.isArray(contractor.program_designations)) contractor.program_designations.forEach(p => unique.add(p?.name))
-  })
-  return Array.from(unique).filter(Boolean).sort((a, b) => a.localeCompare(b))
-})
+    // You currently treat "string" as if it has .name; keep behaviour safe.
+    if (Array.isArray(items)) {
+      for (const it of items) if (it?.name) unique.add(it.name)
+    } else if (items?.name) {
+      unique.add(items.name)
+    }
+  }
+  return Array.from(unique).sort((a, b) => a.localeCompare(b))
+}
 
-const locations = computed(() => {
-  const unique = new Set()
-  contractors.value.forEach(contractor => {
-    if (!contractor?.locations) return
-    if (typeof contractor.locations === 'string') unique.add(contractor.locations?.name)
-    else if (Array.isArray(contractor.locations)) contractor.locations.forEach(l => unique.add(l?.name))
-  })
-  return Array.from(unique).filter(Boolean).sort((a, b) => a.localeCompare(b))
+const types = computed(() => collectUniqueNames(contractors.value, 'types'))
+const programs = computed(() => collectUniqueNames(contractors.value, 'program_designations'))
+const locations = computed(() => collectUniqueNames(contractors.value, 'locations'))
+
+/**
+ * Normalized location list, computed once per locations change,
+ * used for matching & mobile suggestion generation.
+ */
+const normalizedLocations = computed(() => toNormalizedList(locations.value))
+
+/* -----------------------------------------------------------------------------
+ * Mobile proxy location datalist options (no repeated normalize in loops)
+ * -------------------------------------------------------------------------- */
+
+const mobileLocationOptions = computed(() => {
+  const q = locationQuery.value
+  if (!q) return []
+
+  const list = normalizedLocations.value
+  const starts = []
+  const includes = []
+
+  for (const x of list) {
+    if (x.norm.startsWith(q)) {
+      starts.push(x.raw)
+      if (starts.length >= 10) return starts
+    } else if (x.norm.includes(q)) {
+      includes.push(x.raw)
+    }
+  }
+
+  // Fill with includes up to 10
+  for (const raw of includes) {
+    starts.push(raw)
+    if (starts.length >= 10) break
+  }
+
+  return starts
 })
 
 /* -----------------------------------------------------------------------------
- * Filtering + pagination/load more
+ * Filtering + pagination/load more (single-pass filter with early exits)
  * -------------------------------------------------------------------------- */
 
-const filteredContractorsByType = computed(() => {
-  const selectedType = selectedUpgradeType.value
-  if (selectedType === 'all') return shuffledContractors.value
+/**
+ * Precompute "row indexes" once per fetch/shuffle to avoid decoding
+ * and repeatedly walking nested arrays in computed filters.
+ */
+const contractorIndex = computed(() => {
+  const arr = shuffledContractors.value || []
+  return arr.map((c) => {
+    const companyNorm = normalize(c?.company_name || '')
+    const typeNames = new Set((c?.types || []).map(t => t?.name).filter(Boolean))
+    const locNames  = new Set((c?.locations || []).map(l => l?.name).filter(Boolean))
+    const progNames = new Set((c?.program_designations || []).map(p => p?.name).filter(Boolean))
 
-  return shuffledContractors.value.filter(contractor =>
-    contractor.types && contractor.types.some(type => type.name === selectedType)
-  )
+    return { c, companyNorm, typeNames, locNames, progNames }
+  })
 })
 
 const filteredContractors = computed(() => {
-  const selectedLoc = selectedLocation.value
-  const selectedProg = selectedProgram.value
+  const typeSel = selectedUpgradeType.value
+  const locSel  = selectedLocation.value
+  const progSel = selectedProgram.value
 
-  let results = [...filteredContractorsByType.value]
+  const nameNeedleNorm = normalize(nameQuery.value || '')
 
-  if (nameQuery.value) {
-    results = results.filter(c => includesFuzzy(c.company_name, nameQuery.value))
+  const out = []
+  for (const row of contractorIndex.value) {
+    // Type
+    if (typeSel !== 'all' && !row.typeNames.has(typeSel)) continue
+    // Name (fuzzy)
+    if (nameNeedleNorm && !includesFuzzyNorm(row.companyNorm, nameNeedleNorm)) continue
+    // Location
+    if (locSel !== 'all' && !row.locNames.has(locSel)) continue
+    // Program
+    if (progSel !== 'all' && !row.progNames.has(progSel)) continue
+
+    out.push(row.c)
   }
-
-  // Location filter (NOTE: selectedLocation is a NAME string or 'all')
-  if (selectedLoc !== 'all') {
-    results = results.filter(c =>
-      c.locations && c.locations.some(l => l.name === selectedLoc)
-    )
-  }
-
-  // Program filter
-  if (selectedProg !== 'all') {
-    results = results.filter(c =>
-      c.program_designations && c.program_designations.some(p => p.name === selectedProg)
-    )
-  }
-
-  return results
+  return out
 })
 
 const totalPages = computed(() => {
@@ -802,12 +762,12 @@ const totalPages = computed(() => {
 })
 
 const displayedContractors = computed(() => {
+  const list = filteredContractors.value
   if (displayMode.value === 'loadMore') {
-    return filteredContractors.value.slice(0, visibleCount.value)
+    return list.slice(0, visibleCount.value)
   }
   const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return filteredContractors.value.slice(start, end)
+  return list.slice(start, start + pageSize.value)
 })
 
 const remainingCount = computed(() =>
@@ -818,10 +778,6 @@ const nextLoadCount = computed(() =>
   Math.min(pageSize.value, remainingCount.value)
 )
 
-/**
- * Focus the first link available in newly shown rows after "Load more".
- * @param {number} startIndex - index where new results begin
- */
 const focusFirstNewLink = async (startIndex) => {
   await nextTick()
   const tbody = resultsTbody.value
@@ -836,14 +792,9 @@ const focusFirstNewLink = async (startIndex) => {
       return
     }
   }
-
   loadMoreBtn.value?.focus?.()
 }
 
-/**
- * Load more results (loadMore mode) then move focus to the first link in the new chunk.
- * @returns {Promise<void>}
- */
 const loadMore = async () => {
   const startIndex = displayedContractors.value.length
   visibleCount.value = Math.min(
@@ -853,19 +804,13 @@ const loadMore = async () => {
   await focusFirstNewLink(startIndex)
 }
 
-/** Go to previous page (paginate mode). */
 const prevPage = () => (currentPage.value > 1 ? currentPage.value-- : null)
-/** Go to next page (paginate mode). */
 const nextPage = () => (currentPage.value < totalPages.value ? currentPage.value++ : null)
 
 /* -----------------------------------------------------------------------------
  * URL assembly + copy link
  * -------------------------------------------------------------------------- */
 
-/**
- * Assemble a sharable URL from current filter state.
- * @returns {string}
- */
 const assembleUrl = () => {
   const baseUrl = window.location.origin + window.location.pathname
   const urlParams = new URLSearchParams()
@@ -884,12 +829,6 @@ const assembleUrl = () => {
   return `${baseUrl}?${urlParams.toString()}`
 }
 
-/**
- * Show a temporary feedback message in the UI when link copied.
- * @param {Event} event
- * @param {string} [target='.filter-container']
- * @param {string} msg
- */
 function handleLinkCopiedMessageContent(event, target = '.filter-container', msg) {
   const root = event?.target?.closest?.(target) || document.querySelector(target) || document.body
   const el = root?.querySelector?.('.copy-message')
@@ -904,10 +843,6 @@ function handleLinkCopiedMessageContent(event, target = '.filter-container', msg
   }, 1600)
 }
 
-/**
- * Copy assembled URL to clipboard.
- * @param {Event} event
- */
 const addLinkToClipboard = (event) => {
   const url = assembleUrl()
   navigator.clipboard
@@ -923,11 +858,6 @@ const addLinkToClipboard = (event) => {
  * UI helpers (existing behaviour)
  * -------------------------------------------------------------------------- */
 
-/**
- * Insert breakpoints into an email string for nicer wrapping.
- * @param {string} email
- * @returns {string}
- */
 const insertBreakableChar = (email) => String(email || '').replace(/@/g, '&#8203;@').replace(/\./g, '&#8203;.')
 
 const resetSelectsActiveState = () => {
@@ -935,19 +865,11 @@ const resetSelectsActiveState = () => {
   activeSelects.forEach((item) => item.classList.remove('is-active'))
 }
 
-/**
- * Toggle active state on a custom select wrapper.
- * @param {Event} event
- */
 const selectIsActive = (event) => {
   if (event.type !== 'click') event.target.parentNode.classList.remove(activeClass.value)
   else event.target.parentNode.classList.toggle(activeClass.value)
 }
 
-/**
- * Apply a brief "updating" animation class to DOM nodes matching selector.
- * @param {string} elementCssPath
- */
 const handleUpdatingAnimationClass = (elementCssPath) => {
   const elements = document.querySelectorAll(elementCssPath)
   elements.forEach((element) => {
@@ -1005,7 +927,6 @@ const clearFilters = () => {
   selectedUpgradeType.value = defaultSelectedUpgradeType.value
   selectedProgram.value = defaultSelectedProgram.value
 
-  // location reset + input reset
   selectedLocation.value = 'all'
   locationInputValue.value = ''
   locationInputDisplay.value = ''
@@ -1055,14 +976,10 @@ watch(selectedProgram, (newVal, oldVal) => {
 
 watch(selectedLocation, (newVal, oldVal) => {
   if (newVal === oldVal) return
-
-  // If user is typing, don't clobber their input mid-edit.
   if (isLocationFocused.value) return
 
-  // Keep the input aligned with applied filter.
   locationInputValue.value = newVal === 'all' ? '' : newVal
 
-  // Clear error for valid states.
   if (newVal === 'all' || locations.value.includes(newVal)) {
     locationError.value = ''
     locationTouched.value = false
@@ -1077,7 +994,6 @@ watch(selectedLocation, (newVal, oldVal) => {
   })
 })
 
-// Reset paging on any filter change.
 watch([selectedUpgradeType, selectedProgram, selectedLocation, nameQuery], () => {
   currentPage.value = 1
   visibleCount.value = pageSize.value
@@ -1088,13 +1004,7 @@ watch(displayMode, () => {
   visibleCount.value = pageSize.value
 })
 
-// UI animations (existing behaviour)
-watch(() => displayedContractors.value.length, () => {
-  // If you want to re-enable auto-load observer later, this is where you'd hook it.
-})
-
 watch(totalPages, () => handleUpdatingAnimationClass('.control.pagination .total-pages'))
-
 watch(currentPage, () => handleUpdatingAnimationClass('.control.pagination .current-page'))
 
 watch(displayedContractors, () => {
@@ -1141,7 +1051,6 @@ watchEffect(() => {
   const urlParams = new URLSearchParams(window.location.search)
   const showParam = urlParams.get('show')
 
-  // Tool guard
   if (urlParams.get('tool') !== null && urlParams.get('tool') !== 'contractors') {
     console.warn('Tool parameter does not match "contractors". Initialization skipped.')
     return
@@ -1174,7 +1083,7 @@ watchEffect(() => {
       locationTouched.value = false
     } else {
       selectedLocation.value = 'all'
-      locationInputValue.value = decoded // show what was provided
+      locationInputValue.value = decoded
       locationError.value = 'That service region was not recognized. Please choose one from the list of available options.'
       locationTouched.value = true
     }
@@ -1184,7 +1093,7 @@ watchEffect(() => {
 })
 
 /* -----------------------------------------------------------------------------
- * Global click handlers — keep ONE, not two duplicates.
+ * Global click handlers — keep ONE.
  * -------------------------------------------------------------------------- */
 onMounted(() => {
   const onWindowClick = (event) => {
@@ -1194,6 +1103,7 @@ onMounted(() => {
   onBeforeUnmount(() => window.removeEventListener('click', onWindowClick))
 })
 </script>
+
 
 <style lang='scss' scoped>
 // See bcgov-plugin-cleanbc/styles/public/betterhomes/_vue-apps.scss

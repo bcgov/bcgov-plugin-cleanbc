@@ -109,9 +109,9 @@
 
       <thead>
         <tr>
-          <th class="pqea-heading odd pqea-heading--company-and-location">Company name &amp; <br/>Head office location</th>
-          <th class="pqea-heading even pqea-heading--contact-name">Energy Advisor</th>
-          <th class="pqea-heading odd pqea-heading--email-and-phone">Email &amp; Phone</th>
+          <th class="pqea-heading odd pqea-heading--company-and-location">Company name &amp; head&nbsp;office&nbsp;location</th>
+          <th class="pqea-heading even pqea-heading--contact-name">Energy advisor</th>
+          <th class="pqea-heading odd pqea-heading--email-and-phone">Email &amp; phone</th>
         </tr>
       </thead>
 
@@ -124,7 +124,7 @@
 
         <tr v-if="isLoading" class="is-loading" role="status" aria-live="polite">
           <td colspan="100%">
-            <p class="no-results loading">Retrieving a list of Energy Advisors, please wait...</p>
+            <p class="no-results loading">Retrieving a list of energy advisors, please wait...</p>
           </td>
         </tr>
 
