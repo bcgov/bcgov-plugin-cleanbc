@@ -197,6 +197,28 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 				rotate: -10deg;
 			}
 
+			&.icon-apply::before {
+				content: $icon_apply;
+				margin-right: 0;
+				top: 0;
+				width: 1.75rem;
+			}
+
+			&.icon-available::before {
+				content: $icon_available;
+				margin-right: 0;
+				top: 0.15rem;
+				width: 1.75rem;
+			}
+
+			&.icon-contact::before {
+				content: $phone_icon;
+				margin-right: 0;
+				top: -0.15rem;
+				scale: 1.25;
+				left: 0.5rem;
+			}
+
 			&.icon-eligible::before {
 				content: $icon_eligible;
 				margin-right: 0;
@@ -210,19 +232,25 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 				scale: 1.1;
 			}
 
-			&.icon-apply::before {
-				content: $icon_apply;
+			&.icon-info::before {
+				content: $info_icon;
 				margin-right: 0;
-				top: 0.15rem;
-				width: 1.75rem;
+				top: 6px;
 			}
 
-			&.icon-contact::before {
-				content: $phone_icon;
+			&.icon-qualified::before {
+				content: $icon_qualified;
+				margin-right: 0;
+				top: 0;
+				scale: 1.2;
+				filter: var(--blue-filter);
+			}
+
+			&.icon-works::before {
+				content: $icon_how_it_works;
 				margin-right: 0;
 				top: -0.15rem;
-				scale: 1.25;
-				left: 0.5rem;
+				scale: 1.15;
 			}
 		}
 
@@ -257,16 +285,6 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 		--five-up-grid-bp: 800px;
 
 		container: howitworks / inline-size;
-
-		.wp-block-heading {
-
-			&::before {
-				content: $icon_how_it_works;
-				width: 1.75rem;
-				margin-right: 0.5rem;
-				display: inline-block;
-			}
-		}
 
 		.how-it-works-grid {
 			container: howitworksgrid / inline-size;
@@ -387,6 +405,20 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 				}
 			}
 		}
+	}
+
+	/* -------------------------------------------------------------------------- */
+
+	/* REBATES */
+
+	/* -------------------------------------------------------------------------- */
+
+	.page-title:has(.is-acf-field .value:empty) {
+		display: none;
+	}
+
+	.page-title .is-acf-field:has(.value-item) {
+		display: none;
 	}
 }
 

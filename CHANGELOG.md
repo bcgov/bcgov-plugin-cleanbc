@@ -1,3 +1,7 @@
+## 1.28.2 January 2, 2025
+– Basic styles update with new icons.
+– Rebates subtitle show/hide feature.
+
 ## 1.28.1 December 24, 2025
 – Contractor tool refactoring for vNext functionality.
 – Filtering typography updates + styles.
