@@ -33,6 +33,24 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 
 	/* -------------------------------------------------------------------------- */
 
+	/* CARD WITH IMAGE */
+
+	/* -------------------------------------------------------------------------- */
+
+	.image-card {
+		display: flex !important;
+		flex-direction: column;
+		gap: 1rem;
+		overflow: clip;
+	}
+
+	.image-card-content {
+		flex-grow: 1;
+		min-height: auto;
+	}
+
+	/* -------------------------------------------------------------------------- */
+
 	/* CONTACT LIST */
 
 	/* -------------------------------------------------------------------------- */
