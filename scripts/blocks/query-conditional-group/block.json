@@ -6,6 +6,19 @@
   "icon": "visibility",
   "description": "Render this block’s inner content only when URL query params match the configured rules.",
   "attributes": {
+    "groups": {
+      "type": "array",
+      "default": []
+    },
+    "groupLogic": {
+      "type": "string",
+      "default": "OR"
+    },
+    "invertGroups": {
+      "type": "boolean",
+      "default": false
+    },
+
     "rules": {
       "type": "array",
       "default": []
@@ -18,6 +31,7 @@
       "type": "boolean",
       "default": false
     },
+
     "caseSensitive": {
       "type": "boolean",
       "default": false

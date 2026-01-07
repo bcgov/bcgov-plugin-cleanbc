@@ -430,7 +430,8 @@ const loadError = ref('')
 
 const displayGridOrList = ref(true)
 const STORAGE_KEY = 'displayGridOrList'
-
+const PREFERRED_SETTINGS_KEY = 'preferredSettings'
+const REBATE_TOOL_SETTINGS_KEY = 'rebateToolSettings'
 
 function onViewToggleChange() {
   localStorage.setItem(STORAGE_KEY, String(displayGridOrList.value))
@@ -440,6 +441,98 @@ function toggleViewWithKeyboard() {
   displayGridOrList.value = !displayGridOrList.value
   localStorage.setItem(STORAGE_KEY, String(displayGridOrList.value))
 }
+
+function readPreferredSettings() {
+  try {
+    const raw = localStorage.getItem(PREFERRED_SETTINGS_KEY)
+    if (!raw) return {}
+    const parsed = JSON.parse(raw)
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch (e) {
+    return {}
+  }
+}
+
+function writePreferredSettings(partial) {
+  try {
+    const prev = readPreferredSettings()
+    const next = {
+      ...prev,
+      ...partial,
+      updated_at: new Date().toISOString()
+    }
+    localStorage.setItem(PREFERRED_SETTINGS_KEY, JSON.stringify(next))
+  } catch (e) {
+    // no-op
+  }
+}
+
+function readRebateToolSettings() {
+  try {
+    const raw = localStorage.getItem(REBATE_TOOL_SETTINGS_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    return parsed && typeof parsed === 'object' ? parsed : null
+  } catch (e) {
+    return null
+  }
+}
+
+/**
+ * Hydrate preferredSettings from:
+ * - current reactive state (selectedLocationSlug / selectedLocationName / espTier)
+ * - and/or stored rebateToolSettings (location can be slug or name)
+ *
+ * This is safe to call repeatedly; it only writes when it can resolve a valid value.
+ */
+function hydratePreferredSettingsFromRebateToolSettings() {
+  const saved = readRebateToolSettings()
+  const preferred = readPreferredSettings()
+
+  // --- LOCATION ---
+  // Best source: current state if valid
+  let locMatch =
+    (selectedLocationSlug.value && locationOptions.value.find(l => l.slug === selectedLocationSlug.value)) ||
+    (selectedLocationName.value && locationOptions.value.find(l => l.name === selectedLocationName.value)) ||
+    null
+
+  // Fallback: rebateToolSettings (can be slug OR name in your implementation)
+  if (!locMatch && saved?.location) {
+    locMatch =
+      locationOptions.value.find(l => l.slug === saved.location) ||
+      locationOptions.value.find(l => l.name === saved.location) ||
+      null
+  }
+
+  // Only write location if we resolved a real option
+  // (and optionally avoid rewriting if it’s unchanged)
+  if (locMatch) {
+    const nextSlug = locMatch.slug
+    const currentSlug = preferred?.location?.slug || ''
+    if (nextSlug && nextSlug !== currentSlug) {
+      writePreferredSettings({
+        location: {
+          slug: locMatch.slug,
+          name: locMatch.name,
+          region: locMatch.children?.[0]?.name || '',
+          region_slug: locMatch.children?.[0]?.slug || ''
+        }
+      })
+    }
+  }
+
+  // --- ESP TIER ---
+  // If espTier is currently valid, store it.
+  // This will become valid after initFromLocalStorage/query string restores enough fields.
+  const tier = espTier.value
+  if (tier) {
+    if (preferred?.esp_tier !== tier) {
+      writePreferredSettings({ esp_tier: tier })
+    }
+  }
+}
+
+
 
 /**
  * Debounce a function so it runs only after a specified delay.
@@ -797,6 +890,16 @@ const handleLocationInputCommit = debounce(async (trigger = 'change') => {
     updateAddressBar()
     debouncedUpdateRebateDetails()
     ariaStatusMessage.value = `${match.name} selected. Moving to next field.`
+
+    // Save preferredSettings whenever a valid location is chosen by the user
+    writePreferredSettings({
+      location: {
+        slug: match.slug,
+        name: match.name,
+        region: match.children?.[0]?.name || '',
+        region_slug: match.children?.[0]?.slug || ''
+      }
+    })
 
     // NEW: mirror select behaviour in archive mode
     await runArchiveFlowForField('location')
@@ -1361,6 +1464,9 @@ onMounted(async () => {
 
     // Bootstrap completes here.
     bootstrapped.value = true
+
+    // Hydrate preferredSettings from restored rebateToolSettings/state
+    hydratePreferredSettingsFromRebateToolSettings()
 
     watch(
       urlStateDeps,
@@ -2138,6 +2244,28 @@ const espTier = computed(() => {
   if (/-t0$/.test(incomeSlug)) return 'HRR'
   return ''
 })
+
+
+// Hydrate preferredSettings whenever location becomes valid
+watch(
+  [selectedLocationSlug, selectedLocationName, locationOptions],
+  () => {
+    if (!bootstrapped.value) return
+    hydratePreferredSettingsFromRebateToolSettings()
+  },
+  { deep: false, immediate: true }
+)
+
+// Save preferredSettings whenever a valid program tier is available
+watch(
+  espTier,
+  (newTier) => {
+    if (!bootstrapped.value) return
+    if (!newTier) return
+    writePreferredSettings({ esp_tier: newTier })
+  },
+  { immediate: true }
+)
 
 const normalizeHeatingSlug = (val) => {
   if (!val) return ''

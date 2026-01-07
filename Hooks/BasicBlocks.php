@@ -303,43 +303,59 @@ class BasicBlocks {
      * @return string HTML content or empty string.
      */
     public function render_query_conditional_group( $attributes, $content ) {
-        // Verify nonce to prevent tampering.
-        if ( isset( $_GET['_nonce'] ) && ! wp_verify_nonce( $_GET['_nonce'], 'query_conditional_group_nonce' ) ) {
-            return '';
-        }
+		// Verify nonce to prevent tampering.
+		if ( isset( $_GET['_nonce'] ) && ! wp_verify_nonce( $_GET['_nonce'], 'query_conditional_group_nonce' ) ) {
+			return '';
+		}
 
-        $rules          = isset( $attributes['rules'] ) ? $attributes['rules'] : [];
-        $logic          = isset( $attributes['logic'] ) ? $attributes['logic'] : 'AND';
-        $invert         = ! empty( $attributes['invert'] );
-        $case_sensitive = ! empty( $attributes['caseSensitive'] );
-        $client_side    = ! empty( $attributes['clientSideCheck'] );
-        $hide_until_js  = ! empty( $attributes['hideUntilJs'] );
+		$case_sensitive = ! empty( $attributes['caseSensitive'] );
+		$client_side    = ! empty( $attributes['clientSideCheck'] );
+		$hide_until_js  = ! empty( $attributes['hideUntilJs'] );
 
-        $params = $_GET;
+		$params = $_GET;
 
-        $matches = $this->query_conditional_group_evaluate_rules( $rules, $params, $logic, $case_sensitive );
+		// New grouped model (preferred if present).
+		$groups        = isset( $attributes['groups'] ) && is_array( $attributes['groups'] ) ? $attributes['groups'] : [];
+		$group_logic   = isset( $attributes['groupLogic'] ) ? $attributes['groupLogic'] : 'OR';
+		$invert_groups = ! empty( $attributes['invertGroups'] );
 
-        if ( $invert ) {
-            $matches = ! $matches;
-        }
+		$has_groups = ! empty( $groups );
 
-        if ( ! $matches && ! $client_side ) {
-            return '';
-        }
+		if ( $has_groups ) {
+			$matches = $this->query_conditional_group_evaluate_groups( $groups, $params, $group_logic, $invert_groups, $case_sensitive );
+		} else {
+			// Legacy fallback.
+			$rules  = isset( $attributes['rules'] ) ? $attributes['rules'] : [];
+			$logic  = isset( $attributes['logic'] ) ? $attributes['logic'] : 'AND';
+			$invert = ! empty( $attributes['invert'] );
 
-        $wrapper_attrs = get_block_wrapper_attributes(
+			$matches = $this->query_conditional_group_evaluate_rules( $rules, $params, $logic, $case_sensitive );
+			if ( $invert ) {
+				$matches = ! $matches;
+			}
+		}
+
+		if ( ! $matches && ! $client_side ) {
+			return '';
+		}
+
+		$wrapper_attrs = get_block_wrapper_attributes(
             [
-                'class'       => 'query-conditional-group-block',
-                'data-rules'  => esc_attr( wp_json_encode( $rules ) ),
-                'data-logic'  => esc_attr( $logic ),
-                'data-invert' => $invert ? 'true' : 'false',
-                'data-case'   => $case_sensitive ? 'true' : 'false',
-                'style'       => ( $client_side && $hide_until_js ) ? 'display:none;' : '',
+				'class'              => 'query-conditional-group-block',
+				'data-groups'        => $has_groups ? esc_attr( wp_json_encode( $groups ) ) : null,
+				'data-group-logic'   => $has_groups ? esc_attr( $group_logic ) : null,
+				'data-invert-groups' => $has_groups ? ( $invert_groups ? 'true' : 'false' ) : null,
+				'data-rules'         => esc_attr( wp_json_encode( $has_groups ? [] : ( $attributes['rules'] ?? [] ) ) ),
+				'data-logic'         => esc_attr( $attributes['logic'] ?? 'AND' ),
+				'data-invert'        => ! empty( $attributes['invert'] ) ? 'true' : 'false',
+				'data-case'          => $case_sensitive ? 'true' : 'false',
+				'style'              => ( $client_side && $hide_until_js ) ? 'display:none;' : '',
             ]
-        );
+		);
 
-        return sprintf( '<div %1$s>%2$s</div>', $wrapper_attrs, $content );
-    }
+		return sprintf( '<div %1$s>%2$s</div>', $wrapper_attrs, $content );
+	}
+
 
     /**
      * Render the Query Filter block.
@@ -384,6 +400,51 @@ class BasicBlocks {
             esc_attr( $label ),
             esc_js( wp_json_encode( $current_query ) )
         );
+    }
+
+
+    /**
+     * Evaluate grouped conditional rules against query parameters.
+     *
+     * @param array  $groups         Array of groups (each with rules, logic, invert).
+     * @param array  $params         $_GET parameters.
+     * @param string $group_logic    'AND' or 'OR' between groups.
+     * @param bool   $invert_groups  Whether to invert final group result.
+     * @param bool   $global_case    Whether comparisons are case sensitive.
+     *
+     * @return bool Whether the grouped rules match the params.
+     */
+    private function query_conditional_group_evaluate_groups( $groups, $params, $group_logic = 'OR', $invert_groups = false, $global_case = false ) {
+        if ( empty( $groups ) || ! is_array( $groups ) ) {
+            return false;
+        }
+
+        $group_results = array_map(
+            function ( $group ) use ( $params, $global_case ) {
+                $rules  = isset( $group['rules'] ) && is_array( $group['rules'] ) ? $group['rules'] : [];
+                $logic  = isset( $group['logic'] ) ? $group['logic'] : 'AND';
+                $invert = ! empty( $group['invert'] );
+
+                $matches = $this->query_conditional_group_evaluate_rules( $rules, $params, $logic, $global_case );
+
+                if ( $invert ) {
+                    $matches = ! $matches;
+                }
+
+                return $matches;
+            },
+            $groups
+        );
+
+        $matches = ( 'AND' === $group_logic )
+            ? ! in_array( false, $group_results, true )
+            : in_array( true, $group_results, true );
+
+        if ( $invert_groups ) {
+            $matches = ! $matches;
+        }
+
+        return $matches;
     }
 
 

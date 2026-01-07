@@ -1,3 +1,10 @@
+## 1.29.0 January 6, 2025
+– Conditional groups block updated to enable grouped conditions 
+– e.g.: (region = south AND rebate_tier = HRR) OR (region = north AND rebate_tier = HRR AND utility ≠ BC Hydro)
+
+## 1.28.3 January 5, 2025
+– Set up 'preferredSettings' local storage key for enabling auto-population of upgrade type and rebate program on contractor and pqea tools.
+
 ## 1.28.2 January 2, 2025
 – Basic styles update with new icons.
 – Rebates subtitle show/hide feature.
