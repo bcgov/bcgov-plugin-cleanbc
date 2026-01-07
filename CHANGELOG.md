@@ -1,3 +1,6 @@
+## 1.29.1 January 7, 2025
+– Added PDF link check to rebates page reload.
+
 ## 1.29.0 January 6, 2025
 – Conditional groups block updated to enable grouped conditions 
 – e.g.: (region = south AND rebate_tier = HRR) OR (region = north AND rebate_tier = HRR AND utility ≠ BC Hydro)

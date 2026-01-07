@@ -591,6 +591,7 @@ async function updateRebateDetails() {
       nextTick(() => bcgovBlockThemePluginDefnitions())
       nextTick(() => betterhomesRebatesArchiveLoader())
       nextTick(() => betterhomesRebatesExternalLinkCheck())
+      nextTick(() => bcgovBlockThemePluginAccessibility())
     }
   } catch (err) {
     console.error('Failed to update rebate details via AJAX:', err)
