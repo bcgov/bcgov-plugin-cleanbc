@@ -1,5 +1,9 @@
 ## 1.29.1 January 7, 2025
 – Added PDF link check to rebates page reload.
+– Single mode rebates tooling updated to:
+–– Solve "same setting" refresh bug. 
+–– Remove 'other' from type of home select.
+–– Restyled active select options.
 
 ## 1.29.0 January 6, 2025
 – Conditional groups block updated to enable grouped conditions 

@@ -12,11 +12,11 @@
 
     <template v-else>
 
-      <p v-if="(!hasAllSelection || isDirty) && mode === 'single'" class='message warning-message'>
+      <p v-if="(!hasAllSelection || isDirty) && mode === 'single'" class='has-icon warning message tool-message'>
         You may be looking at default or incomplete information.
-        <span v-if='!isDirty'>
-          Please update your settings.
-        </span>
+        <a v-if='!isDirty' @click="toggleCollapseView" @keydown.enter.space.prevent="toggleCollapseView" tabindex='0'>
+          Please update your home's details.
+        </a>
         <span v-if='isDirty'>
           The page URL does not match your settings. Please update and save your selections.
         </span>
@@ -53,7 +53,6 @@
                   <div class="control button-group" v-if="activeEdit !== field.key">
                     <label class='small'>{{ field.shortDesc }}</label>
                     <button class="rebate-setting" :disabled="field.disabled"
-                      :tabindex="isCollapseView ? '-1' : '0'"
                       :class="{ 'is-external-dirty': isExternalDirty && lastChangedField === field.key }"
                       @click="openEdit(field.key)" :ref="el => (buttonRefs[field.key] = el)">
                       {{ field.displayValue }}
@@ -62,11 +61,11 @@
                   <!-- Show select if open -->
                   <div v-else-if="editable && activeEdit === field.key">
                     <figure class="control editable" :aria-label="`${field.shortDesc} setting`">
-                      <button :disabled="!field.model.value" :tabindex="isCollapseView ? '0' : '-1'" type="button" class="close-btn" @click="activeEdit = ''"
+                      <button :disabled="!field.model.value"  type="button" class="close-btn" @click="activeEdit = ''"
                         aria-label="Close edit field"></button>
                       <label :for="`${field.key}Select`">{{ field.label }}</label>
                       <select :key="field.key + '-' + (fieldRenderKeys[field.key] ?? 0)" class="select"
-                        :id="`${field.key}Select`" v-model="field.model.value" :disabled="field.disabled" :tabindex="isCollapseView ? '0' : '-1'" @change="handleSelectChange(field.key, $event.target.value)" @keydown="handleSelectKeydown($event, field.key, field.model.value)" :ref="el => (selectRefs[field.key] = el)">
+                        :id="`${field.key}Select`" v-model="field.model.value" :disabled="field.disabled"  @change="handleSelectChange(field.key, $event.target.value)" @keydown="handleSelectKeydown($event, field.key, field.model.value)" :ref="el => (selectRefs[field.key] = el)">
                         <option disabled :selected="!field.model.value" data-default='Select an option' value="">Select
                           an option</option>
 
@@ -1102,20 +1101,22 @@ async function scrollToQuestion(targetField, { keepPreviousVisible = false } = {
 function handleSelectKeydown(event, fieldKey, currentValue) {
   if (event.key === 'Enter') {
     event.preventDefault()
-    handleSelectChange(fieldKey, currentValue)
+    if (mode.value === 'archive') {
+      runArchiveFlowForField(fieldKey)
+    }
 
-    // Optional: also scroll when Enter moves to next field.
-    nextTick(() => scrollToNextVisibleField(fieldKey))
-  } else if (event.key === 'Escape') {
+    return
+  }
+
+  if (event.key === 'Escape') {
     event.preventDefault()
     activeEdit.value = ''
-  } else if (event.key === 'Tab') {
-    // Don't prevent default. Let Tab move focus naturally.
+    return
+  }
+
+  if (event.key === 'Tab') {
     const direction = event.shiftKey ? 'up' : 'down'
-    // Schedule scroll after focus moves.
-    nextTick(() => {
-      scrollToNextVisibleField(fieldKey, direction)
-    })
+    nextTick(() => scrollToNextVisibleField(fieldKey, direction))
   }
 }
 
@@ -1606,9 +1607,25 @@ const buildingTypeGroups = computed(() => {
     children: sortOtherLast(group.children ?? [])
   }))
 
-  return sortOtherLast(withChildrenSorted)
+  const sorted = sortOtherLast(withChildrenSorted)
+
+  // Single mode: do NOT include the "other" group at all
+  if (mode.value === 'single') {
+    return sorted.filter(g => g?.slug !== 'other')
+  }
+
+  return sorted
 })
 
+watch(
+  () => mode.value,
+  () => {
+    if (mode.value === 'single' && selectedBuildingTypeSlug.value === 'other') {
+      selectedBuildingTypeSlug.value = ''
+    }
+  },
+  { immediate: true }
+)
 
 const childToGroupSlug = computed(() => {
   const map = new Map()
@@ -2911,7 +2928,8 @@ function withQueryString(baseUrl) {
           }
 
           &:is(:focus-visible, :focus) {
-            border: 2px solid #369 !important
+            border: 2px solid #369 !important;
+            outline: 2px solid darkred !important;
           }
         }
 
@@ -3035,8 +3053,8 @@ function withQueryString(baseUrl) {
       }
 
       &.editable {
-        color: white;
-        background-color: var(--wp--preset--color--primary-brand);
+        color: #369;
+        background-color: var(--wp--preset--color--white);
         outline: 2px solid var(--wp--preset--color--primary-brand);
         outline-offset: 2px;
         padding: 0.5rem;
@@ -3044,7 +3062,7 @@ function withQueryString(baseUrl) {
         position: relative;
 
         & label {
-          color: white;
+          color: #369;
           padding-inline-end: 1.25rem;
         }
 
@@ -3060,6 +3078,7 @@ function withQueryString(baseUrl) {
           cursor: pointer;
           appearance: none;
           min-width: unset;
+          filter: var(--blue-filter);
 
           &[disabled] {
             opacity: 0.25;
@@ -3113,12 +3132,16 @@ function withQueryString(baseUrl) {
         padding: .5rem 2.5rem .5rem .5rem;
         outline-offset: 2px;
         /* outline: 2px solid var(--wp--preset--color--custom-info-border); */
-        outline: 2px solid var(--wp--preset--color--custom-success-border, green);
+        outline: 1px solid #369;
         /* down arrow */
         background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBkPSJNMjM5IDQ5OC43bDE2MC0xMjggMTguNy0xNS0zMC0zNy41LTE4LjcgMTUtMTQ1IDExNkw3OSAzMzMuM2wtMTguNy0xNS0zMCAzNy41IDE4LjcgMTUgMTYwIDEyOCAxNSAxMiAxNS0xMnptMC00ODUuNWwtMTUtMTItMTUgMTJMNDkgMTQxLjNsLTE4LjcgMTUgMzAgMzcuNSAxOC43LTE1IDE0NS0xMTYgMTQ1IDExNiAxOC43IDE1IDMwLTM3LjUtMTguNy0xNUwyMzkgMTMuM3oiLz48L3N2Zz4=);
         background-repeat: no-repeat;
         background-position: right .65rem center;
         background-size: 0.85rem;
+
+        &:is(:focus-visible, :focus) {
+          outline: 3px solid #369 !important;
+        }
 
         &:has(option[data-default="Select an option"]:checked) {
           outline: 2px solid #bfdfe7;
@@ -3779,6 +3802,15 @@ body.betterhomesbc #dialog .dialog-content h2 {
   border-radius: 0.5rem;
   font-weight: 500;
   font-size: 1rem !important;
+
+  &.tool-message {
+    padding: 0.5rem 1rem 1rem;
+
+    &::before {
+      top: 0.8rem;
+      margin-right: 0.5rem;
+    }
+  }
 
   :is(p) {
     margin: 0;

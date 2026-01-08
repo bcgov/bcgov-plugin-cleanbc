@@ -546,7 +546,7 @@
 
 	.button,
 	button {
-		background-color: $bahamablue;
+		background-color: #369;
 		color: $white;
 		outline: $default_outline_offset solid transparent;
 		outline-offset: $default_outline_offset;
@@ -554,10 +554,10 @@
 
 		&:hover,
 		&:focus {
-			background-color: darken($bahamablue, 7.5%);
+			background-color: #369;
 			display: inline-block;
 			transition: all $default_transition_timing_fn $default_transition_duration;
-			outline: $default_outline_offset solid darken($bondiblue, 7.5%);
+			outline: 2px solid #369;
 		}
 
 		&[disabled] {
