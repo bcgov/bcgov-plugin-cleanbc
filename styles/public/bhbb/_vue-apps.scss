@@ -569,8 +569,8 @@
 		}
 
 		&[disabled] {
-			color: $scorpiongrey;
-			background-color: $vehiclegrey;
+			color: $scorpiongrey !important;
+			background-color: $vehiclegrey !important;
 			transition: all $default_transition_timing_fn $default_transition_duration;
 			cursor: default;
 
