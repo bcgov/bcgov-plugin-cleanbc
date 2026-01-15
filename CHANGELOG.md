@@ -1,3 +1,20 @@
+## 1.30.0 January 14, 2025
+– Added copy-to-clipboard links for filter states, allowing users to share pre-filtered Contractor and Energy Advisor (PQEA) results
+– Implemented query-string hydration so shared links restore filter state on page load
+– Added support for company name filtering via URL parameter (company) in both tools
+– Added support for service region filtering via URL parameter (region) in both tools
+– Standardized tool identification using the tool query parameter (contractors, pqeas) to prevent cross-tool hydration
+– Prevented double URL encoding by using URL / URLSearchParams for query construction
+– Improved clipboard reliability, including a fallback for browsers without navigator.clipboard support (e.g. Safari)
+– Prevented double-firing of copy actions on touch devices by removing redundant touchend handlers
+– Ensured filter hydration runs only once after required data is loaded, avoiding repeated re-application of state
+– Added optional URL synchronization as filters change (debounced) so the address bar reflects current selections
+– Added back/forward browser navigation support (popstate) to rehydrate filters from the URL
+– Updated Reset selection behavior to clear filters and update the URL consistently
+– Fixed disabled state logic on Copy link buttons to reflect only available filters per tool
+– Aligned PQEA filtering behavior with Contractor tool patterns for consistency
+– Corrected handling of the show=off query parameter to properly hide filter controls when present
+
 ## 1.29.1 January 7, 2025
 – Added PDF link check to rebates page reload.
 – Single mode rebates tooling updated to:

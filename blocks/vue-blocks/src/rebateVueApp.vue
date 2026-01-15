@@ -753,7 +753,7 @@ const addLinkToClipboard = (event) => {
     navigator.clipboard
         .writeText(url)
         .then(() => {
-            handleLinkCopiedMessageContent(event, '.filter-container', 'Link copied to clipboard successfully!');
+            handleLinkCopiedMessageContent(event, '.filter-container', 'Shareable link copied to clipboard!');
         })
         .catch((err) => {
             console.error('Failed to copy URL:', err);

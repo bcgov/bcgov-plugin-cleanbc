@@ -117,26 +117,27 @@
             Showing {{ displayedContractors.length }} of {{ filteredContractors.length }} contractors
           </p>
 
+          <!-- Add Link to Clipboard Button -->
+          <div class="control copy-link-btn">
+              <button
+                class="copy-link share"
+                @click.prevent="addLinkToClipboard"
+                @keydown.enter.prevent="addLinkToClipboard"
+                :disabled="selectedUpgradeType === 'all' && selectedProgram === 'all' && selectedLocation === 'all'"
+                type="button"
+              >
+                Share
+              </button>
+              <span class="copy-message isFadedOut" role="status" aria-live="polite"></span>
+          </div>
+          
           <button class="clear-filters" @click.prevent="clearFilters"
             @touchend="clearFilters"
             @keydown.enter.prevent="clearFilters"
             type="button">
             Reset selection
           </button>
-        </div>
-
-         <!-- Add Link to Clipboard Button -->
-         <div v-if='false && isVisible' class="control copy-link-btn">
-            <button class="copy-link" 
-                @click.prevent="addLinkToClipboard"
-                @touchend="addLinkToClipboard"
-                @keydown.enter.prevent="addLinkToClipboard"
-                :disabled="selectedUpgradeType === 'all' && selectedProgram === 'all' && selectedLocation === 'all'"
-                type="button">
-                Copy link
-            </button>
-            <span class="copy-message isFadedOut" role="status" aria-live="polite"></span>
-        </div>
+      </div>
 
         <!-- Pagination Controls -->
         <div v-if="(isVisible && 1 !== totalPages) || (1 < totalPages && !isVisible)" class="contractorsFilterPagination control pagination pagination--top">
@@ -813,21 +814,26 @@ const nextPage = () => (currentPage.value < totalPages.value ? currentPage.value
 
 const assembleUrl = () => {
   const baseUrl = window.location.origin + window.location.pathname
-  const urlParams = new URLSearchParams()
-  urlParams.set('tool', 'contractors')
+  const url = new URL(baseUrl)
 
+  url.searchParams.set('tool', 'contractors')
+
+  if (nameQuery.value?.trim()) {
+    url.searchParams.set('company', nameQuery.value.trim())
+  }
   if (selectedUpgradeType.value && selectedUpgradeType.value !== 'all') {
-    urlParams.set('type', encodeURIComponent(selectedUpgradeType.value))
+    url.searchParams.set('type', selectedUpgradeType.value)
   }
   if (selectedProgram.value && selectedProgram.value !== 'all') {
-    urlParams.set('program', encodeURIComponent(selectedProgram.value))
+    url.searchParams.set('program', selectedProgram.value)
   }
   if (selectedLocation.value && selectedLocation.value !== 'all') {
-    urlParams.set('region', encodeURIComponent(selectedLocation.value))
+    url.searchParams.set('region', selectedLocation.value)
   }
 
-  return `${baseUrl}?${urlParams.toString()}`
+  return url.toString()
 }
+
 
 function handleLinkCopiedMessageContent(event, target = '.filter-container', msg) {
   const root = event?.target?.closest?.(target) || document.querySelector(target) || document.body
@@ -843,16 +849,53 @@ function handleLinkCopiedMessageContent(event, target = '.filter-container', msg
   }, 1600)
 }
 
-const addLinkToClipboard = (event) => {
-  const url = assembleUrl()
-  navigator.clipboard
-    ?.writeText(url)
-    .then(() => handleLinkCopiedMessageContent(event, '.filter-container', 'Link copied to clipboard successfully!'))
-    .catch((err) => {
-      console.error('Failed to copy URL:', err)
-      handleLinkCopiedMessageContent(event, '.filter-container', 'Copy failed')
-    })
+async function copyTextToClipboard(text) {
+  // Modern async clipboard (works in secure contexts + most modern browsers)
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text)
+    return true
+  }
+
+  // Fallback for Safari / older browsers
+  const ta = document.createElement('textarea')
+  ta.value = text
+  ta.setAttribute('readonly', '')
+  ta.style.position = 'fixed'
+  ta.style.left = '-9999px'
+  ta.style.top = '0'
+  document.body.appendChild(ta)
+
+  ta.select()
+  ta.setSelectionRange(0, ta.value.length)
+
+  let ok = false
+  try {
+    ok = document.execCommand('copy')
+  } catch {
+    ok = false
+  } finally {
+    document.body.removeChild(ta)
+  }
+  return ok
 }
+
+const addLinkToClipboard = async (event) => {
+  const url = assembleUrl()
+
+  try {
+    const ok = await copyTextToClipboard(url)
+    handleLinkCopiedMessageContent(
+      event,
+      '.filter-container',
+      ok ? 'Shareable link copied to clipboard!' : 'Copy failed'
+    )
+    if (!ok) console.warn('Clipboard fallback failed.')
+  } catch (err) {
+    console.error('Failed to copy URL:', err)
+    handleLinkCopiedMessageContent(event, '.filter-container', 'Copy failed')
+  }
+}
+
 
 /* -----------------------------------------------------------------------------
  * UI helpers (existing behaviour)
@@ -938,9 +981,7 @@ const clearFilters = () => {
   currentPage.value = 1
   visibleCount.value = pageSize.value
 
-  history.replaceState(selectedUpgradeType.value, defaultSelectedUpgradeType.value)
-  history.replaceState(selectedLocation.value, defaultSelectedLocation.value)
-  history.replaceState(selectedProgram.value, defaultSelectedProgram.value)
+  window.history.replaceState({}, '', assembleUrl())
 
   if (currentPage.value !== 1) handleUpdatingAnimationClass('.control.pagination .pages')
   currentPage.value = 1
@@ -1045,51 +1086,96 @@ onMounted(() => {
   if (showParam === 'off') isVisible.value = true
 })
 
-watchEffect(() => {
-  if (!types.value.length || !programs.value.length || !locations.value.length) return
+const didHydrateFromUrl = ref(false)
 
+function hydrateFromUrl() {
   const urlParams = new URLSearchParams(window.location.search)
   const showParam = urlParams.get('show')
 
-  if (urlParams.get('tool') !== null && urlParams.get('tool') !== 'contractors') {
+  // Only guard tool param if present
+  const toolParam = urlParams.get('tool')
+  if (toolParam !== null && toolParam !== 'contractors') {
     console.warn('Tool parameter does not match "contractors". Initialization skipped.')
     return
   }
 
   if (showParam === 'off') isVisible.value = false
 
+  // IMPORTANT: URLSearchParams.get() is already decoded.
+  const companyName = urlParams.get('company')
+  const serviceRegion = urlParams.get('region')
   const upgradeType = urlParams.get('type')
   const rebateProgram = urlParams.get('program')
-  const serviceRegion = urlParams.get('region')
 
-  if (upgradeType) {
-    const decoded = decodeURIComponent(upgradeType)
-    if (types.value.includes(decoded)) selectedUpgradeType.value = decoded
-    else console.warn(`Invalid upgrade type: ${decoded}`)
-  }
-
-  if (rebateProgram) {
-    const decoded = decodeURIComponent(rebateProgram)
-    if (programs.value.includes(decoded)) selectedProgram.value = decoded
-    else console.warn(`Invalid rebate program: ${decoded}`)
+  if (companyName?.trim()) {
+    nameQuery.value = companyName.trim()
+  } else {
+    nameQuery.value = ''
   }
 
   if (serviceRegion) {
-    const decoded = decodeURIComponent(serviceRegion)
-    if (locations.value.includes(decoded)) {
-      selectedLocation.value = decoded
-      locationInputValue.value = decoded
+    if (locations.value.includes(serviceRegion)) {
+      selectedLocation.value = serviceRegion
+      locationInputValue.value = serviceRegion
+      locationInputDisplay.value = serviceRegion
       locationError.value = ''
       locationTouched.value = false
     } else {
       selectedLocation.value = 'all'
-      locationInputValue.value = decoded
-      locationError.value = 'That service region was not recognized. Please choose one from the list of available options.'
+      // keep what user had in link visible in the input so they can correct it
+      locationInputValue.value = serviceRegion
+      locationInputDisplay.value = serviceRegion
+      locationError.value =
+        'That service region was not recognized. Please choose one from the list of available options.'
       locationTouched.value = true
     }
   }
 
+  if (upgradeType) {
+    if (types.value.includes(upgradeType)) selectedUpgradeType.value = upgradeType
+    else console.warn(`Invalid upgrade type: ${upgradeType}`)
+  }
+
+  if (rebateProgram) {
+    if (programs.value.includes(rebateProgram)) selectedProgram.value = rebateProgram
+    else console.warn(`Invalid rebate program: ${rebateProgram}`)
+  }
+
   showLoadingMessage.value = false
+}
+
+watch(
+  [types, programs, locations],
+  ([t, p, l]) => {
+    if (didHydrateFromUrl.value) return
+    if (!t.length || !p.length || !l.length) return
+
+    didHydrateFromUrl.value = true
+    hydrateFromUrl()
+  },
+  { immediate: true }
+)
+
+const syncUrlFromState = debounce(() => {
+  window.history.replaceState({}, '', assembleUrl())
+}, 250)
+
+// Keep URL synced for all filters INCLUDING name
+watch([selectedUpgradeType, selectedProgram, selectedLocation, nameQuery], () => {
+  if (!didHydrateFromUrl.value) return
+  syncUrlFromState()
+})
+
+
+onMounted(() => {
+  const onPopState = () => {
+    // Re-hydrate if user navigates browser history to a different query string
+    if (types.value.length && programs.value.length && locations.value.length) {
+      hydrateFromUrl()
+    }
+  }
+  window.addEventListener('popstate', onPopState)
+  onBeforeUnmount(() => window.removeEventListener('popstate', onPopState))
 })
 
 /* -----------------------------------------------------------------------------

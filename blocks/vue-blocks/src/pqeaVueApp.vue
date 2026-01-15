@@ -80,10 +80,23 @@
             Showing {{ displayedPqeas.length }} of {{ filteredPqeas.length }} energy advisors
           </p>
 
+          <!-- Add Link to Clipboard Button -->
+          <div class="control copy-link-btn">
+              <button
+                class="copy-link share"
+                @click.prevent="addLinkToClipboard"
+                @keydown.enter.prevent="addLinkToClipboard"
+                :disabled="!nameQuery.trim() && selectedLocation === 'all'"
+                type="button"
+              >
+                Share
+              </button>
+              <span class="copy-message isFadedOut" role="status" aria-live="polite"></span>
+          </div>
+
           <button
             class="clear-filters"
             @click.prevent="clearFilters"
-            @touchend="clearFilters"
             @keydown.enter.prevent="clearFilters"
             type="button"
           >
@@ -218,6 +231,21 @@ import { localAnalyticsReady } from '../standalone-snowplow.js'
 /* -----------------------------------------------------------------------------
  * Helpers (mirrors contractor tool)
  * -------------------------------------------------------------------------- */
+
+/**
+ * Debounce a function so it runs only after a delay.
+ * @template {(...args: any[]) => any} T
+ * @param {T} fn
+ * @param {number} [delay=500]
+ * @returns {(...args: Parameters<T>) => void}
+ */
+function debounce(fn, delay = 500) {
+  let timer
+  return (...args) => {
+    clearTimeout(timer)
+    timer = setTimeout(() => fn(...args), delay)
+  }
+}
 
 /**
  * Normalize a string for case-insensitive comparisons.
@@ -624,6 +652,86 @@ const loadMore = async () => {
 }
 
 /* -----------------------------------------------------------------------------
+ * URL assembly + copy link
+ * -------------------------------------------------------------------------- */
+
+const assembleUrl = () => {
+  const baseUrl = window.location.origin + window.location.pathname
+  const url = new URL(baseUrl)
+
+  // IMPORTANT: correct tool name for this component
+  url.searchParams.set('tool', 'pqeas')
+
+  // company
+  if (nameQuery.value?.trim()) {
+    url.searchParams.set('company', nameQuery.value.trim())
+  }
+
+  // region
+  if (selectedLocation.value && selectedLocation.value !== 'all') {
+    url.searchParams.set('region', selectedLocation.value)
+  }
+
+  return url.toString()
+}
+
+
+function handleLinkCopiedMessageContent(event, target = '.filter-container', msg) {
+  const root = event?.target?.closest?.(target) || document.querySelector(target) || document.body
+  const el = root?.querySelector?.('.copy-message')
+  if (!el) return
+
+  el.textContent = msg
+  el.classList.remove('isFadedOut')
+
+  setTimeout(() => el.classList.add('isFadedOut'), 1000)
+  setTimeout(() => {
+    if (el.classList.contains('isFadedOut')) el.textContent = ''
+  }, 1600)
+}
+
+async function copyTextToClipboard(text) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text)
+    return true
+  }
+
+  // Safari / older fallback
+  const ta = document.createElement('textarea')
+  ta.value = text
+  ta.setAttribute('readonly', '')
+  ta.style.position = 'fixed'
+  ta.style.left = '-9999px'
+  ta.style.top = '0'
+  document.body.appendChild(ta)
+
+  ta.select()
+  ta.setSelectionRange(0, ta.value.length)
+
+  let ok = false
+  try {
+    ok = document.execCommand('copy')
+  } catch {
+    ok = false
+  } finally {
+    document.body.removeChild(ta)
+  }
+  return ok
+}
+
+const addLinkToClipboard = async (event) => {
+  const url = assembleUrl()
+  try {
+    const ok = await copyTextToClipboard(url)
+    handleLinkCopiedMessageContent(event, '.filter-container', ok ? 'Shareable link copied to clipboard!' : 'Copy failed')
+  } catch (err) {
+    console.error('Failed to copy URL:', err)
+    handleLinkCopiedMessageContent(event, '.filter-container', 'Copy failed')
+  }
+}
+
+
+/* -----------------------------------------------------------------------------
  * UI helpers
  * -------------------------------------------------------------------------- */
 
@@ -679,6 +787,8 @@ const clearFilters = () => {
   locationTouched.value = false
   locationError.value = ''
   isLocationFocused.value = false
+
+  window.history.replaceState({}, '', assembleUrl())
 
   visibleCount.value = pageSize.value
 }
@@ -738,10 +848,6 @@ onMounted(() => {
 
   fetchData()
   showLoadingMessage.value = true
-
-  const urlParams = new URLSearchParams(window.location.search)
-  const showParam = urlParams.get('show')
-  if (showParam === 'off') isVisible.value = true
 })
 
 watchEffect(() => {
@@ -777,6 +883,86 @@ watchEffect(() => {
 
   showLoadingMessage.value = false
 })
+
+const didHydrateFromUrl = ref(false)
+
+function hydrateFromUrl() {
+  const urlParams = new URLSearchParams(window.location.search)
+
+  const showParam = urlParams.get('show')
+  if (showParam === 'off') isVisible.value = false
+
+  // Tool guard (only guard if param exists)
+  const toolParam = urlParams.get('tool')
+  if (toolParam !== null && toolParam !== 'pqeas') {
+    console.warn('Tool parameter does not match "pqeas". Initialization skipped.')
+    return
+  }
+
+  // company (already decoded)
+  const company = urlParams.get('company')
+  nameQuery.value = company?.trim() ? company.trim() : ''
+
+  // region (already decoded)
+  const serviceRegion = urlParams.get('region')
+  if (serviceRegion) {
+    if (locations.value.includes(serviceRegion)) {
+      selectedLocation.value = serviceRegion
+      locationInputValue.value = serviceRegion
+      locationInputDisplay.value = serviceRegion
+      locationError.value = ''
+      locationTouched.value = false
+    } else {
+      selectedLocation.value = 'all'
+      locationInputValue.value = serviceRegion
+      locationInputDisplay.value = serviceRegion
+      locationError.value =
+        'That service region was not recognized. Please choose one from the list of available options.'
+      locationTouched.value = true
+    }
+  } else {
+    // no region param
+    selectedLocation.value = 'all'
+    locationInputValue.value = ''
+    locationInputDisplay.value = ''
+    locationError.value = ''
+    locationTouched.value = false
+  }
+
+  showLoadingMessage.value = false
+}
+
+
+watch(
+  locations,
+  (list) => {
+    if (didHydrateFromUrl.value) return
+    if (!list?.length) return
+
+    didHydrateFromUrl.value = true
+    hydrateFromUrl()
+  },
+  { immediate: true }
+)
+
+const syncUrlFromState = debounce(() => {
+  window.history.replaceState({}, '', assembleUrl())
+}, 250)
+
+watch([nameQuery, selectedLocation], () => {
+  if (!didHydrateFromUrl.value) return
+  syncUrlFromState()
+})
+
+
+onMounted(() => {
+  const onPopState = () => {
+    if (locations.value.length) hydrateFromUrl()
+  }
+  window.addEventListener('popstate', onPopState)
+  onBeforeUnmount(() => window.removeEventListener('popstate', onPopState))
+})
+
 
 /* -----------------------------------------------------------------------------
  * Global click handler (keep one, like contractor tool)
