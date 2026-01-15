@@ -304,7 +304,7 @@
                 <a :href="withQueryString(item.post_url ?? item.url ?? '#')" style="position: relative;"
                   :aria-label="item.rebate_type_headline_card">
                   <div class='card-meta'>
-                    <div v-if="item.rebate_value_card" class="rebate-value" aria-hidden="true">
+                    <div v-if="false && item.rebate_value_card" class="rebate-value" aria-hidden="true">
                       {{ item.rebate_value_card }}
                     </div>
 
@@ -313,7 +313,7 @@
                         :src="item.rebate_featured_image" alt="" title="" />
                     </figure>
 
-                    <div v-if="item.rebate_description_card" class="rebate-icons" aria-label="Rebate available">
+                    <div v-if="false && item.rebate_description_card" class="rebate-icons" aria-label="Rebate available">
                       <div v-for="(ht, i) in item.heating_types" :key="ht.id || i" :class="['rebate-icon', ht.slug]"
                         :title="`For homes fueled by ${ht.name}`" :aria-label="`For homes fueled by ${ht.name}`"></div>
                     </div>
@@ -3359,7 +3359,7 @@ function withQueryString(baseUrl) {
 
     .wp-block-image img {
       border-bottom: 3px solid #fff;
-      aspect-ratio: 3/2;
+      aspect-ratio: 16/9;
       object-fit: cover;
     }
 
@@ -3438,9 +3438,13 @@ function withQueryString(baseUrl) {
   }
 
   .rebate-title {
-    font-size: 1.35rem;
+    font-size: 1.5rem;
     padding: 0 1rem;
     margin: 1.5rem 0 0.5rem;
+
+    > div {
+      margin-block-end: -0.5rem;
+    }
 
     :is(small) {
       display: inline-block;
