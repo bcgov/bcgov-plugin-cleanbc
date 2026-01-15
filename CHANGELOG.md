@@ -7,6 +7,7 @@
 - Ensured program validation still occurs against the known program list to prevent invalid values
 - Maintained compatibility with shared links using full program names
 – Filter out 'wood' from the options for "How do you heat your water?" question
+– Added a check for HWHP in the page slug to disable option in rebate single mode tool
 
 ## 1.30.0 January 14, 2025
 – Added copy-to-clipboard links for filter states, allowing users to share pre-filtered Contractor and Energy Advisor (PQEA) results

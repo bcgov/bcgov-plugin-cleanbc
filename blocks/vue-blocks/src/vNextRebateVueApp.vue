@@ -147,8 +147,7 @@
                 <label class='small sr-only' for="instructions">Settings instructions</label>
                 <p name="instructions" class="small-text" style="text-align: left; line-height: 1.665;">
                   <a v-if="!editModeView" href="#edit" @click.prevent="toggleEditModeView">Updating home details</a><span
-                    v-else>Updating your home's details</span> will refresh the page content. You may also <a href="#clear" :tabindex="isCollapseView ? '-1' : '0'"
-                    @click.prevent="clearSettings">clear the settings</a> to start over. To change <strong>heating type</strong>, go back to the <a data-v-9aa24a6c="" href="/find-rebates/" tabindex="0">rebate finder questionnaire.</a>
+                    v-else>Updating your home's details</span> will refresh the page content. To change <strong>{{isSingleModeHeatPumpWaterHeaterCategory ? 'heating type or hot water heating settings' : 'heating type'}}</strong>, go back to the <a data-v-9aa24a6c="" href="/find-rebates/" tabindex="0">rebate finder questionnaire.</a>
                 </p>
               </div>
               <button class="editBtn toggle-edit-mode readonly-toggle" :tabindex="isCollapseView ? '-1' : '0'"
@@ -753,6 +752,11 @@ const hasError = ref(false)
 const ariaStatusMessage = ref('')
 const pageHeatingType = ref('')
 const pageWaterHeatingType = ref('')
+const heatPumpWaterHeaterRebateSlug = 'heat-pump-water-heater-rebates'
+const singleModeRebateTypeClass = ref('')
+const isSingleModeHeatPumpWaterHeaterCategory = computed(
+  () => singleModeRebateTypeClass.value === heatPumpWaterHeaterRebateSlug
+)
 
 // Focus map for selects 
 const selectRefs = ref({})
@@ -1338,7 +1342,12 @@ const fields = computed(() => [
     key: 'water',
     shortDesc: 'Hot water heating',
     label: 'How do you heat your water?',
-    disabled: mode.value === 'single' && !!pageWaterHeatingType.value,
+    disabled:
+      mode.value === 'single' &&
+      (
+        !!pageWaterHeatingType.value ||
+        isSingleModeHeatPumpWaterHeaterCategory.value
+      ),
     description:
       'If you have more than one system, choose the one that heats most of your water.',
     model: selectedWaterHeatingSlug,
@@ -1988,6 +1997,19 @@ watch(selectedLocationName, newName => {
   locationInputValue.value = newName || ''
 })
 
+function detectSingleModeRebateTypeClass(el) {
+  if (typeof document === 'undefined') return ''
+
+
+  if (typeof window !== 'undefined') {
+    if (window.location.pathname.toLowerCase().includes('heat-pump-water-heater')) {
+      return heatPumpWaterHeaterRebateSlug
+    }
+  }
+
+  return ''
+}
+
 onMounted(() => {
   const el = document.getElementById('rebateFilterApp')
   if (el?.dataset?.mode) mode.value = el.dataset.mode
@@ -1997,6 +2019,7 @@ onMounted(() => {
   if (el?.dataset?.pageWaterHeatingType) {
     pageWaterHeatingType.value = el.dataset.pageWaterHeatingType
   }
+  singleModeRebateTypeClass.value = detectSingleModeRebateTypeClass(el)
 
   // If SSR heating type exists, set the model directly
   if (mode.value === 'single' && pageHeatingType.value) {
