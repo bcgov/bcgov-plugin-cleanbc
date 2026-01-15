@@ -147,8 +147,8 @@
                 <label class='small sr-only' for="instructions">Settings instructions</label>
                 <p name="instructions" class="small-text" style="text-align: left; line-height: 1.665;">
                   <a v-if="!editModeView" href="#edit" @click.prevent="toggleEditModeView">Updating home details</a><span
-                    v-else>Updating home details</span> will refresh the page content. To change heating type, go back to the <a data-v-9aa24a6c="" href="/find-rebates/" tabindex="0">rebate finder questionnaire.</a> You may also <a href="#clear" :tabindex="isCollapseView ? '-1' : '0'"
-                    @click.prevent="clearSettings">clear the settings</a> to start over.
+                    v-else>Updating your home's details</span> will refresh the page content. You may also <a href="#clear" :tabindex="isCollapseView ? '-1' : '0'"
+                    @click.prevent="clearSettings">clear the settings</a> to start over. To change <strong>heating type</strong>, go back to the <a data-v-9aa24a6c="" href="/find-rebates/" tabindex="0">rebate finder questionnaire.</a>
                 </p>
               </div>
               <button class="editBtn toggle-edit-mode readonly-toggle" :tabindex="isCollapseView ? '-1' : '0'"

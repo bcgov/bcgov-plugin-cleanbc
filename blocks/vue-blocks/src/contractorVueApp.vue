@@ -316,8 +316,7 @@
   onMounted,
   computed,
   nextTick,
-  watch,
-  watchEffect
+  watch
 } from 'vue'
 import { decodeHtmlEntities, shuffleArray } from '../shared-functions.js'
 import { trackProviderFilterChange, trackProviderClick } from '../analytics-schemas.js'
@@ -825,7 +824,8 @@ const assembleUrl = () => {
     url.searchParams.set('type', selectedUpgradeType.value)
   }
   if (selectedProgram.value && selectedProgram.value !== 'all') {
-    url.searchParams.set('program', selectedProgram.value)
+    const programParam = PROGRAM_TO_SHORTHAND[selectedProgram.value] || selectedProgram.value
+    url.searchParams.set('program', programParam)
   }
   if (selectedLocation.value && selectedLocation.value !== 'all') {
     url.searchParams.set('region', selectedLocation.value)
@@ -904,6 +904,19 @@ const canCopyLink = computed(() => {
     (selectedLocation.value && selectedLocation.value !== 'all')
   )
 })
+
+const normalizeProgramParam = (v = '') =>
+  decodeHtmlEntities(String(v)).trim().toLowerCase()
+
+const PROGRAM_SHORTHANDS = {
+  esp: 'Energy Savings Program (ESP)',
+  hrr: 'Home Renovation Rebate (HRR)'
+}
+
+const PROGRAM_TO_SHORTHAND = {
+  'Energy Savings Program (ESP)': 'ESP',
+  'Home Renovation Rebate (HRR)': 'HRR'
+}
 
 
 
@@ -1093,7 +1106,7 @@ onMounted(() => {
 
   const urlParams = new URLSearchParams(window.location.search)
   const showParam = urlParams.get('show')
-  if (showParam === 'off') isVisible.value = true
+  if (showParam === 'off') isVisible.value = false
 })
 
 const didHydrateFromUrl = ref(false)
@@ -1147,9 +1160,25 @@ function hydrateFromUrl() {
   }
 
   if (rebateProgram) {
-    if (programs.value.includes(rebateProgram)) selectedProgram.value = rebateProgram
-    else console.warn(`Invalid rebate program: ${rebateProgram}`)
+    const raw = String(rebateProgram).trim()
+    const key = normalizeProgramParam(raw)
+
+    // Expand shorthand if applicable
+    const expanded = PROGRAM_SHORTHANDS[key] || raw
+
+    // Accept expanded OR raw (defensive)
+    const match =
+      programs.value.includes(expanded) ? expanded :
+      programs.value.includes(raw) ? raw :
+      null
+
+    if (match) {
+      selectedProgram.value = match
+    } else {
+      console.warn(`Invalid rebate program: ${raw}`)
+    }
   }
+
 
   showLoadingMessage.value = false
 }
