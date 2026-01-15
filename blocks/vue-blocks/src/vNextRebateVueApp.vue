@@ -1838,9 +1838,18 @@ const selectedHeatingName = computed(
 )
 
 // -- Water Heating --
-const waterHeatingOptions = computed(
-  () => sortOtherLast(api.value?.['settings-selects']?.['heating-types'] ?? [])
-)
+// -- Water Heating --
+const waterHeatingOptions = computed(() => {
+  const opts = sortOtherLast(api.value?.['settings-selects']?.['heating-types'] ?? [])
+
+  // Omit "wood" for the water heating question
+  return opts.filter(o => {
+    const slug = String(o?.slug ?? '').toLowerCase()
+    const name = String(o?.name ?? '').toLowerCase()
+    return slug !== 'wood' && !name.includes('wood')
+  })
+})
+
 const selectedWaterHeatingSlug = ref('')
 const selectedWaterHeating = computed(
   () =>
@@ -1849,6 +1858,19 @@ const selectedWaterHeating = computed(
 const selectedWaterHeatingName = computed(
   () => selectedWaterHeating.value?.name || ''
 )
+
+watch(
+  [selectedWaterHeatingSlug, waterHeatingOptions],
+  ([slug, opts]) => {
+    if (!slug) return
+    const exists = opts.some(o => o.slug === slug)
+    if (!exists) {
+      selectedWaterHeatingSlug.value = ''
+    }
+  },
+  { immediate: true }
+)
+
 
 // -- Utility --
 const utilityOptions = computed(
