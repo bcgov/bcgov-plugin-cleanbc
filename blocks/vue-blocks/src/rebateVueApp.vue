@@ -151,7 +151,7 @@
             <div v-if='isVisible' class="control copy-link-btn">
                 <button class="copy-link" @click.prevent="addLinkToClipboard" @touchend="addLinkToClipboard"
                     @keydown.enter.prevent="addLinkToClipboard"
-                    :disabled="selectedBuildType === 'all' && selectedLocation === 'all' && selectedHeatingSystem === 'all' && !selectedUpgradeTypes.length"
+                    :disabled="!canCopyLink"
                     type="button">
                     Copy link
                 </button>
@@ -760,7 +760,13 @@ const addLinkToClipboard = (event) => {
             alert('Failed to copy the link. Please try again.');
         });
 };
-;
+
+const canCopyLink = computed(() => {
+  return Boolean(
+    nameQuery.value?.trim() ||
+    (selectedLocation.value && selectedLocation.value !== 'all')
+  )
+});
 
 
 /**

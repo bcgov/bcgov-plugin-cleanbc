@@ -123,7 +123,7 @@
                 class="copy-link share"
                 @click.prevent="addLinkToClipboard"
                 @keydown.enter.prevent="addLinkToClipboard"
-                :disabled="selectedUpgradeType === 'all' && selectedProgram === 'all' && selectedLocation === 'all'"
+                :disabled="!canCopyLink"
                 type="button"
               >
                 Share
@@ -895,6 +895,16 @@ const addLinkToClipboard = async (event) => {
     handleLinkCopiedMessageContent(event, '.filter-container', 'Copy failed')
   }
 }
+
+const canCopyLink = computed(() => {
+  return Boolean(
+    nameQuery.value?.trim() ||
+    (selectedUpgradeType.value && selectedUpgradeType.value !== 'all') ||
+    (selectedProgram.value && selectedProgram.value !== 'all') ||
+    (selectedLocation.value && selectedLocation.value !== 'all')
+  )
+})
+
 
 
 /* -----------------------------------------------------------------------------
