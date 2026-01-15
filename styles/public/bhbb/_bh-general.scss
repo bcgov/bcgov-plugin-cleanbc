@@ -9,7 +9,8 @@ html:has(body.betterhomesbc, body.betterbuildingsbc) {
 	h3,
 	h4,
 	h5,
-	h6 {
+	h6,
+	.text-balance {
 		text-wrap: balance;
 	}
 
