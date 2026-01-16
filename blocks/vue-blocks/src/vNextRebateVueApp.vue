@@ -145,7 +145,7 @@
             <div class="control instruction-group">
               <div>
                 <label class='small sr-only' for="instructions">Settings instructions</label>
-                <p v-if="editModeView" name="instructions" class="small-text" style="text-align: left; line-height: 1.665;">Updating your home's details will refresh the page content. To change <strong>heating type</strong><span v-if='isSingleModeHeatPumpWaterHeaterCategory'> or <strong>hot water heating</strong> </span> setting, go back to the <a data-v-9aa24a6c="" href="/find-rebates/" tabindex="0">rebate finder questionnaire.</a>
+                <p v-if="editModeView" name="instructions" class="small-text" style="text-align: left; line-height: 1.665; padding-top: 0.5rem;">Updating your home's details will refresh the page content. To change <strong>heating type</strong><span v-if='isSingleModeHeatPumpWaterHeaterCategory'> or <strong>hot water heating</strong> </span>, go back to the <a data-v-9aa24a6c="" href="/find-rebates/" tabindex="0">rebate finder questionnaire.</a>
                 </p>
               </div>
               <button class="editBtn toggle-edit-mode readonly-toggle" :tabindex="isCollapseView ? '-1' : '0'"
@@ -2758,7 +2758,7 @@ function withQueryString(baseUrl) {
     font-size: 0.75rem;
     margin-block-end: 0;
     margin-block-start: 0.25rem;
-    padding: 1rem;
+    padding: 1rem 2rem 0 2rem;
 
     @media (width > 550px) {
       margin-block-start: 0;
@@ -2800,7 +2800,7 @@ function withQueryString(baseUrl) {
       /* down arrow */
         background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBkPSJNMjM5IDQ5OC43bDE2MC0xMjggMTguNy0xNS0zMC0zNy41LTE4LjcgMTUtMTQ1IDExNkw3OSAzMzMuM2wtMTguNy0xNS0zMCAzNy41IDE4LjcgMTUgMTYwIDEyOCAxNSAxMiAxNS0xMnptMC00ODUuNWwtMTUtMTItMTUgMTJMNDkgMTQxLjNsLTE4LjcgMTUgMzAgMzcuNSAxOC43LTE1IDE0NS0xMTYgMTQ1IDExNiAxOC43IDE1IDMwLTM3LjUtMTguNy0xNUwyMzkgMTMuM3oiLz48L3N2Zz4=);
         background-repeat: no-repeat;
-        background-position: center right 1rem;
+        background-position: center right 2rem;
         background-size: 1rem;
 
         &:is(:focus-visible) {
@@ -2820,7 +2820,7 @@ function withQueryString(baseUrl) {
     grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
     gap: 1rem;
     grid-column: 1 / -1;
-    padding: 0 1rem 1rem;
+    padding: 0px 2rem 2rem;
 
     &.stacked {
 
