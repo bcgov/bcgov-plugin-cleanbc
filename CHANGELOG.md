@@ -1,3 +1,6 @@
+## 1.30.2 January 16, 2025
+– Single mode rebate tool instructions reveal update
+
 ## 1.30.1 January 15, 2025
 - Added support for shorthand program values in contractor filter URLs:
 -- program=ESP -> Energy Savings Program (ESP)

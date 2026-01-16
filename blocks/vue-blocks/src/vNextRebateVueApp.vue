@@ -145,9 +145,7 @@
             <div class="control instruction-group">
               <div>
                 <label class='small sr-only' for="instructions">Settings instructions</label>
-                <p name="instructions" class="small-text" style="text-align: left; line-height: 1.665;">
-                  <a v-if="!editModeView" href="#edit" @click.prevent="toggleEditModeView">Updating home details</a><span
-                    v-else>Updating your home's details</span> will refresh the page content. To change <strong>{{isSingleModeHeatPumpWaterHeaterCategory ? 'heating type or hot water heating settings' : 'heating type'}}</strong>, go back to the <a data-v-9aa24a6c="" href="/find-rebates/" tabindex="0">rebate finder questionnaire.</a>
+                <p v-if="editModeView" name="instructions" class="small-text" style="text-align: left; line-height: 1.665;">Updating your home's details will refresh the page content. To change <strong>heating type</strong><span v-if='isSingleModeHeatPumpWaterHeaterCategory'> or <strong>hot water heating</strong> </span> setting, go back to the <a data-v-9aa24a6c="" href="/find-rebates/" tabindex="0">rebate finder questionnaire.</a>
                 </p>
               </div>
               <button class="editBtn toggle-edit-mode readonly-toggle" :tabindex="isCollapseView ? '-1' : '0'"
@@ -3074,14 +3072,15 @@ function withQueryString(baseUrl) {
       
 
       &.instruction-group {
-        margin-block-start: 1rem;
         height: fit-content;
         align-self: end;
         text-align: center;
-        grid-column: 1 / -1;
+        grid-column: -2 / -1;
         grid-template-columns: 1fr 11rem;
         gap: 1rem;
-
+        &:has(.show-edit-mode) {
+          grid-column: 1 / -1;
+        }
         :is(label) {
           margin-block-start: 0;
         }
