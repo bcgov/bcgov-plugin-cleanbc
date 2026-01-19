@@ -949,7 +949,7 @@ const handleSelectAllInputFilter = (event) => {
  */
 const resetSelectsActiveState = () => {
     // Find all active custom select elements within the rebate filter application.
-    const activeSelects = document.querySelectorAll('#rebateFilterApp .custom-select.is-active');
+    const activeSelects = document.querySelectorAll('.rebateFilterApp .custom-select.is-active');
 
     // Check if there are active custom select elements, then remove the 'is-active' class.
     if (activeSelects.length > 0) {
@@ -981,7 +981,7 @@ const selectIsActive = (event) => {
  * Because the Upgrade Type filter is presented as a multi-select, * run .reduce() against all Rebates, rather than just the current, * filtered sub-set.
  */
 const getUpgradeTypeTagCount = (tag) => {
-    const app = document.querySelector('#rebateFilterApp');
+    const app = document.querySelector('.rebateFilterApp');
     const filterContainers = app ? app.querySelectorAll('.filter--upgrade-types') : null;
     const selectedLoc = selectedLocation.value;
     const selectedBuild = selectedBuildType.value;
@@ -1056,7 +1056,7 @@ const getUpgradeTypeTagCount = (tag) => {
  * @returns {number} The count of posts containing the specified tag.
  */
 const handleOfferTagCount = (tag) => {
-    const app = document.querySelector('#rebateFilterApp');
+    const app = document.querySelector('.rebateFilterApp');
     const filterContainers = app ? app.querySelectorAll('.filter--other-offers') : null;
     const selectedLoc = selectedLocation.value;
     const selectedUpgrades = selectedUpgradeTypes.value;
@@ -1497,7 +1497,7 @@ watch([selectedBuildType, selectedLocation, selectedUpgradeTypes, selectedHeatin
  */
 window.addEventListener("click", (event) => {
     // Check if the clicked target is not within an active custom select dropdown.
-    if (!event.target.closest('.custom-select.is-active') || !document.querySelectorAll('#rebateFilterApp .custom-select.is-active').length) {
+    if (!event.target.closest('.custom-select.is-active') || !document.querySelectorAll('.rebateFilterApp .custom-select.is-active').length) {
         // Reset all active custom select dropdowns.
         resetSelectsActiveState();
     }
@@ -1717,5 +1717,5 @@ function parseQuotedValues(input) {
 
 <style lang='scss' scoped>
 // See bcgov-plugin-cleanbc/styles/public/betterhomes/_vue-apps.scss
-#rebateFilterApp {}
+.rebateFilterApp {}
 </style>

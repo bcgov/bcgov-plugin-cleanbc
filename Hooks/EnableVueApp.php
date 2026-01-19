@@ -303,9 +303,10 @@ class EnableVueApp {
 
 		// Set up the attributes passed to the Vue frontend, with defaults.
 		$class_name = isset( $attributes['className'] ) ? $attributes['className'] : '';
+		$classes    = trim( 'rebateFilterApp ' . $class_name );
 
 		// Return the Rebate Filter App's container with appropriate class names.
-		return '<div id="rebateFilterApp" class="' . esc_attr( $class_name ) . '">Loading...</div>';
+		return '<div id="rebateFilterApp" class="' . esc_attr( $classes ) . '">Loading...</div>';
 	}
 
 	/**
@@ -343,6 +344,7 @@ class EnableVueApp {
 
 		// Attributes passed to the Vue frontend.
 		$class_name = isset( $attributes['className'] ) ? $attributes['className'] : '';
+		$classes    = trim( 'rebateFilterApp ' . $class_name );
 		$mode       = isset( $attributes['mode'] ) ? $attributes['mode'] : 'archive'; // fallback default.
 
 		// Detect taxonomy terms when on a single rebate page.
@@ -366,8 +368,8 @@ class EnableVueApp {
 
 		// Wrapper element with data-mode attribute.
 		return sprintf(
-            '<div id="rebateFilterApp" class="%s" data-mode="%s" data-page-heating-type="%s">Loading...</div>',
-            esc_attr( $class_name ),
+            '<div id="vnextRebateFilterApp" class="%s" data-mode="%s" data-page-heating-type="%s">Loading...</div>',
+            esc_attr( $classes ),
             esc_attr( $mode ),
             esc_attr( $page_heating_type )
 		);

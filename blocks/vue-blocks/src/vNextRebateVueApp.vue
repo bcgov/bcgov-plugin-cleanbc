@@ -1435,7 +1435,7 @@ const firstHeatPumpIndex = computed(() =>
 
 
 onMounted(() => {
-  const el = document.getElementById('rebateFilterApp')
+  const el = document.getElementById('vnextRebateFilterApp')
   if (el?.dataset?.mode) {
     mode.value = el.dataset.mode
   }
@@ -2009,7 +2009,7 @@ function detectSingleModeRebateTypeClass(el) {
 }
 
 onMounted(() => {
-  const el = document.getElementById('rebateFilterApp')
+  const el = document.getElementById('vnextRebateFilterApp')
   if (el?.dataset?.mode) mode.value = el.dataset.mode
   if (el?.dataset?.pageHeatingType) {
     pageHeatingType.value = el.dataset.pageHeatingType
@@ -2727,7 +2727,7 @@ function withQueryString(baseUrl) {
 
 
 <style scoped>
-#rebateFilterApp {
+#vnextRebateFilterApp {
 
   /* Minimal utility styles to make the component usable without external scripts. */
   .sr-only {
@@ -2813,6 +2813,10 @@ function withQueryString(baseUrl) {
       box-shadow: none;
       padding: 0;
     }
+  }
+
+  .rebate-collapse-setting[aria-pressed="false"] + .control-container {
+    opacity: 0;
   }
 
   .control-container {
@@ -2972,7 +2976,7 @@ function withQueryString(baseUrl) {
 
           &:is(:focus-visible, :focus) {
             border: 2px solid #369 !important;
-            outline: 2px solid darkred !important;
+            outline: 2px solid #369 !important;
           }
         }
 
@@ -3116,6 +3120,7 @@ function withQueryString(baseUrl) {
           right: 0.25rem;
           width: 1.5rem;
           height: 1.5rem;
+          min-height: 1.65rem;
           background: none;
           border: none;
           padding: 0;
@@ -3170,6 +3175,7 @@ function withQueryString(baseUrl) {
       }
 
       .select {
+        background-color: #fff;
         color: #369;
         font-size: 1rem;
         margin-block: 0.25rem;
@@ -3580,7 +3586,7 @@ function withQueryString(baseUrl) {
     text-overflow: ellipsis;
 
     &:is(:hover, :focus, :focus-visible) {
-      color: #fff;
+      color: #369;
     }
 
     &::after {
@@ -3606,11 +3612,12 @@ function withQueryString(baseUrl) {
 
     &:is(:hover, :focus, :focus-visible)::after {
       content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNOTQgMTg3LjFDMTIwLjggMTI0LjEgMTgzLjMgODAgMjU2IDgwYzM5LjcgMCA3Ny44IDE1LjggMTA1LjkgNDMuOUw0MTQuMSAxNzYgMzYwIDE3NmMtMTMuMyAwLTI0IDEwLjctMjQgMjRzMTAuNyAyNCAyNCAyNGwxMTIgMGMxMy4zIDAgMjQtMTAuNyAyNC0yNGwwLTExMmMwLTEzLjMtMTAuNy0yNC0yNC0yNHMtMjQgMTAuNy0yNCAyNGwwIDU0LjFMMzk1LjkgODkuOUMzNTguOCA1Mi44IDMwOC41IDMyIDI1NiAzMkMxNjMuNCAzMiA4My45IDg4LjIgNDkuOCAxNjguM2MtNS4yIDEyLjIgLjUgMjYuMyAxMi43IDMxLjVzMjYuMy0uNSAzMS41LTEyLjd6bTM2OCAxNTdjNS4yLTEyLjItLjQtMjYuMy0xMi42LTMxLjVzLTI2LjMgLjQtMzEuNSAxMi42QzM5MSAzODguMSAzMjguNiA0MzIgMjU2IDQzMmMtMzkuNyAwLTc3LjgtMTUuOC0xMDUuOS00My45TDk3LjkgMzM2bDU0LjEgMGMxMy4zIDAgMjQtMTAuNyAyNC0yNHMtMTAuNy0yNC0yNC0yNEw0MCAyODhjLTEzLjMgMC0yNCAxMC43LTI0IDI0bDAgMTEyYzAgMTMuMyAxMC43IDI0IDI0IDI0czI0LTEwLjcgMjQtMjRsMC01NC4xIDUyLjEgNTIuMUMxNTMuMiA0NTkuMiAyMDMuNSA0ODAgMjU2IDQ4MGM5Mi41IDAgMTcxLjgtNTYgMjA2LTEzNS45eiIgZmlsbD0iI2ZmZiIgLz48L3N2Zz4=);
+      filter: var(--blue-filter);
     }
   }
 }
 
-#rebateFilterApp[data-mode="archive"] {
+#vnextRebateFilterApp[data-mode="archive"] {
 
   .control-container {
     padding: 0 0 1rem;
@@ -3629,7 +3636,7 @@ function withQueryString(baseUrl) {
   }
 }
 
-#rebateFilterApp[data-mode="single"] .loader {
+#vnextRebateFilterApp[data-mode="single"] .loader {
   height: 3.75rem;
   display: grid;
   place-items: center;
@@ -3641,12 +3648,12 @@ function withQueryString(baseUrl) {
   color: #fff;
 }
 
-#rebateFilterApp[data-mode="single"] select,
-#rebateFilterApp[data-mode="single"] .select {
+#vnextRebateFilterApp[data-mode="single"] select,
+#vnextRebateFilterApp[data-mode="single"] .select {
   overflow: clip;
 }
 
-#rebateFilterApp[data-mode="single"] #rebatesFilterControls .selection-summary {
+#vnextRebateFilterApp[data-mode="single"] #rebatesFilterControls .selection-summary {
   opacity: 0;
   animation: fadeIn 0.3s ease forwards;
 }
@@ -3675,12 +3682,12 @@ function withQueryString(baseUrl) {
   }
 }
 
-#rebateFilterApp:not([data-mode="archive"]) #rebatesFilterControls.filters-dirty {
+#vnextRebateFilterApp:not([data-mode="archive"]) #rebatesFilterControls.filters-dirty {
   background: var(--wp--preset--color--custom-warning-bg);
   outline: 3px solid var(--wp--preset--color--custom-warning-border, rgba(255, 192, 23, .25));
 }
 
-#rebateFilterApp:not([data-mode="archive"]) #rebatesFilterControls.filters-dirty::after {
+#vnextRebateFilterApp:not([data-mode="archive"]) #rebatesFilterControls.filters-dirty::after {
   content: "If your URL has been modified manually, you may need to edit your settings — or clear them completely and start over — to fix.";
   background-color: #ffc01757;
   display: block;
@@ -3705,12 +3712,12 @@ p.rebate-detail.rebate-detail.rebate-detail {
   font-weight: 400;
 }
 
-#rebateFilterApp:not([data-mode="archive"]) #rebatesFilterControls:has(.editBtn:is(:focus-visible, :focus, :hover)) {
+#vnextRebateFilterApp:not([data-mode="archive"]) #rebatesFilterControls:has(.editBtn:is(:focus-visible, :focus, :hover)) {
   /* background-color: hsl(210, 100%, 96%);
   transition: all ease-in-out .3s; */
 }
 
-#rebateFilterApp:not([data-mode="archive"]) #rebatesFilterControls .editBtn {
+#vnextRebateFilterApp:not([data-mode="archive"]) #rebatesFilterControls .editBtn {
   width: 100%;
   min-width: 10rem;
   padding: 0 0.66rem 0 0;
@@ -3935,7 +3942,7 @@ body.betterhomesbc #dialog .dialog-content h2 {
   transition: all 0.2s ease;
 }
 
-#post-content:has(#rebateFilterApp[data-mode="single"]):has(.is-dirty-variable) {
+#post-content:has(#vnextRebateFilterApp[data-mode="single"]):has(.is-dirty-variable) {
   --icon-gear: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBkPSJNNDk1LjkgMTY2LjZjMy4yIDguNyAuNSAxOC40LTYuNCAyNC42bC00My4zIDM5LjRjMS4xIDguMyAxLjcgMTYuOCAxLjcgMjUuNHMtLjYgMTcuMS0xLjcgMjUuNGw0My4zIDM5LjRjNi45IDYuMiA5LjYgMTUuOSA2LjQgMjQuNmMtNC40IDExLjktOS43IDIzLjMtMTUuOCAzNC4zbC00LjcgOC4xYy02LjYgMTEtMTQgMjEuNC0yMi4xIDMxLjJjLTUuOSA3LjItMTUuNyA5LjYtMjQuNSA2LjhsLTU1LjctMTcuN2MtMTMuNCAxMC4zLTI4LjIgMTguOS00NCAyNS40bC0xMi41IDU3LjFjLTIgOS4xLTkgMTYuMy0xOC4yIDE3LjhjLTEzLjggMi4zLTI4IDMuNS00Mi41IDMuNXMtMjguNy0xLjItNDIuNS0zLjVjLTkuMi0xLjUtMTYuMi04LjctMTguMi0xNy44bC0xMi41LTU3LjFjLTE1LjgtNi41LTMwLjYtMTUuMS00NC0yNS40TDgzLjEgNDI1LjljLTguOCAyLjgtMTguNiAuMy0yNC41LTYuOGMtOC4xLTkuOC0xNS41LTIwLjItMjIuMS0zMS4ybC00LjctOC4xYy02LjEtMTEtMTEuNC0yMi40LTE1LjgtMzQuM2MtMy4yLTguNy0uNS0xOC40IDYuNC0yNC42bDQzLjMtMzkuNEM2NC42IDI3My4xIDY0IDI2NC42IDY0IDI1NnMuNi0xNy4xIDEuNy0yNS40TDIyLjQgMTkxLjJjLTYuOS02LjItOS42LTE1LjktNi40LTI0LjZjNC40LTExLjkgOS43LTIzLjMgMTUuOC0zNC4zbDQuNy04LjFjNi42LTExIDE0LTIxLjQgMjIuMS0zMS4yYzUuOS03LjIgMTUuNy05LjYgMjQuNS02LjhsNTUuNyAxNy43YzEzLjQtMTAuMyAyOC4yLTE4LjkgNDQtMjUuNGwxMi41LTU3LjFjMi05LjEgOS0xNi4zIDE4LjItMTcuOEMyMjcuMyAxLjIgMjQxLjUgMCAyNTYgMHMyOC43IDEuMiA0Mi41IDMuNWM5LjIgMS41IDE2LjIgOC43IDE4LjIgMTcuOGwxMi41IDU3LjFjMTUuOCA2LjUgMzAuNiAxNS4xIDQ0IDI1LjRsNTUuNy0xNy43YzguOC0yLjggMTguNi0uMyAyNC41IDYuOGM4LjEgOS44IDE1LjUgMjAuMiAyMi4xIDMxLjJsNC43IDguMWM2LjEgMTEgMTEuNCAyMi40IDE1LjggMzQuM3pNMjU2IDMzNmE4MCA4MCAwIDEgMCAwLTE2MCA4MCA4MCAwIDEgMCAwIDE2MHoiLz48L3N2Zz4=);
   &::before{
     background-image: var(--icon-gear);
@@ -3960,7 +3967,7 @@ body.betterhomesbc #dialog .dialog-content h2 {
   }
 }
 
-#post-content:has(#rebateFilterApp[data-mode="archive"]) {
+#post-content:has(#vnextRebateFilterApp[data-mode="archive"]) {
   background-color: #f0f0f0;
 
   #rebatesFilterControls:has(.stacked) {

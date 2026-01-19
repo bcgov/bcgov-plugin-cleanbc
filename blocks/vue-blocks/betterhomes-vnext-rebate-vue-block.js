@@ -42,7 +42,7 @@ class BetterHomesvNextRebateVueAppEditorComponent extends wp.element.Component {
     }
 
     initVueApp() {
-        // window.initVueApp('#rebateFilterApp');
+       // window.initVueApp('#vnextRebateFilterApp');
     }
 
     render() {
@@ -70,8 +70,8 @@ class BetterHomesvNextRebateVueAppEditorComponent extends wp.element.Component {
                 )
             ),
             createElement('div', {
-                id: 'rebateFilterApp',
-                class: className,
+                id: 'vnextRebateFilterApp',
+                class: `rebateFilterApp ${className}`,
                 'data-mode': mode, // pass mode into DOM if needed
             }, [
                 createElement('span', {

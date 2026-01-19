@@ -120,7 +120,7 @@ class BetterHomesRebateVueAppEditorComponent extends wp.element.Component {
             ),
             createElement('div', {
                 id: 'rebateFilterApp',
-                class: className,
+                class: `rebateFilterApp ${className}`,
             }, [
                 createElement('span', {
                     class: 'dashicon dashicons dashicons-tag'

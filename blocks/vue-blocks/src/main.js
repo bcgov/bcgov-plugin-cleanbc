@@ -34,7 +34,7 @@ function initializeApps() {
         { component: PQEAFilterApp, selector: '#pqeaFilterApp', props: { appProp: 'PQEA Data' } },
         { component: ContractorFilterApp, selector: '#contractorFilterApp', props: { appProp: 'Contractor Data' } },
         { component: RebateFilterApp, selector: '#rebateFilterApp', props: { appProp: 'Rebate Data' } },
-        { component: vNextRebateFilterApp, selector: '#rebateFilterApp', props: { appProp: 'Rebate Data' } },
+        { component: vNextRebateFilterApp, selector: '#vnextRebateFilterApp', props: { appProp: 'Rebate Data' } },
         { component: FAQFilterApp, selector: '#faqFilterApp', props: { appProp: 'FAQ Data' } },
     ];
 

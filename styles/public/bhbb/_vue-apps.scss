@@ -21,7 +21,7 @@
 #contractorFilterApp,
 #faqFilterApp,
 #pqeaFilterApp,
-#rebateFilterApp {
+.rebateFilterApp {
 
 	.filter-container.empty {
 		display: none;
@@ -952,7 +952,7 @@
 
 // Layouts with Sidebar.
 #faqFilterApp,
-#rebateFilterApp {
+.rebateFilterApp {
 
 	.no-results {
 		width: 100%;
@@ -2040,7 +2040,7 @@
 }
 
 
-#rebateFilterApp {
+.rebateFilterApp {
 
 	.results {
 
