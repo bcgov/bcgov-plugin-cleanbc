@@ -2019,55 +2019,41 @@ onMounted(() => {
   }
   singleModeRebateTypeClass.value = detectSingleModeRebateTypeClass(el)
 
-  // If SSR heating type exists, set the model directly
-  if (mode.value === 'single' && pageHeatingType.value) {
-    // find a matching option from heatingOptions by slug
-    watch(
-      heatingOptions,
-      (opts) => {
-        const match = opts.find(o => o.slug === pageHeatingType.value)
-        if (match) {
-          selectedHeatingSlug.value = match.slug
-        }
-      },
-      { immediate: true }
-    )
-  }
-
-  // Auto-correct URL heating param if it doesn't match SSR heating type
+  // If SSR heating type exists, set the model directly unless URL specifies a heating type
   if (mode.value === 'single' && pageHeatingType.value) {
     const params = new URLSearchParams(window.location.search)
     const currentHeating = params.get('heating')
-    if (currentHeating && currentHeating !== pageHeatingType.value) {
-      params.set('heating', pageHeatingType.value)
-      const newUrl = `${window.location.pathname}?${params.toString()}`
-      window.history.replaceState(null, '', newUrl)
+    if (!currentHeating) {
+      // find a matching option from heatingOptions by slug
+      watch(
+        heatingOptions,
+        (opts) => {
+          const match = opts.find(o => o.slug === pageHeatingType.value)
+          if (match) {
+            selectedHeatingSlug.value = match.slug
+          }
+        },
+        { immediate: true }
+      )
     }
   }
 
-   // If SSR waterHeating type exists, set the model directly
-  if (mode.value === 'single' && pageWaterHeatingType.value) {
-    // find a matching option from waterHeatingOptions by slug
-    watch(
-      waterHeatingOptions,
-      (opts) => {
-        const match = opts.find(o => o.slug === pageWaterHeatingType.value)
-        if (match) {
-          selectedWaterHeatingSlug.value = match.slug
-        }
-      },
-      { immediate: true }
-    )
-  }
-
-   // Auto-correct URL waterHeating param if it doesn't match SSR heating type
+   // If SSR waterHeating type exists, set the model directly unless URL specifies a water heating type
   if (mode.value === 'single' && pageWaterHeatingType.value) {
     const params = new URLSearchParams(window.location.search)
     const currentWaterHeating = params.get('water_heating')
-    if (currentWaterHeating && currentWaterHeating !== pageWaterHeatingType.value) {
-      params.set('water_heating', pageWaterHeatingType.value)
-      const newUrl = `${window.location.pathname}?${params.toString()}`
-      window.history.replaceState(null, '', newUrl)
+    if (!currentWaterHeating) {
+      // find a matching option from waterHeatingOptions by slug
+      watch(
+        waterHeatingOptions,
+        (opts) => {
+          const match = opts.find(o => o.slug === pageWaterHeatingType.value)
+          if (match) {
+            selectedWaterHeatingSlug.value = match.slug
+          }
+        },
+        { immediate: true }
+      )
     }
   }
 
@@ -2232,12 +2218,16 @@ function initFromQueryString() {
   }
 
   if (heating) {
-    const foundHeat = heatingOptions.value.find(l => l.name === heating)
+    const foundHeat = heatingOptions.value.find(
+      l => l.slug === heating || l.name === heating
+    )
     if (foundHeat) selectedHeatingSlug.value = foundHeat.slug
   }
 
   if (waterHeating) {
-    const foundWaterHeat = waterHeatingOptions.value.find(l => l.name === waterHeating)
+    const foundWaterHeat = waterHeatingOptions.value.find(
+      l => l.slug === waterHeating || l.name === waterHeating
+    )
     if (foundWaterHeat) selectedWaterHeatingSlug.value = foundWaterHeat.slug
   }
 
