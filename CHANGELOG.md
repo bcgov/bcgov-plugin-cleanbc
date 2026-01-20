@@ -2,7 +2,7 @@
 – Switched the vNext rebate block to its own selector so it mounts independently from the legacy rebate app
 – Resolved style issue arising from moving to new rebate selector
 – Single mode vNext rebates now prefer query string heating parameters over SSR defaults
-– Image card style updates
+– Image card and missing-link style updates
 
 ## 1.30.2 January 16, 2025
 – Single mode rebate tool instructions reveal update
