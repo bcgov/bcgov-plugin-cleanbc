@@ -38,15 +38,15 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 	/* -------------------------------------------------------------------------- */
 
 	.image-card {
-		display: flex !important;
-		flex-direction: column;
-		gap: 1rem;
+		// display: flex !important;
+		// flex-direction: column;
+		// gap: 1rem;
 		overflow: clip;
 	}
 
 	.image-card-content {
-		flex-grow: 1;
-		min-height: auto;
+		// flex-grow: 1;
+		// min-height: auto;
 	}
 
 	/* -------------------------------------------------------------------------- */
