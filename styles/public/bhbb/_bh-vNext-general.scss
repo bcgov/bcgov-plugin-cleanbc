@@ -19,11 +19,8 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 		}
 	}
 
-	#post-content .is-style-outline .wp-element-button:not([href]) {
-
-		.wp-element-button:not([href])::after {
-			filter: var(--blue-filter);
-		}
+	#post-content .is-style-outline .wp-element-button:not([href])::after {
+		filter: var(--blue-filter);
 	}
 
 	/* -------------------------------------------------------------------------- */
