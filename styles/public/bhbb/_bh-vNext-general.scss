@@ -19,7 +19,7 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 		}
 	}
 
-	#post-content .is-style-outline.wp-element-button:not([href]) {
+	#post-content .is-style-outline .wp-element-button:not([href]) {
 
 		.wp-element-button:not([href])::after {
 			filter: var(--blue-filter);
