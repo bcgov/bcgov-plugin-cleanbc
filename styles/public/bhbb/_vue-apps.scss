@@ -883,7 +883,7 @@
 			height: 1.5rem;
 			width: 1.5rem;
 			margin-right: 0.5rem;
-			background-image: $site_icon_light;
+			background-image: $share_icon_light;
 			background-repeat: no-repeat;
 			background-position: center;
 			background-size: contain;
@@ -895,7 +895,7 @@
 
 		&:disabled::before,
 		&[disabled]::before {
-			background-image: $site_icon;
+			background-image: $share_icon;
 			filter: grayscale(1);
 			opacity: 0.66;
 		}
@@ -2023,7 +2023,7 @@
 				height: 1.5rem;
 				width: 1.5rem;
 				margin-right: 0.5rem;
-				background-image: $site_icon;
+				background-image: $share_icon;
 				background-repeat: no-repeat;
 				background-position: center;
 				background-size: contain;
