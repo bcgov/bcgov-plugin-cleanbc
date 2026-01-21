@@ -317,6 +317,39 @@ function findClosestLocation(raw, locationList) {
   return { match: null, reason: 'none' }
 }
 
+const PREFERRED_SETTINGS_KEY = 'preferredSettings'
+
+function readPreferredSettings() {
+  try {
+    const raw = localStorage.getItem(PREFERRED_SETTINGS_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    return parsed && typeof parsed === 'object' ? parsed : null
+  } catch {
+    return null
+  }
+}
+
+const resolvePreferredLocation = () => {
+  const preferred = readPreferredSettings()
+  const loc = preferred?.location
+  if (!loc) return null
+
+  const candidates = [loc.name, loc.slug, loc.region, loc.region_slug]
+    .map((value) => (value ? String(value).trim() : ''))
+    .filter(Boolean)
+
+  if (!candidates.length) return null
+
+  const list = locations.value || []
+  for (const candidate of candidates) {
+    const { match } = findClosestLocation(candidate, list)
+    if (match && match !== 'all') return match
+  }
+
+  return null
+}
+
 /* -----------------------------------------------------------------------------
  * Core state
  * -------------------------------------------------------------------------- */
@@ -921,12 +954,20 @@ function hydrateFromUrl() {
       locationTouched.value = true
     }
   } else {
-    // no region param
-    selectedLocation.value = 'all'
-    locationInputValue.value = ''
-    locationInputDisplay.value = ''
-    locationError.value = ''
-    locationTouched.value = false
+    const preferredLocation = resolvePreferredLocation()
+    if (preferredLocation) {
+      selectedLocation.value = preferredLocation
+      locationInputValue.value = preferredLocation
+      locationInputDisplay.value = preferredLocation
+      locationError.value = ''
+      locationTouched.value = false
+    } else {
+      selectedLocation.value = 'all'
+      locationInputValue.value = ''
+      locationInputDisplay.value = ''
+      locationError.value = ''
+      locationTouched.value = false
+    }
   }
 
   showLoadingMessage.value = false

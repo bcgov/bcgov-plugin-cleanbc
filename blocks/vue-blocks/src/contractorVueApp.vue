@@ -682,6 +682,26 @@ const locations = computed(() => collectUniqueNames(contractors.value, 'location
  */
 const normalizedLocations = computed(() => toNormalizedList(locations.value))
 
+const resolvePreferredLocation = () => {
+  const preferred = readPreferredSettings()
+  const loc = preferred?.location
+  if (!loc) return null
+
+  const candidates = [loc.name, loc.slug, loc.region, loc.region_slug]
+    .map((value) => (value ? String(value).trim() : ''))
+    .filter(Boolean)
+
+  if (!candidates.length) return null
+
+  const list = normalizedLocations.value
+  for (const candidate of candidates) {
+    const { match } = findClosestLocation(candidate, list)
+    if (match && match !== 'all') return match
+  }
+
+  return null
+}
+
 /* -----------------------------------------------------------------------------
  * Mobile proxy location datalist options (no repeated normalize in loops)
  * -------------------------------------------------------------------------- */
@@ -918,6 +938,19 @@ const PROGRAM_TO_SHORTHAND = {
   'Home Renovation Rebate (HRR)': 'HRR'
 }
 
+const PREFERRED_SETTINGS_KEY = 'preferredSettings'
+
+function readPreferredSettings() {
+  try {
+    const raw = localStorage.getItem(PREFERRED_SETTINGS_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    return parsed && typeof parsed === 'object' ? parsed : null
+  } catch {
+    return null
+  }
+}
+
 
 
 /* -----------------------------------------------------------------------------
@@ -1151,6 +1184,15 @@ function hydrateFromUrl() {
       locationError.value =
         'That service region was not recognized. Please choose one from the list of available options.'
       locationTouched.value = true
+    }
+  } else {
+    const preferredLocation = resolvePreferredLocation()
+    if (preferredLocation) {
+      selectedLocation.value = preferredLocation
+      locationInputValue.value = preferredLocation
+      locationInputDisplay.value = preferredLocation
+      locationError.value = ''
+      locationTouched.value = false
     }
   }
 
