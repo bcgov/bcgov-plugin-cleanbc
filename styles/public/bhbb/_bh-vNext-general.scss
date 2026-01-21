@@ -292,6 +292,13 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 				filter: var(--blue-filter);
 			}
 
+			&.icon-translate::before {
+				content: $icon_translate;
+				margin-right: 0;
+				top: 0;
+				width: 1.75rem;
+			}
+
 			&.icon-works::before {
 				content: $icon_how_it_works;
 				margin-right: 0;
