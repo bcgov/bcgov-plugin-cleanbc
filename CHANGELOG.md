@@ -1,3 +1,6 @@
+## 1.30.6 January 21, 2026
+– Re-run definitions handling after Gravity Forms (currently hardcoded for ID 2) submission only when the form is present
+
 ## 1.30.5 January 21, 2026
 – Updated Vue-based tool input and select styles to be consistent
 – Icon updates

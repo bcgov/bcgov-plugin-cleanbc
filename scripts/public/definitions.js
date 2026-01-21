@@ -1,7 +1,7 @@
 /**
  * General CleanBC Definitons dialog generator.
  */
-const bcgovBlockThemePluginDefnitions = () => {
+export const bcgovBlockThemePluginDefnitions = () => {
     /*
      * SafarIE iOS requires window.requestAnimationFrame update.
      */
