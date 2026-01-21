@@ -1,13 +1,16 @@
-## 1.30.3 January 19-20, 2025
+## 1.30.4 January 20, 2026
+– Initial Gravity Form styles
+
+## 1.30.3 January 19-20, 2026
 – Switched the vNext rebate block to its own selector so it mounts independently from the legacy rebate app
 – Resolved style issue arising from moving to new rebate selector
 – Single mode vNext rebates now prefer query string heating parameters over SSR defaults
 – Image card and missing-link style updates
 
-## 1.30.2 January 16, 2025
+## 1.30.2 January 16, 2026
 – Single mode rebate tool instructions reveal update
 
-## 1.30.1 January 15, 2025
+## 1.30.1 January 15, 2026
 - Added support for shorthand program values in contractor filter URLs:
 -- program=ESP -> Energy Savings Program (ESP)
 -- program=HRR -> Home Renovation Rebate (HRR)
@@ -19,7 +22,7 @@
 – Added a check for HWHP in the page slug to disable option in rebate single mode tool
 – General styles and card meta cleanup 
 
-## 1.30.0 January 14, 2025
+## 1.30.0 January 14, 2026
 – Added copy-to-clipboard links for filter states, allowing users to share pre-filtered Contractor and Energy Advisor (PQEA) results
 – Implemented query-string hydration so shared links restore filter state on page load
 – Added support for company name filtering via URL parameter (company) in both tools
@@ -36,21 +39,21 @@
 – Aligned PQEA filtering behaviour with Contractor tool patterns for consistency
 – Corrected handling of the show=off query parameter to properly hide filter controls when present
 
-## 1.29.1 January 7, 2025
+## 1.29.1 January 7, 2026
 – Added PDF link check to rebates page reload.
 – Single mode rebates tooling updated to:
 –– Solve "same setting" refresh bug. 
 –– Remove 'other' from type of home select.
 –– Restyled active select options.
 
-## 1.29.0 January 6, 2025
+## 1.29.0 January 6, 2026
 – Conditional groups block updated to enable grouped conditions 
 – e.g.: (region = south AND rebate_tier = HRR) OR (region = north AND rebate_tier = HRR AND utility ≠ BC Hydro)
 
-## 1.28.3 January 5, 2025
+## 1.28.3 January 5, 2026
 – Set up 'preferredSettings' local storage key for enabling auto-population of upgrade type and rebate program on contractor and pqea tools.
 
-## 1.28.2 January 2, 2025
+## 1.28.2 January 2, 2026
 – Basic styles update with new icons.
 – Rebates subtitle show/hide feature.
 – Rerun a rebate tool specific external link check after is-dirty.
