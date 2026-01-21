@@ -102,6 +102,7 @@
 	background-repeat: no-repeat;
 	background-position: center;
 	background-size: 1.1rem;
+	background-color: oklch(99.115% 0.00423 15.765);
 }
 
 /* ---- Inputs / textareas ---- */
@@ -124,14 +125,14 @@
 
 /* Invalid from browser validation */
 #gform_2 :is(input.large, textarea.textarea):invalid {
-	outline-color: #8b0000;
+	outline-color: oklab(40% 0.1432 0.08);
 	background-color: #ffe5e5;
 }
 
 /* Gravity Forms error state */
 #gform_2 :is(input.large, textarea.textarea)[aria-invalid="true"] {
-	outline-color: #8b0000;
-	background-color: #ffe5e5;
+	outline-color: oklab(40% 0.1432 0.08);
+	background-color: oklch(99.115% 0.00423 15.765);
 }
 
 /* Disabled */
@@ -174,10 +175,13 @@
 
 /* GF error */
 #gform_2 .gfield.gfield_error {
-	padding-top: 1.5rem;
+	padding: 0;
+	background: none;
+	border: none;
 }
 
 #gform_2 .validation_message {
+	font-size: 0;
 	width: 100%;
 	padding: 0 1rem;
 	text-align: right;
@@ -186,6 +190,7 @@
 #gform_2 select.gfield_select[aria-invalid="true"] {
 	color: oklch(39.984% 0.16408 29.223);
 	outline-color: oklch(39.984% 0.16408 29.223) !important;
+	background-color: oklch(99.115% 0.00423 15.765);
 }
 
 /* Disabled select */
