@@ -45,6 +45,10 @@ body:has(#dialog[open]) {
 	color: var(--wp--preset--color--text-color);
 	max-width: 600px;
 
+	&.wide {
+		max-width: 1220px;
+	}
+
 	&::backdrop {
 		background-color: rgba(0 0 0 / 0.5);
 		backdrop-filter: blur(2px);
