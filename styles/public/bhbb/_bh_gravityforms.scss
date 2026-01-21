@@ -5,9 +5,9 @@
 /* ---- Layout container (replaces .control-container) ---- */
 #gform_2 .gform_fields {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+	grid-template-columns: 1fr;
 	gap: 1rem;
-	padding: 0 2rem 2rem;
+	padding: 0;
 	margin: 0;
 	list-style: none;
 	counter-reset: gf_question;
@@ -31,9 +31,10 @@
 
 /* ---- Each field (replaces .question-container + stacked layout) ---- */
 #gform_2 .gfield {
-	position: relative;
+	display: grid;
+	grid-template-columns: minmax(20%, 220px) 1fr;
 	margin: 0;
-	padding: 0 0 1.75rem 0;
+	padding: 0;
 }
 
 /* “Stacked” look: left rail + badge.
@@ -49,49 +50,21 @@
 	z-index: 0;
 }
 
-/* Badge circle (replaces .num-label) */
-#gform_2 .gfield::after {
-	content: "";
-	position: absolute;
-	left: 0.1rem;
-	top: 0.3rem;
-	width: 1.5rem;
-	height: 1.5rem;
-	border-radius: 999px;
-	background-color: #fff;
-	border: 3px solid oklch(43.602% 0.14836 142.511);
-	z-index: 1;
-
-	/* Success checkmark icon */
-	background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJsaW1lZ3JlZW4iICBvcGFjaXR5PSIuMyIgZD0iTTAgMjU2YTI1NiAyNTYgMCAxIDAgNTEyIDBBMjU2IDI1NiAwIDEgMCAwIDI1NnptMTI2LjEgMEwxNjAgMjIyLjFjLjMgLjMgLjYgLjYgMSAxYzUuMyA1LjMgMTAuNyAxMC43IDE2IDE2YzE1LjcgMTUuNyAzMS40IDMxLjQgNDcgNDdjMzctMzcgNzQtNzQgMTExLTExMWM1LjMtNS4zIDEwLjctMTAuNyAxNi0xNmMuMy0uMyAuNi0uNiAxLTFMMzg1LjkgMTkyYy0uMyAuMy0uNiAuNi0xIDFsLTE2IDE2TDI0MSAzMzdsLTE3IDE3LTE3LTE3LTY0LTY0Yy01LjMtNS4zLTEwLjctMTAuNy0xNi0xNmwtMS0xeiIvPjxwYXRoIGZpbGw9ImRhcmtncmVlbiIgZD0iTTM4NSAxOTNMMjQxIDMzN2wtMTcgMTctMTctMTctODAtODBMMTYxIDIyM2w2MyA2M0wzNTEgMTU5IDM4NSAxOTN6Ii8+PC9zdmc+);
-	background-repeat: no-repeat;
-	background-position: center;
-	background-size: 1.1rem;
-}
-
 /* Space the field content so it doesn’t overlap the badge/rail */
 #gform_2 .gfield > .gfield_label,
 #gform_2 .gfield > .ginput_container,
 #gform_2 .gfield > .gfield_description {
 	margin-left: 2.5rem;
+	margin-top: 0;
 }
 
 /* ---- Labels ---- */
-
-/* ---- Counter numbering on labels (replaces counter in .control label::before) ---- */
 #gform_2 .gfield .gfield_label {
-	counter-increment: gf_question;
-	margin: 0 0 0.25rem 0;
 	font-weight: normal;
 	line-height: 1.5;
 	text-wrap: balance;
-	text-align: left;
-}
-
-#gform_2 .gfield .gfield_label::before {
-	content: counter(gf_question) ". ";
-	display: inline-block;
-	margin-right: 0.25rem;
+	text-align: right;
+	width: 100%;
 }
 
 /* ---- Pending state (placeholder selected / empty required fields) ----
@@ -216,6 +189,11 @@
 	display: flex;
 	align-items: center;
 	gap: 0.5rem;
+}
+
+#gform_2 .gfield_checkbox .gchoice label {
+	max-width: 100%;
+	width: 100%;
 }
 
 /* ---- Footer spacing ---- */
