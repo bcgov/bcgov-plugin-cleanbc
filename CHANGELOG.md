@@ -1,6 +1,8 @@
 ## 1.30.5 January 21, 2026
 – Updated Vue-based tool input and select styles to be consistent
 – Icon updates
+– Additional form styling for contact page
+– Updated definitions dialog to allow 'wide' class passed from the link class
 
 ## 1.30.4 January 20, 2026
 – Initial Gravity Form styles

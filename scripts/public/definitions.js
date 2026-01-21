@@ -49,6 +49,9 @@ const bcgovBlockThemePluginDefnitions = () => {
                 ('keypress' === event.type && 'Enter' === event.key)
             ) {
                 event.preventDefault();
+                setDialogWidth(
+                    event.currentTarget.classList.contains('wide')
+                );
                 const url = event.currentTarget.getAttribute('href');
                 const cachedData = window.sessionStorage.getItem(url);
                 
@@ -143,6 +146,15 @@ const bcgovBlockThemePluginDefnitions = () => {
             dialog.showModal();
         }
 
+        const setDialogWidth = (isWide) => {
+            const dialog = document.getElementById('dialog');
+
+            if (!dialog) {
+                return;
+            }
+
+            dialog.classList.toggle('wide', isWide);
+        }
 
         if (definitionLinks.length > 0) {
             const dialog = document.createElement('dialog');
@@ -158,6 +170,11 @@ const bcgovBlockThemePluginDefnitions = () => {
 
             closeDialogButton.addEventListener('click', () => {
                 dialog.close();
+                setDialogWidth(false);
+            });
+
+            dialog.addEventListener('close', () => {
+                setDialogWidth(false);
             });
 
             definitionLinks.forEach((link) => {

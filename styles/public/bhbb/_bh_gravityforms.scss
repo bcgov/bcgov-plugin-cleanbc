@@ -37,6 +37,13 @@
 	padding: 0;
 }
 
+/* Terms and conditions column */
+#gform_2 .gfield.terms-conditions {
+	grid-template-columns: 1fr;
+	position: relative;
+	left: 1rem;
+}
+
 /* “Stacked” look: left rail + badge.
    Applies to all visible fields by default; hidden fields won't show because they're display:none */
 #gform_2 .gfield::before {
@@ -56,12 +63,15 @@
 #gform_2 .gfield > .gfield_description {
 	margin-left: 2.5rem;
 	margin-top: 0;
+	width: 85%;
 }
 
 /* ---- Labels ---- */
 #gform_2 .gfield .gfield_label {
 	font-weight: normal;
 	line-height: 1.5;
+	margin-block-start: 0.15rem;
+	margin-block-end: 0;
 	text-wrap: balance;
 	text-align: right;
 	width: 100%;
@@ -142,7 +152,7 @@
 	border: 2px solid transparent;
 	border-radius: 0.4375rem;
 	outline-offset: 2px;
-	outline: 1px solid #369;
+	outline: 2px solid var(--wp--preset--color--custom-info-border, #bfdfe7);
 
 	/* down arrow */
 	background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBkPSJNMjM5IDQ5OC43bDE2MC0xMjggMTguNy0xNS0zMC0zNy41LTE4LjcgMTUtMTQ1IDExNkw3OSAzMzMuM2wtMTguNy0xNS0zMCAzNy41IDE4LjcgMTUgMTYwIDEyOCAxNSAxMiAxNS0xMnptMC00ODUuNWwtMTUtMTItMTUgMTJMNDkgMTQxLjNsLTE4LjcgMTUgMzAgMzcuNSAxOC43LTE1IDE0NS0xMTYgMTQ1IDExNiAxOC43IDE1IDMwLTM3LjUtMTguNy0xNUwyMzkgMTMuM3oiLz48L3N2Zz4=);
