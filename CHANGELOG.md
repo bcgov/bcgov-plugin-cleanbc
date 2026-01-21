@@ -1,3 +1,6 @@
+## 1.30.5 January 21, 2026
+– Updated Vue-based tool input and select styles to be consistent
+
 ## 1.30.4 January 20, 2026
 – Initial Gravity Form styles
 

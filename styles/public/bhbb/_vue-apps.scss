@@ -57,15 +57,17 @@
 	.custom-input input {
 		width: 100%;
 		background-color: #fff;
-		border: 2px solid #369;
+		border: 2px solid transparent;
 		border-radius: 0.33rem;
 		color: #369;
 		font-weight: bold;
 		padding: 0.25rem 0.66rem;
+		outline: 2px solid var(--wp--preset--color--custom-info-border, #bfdfe7);
+		outline-offset: 2px;
 
 		&:is(:focus, :focus-visible) {
+			border: 2px solid #369;
 			outline: 2px solid #369;
-			outline-offset: 2px;
 		}
 	}
 
@@ -337,7 +339,8 @@
 
 		.select {
 			background-color: #fff;
-			border: 2px solid #369;
+			outline: 2px solid var(--wp--preset--color--custom-info-border, #bfdfe7);
+			outline-offset: 2px;
 			color: $bahamablue;
 			display: block;
 			height: 100%;
@@ -352,6 +355,11 @@
 			-webkit-appearance: none;
 			appearance: none;
 			cursor: pointer;
+
+			&:is(:focus, :focus-visible) {
+				border: 2px solid #369;
+				outline: 2px solid #369;
+			}
 		}
 	}
 
