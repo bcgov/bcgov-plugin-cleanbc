@@ -163,6 +163,16 @@
 }
 
 /* GF error */
+#gform_2 .gfield.gfield_error {
+	padding-top: 1.5rem;
+}
+
+#gform_2 .validation_message {
+	width: 100%;
+	padding: 0 1rem;
+	text-align: right;
+}
+
 #gform_2 select.gfield_select[aria-invalid="true"] {
 	color: oklch(39.984% 0.16408 29.223);
 	outline-color: oklch(39.984% 0.16408 29.223) !important;
