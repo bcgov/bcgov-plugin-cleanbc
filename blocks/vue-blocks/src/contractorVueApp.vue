@@ -198,7 +198,10 @@
             <!-- No Results Message -->
             <tr v-if="filteredContractors.length === 0 && !isLoading" class="no-results">
                 <td colspan="100%">
-                    <p class="no-results" role="status" aria-live="polite">Sorry, no results found.</p>
+                    <div class="no-results" role="status" aria-live="polite">
+                      <p>There are currently no registered contractors in your community for the selected program or upgrade. Try searching a nearby community.</p>
+                      <p>Contractors who aren't on this list can visit <a href="https://homeperformance.ca/about-the-network/">homeperformance.ca/contractornetwork</a> to register for Better Homes programs.</p>
+                    </div>
                 </td>
             </tr>
 

@@ -370,7 +370,7 @@
 		align-items: stretch;
 		width: 100%;
 		margin-bottom: 1rem;
-		padding: 1rem;
+		padding: 2rem 2rem 1rem;
 		background-color: #fff;
 		box-shadow: 0 0.25rem 0.7rem rgba(49, 49, 50, 0.25);
 		border: 0;
@@ -964,6 +964,7 @@
 
 	.no-results {
 		width: 100%;
+		max-width: 600px;
 		text-align: center;
 	}
 
@@ -1096,10 +1097,23 @@
 		table-layout: fixed;
 		border-spacing: 0;
 
-		.no-results {
+		.no-results .no-results {
+			background-color: #efefef;
+			box-shadow: var(--box-shadow);
+			margin: auto;
+			padding: 2rem 1rem;
 			width: 100%;
+			max-width: 550px;
 			text-align: center;
+
+			@media (width > 782px) {
+				background-color: #fff;
+				border: 1px solid #efefef;
+				border-radius: 0.5rem;
+				margin: 2rem auto;
+			}
 		}
+
 	}
 
 	.contractor,
@@ -1292,7 +1306,6 @@
 
 		&::before {
 			display: block;
-			content: attr(data-label);
 			margin-bottom: 0.5rem;
 			font-size: 1.125rem;
 			font-weight: bold;
@@ -1318,6 +1331,10 @@
 		li {
 			font-size: var(--wp--preset--font-size--small);
 		}
+	}
+
+	tr:not(.no-results) td::before {
+		content: attr(data-label);
 	}
 
 	.contractor__company {

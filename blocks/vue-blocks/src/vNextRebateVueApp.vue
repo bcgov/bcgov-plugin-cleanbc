@@ -1283,7 +1283,7 @@ const fields = computed(() => [
     description:
       'The amount options shown change based on the set type of home.',
     disabled_desc:
-      'Please answer the "type of home you live in" question to enable this selection.',
+      'Please answer the "kind of home you live in" question to enable this selection.',
     definition: 'How to find the assessed value of your home',
     glossary_link: '/definitions/assessed-home-value/',
     isInvalid: () =>

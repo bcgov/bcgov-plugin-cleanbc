@@ -1,3 +1,6 @@
+## 1.30.7 January 22, 2026
+– Modified null results for contractors including styles that impact PQEA results
+
 ## 1.30.6 January 21, 2026
 – Re-run definitions handling after Gravity Forms (currently hardcoded for ID 2) submission only when the form is present
 – Hydration of Contractor and PQEA tools with preferred location details
