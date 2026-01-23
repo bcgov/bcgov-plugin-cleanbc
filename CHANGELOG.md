@@ -1,3 +1,6 @@
+## 1.30.8 January 23, 2026
+– Style updates.
+
 ## 1.30.7 January 22, 2026
 – Modified null results for contractors including styles that impact PQEA results
 

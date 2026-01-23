@@ -363,6 +363,17 @@
 		}
 	}
 
+	details > summary {
+		color: var(--wp--preset--color--primary-brand);
+		border-bottom: 1px dashed var(--wp--preset--color--primary-brand);
+		font-size: 0.85rem;
+		width: fit-content;
+	}
+
+	details[open] > summary {
+		border-bottom: 0;
+	}
+
 	.filter-container {
 		display: flex;
 		flex-direction: column;
