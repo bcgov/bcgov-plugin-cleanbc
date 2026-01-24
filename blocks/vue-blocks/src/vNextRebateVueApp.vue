@@ -1263,7 +1263,7 @@ const fields = computed(() => [
     displayValue: selectedBuildingTypeName.value,
     missingMessage: 'Missing home type',
     description:
-      'Changing between Ground Oriented / MURB types will require you to update the assessed home value information.',
+      'Changing between Ground Oriented / MURB types will require you to update the assessed property value information.',
     filter_desc:
       'Each unit must have its own electricity meter and the utility account must be in the name of a resident in the household that is applying to the rebate.',
     error_desc:
@@ -1272,7 +1272,7 @@ const fields = computed(() => [
   },
   {
     key: 'homeValue',
-    shortDesc: 'Assessed home value',
+    shortDesc: 'Assessed property value',
     label: 'What is the current assessed value of your property?',
     model: selectedHomeValueSlug,
     options: homeValueOptions.value,
@@ -1284,7 +1284,7 @@ const fields = computed(() => [
       'The amount options shown change based on the set type of home.',
     disabled_desc:
       'Please answer the "kind of home you live in" question to enable this selection.',
-    definition: 'How to find the assessed value of your home',
+    definition: 'How to find the assessed value of your property',
     glossary_link: '/definitions/assessed-home-value/',
     isInvalid: () =>
       !selectedHomeValueSlug.value && !!selectedBuildingGroupSlug.value || selectedBuildingTypeSlug.value === 'other'
