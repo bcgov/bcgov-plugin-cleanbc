@@ -321,7 +321,7 @@
                     <header>
                       <h3 class="rebate-title">
                         <div>{{ item.rebate_type_headline_card }}</div>
-                        <small>{{ item.title }}</small>
+                        <small v-if='!item.rebate_type_headline_card.includes("Insulation") && !item.rebate_type_headline_card.includes("Windows")'>{{ item.title }}</small>
                       </h3>
                     </header>
 
@@ -1267,7 +1267,7 @@ const fields = computed(() => [
     filter_desc:
       'Each unit must have its own electricity meter and the utility account must be in the name of a resident in the household that is applying to the rebate.',
     error_desc:
-      'Only the listed home types are currently eligible for Better Homes rebates. Contact an Energy Coach to find out if your home type fits into one of these categories.',
+      'Only the listed home types are currently eligible for Better Homes rebates. <a href="/get-support/">Contact an Energy Coach</a> to find out if your home type fits into one of these categories.',
     isInvalid: () => selectedBuildingTypeSlug.value === 'other'
   },
   {
@@ -1333,7 +1333,7 @@ const fields = computed(() => [
     displayValue: selectedHeatingName.value,
     missingMessage: 'Missing room heating details',
     error_desc:
-      'Only the listed heating types are currently eligible for Better Homes rebates. Contact an Energy Coach to find out if your heating type fits into one of these categories.',
+      'Only the listed heating types are currently eligible for Better Homes rebates. <strong><a href="/get-support/" style="color: darkred;">Contact an Energy Coach</a></strong> to find out if your heating type fits into one of these categories.',
     isInvalid: () => !selectedHeatingSlug.value || selectedHeatingSlug.value === 'other',
   },
   {
@@ -1353,7 +1353,7 @@ const fields = computed(() => [
     displayValue: selectedWaterHeatingName.value,
     missingMessage: 'Missing water heating details',
     error_desc:
-      'Only the listed heating types are eligible for Better Homes <strong>heat pump water heater</strong> rebates.  Contact an Energy Coach to find out if your heating type fits into one of these categories. ',
+      'Only the listed heating types are eligible for Better Homes heat pump water heater rebates. <strong><a href="/get-support/" style="color: darkred;">Contact an Energy Coach</a></strong> to find out if your heating type fits into one of these categories. ',
     isInvalid: () => !selectedWaterHeatingSlug.value || selectedWaterHeatingSlug.value === 'other'
   },
   {
@@ -1365,7 +1365,7 @@ const fields = computed(() => [
     displayValue: selectedUtilityName.value,
     missingMessage: 'Missing service details',
     error_desc:
-      'Your electricity must be from one of the listed providers. Contact an Energy Coach if you have questions or need help figuring out who your provider is. ',
+      'Your electricity must be from one of the listed providers. <a href="/get-support/">Contact an Energy Coach</a> if you have questions or need help figuring out who your provider is. ',
     isInvalid: () => !selectedUtilitySlug.value || selectedUtilitySlug.value === 'other'
   },
   {
@@ -1903,6 +1903,52 @@ const selectedGas = computed(
 )
 const selectedGasName = computed(
   () => selectedGas.value?.name || ''
+)
+
+const isNaturalGasOrPropaneOption = (opt) => {
+  if (!opt) return false
+  const slug = String(opt.slug ?? '').toLowerCase()
+  const name = String(opt.name ?? '').toLowerCase()
+  return (
+    /natural\s*gas/.test(name) ||
+    /propane/.test(name) ||
+    /natural[-\s]*gas/.test(slug) ||
+    /propane/.test(slug)
+  )
+}
+
+const findNoGasOptionSlug = (opts = []) => {
+  const match = opts.find(opt => {
+    const slug = String(opt?.slug ?? '').toLowerCase()
+    const name = String(opt?.name ?? '').toLowerCase()
+    return /no\s*gas/.test(name) || /no[-\s]*gas/.test(slug)
+  })
+  return match?.slug || ''
+}
+
+watch(
+  [selectedHeatingSlug, selectedWaterHeatingSlug, gasOptions],
+  () => {
+    if (selectedGasSlug.value) return
+    if (!selectedHeatingSlug.value || !selectedWaterHeatingSlug.value) return
+    if (
+      isNaturalGasOrPropaneOption(selectedHeating.value) ||
+      isNaturalGasOrPropaneOption(selectedWaterHeating.value)
+    ) {
+      return
+    }
+
+    const noGasSlug = findNoGasOptionSlug(gasOptions.value)
+    if (!noGasSlug) return
+
+    selectedGasSlug.value = noGasSlug
+    if (bootstrapped.value) {
+      isExternalDirty.value = true
+    }
+    updateAddressBar()
+    debouncedUpdateRebateDetails()
+  },
+  { immediate: true }
 )
 
 // -- Selections summary --
@@ -3017,6 +3063,15 @@ function withQueryString(baseUrl) {
           border: 2px solid #369 !important;
         }
 
+        .location-input {
+          outline-color: var(--wp--preset--color--custom-info-border, #bfdfe7);
+          background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBkPSJNMjQxIDM2OWMtOS40IDkuNC0yNC42IDkuNC0zMy45IDBMNDcgMjA5Yy05LjQtOS40LTkuNC0yNC42IDAtMzMuOXMyNC42LTkuNCAzMy45IDBsMTQzIDE0M0wzNjcgMTc1YzkuNC05LjQgMjQuNi05LjQgMzMuOSAwczkuNCAyNC42IDAgMzMuOUwyNDEgMzY5eiIvPjwvc3ZnPg==);
+          background-repeat: no-repeat;
+          background-position: right 0.75rem center;
+          background-size: 0.85rem
+        }
+
+        /*
         .location-input.is-empty {
           outline-color: var(--wp--preset--color--custom-info-border, #bfdfe7);
           background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBvcGFjaXR5PSIxIiBkPSJNMCAyNTZhMjU2IDI1NiAwIDEgMCA1MTIgMEEyNTYgMjU2IDAgMSAwIDAgMjU2em0xNjgtNzJjMC0uNSAwLTEgMCAwem02NCAxNTJsNDggMGMwIDE2IDAgMzIgMCA0OGwtNDggMGMwLTE2IDAtMzIgMC00OHoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjI0IDEyOGMtMzAuOSAwLTU2IDI1LjEtNTYgNTZsMCA2LjUgNDggMCAwLTYuNWMwLTQuNCAzLjYtOCA4LThsNTYuOSAwYzguNCAwIDE1LjEgNi44IDE1LjEgMTUuMWMwIDUuNC0yLjkgMTAuNC03LjYgMTMuMWwtNDQuMyAyNS40TDIzMiAyMzYuNmwwIDEzLjkgMCAyMS41IDAgMjQgNDggMCAwLTI0IDAtNy42IDMyLjMtMTguNWMxOS42LTExLjMgMzEuNy0zMi4yIDMxLjctNTQuOGMwLTM0LjktMjguMy02My4xLTYzLjEtNjMuMUwyMjQgMTI4em01NiAyMDhsLTQ4IDAgMCA0OCA0OCAwIDAtNDh6Ii8+PC9zdmc+);
@@ -3050,7 +3105,7 @@ function withQueryString(baseUrl) {
           background-position: right 0.75rem center;
           background-size: 1.25rem
         }
-
+        */
       }
     }
 

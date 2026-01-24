@@ -1,5 +1,7 @@
 ## 1.30.8 January 23, 2026
-– Style updates.
+– Style updates, including datalist icon
+– Auto-set gas provider to "no gas" when heating and water choices are non-gas and gas is unset
+– Linked "Contact an Energy Coach" in rebate tool error messages
 
 ## 1.30.7 January 22, 2026
 – Modified null results for contractors including styles that impact PQEA results
