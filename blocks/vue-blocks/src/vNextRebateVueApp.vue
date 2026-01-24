@@ -185,7 +185,7 @@
 
                     <!-- Location input -->
                     <template v-if="field.key === 'location'">
-                      <input :list="`${field.key}List`" :id="`${field.key}Select`" type="text" autocomplete="off"
+                      <input :list="isMobile ? `${field.key}ListMobile` : `${field.key}List`" :id="`${field.key}Select`" type="text" autocomplete="off"
                         class="location-input" :class="{
                           'is-empty': !locationInputValue,
                           'is-valid': !isLocationFocused && isLocationValid,
@@ -200,8 +200,14 @@
                         @blur="handleLocationInputCommit('blur')"
                         @change="handleLocationInputCommit('change')"
                         @keydown.enter.prevent="handleLocationInputCommit('enter')" />
-                      <datalist :id="`${field.key}List`">
-                        <option v-for="opt in field.options" :key="opt.slug" :value="opt.name"></option>
+                      <!-- Desktop: full datalist -->
+                      <datalist v-if="!isMobile" :id="`${field.key}List`">
+                        <option v-for="opt in locationOptionsForInput" :key="opt.slug" :value="opt.name"></option>
+                      </datalist>
+                      <!-- Mobile: proxy datalist (top 10 only) -->
+                      <datalist v-else :id="`${field.key}ListMobile`">
+                        <option v-if="locationQueryIsEmpty" value="Please type to find your community"></option>
+                        <option v-else v-for="opt in mobileLocationOptions" :key="opt.slug" :value="opt.name"></option>
                       </datalist>
                       <p v-if="field.error_desc && fieldErrors[field.key]" class="message error-message" v-html="field.error_desc" aria-live='polite'></p>
 
@@ -488,15 +494,15 @@ function hydratePreferredSettingsFromRebateToolSettings() {
   // --- LOCATION ---
   // Best source: current state if valid
   let locMatch =
-    (selectedLocationSlug.value && locationOptions.value.find(l => l.slug === selectedLocationSlug.value)) ||
-    (selectedLocationName.value && locationOptions.value.find(l => l.name === selectedLocationName.value)) ||
+    (selectedLocationSlug.value && locationOptionsForInput.value.find(l => l.slug === selectedLocationSlug.value)) ||
+    (selectedLocationName.value && locationOptionsForInput.value.find(l => l.name === selectedLocationName.value)) ||
     null
 
   // Fallback: rebateToolSettings (can be slug OR name in your implementation)
   if (!locMatch && saved?.location) {
     locMatch =
-      locationOptions.value.find(l => l.slug === saved.location) ||
-      locationOptions.value.find(l => l.name === saved.location) ||
+      locationOptionsForInput.value.find(l => l.slug === saved.location) ||
+      locationOptionsForInput.value.find(l => l.name === saved.location) ||
       null
   }
 
@@ -855,13 +861,13 @@ const handleLocationInputCommit = debounce(async (trigger = 'change') => {
   const trimmed = raw.trim().toLowerCase()
 
   // 1. Try exact match first.
-  let match = locationOptions.value.find(
+  let match = locationOptionsForInput.value.find(
     opt => opt.name.toLowerCase() === trimmed
   )
 
   // 2. Try best fuzzy match on blur.
   if (!match && trigger === 'blur' && raw !== '') {
-    const possible = locationOptions.value.filter(opt =>
+    const possible = locationOptionsForInput.value.filter(opt =>
       opt.name.toLowerCase().includes(trimmed)
     )
 
@@ -914,7 +920,7 @@ const handleLocationInputCommit = debounce(async (trigger = 'change') => {
 const isLocationFocused = ref(false)
 
 const isLocationValid = computed(() =>
-  locationOptions.value.some(
+  locationOptionsForInput.value.some(
     opt =>
       opt.name.toLowerCase() === locationInputValue.value.trim().toLowerCase()
   )
@@ -1225,7 +1231,7 @@ const fields = computed(() => [
     shortDesc: 'Home location',
     label: 'What community do you live in or are closest to?',
     model: selectedLocationSlug,
-    options: locationOptions.value,
+    options: locationOptionsForInput.value,
     displayValue: selectedLocationName.value
       ? `${selectedLocationName.value} (${selectedRegionName.value})`
       : '',
@@ -1567,8 +1573,8 @@ function initFromLocalStorage(data) {
 
   if (data.location) {
     const loc =
-      locationOptions.value.find(l => l.slug === data.location) ||
-      locationOptions.value.find(l => l.name === data.location)
+      locationOptionsForInput.value.find(l => l.slug === data.location) ||
+      locationOptionsForInput.value.find(l => l.name === data.location)
     if (loc) selectedLocationSlug.value = loc.slug
   }
 
@@ -1778,11 +1784,21 @@ const locationOptions = computed(
   () => api.value?.['settings-selects']?.['locations'] ?? []
 )
 
+const isAllLocationsOption = (opt) => {
+  const name = opt?.name?.toLowerCase?.().trim()
+  const slug = opt?.slug?.toLowerCase?.().trim()
+  return name === 'all locations' || slug === 'all' || slug === 'all-locations'
+}
+
+const locationOptionsForInput = computed(() =>
+  locationOptions.value.filter(opt => !isAllLocationsOption(opt))
+)
+
 const selectedLocationSlug = ref('')
 
 const selectedLocation = computed(
   () =>
-    locationOptions.value.find(l => l.slug === selectedLocationSlug.value) ||
+    locationOptionsForInput.value.find(l => l.slug === selectedLocationSlug.value) ||
     null
 )
 
@@ -1802,6 +1818,18 @@ watch(locationInputValue, newVal => {
   }
 })
 
+const normalizeLocationQuery = (val) =>
+  (val || '').toLowerCase().trim().replace(/\s+/g, '-')
+
+const normalizedLocationOptions = computed(() =>
+  locationOptionsForInput.value
+    .filter(opt => opt?.name)
+    .map(opt => ({
+      ...opt,
+      norm: normalizeLocationQuery(opt.name)
+    }))
+)
+
 // Unified proxy for v-model (this is now a valid member expression)
 const setLocationDisplayDebounced = debounce((v) => {
   locationInputDisplay.value = v
@@ -1819,6 +1847,39 @@ const locationInputProxy = computed({
       locationInputValue.value = val
     }
   }
+})
+
+const locationQuery = computed(() => {
+  const raw = isMobile.value ? locationInputDisplay.value : locationInputValue.value
+  return normalizeLocationQuery(raw)
+})
+
+const locationQueryIsEmpty = computed(() => !locationQuery.value)
+
+const mobileLocationOptions = computed(() => {
+  const q = locationQuery.value
+  if (!q) return []
+
+  const list = normalizedLocationOptions.value
+  const starts = []
+  const includes = []
+
+  for (const opt of list) {
+    if (!opt?.norm) continue
+    if (opt.norm.startsWith(q)) {
+      starts.push(opt)
+      if (starts.length >= 10) return starts
+    } else if (opt.norm.includes(q)) {
+      includes.push(opt)
+    }
+  }
+
+  for (const opt of includes) {
+    starts.push(opt)
+    if (starts.length >= 10) break
+  }
+
+  return starts
 })
 
 const selectedRegion = computed(
@@ -2259,7 +2320,7 @@ function initFromQueryString() {
   }
 
   if (location) {
-    const foundLoc = locationOptions.value.find(l => l.name === location)
+    const foundLoc = locationOptionsForInput.value.find(l => l.name === location)
     if (foundLoc) selectedLocationSlug.value = foundLoc.slug
   }
 
@@ -2345,7 +2406,7 @@ const espTier = computed(() => {
 
 // Hydrate preferredSettings whenever location becomes valid
 watch(
-  [selectedLocationSlug, selectedLocationName, locationOptions],
+  [selectedLocationSlug, selectedLocationName, locationOptionsForInput],
   () => {
     if (!bootstrapped.value) return
     hydratePreferredSettingsFromRebateToolSettings()

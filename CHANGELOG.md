@@ -2,6 +2,7 @@
 – Style updates, including datalist icon
 – Auto-set gas provider to "no gas" when heating and water choices are non-gas and gas is unset
 – Linked "Contact an Energy Coach" in rebate tool error messages
+– Added "janky mobile" fix to questionnaire location
 
 ## 1.30.7 January 22, 2026
 – Modified null results for contractors including styles that impact PQEA results
@@ -77,8 +78,8 @@
 – Rerun a rebate tool specific external link check after is-dirty.
 
 ## 1.28.1 December 24, 2025
-– Contractor tool refactoring for vNext functionality.
-– Filtering typography updates + styles.
+– Contractor tool refactoring for vNext functionality
+– Filtering typography updates + styles
 
 ## 1.28.0 December 23, 2025
 – PQEA tooling updated to use text based search filtering for company name and location.
