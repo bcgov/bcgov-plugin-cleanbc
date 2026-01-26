@@ -307,6 +307,37 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 			}
 		}
 
+		&.has-icon-after {
+
+			content: "";
+			display: flex;
+			gap: 0.5rem;
+			height: 1.5rem;
+			min-width: 1.5rem;
+			width: 1.5rem;
+			margin-bottom: 0.5rem;
+			background-repeat: no-repeat;
+			background-position: center;
+			border: none;
+			position: relative;
+			top: 0.5rem;
+
+			&::after {
+				content: "";
+				display: inline-block;
+				padding-inline: 0;
+			}
+
+			&.icon-apply::after {
+				content: $icon_apply;
+				margin-right: 0;
+				top: -0.15rem;
+				width: 1.5rem;
+				filter: var(--green-filter);
+				left: 0;
+			}
+		}
+
 		&.wrap-normal.wrap-normal {
 			text-wrap: pretty !important;
 		}

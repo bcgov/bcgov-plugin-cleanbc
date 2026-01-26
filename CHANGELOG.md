@@ -1,3 +1,6 @@
+## 1.30.9 January 23, 2026
+– Rebate pages styling updates
+
 ## 1.30.8 January 23, 2026
 – Style updates, including datalist icon
 – Auto-set gas provider to "no gas" when heating and water choices are non-gas and gas is unset
