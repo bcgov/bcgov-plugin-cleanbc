@@ -310,17 +310,17 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 		&.has-icon-after {
 
 			content: "";
-			display: flex;
-			gap: 0.5rem;
-			height: 1.5rem;
-			min-width: 1.5rem;
-			width: 1.5rem;
-			margin-bottom: 0.5rem;
 			background-repeat: no-repeat;
 			background-position: center;
 			border: none;
+			display: flex;
+			gap: 0.5rem;
+			margin-bottom: 0.5rem;
+			height: 1.5rem;
+			min-width: 1.5rem;
+			width: fit-content;
 			position: relative;
-			top: 0.5rem;
+			top: 0;
 
 			&::after {
 				content: "";
@@ -328,8 +328,8 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 				padding-inline: 0;
 			}
 
-			&.icon-apply::after {
-				content: $icon_apply;
+			&.icon-available::after {
+				content: $icon_available;
 				margin-right: 0;
 				top: -0.15rem;
 				width: 1.5rem;
