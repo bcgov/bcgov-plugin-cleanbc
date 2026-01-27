@@ -1,4 +1,7 @@
-## 1.30.9 January 23, 2026
+## 1.30.10 January 27, 2026
+– Enahanced search priority to group by priority existence, then by priority value, then relevance
+
+## 1.30.9 January 26, 2026
 – Rebate pages styling updates
 – Added a search priority option based on an ACF field "search_priority"
 

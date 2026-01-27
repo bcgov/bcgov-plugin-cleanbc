@@ -61,29 +61,27 @@ class SearchContext {
 			return;
 		}
 
-		$query->set( 'meta_key', 'search_priority' );
+		$meta_query                            = (array) $query->get( 'meta_query' );
+		$meta_query['relation']                = 'OR';
+		$meta_query['search_priority_value']   = [
+			'key'     => 'search_priority',
+			'compare' => 'EXISTS',
+			'type'    => 'NUMERIC',
+		];
+		$meta_query['search_priority_missing'] = [
+			'key'     => 'search_priority',
+			'compare' => 'NOT EXISTS',
+		];
+		$query->set( 'meta_query', $meta_query );
+
 		$query->set(
 			'orderby',
 			[
-				'meta_value_num' => 'DESC',
-				'relevance'      => 'DESC',
-				'date'           => 'DESC',
+				'search_priority_value' => 'DESC',
+				'relevance'             => 'DESC',
+				'date'                  => 'DESC',
 			]
 		);
-
-		$meta_query   = (array) $query->get( 'meta_query' );
-		$meta_query[] = [
-			'relation' => 'OR',
-			[
-				'key'     => 'search_priority',
-				'compare' => 'EXISTS',
-			],
-			[
-				'key'     => 'search_priority',
-				'compare' => 'NOT EXISTS',
-			],
-		];
-		$query->set( 'meta_query', $meta_query );
 	}
 
 	/**
