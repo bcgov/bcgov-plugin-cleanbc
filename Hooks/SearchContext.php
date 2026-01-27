@@ -42,7 +42,7 @@ class SearchContext {
 	/**
 	 * Order search results by optional ACF search priority, then relevance/date.
 	 *
-	 * @since 1.26.0
+	 * @since 1.30.9
 	 *
 	 * @param \WP_Query $query The current query.
 	 * @return void
