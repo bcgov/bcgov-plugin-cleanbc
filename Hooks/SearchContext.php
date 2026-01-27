@@ -61,28 +61,172 @@ class SearchContext {
 			return;
 		}
 
-		$meta_query                            = (array) $query->get( 'meta_query' );
-		$meta_query['relation']                = 'OR';
-		$meta_query['search_priority_value']   = [
-			'key'     => 'search_priority',
-			'compare' => 'EXISTS',
-			'type'    => 'NUMERIC',
-		];
-		$meta_query['search_priority_missing'] = [
-			'key'     => 'search_priority',
-			'compare' => 'NOT EXISTS',
-		];
-		$query->set( 'meta_query', $meta_query );
+		if ( ! $this->bcgov_has_search_priority_meta() ) {
+			return;
+		}
 
 		$query->set(
 			'orderby',
 			[
-				'search_priority_value' => 'DESC',
-				'relevance'             => 'DESC',
-				'date'                  => 'DESC',
+				'relevance' => 'DESC',
+				'date'      => 'DESC',
 			]
 		);
+
+		add_filter( 'posts_join', [ $this, 'bcgov_search_priority_join' ], 10, 2 );
+		add_filter( 'posts_orderby', [ $this, 'bcgov_search_priority_orderby' ], 10, 2 );
+		add_filter( 'posts_distinct', [ $this, 'bcgov_search_priority_distinct' ], 10, 2 );
+		add_filter( 'the_posts', [ $this, 'bcgov_remove_search_priority_clauses' ], 10, 2 );
 	}
+
+	/**
+	 * Adds the priority meta LEFT JOIN without excluding posts.
+	 *
+	 * @since 1.30.9
+	 *
+	 * @param string    $join  The JOIN clause.
+	 * @param \WP_Query $query   The current query.
+	 * @return string Modified JOIN clause.
+	 */
+	public function bcgov_search_priority_join( $join, $query ) {
+		if ( is_admin() || ! $query->is_main_query() || ! $query->is_search() ) {
+			return $join;
+		}
+
+		if ( ! function_exists( 'acf_get_field' ) ) {
+			return $join;
+		}
+
+		$field = acf_get_field( 'search_priority' );
+		if ( empty( $field ) ) {
+			return $join;
+		}
+
+		if ( ! $this->bcgov_has_search_priority_meta() ) {
+			return $join;
+		}
+
+		global $wpdb;
+
+		$priority_join = " LEFT JOIN {$wpdb->postmeta} AS pm_search_priority ON ({$wpdb->posts}.ID = pm_search_priority.post_id AND pm_search_priority.meta_key = 'search_priority') ";
+		if ( false === strpos( $join, 'pm_search_priority' ) ) {
+			$join .= $priority_join;
+		}
+
+		return $join;
+	}
+
+	/**
+	 * Prepends priority ordering to the existing ORDER BY clause.
+	 *
+	 * @since 1.30.9
+	 *
+	 * @param string    $orderby The ORDER BY clause.
+	 * @param \WP_Query $query   The current query.
+	 * @return string Modified ORDER BY clause.
+	 */
+	public function bcgov_search_priority_orderby( $orderby, $query ) {
+		if ( is_admin() || ! $query->is_main_query() || ! $query->is_search() ) {
+			return $orderby;
+		}
+
+		if ( ! function_exists( 'acf_get_field' ) ) {
+			return $orderby;
+		}
+
+		$field = acf_get_field( 'search_priority' );
+		if ( empty( $field ) ) {
+			return $orderby;
+		}
+
+		if ( ! $this->bcgov_has_search_priority_meta() ) {
+			return $orderby;
+		}
+
+		$priority_order = 'COALESCE(pm_search_priority.meta_value+0, 0) DESC';
+		$clean_orderby  = preg_replace( '/^ORDER BY\\s+/i', '', $orderby );
+
+		if ( '' !== trim( $clean_orderby ) ) {
+			return "{$priority_order}, {$clean_orderby}";
+		}
+
+		return $priority_order;
+	}
+
+	/**
+	 * Ensures DISTINCT to avoid duplicate rows from the priority join.
+	 *
+	 * @since 1.30.10
+	 *
+	 * @param string    $distinct The DISTINCT clause.
+	 * @param \WP_Query $query    The current query.
+	 * @return string Modified DISTINCT clause.
+	 */
+	public function bcgov_search_priority_distinct( $distinct, $query ) {
+		if ( is_admin() || ! $query->is_main_query() || ! $query->is_search() ) {
+			return $distinct;
+		}
+
+		if ( ! function_exists( 'acf_get_field' ) ) {
+			return $distinct;
+		}
+
+		$field = acf_get_field( 'search_priority' );
+		if ( empty( $field ) ) {
+			return $distinct;
+		}
+
+		if ( ! $this->bcgov_has_search_priority_meta() ) {
+			return $distinct;
+		}
+
+		return 'DISTINCT';
+	}
+
+	/**
+	 * Checks if any posts have a search priority meta value.
+	 *
+	 * @since 1.30.10
+	 *
+	 * @return bool True if the meta key exists.
+	 */
+	private function bcgov_has_search_priority_meta() {
+		static $has_meta = null;
+
+		if ( null !== $has_meta ) {
+			return $has_meta;
+		}
+
+		global $wpdb;
+		$has_meta = (bool) $wpdb->get_var(
+			"SELECT 1 FROM {$wpdb->postmeta} WHERE meta_key = 'search_priority' LIMIT 1"
+		);
+
+		return $has_meta;
+	}
+
+	/**
+	 * Removes the search priority clause filter after the main query runs.
+	 *
+	 * @since 1.30.9
+	 *
+	 * @param array     $posts Array of post objects.
+	 * @param \WP_Query $query The current query.
+	 * @return array Unmodified posts.
+	 */
+	public function bcgov_remove_search_priority_clauses( $posts, $query ) {
+		if ( is_admin() || ! $query->is_main_query() || ! $query->is_search() ) {
+			return $posts;
+		}
+
+		remove_filter( 'posts_join', [ $this, 'bcgov_search_priority_join' ], 10 );
+		remove_filter( 'posts_orderby', [ $this, 'bcgov_search_priority_orderby' ], 10 );
+		remove_filter( 'posts_distinct', [ $this, 'bcgov_search_priority_distinct' ], 10 );
+		remove_filter( 'the_posts', [ $this, 'bcgov_remove_search_priority_clauses' ], 10 );
+
+		return $posts;
+	}
+
 
 	/**
 	 * Modify search results post date to include the post type.
