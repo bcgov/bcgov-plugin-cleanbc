@@ -66,6 +66,7 @@ class Setup {
 
         // Actions.
         add_action( 'pre_get_posts', [ $plugin_search, 'bcgov_included_post_types_in_search' ] );
+        add_action( 'pre_get_posts', [ $plugin_search, 'bcgov_order_search_by_priority' ], 11 );
         add_action( 'wp_enqueue_scripts', [ $plugin_enqueue_and_inject, 'bcgov_plugin_enqueue_scripts' ] );
         add_action( 'admin_enqueue_scripts', [ $plugin_enqueue_and_inject, 'bcgov_plugin_enqueue_admin_scripts' ] );
         add_action( 'enqueue_block_editor_assets', [ $plugin_enable_vue_app, 'vuejs_wordpress_block_plugin' ] );

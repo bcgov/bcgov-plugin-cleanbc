@@ -1,5 +1,6 @@
 ## 1.30.9 January 23, 2026
 – Rebate pages styling updates
+– Added a search priority option based on an ACF field "search_priority"
 
 ## 1.30.8 January 23, 2026
 – Style updates, including datalist icon

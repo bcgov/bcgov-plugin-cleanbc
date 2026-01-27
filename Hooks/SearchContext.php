@@ -40,6 +40,53 @@ class SearchContext {
 	}
 
 	/**
+	 * Order search results by optional ACF search priority, then relevance/date.
+	 *
+	 * @since 1.26.0
+	 *
+	 * @param \WP_Query $query The current query.
+	 * @return void
+	 */
+	public function bcgov_order_search_by_priority( $query ) {
+		if ( is_admin() || ! $query->is_main_query() || ! $query->is_search() ) {
+			return;
+		}
+
+		if ( ! function_exists( 'acf_get_field' ) ) {
+			return;
+		}
+
+		$field = acf_get_field( 'search_priority' );
+		if ( empty( $field ) ) {
+			return;
+		}
+
+		$query->set( 'meta_key', 'search_priority' );
+		$query->set(
+			'orderby',
+			[
+				'meta_value_num' => 'DESC',
+				'relevance'      => 'DESC',
+				'date'           => 'DESC',
+			]
+		);
+
+		$meta_query   = (array) $query->get( 'meta_query' );
+		$meta_query[] = [
+			'relation' => 'OR',
+			[
+				'key'     => 'search_priority',
+				'compare' => 'EXISTS',
+			],
+			[
+				'key'     => 'search_priority',
+				'compare' => 'NOT EXISTS',
+			],
+		];
+		$query->set( 'meta_query', $meta_query );
+	}
+
+	/**
 	 * Modify search results post date to include the post type.
 	 *
 	 * @since 1.0.7
