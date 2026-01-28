@@ -3459,7 +3459,7 @@ function withQueryString(baseUrl) {
     isolation: isolate;
     background-color: #fff;
     box-shadow: 0 0 3px rgb(0 0 0 / 0.2), 0 0 6px rgb(0 0 0 / 0.1);
-    border-radius: 0.5rem;
+    border-radius: 1rem;
     padding: 0;
     overflow: clip;
 

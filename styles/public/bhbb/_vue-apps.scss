@@ -383,8 +383,6 @@
 		margin-bottom: 2rem;
 		padding: 0 0.5rem 2rem; // was: 2rem 2rem 1rem;
 		background-color: #fff;
-		// box-shadow: 0 0.25rem 0.7rem rgba(49, 49, 50, 0.25);
-		// border-radius: 1rem;
 		border-bottom: 1px solid #33669940;
 
 		@media (min-width: $breakpoint-md) {
@@ -967,6 +965,11 @@
 			}
 		}
 	}
+}
+
+#vnextRebateFilterApp[data-mode="archive"] .filter-container {
+	box-shadow: 0 0.25rem 0.7rem rgba(49, 49, 50, 0.25);
+	border-radius: 1rem;
 }
 
 // Layouts with Sidebar.
