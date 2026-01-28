@@ -967,9 +967,11 @@
 	}
 }
 
-#vnextRebateFilterApp[data-mode="archive"] .filter-container {
+#vnextRebateFilterApp[data-mode="archive"] .filter-container,
+#vnextRebateFilterApp[data-mode="single"] .filter-container {
 	box-shadow: 0 0.25rem 0.7rem rgba(49, 49, 50, 0.25);
 	border-radius: 1rem;
+	border: 0;
 }
 
 // Layouts with Sidebar.
