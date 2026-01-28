@@ -107,7 +107,7 @@
     </transition>
 
     <!-- Results -->
-    <h2 class="results__title">
+    <h2 v-if="false" class="results__title">
       Find an Energy Advisor (<span class="counter__value">{{ filteredPqeas.length }}</span> results)
     </h2>
 

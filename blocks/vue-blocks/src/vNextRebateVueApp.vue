@@ -12,7 +12,7 @@
 
     <template v-else>
 
-      <p v-if="(!hasAllSelection || isDirty) && mode === 'single'" class='has-icon warning message tool-message'>
+      <p v-if="(!hasAllSelection || isDirty) && mode === 'single'" class='has-icon info tool-message'>
         You may be looking at default or incomplete information.
         <a v-if='!isDirty' @click="toggleCollapseView" @keydown.enter.space.prevent="toggleCollapseView" tabindex='0'>
           Please update your home's details.

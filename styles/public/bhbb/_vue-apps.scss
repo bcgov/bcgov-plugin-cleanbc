@@ -380,12 +380,12 @@
 		align-content: flex-start;
 		align-items: stretch;
 		width: 100%;
-		margin-bottom: 1rem;
-		padding: 2rem 2rem 1rem;
+		margin-bottom: 2rem;
+		padding: 0 0.5rem 2rem; // was: 2rem 2rem 1rem;
 		background-color: #fff;
-		box-shadow: 0 0.25rem 0.7rem rgba(49, 49, 50, 0.25);
-		border: 0;
-		border-radius: 1rem;
+		// box-shadow: 0 0.25rem 0.7rem rgba(49, 49, 50, 0.25);
+		// border-radius: 1rem;
+		border-bottom: 1px solid #33669940;
 
 		@media (min-width: $breakpoint-md) {
 			flex-direction: row;
@@ -1201,6 +1201,12 @@
 		position: sticky;
 		top: 5.5rem;
 		z-index: 1;
+
+		th {
+			background-color: $white;
+			border: 0;
+			border-bottom: 2px solid #369;
+		}
 	}
 
 	tbody {
@@ -1212,7 +1218,7 @@
 			}
 
 			&.odd {
-				background-color: $gallerygray;
+				background-color: var(--wp--preset--color--custom-info-bg, #f2f8fa); // $gallerygray;
 			}
 		}
 	}
@@ -1268,8 +1274,6 @@
 	th {
 		font-size: var(--wp--preset--font-size--small);
 		text-align: left;
-		background-color: $bahamablue;
-		color: $white;
 
 		@media (max-width: $breakpoint-sm) {
 			border: none;
@@ -1282,10 +1286,10 @@
 			width: 1px;
 		}
 
-		&.odd,
-		&.even {
-			background-color: $bahamablue;
-		}
+		// &.odd,
+		// &.even {
+		// 	background-color: var(--wp--preset--color--custom-info-bg, #f2f8fa);
+		// }
 
 		&.contractor-heading {
 			width: 15%;
@@ -1399,7 +1403,7 @@
 	}
 
 	.odd {
-		background-color: $gallerygray;
+		// background-color: $gallerygray;
 	}
 
 	.no-results {
@@ -1463,27 +1467,35 @@
 #pqeaFilterApp {
 
 	.settings-headline {
-		color: #369;
-		font-size: 0.9rem;
+		font-size: 1.75rem;
 		margin-block-end: 1rem;
 		margin-block-start: 0.25rem;
 		padding: 0;
 
 		@media (width > 360px) {
 			margin-block-start: 0;
-			font-size: 1.25rem;
+			font-size: 1.75rem;
 			font-size-adjust: 0.5;
 
 			&::before {
 				display: inline-block;
 
 				/* house icon */
-				content: $icon_home_apt;
-				width: 1.25rem;
+				content: $icon_find_filled;
+				width: 1.75rem;
 				margin-right: 0.5rem;
 			}
-		}
 
+		}
+	}
+
+	@media (width > 360px) {
+
+		.pqeasFilterControls .settings-headline::before {
+
+			/* house icon */
+			content: $icon_find_ea;
+		}
 	}
 
 	.contractorsFilterControls.filter-container--bottom,

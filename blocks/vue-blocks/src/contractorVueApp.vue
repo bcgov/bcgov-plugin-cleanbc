@@ -171,7 +171,7 @@
     </div>
 
     <!-- Contractors Results Table -->
-    <h2 class="results__title">Find a registered contractor (<span class="counter__value">{{ filteredContractors.length }}</span> results)</h2>
+    <h2 v-if="false" class="results__title">Find a registered contractor (<span class="counter__value">{{ filteredContractors.length }}</span> results)</h2>
     <table id="contractorsResults" class="contractorsResults results table table--striped">
         <caption class="sr-only">Registered Contractors</caption>
         <!-- Table Columns -->

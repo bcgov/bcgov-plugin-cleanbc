@@ -1,3 +1,6 @@
+## 1.30.11 January 27, 2026
+– Contractor and PQEA tool design updates
+
 ## 1.30.10 January 27, 2026
 – Enhanced search priority ordering to persist across pagination using a LEFT JOIN + COALESCE
 – Added teardown hook to remove search priority query clauses after the main search query runs
