@@ -3333,7 +3333,7 @@ function withQueryString(baseUrl) {
     /* background: #f7f7f8; */
     background: #fff;
     padding: 0;
-    border-radius: 0.5rem;
+    border-radius: 1rem;
     display: grid;
     grid-template-columns: 4fr 1fr;
     gap: 0.5rem;
