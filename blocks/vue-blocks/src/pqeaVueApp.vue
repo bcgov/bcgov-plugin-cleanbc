@@ -13,7 +13,7 @@
         id="pqeasFilterControls"
         class="pqeasFilterControls filter-container"
       >
-        <h2 class="settings-headline">Filter Energy Advisor list</h2>
+        <h2 class="settings-headline">Filter energy advisor list</h2>
 
         <div class="filter-controls-container">
           <!-- Name filter -->
