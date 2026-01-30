@@ -1,3 +1,7 @@
+## 1.30.12 January 30, 2026
+– Added glossary page handling 
+– Added unique IDs to glossary h3 headings based on their title
+
 ## 1.30.11 January 27, 2026
 – Contractor and PQEA tool design updates
 

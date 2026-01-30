@@ -206,6 +206,101 @@ export const bcgovBlockThemePluginDefnitions = () => {
 
         }
 
+        // Glossary list processor.
+		const glossaryList = document.querySelector('.glossary-results ul');
+		const glossaryNavContainer = document.querySelector('#glossary-nav .wp-block-buttons');
+		const sampleButton = glossaryNavContainer?.querySelector('.wp-block-button');
+
+		// Only run if required elements exist.
+		if (!glossaryList || !glossaryNavContainer || !sampleButton) return;
+
+		// Gather glossary items.
+		const glossaryItems = Array.from(glossaryList.querySelectorAll('li'));
+		let currentLetter = '';
+		const letterAnchors = new Set();
+		const usedTitleIds = new Map();
+
+		const toSlug = (value) => {
+			const slug = value
+				.toLowerCase()
+				.trim()
+				.replace(/[^a-z0-9]+/g, '-')
+				.replace(/^-+|-+$/g, '');
+			return slug.length > 0 ? slug : 'glossary-term';
+		};
+
+		const getUniqueId = (base) => {
+			const existingCount = usedTitleIds.get(base) || 0;
+			const nextCount = existingCount + 1;
+			usedTitleIds.set(base, nextCount);
+			return 0 === existingCount ? base : `${base}-${nextCount}`;
+		};
+
+		glossaryItems.forEach(item => {
+			const titleElement = item.querySelector('h3');
+			if (!titleElement) return;
+
+			const titleText = titleElement.textContent.trim();
+			const titleIdBase = toSlug(titleText);
+			titleElement.id = getUniqueId(titleIdBase);
+			const firstLetter = titleText.charAt(0).toUpperCase();
+
+			if (firstLetter !== currentLetter) {
+				currentLetter = firstLetter;
+				letterAnchors.add(currentLetter); // Collect for nav
+
+				// Create <h2 id="glossary-a">A</h2>
+				const h2 = document.createElement('h2');
+				h2.textContent = currentLetter;
+				h2.id = `glossary-${currentLetter.toLowerCase()}`;
+				h2.classList.add('glossary-inline-letter');
+
+				// Create wrapper <li>
+				const wrapper = document.createElement('li');
+				wrapper.classList.add('glossary-entry-group');
+
+				// Create flex container
+				const flexContainer = document.createElement('div');
+				flexContainer.classList.add('glossary-entry-flex');
+
+				// Create a div to hold the term content (instead of <li>)
+				const termWrapper = document.createElement('div');
+				termWrapper.classList.add('glossary-entry');
+
+				// Move the item's children into the termWrapper
+				while (item.firstChild) {
+					termWrapper.appendChild(item.firstChild);
+				}
+
+				// Add <h2> and term to the flex container
+				flexContainer.appendChild(h2);
+				flexContainer.appendChild(termWrapper);
+
+				// Add the flex container to the wrapper <li>
+				wrapper.appendChild(flexContainer);
+
+				// Replace the original <li> with the new wrapper
+				glossaryList.replaceChild(wrapper, item);
+			}
+		});
+
+		// Build letter buttons inside glossaryNavContainer.
+		letterAnchors.forEach(letter => {
+			const newButtonWrapper = sampleButton.cloneNode(true);
+			const newButtonLink = newButtonWrapper.querySelector('a');
+
+			if (newButtonLink) {
+				newButtonLink.textContent = letter;
+				newButtonLink.setAttribute('href', `#glossary-${letter.toLowerCase()}`);
+				newButtonWrapper.classList.remove('invisible');
+			}
+
+			glossaryNavContainer.appendChild(newButtonWrapper);
+		});
+
+		// Remove the original sample button.
+		sampleButton.remove();
+
     });
 };
 
