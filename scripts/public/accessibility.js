@@ -31,6 +31,26 @@ const bcgovBlockThemePluginAccessibility = () => {
 			hideFromSRContainers.forEach(el => el.setAttribute('aria-hidden', 'true'));
 		}
 
+		/**
+		 * Apply language attributes based on class names like "lang-fr-CA".
+		 */
+		const langClassElements = document.querySelectorAll('[class*="lang-"]');
+
+		if (langClassElements.length) {
+			langClassElements.forEach((el) => {
+				const langClass = Array.from(el.classList).find((className) => {
+					return className.startsWith('lang-') && className.length > 5;
+				});
+
+				if (!langClass) return;
+
+				const langValue = langClass.slice(5);
+				if (langValue) {
+					el.setAttribute('lang', langValue);
+				}
+			});
+		}
+
 
 		/**
 		 * Enhances breadcrumb navigation accessibility by adding ARIA attributes and roles.
