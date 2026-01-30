@@ -40,6 +40,110 @@ class SearchContext {
 	}
 
 	/**
+	 * Exclude pages from search when marked with a hide-from-search body class.
+	 *
+	 * This relies on a body-class meta field used by the theme or site configuration.
+	 *
+	 * @since 1.30.12
+	 *
+	 * @param \WP_Query $query The current query.
+	 * @return void
+	 */
+	public function bcgov_exclude_hide_from_search_pages( $query ) {
+		if ( is_admin() || ! $query->is_main_query() || ! $query->is_search() ) {
+			return;
+		}
+
+		if ( ! post_type_exists( 'page' ) ) {
+			return;
+		}
+
+		$post_types = $query->get( 'post_type' );
+		if ( ! empty( $post_types ) ) {
+			$post_types = (array) $post_types;
+			if ( ! in_array( 'page', $post_types, true ) ) {
+				return;
+			}
+		}
+
+		$hidden_ids = $this->bcgov_get_hide_from_search_ids( 'page' );
+		if ( empty( $hidden_ids ) ) {
+			return;
+		}
+
+		$existing = (array) $query->get( 'post__not_in' );
+		$query->set( 'post__not_in', array_values( array_unique( array_merge( $existing, $hidden_ids ) ) ) );
+	}
+
+	/**
+	 * Fetch IDs for pages with a hide-from-search body class.
+	 *
+	 * @since 1.30.12
+	 *
+	 * @param string|array $post_types Post types to query (default: any).
+	 * @return int[] Array of post IDs.
+	 */
+	private function bcgov_get_hide_from_search_ids( $post_types = 'any' ) {
+		static $cache = [];
+		$cache_key    = md5( (string) wp_json_encode( $post_types ) );
+
+		if ( array_key_exists( $cache_key, $cache ) ) {
+			return $cache[ $cache_key ];
+		}
+
+		$meta_keys = $this->bcgov_get_hide_from_search_meta_keys();
+		if ( empty( $meta_keys ) ) {
+			$cache[ $cache_key ] = [];
+			return $cache[ $cache_key ];
+		}
+
+		$meta_query = [ 'relation' => 'OR' ];
+		foreach ( $meta_keys as $meta_key ) {
+			$meta_query[] = [
+				'key'     => $meta_key,
+				'value'   => 'hide-from-search',
+				'compare' => 'LIKE',
+			];
+		}
+
+		$cache[ $cache_key ] = get_posts(
+			[
+				'post_type'      => $post_types,
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+				'no_found_rows'  => true,
+				'meta_query'     => $meta_query,
+			]
+		);
+
+		return $cache[ $cache_key ];
+	}
+
+	/**
+	 * Returns meta keys that may store body class values.
+	 *
+	 * @since 1.30.12
+	 *
+	 * @return string[] Array of meta keys.
+	 */
+	private function bcgov_get_hide_from_search_meta_keys() {
+		$keys = [
+			'body_class',
+			'body_classes',
+			'custom_body_class',
+			'custom_body_classes',
+			'_custom_page_class',
+		];
+
+		/**
+		 * Filter the meta keys checked for hide-from-search.
+		 *
+		 * @param string[] $keys Meta keys to check.
+		 */
+		return apply_filters( 'bcgov_hide_from_search_meta_keys', $keys );
+	}
+
+	/**
 	 * Order search results by optional ACF search priority, then relevance/date.
 	 *
 	 * @since 1.30.9
