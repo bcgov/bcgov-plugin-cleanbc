@@ -2,6 +2,8 @@
 – Added glossary page handling 
 – Added unique IDs to glossary h3 headings based on their title
 – Added lang attribution to elements that use 'lang-*' classes for accessibility
+– First pass at URL parsing tool with shortcode [cleanbc_rebate_query_tool]
+– Output JSON and CSV format with clipboard copy and datestamped file download 
 
 ## 1.30.11 January 27, 2026
 – Contractor and PQEA tool design updates
