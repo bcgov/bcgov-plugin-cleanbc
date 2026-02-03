@@ -1,3 +1,10 @@
+## 1.30.13 February 3, 2026
+– Remmoved locking of page specific fields to allow editing (and errors)
+– Added rebate page context tracking for building group, rebate type, and heating types
+– Added HPWH-aware validation logic for single mode rebate tool selections
+– Added error styling to single mode rebate settings, details, and selects when selections conflict with page settings
+– Updated the definitions dialog to prevent it from being re‑created 
+
 ## 1.30.12 January 30, 2026
 – Added glossary page handling 
 – Added unique IDs to glossary h3 headings based on their title

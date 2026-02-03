@@ -157,27 +157,37 @@ export const bcgovBlockThemePluginDefnitions = () => {
         }
 
         if (definitionLinks.length > 0) {
-            const dialog = document.createElement('dialog');
-            dialog.id = 'dialog';
-            dialog.className = 'dialog';
-            dialog.setAttribute('aria-modal', true);
-            dialog.setAttribute('aria-live', 'polite');
-            dialog.innerHTML =
-                '<div class="dialog-content"></div><button id="close-dialog" aria-label="closes defintion dialog">Close</button>';
-            document.body.appendChild(dialog);
+            let dialog = document.getElementById('dialog');
+            const needsDialog = !dialog;
 
-            const closeDialogButton = document.getElementById('close-dialog');
+            if (needsDialog) {
+                dialog = document.createElement('dialog');
+                dialog.id = 'dialog';
+                dialog.className = 'dialog';
+                dialog.setAttribute('aria-modal', true);
+                dialog.setAttribute('aria-live', 'polite');
+                dialog.innerHTML =
+                    '<div class="dialog-content"></div><button id="close-dialog" aria-label="closes defintion dialog">Close</button>';
+                document.body.appendChild(dialog);
 
-            closeDialogButton.addEventListener('click', () => {
-                dialog.close();
-                setDialogWidth(false);
-            });
+                const closeDialogButton = document.getElementById('close-dialog');
 
-            dialog.addEventListener('close', () => {
-                setDialogWidth(false);
-            });
+                closeDialogButton.addEventListener('click', () => {
+                    dialog.close();
+                    setDialogWidth(false);
+                });
+
+                dialog.addEventListener('close', () => {
+                    setDialogWidth(false);
+                });
+            }
 
             definitionLinks.forEach((link) => {
+                if ('true' === link.dataset.definitionInit) {
+                    return;
+                }
+
+                link.dataset.definitionInit = 'true';
                 link.classList.add('icon-definition');
                 link.setAttribute(
                     'aria-label',

@@ -53,7 +53,7 @@
                   <div class="control button-group" v-if="activeEdit !== field.key">
                     <label class='small'>{{ field.shortDesc }}</label>
                     <button class="rebate-setting" :disabled="field.disabled"
-                      :class="{ 'is-external-dirty': isExternalDirty && lastChangedField === field.key }"
+                      :class="{ 'is-external-dirty': isExternalDirty && lastChangedField === field.key, 'error': fieldErrors[field.key] }"
                       @click="openEdit(field.key)" :ref="el => (buttonRefs[field.key] = el)">
                       {{ field.displayValue }}
                     </button>
@@ -65,6 +65,7 @@
                         aria-label="Close edit field"></button>
                       <label :for="`${field.key}Select`">{{ field.label }}</label>
                       <select :key="field.key + '-' + (fieldRenderKeys[field.key] ?? 0)" class="select"
+                        :class="fieldErrors[field.key] ? 'error' : ''"
                         :id="`${field.key}Select`" v-model="field.model.value" :disabled="field.disabled"  @change="handleSelectChange(field.key, $event.target.value)" @keydown="handleSelectKeydown($event, field.key, field.model.value)" :ref="el => (selectRefs[field.key] = el)">
                         <option disabled :selected="!field.model.value" data-default='Select an option' value="">Select
                           an option</option>
@@ -99,7 +100,7 @@
                 <template v-else-if="field.displayValue && !editModeView">
                   <div class="control label-group">
                     <label class='small'>{{ field.shortDesc }}</label>
-                    <p class="rebate-detail">
+                    <p class="rebate-detail" :class="fieldErrors[field.key] ? 'error' : ''">
                       {{ field.displayValue }}
                     </p>
                   </div>
@@ -112,6 +113,7 @@
                       aria-label="Close edit field"></button>
                     <label :for="`${field.key}Select`">{{ field.label }}</label>
                     <select :key="field.key + '-' + (fieldRenderKeys[field.key] ?? 0)" class="select"
+                      :class="fieldErrors[field.key] ? 'error' : ''"
                       :id="`${field.key}Select`" v-model="field.model.value" :disabled="field.disabled"
                       @change="handleSelectChange(field.key, $event.target.value)"
                       @keydown="handleSelectKeydown($event, field.key, field.model.value)"
@@ -145,7 +147,7 @@
             <div class="control instruction-group">
               <div>
                 <label class='small sr-only' for="instructions">Settings instructions</label>
-                <p v-if="editModeView" name="instructions" class="small-text" style="text-align: left; line-height: 1.665; padding-top: 0.5rem;">Updating your home's details will refresh the page content. To change <strong>heating type</strong><span v-if='isSingleModeHeatPumpWaterHeaterCategory'> or <strong>hot water heating</strong> </span>, go back to the <a data-v-9aa24a6c="" href="/find-rebates/" tabindex="0">rebate finder questionnaire.</a>
+                <p v-if="editModeView" name="instructions" class="small-text" style="text-align: left; line-height: 1.665; padding-top: 0.5rem;">Updating your home's details will refresh the page content.
                 </p>
               </div>
               <button class="editBtn toggle-edit-mode readonly-toggle" :tabindex="isCollapseView ? '-1' : '0'"
@@ -755,12 +757,12 @@ const isSavingEditMode = ref(false)
 const hasError = ref(false)
 const ariaStatusMessage = ref('')
 const pageHeatingType = ref('')
+const pageHeatingTypes = ref([])
 const pageWaterHeatingType = ref('')
+const pageBuildingGroup = ref('')
+const pageRebateType = ref('')
 const heatPumpWaterHeaterRebateSlug = 'heat-pump-water-heater-rebates'
 const singleModeRebateTypeClass = ref('')
-const isSingleModeHeatPumpWaterHeaterCategory = computed(
-  () => singleModeRebateTypeClass.value === heatPumpWaterHeaterRebateSlug
-)
 
 // Focus map for selects 
 const selectRefs = ref({})
@@ -773,16 +775,37 @@ const fieldRenderKeys = ref({
   income: 0
 })
 
+const isHpwhRebatePage = computed(() =>
+  pageRebateType.value.toLowerCase().includes('heat pump water heater rebates')
+)
+
 const fieldErrors = computed(() => {
+  const heatingOptionsSet = pageHeatingTypes.value.length > 0
+  const shouldValidateHeating = heatingOptionsSet && !isHpwhRebatePage.value
+  const shouldValidateWaterHeating = !!pageWaterHeatingType.value && isHpwhRebatePage.value
+  const shouldValidateBuildingGroup = !!pageBuildingGroup.value
+
   return {
     location: !isLocationFocused.value && !isLocationValid.value && !!locationInputValue.value,
     // murbTenure:
     //   false && 
     //   selectedBuildingGroupSlug.value === 'ground-oriented-dwellings' &&
     //   murbTenure.value === 'rent',
-    building: selectedBuildingTypeSlug.value === 'other',
-    heating: selectedHeatingSlug.value === 'other',
-    water: selectedWaterHeatingSlug.value === 'other',
+    building:
+      selectedBuildingTypeSlug.value === 'other' ||
+      (shouldValidateBuildingGroup &&
+        !!selectedBuildingGroupSlug.value &&
+        selectedBuildingGroupSlug.value !== pageBuildingGroup.value),
+    heating:
+      selectedHeatingSlug.value === 'other' ||
+      (shouldValidateHeating &&
+        !!selectedHeatingSlug.value &&
+        !pageHeatingTypes.value.includes(selectedHeatingSlug.value)),
+    water:
+      selectedWaterHeatingSlug.value === 'other' ||
+      (shouldValidateWaterHeating &&
+        !!selectedWaterHeatingSlug.value &&
+        selectedWaterHeatingSlug.value !== pageWaterHeatingType.value),
     utility: selectedUtilitySlug.value === 'other'
     // gas: selectedGasSlug.value === 'other'
   }
@@ -1174,13 +1197,6 @@ watch(activeEdit, async newKey => {
 function clearSettings(event) {
   event?.preventDefault?.()
 
-  // Determine whether heating is locked
-  const isLockedHeating =
-    mode.value === 'single' && !!pageHeatingType.value
-
-   const isLockedWaterHeating =
-    mode.value === 'single' && !!pageWaterHeatingType.value
-
   selectedBuildingTypeSlug.value = ''
   murbTenure.value = ''
   selectedHomeValueSlug.value = ''
@@ -1188,13 +1204,8 @@ function clearSettings(event) {
   selectedIncomeRangeSlug.value = ''
   selectedLocationSlug.value = ''
 
-  // Only clear heating type if it's not locked (archive mode or no SSR value)
-  if (!isLockedHeating) {
-    selectedHeatingSlug.value = ''
-  }
-  if (!isLockedWaterHeating) {
-    selectedWaterHeatingSlug.value = ''
-  }
+  selectedHeatingSlug.value = ''
+  selectedWaterHeatingSlug.value = ''
 
   selectedUtilitySlug.value = ''
   selectedGasSlug.value = ''
@@ -1331,7 +1342,6 @@ const fields = computed(() => [
     key: 'heating',
     shortDesc: 'Heating type',
     label: 'How do you heat the rooms in your home?',
-    disabled: mode.value === 'single' && !!pageHeatingType.value,
     description:
       'If you have multiple heat sources, choose the option that applies to most of your home. If your home is heated with both a wood stove and another source, choose the other source as your primary heating type.',
     model: selectedHeatingSlug,
@@ -1339,19 +1349,13 @@ const fields = computed(() => [
     displayValue: selectedHeatingName.value,
     missingMessage: 'Missing room heating details',
     error_desc:
-      'Only the listed heating types are currently eligible for Better Homes rebates. <strong><a href="/get-support/" style="color: darkred;">Contact an Energy Coach</a></strong> to find out if your heating type fits into one of these categories.',
+      'Only the listed heating types are currently eligible for Better Homes rebates. <strong><a href="/get-support/" style="color: #8b0000;">Contact an Energy Coach</a></strong> to find out if your heating type fits into one of these categories.',
     isInvalid: () => !selectedHeatingSlug.value || selectedHeatingSlug.value === 'other',
   },
   {
     key: 'water',
     shortDesc: 'Hot water heating',
     label: 'How do you heat your water?',
-    disabled:
-      mode.value === 'single' &&
-      (
-        !!pageWaterHeatingType.value ||
-        isSingleModeHeatPumpWaterHeaterCategory.value
-      ),
     description:
       'If you have more than one system, choose the one that heats most of your water.',
     model: selectedWaterHeatingSlug,
@@ -1359,7 +1363,7 @@ const fields = computed(() => [
     displayValue: selectedWaterHeatingName.value,
     missingMessage: 'Missing water heating details',
     error_desc:
-      'Only the listed heating types are eligible for Better Homes heat pump water heater rebates. <strong><a href="/get-support/" style="color: darkred;">Contact an Energy Coach</a></strong> to find out if your heating type fits into one of these categories. ',
+      'Only the listed heating types are eligible for Better Homes heat pump water heater rebates. <strong><a href="/get-support/" style="color: #8b0000;">Contact an Energy Coach</a></strong> to find out if your heating type fits into one of these categories. ',
     isInvalid: () => !selectedWaterHeatingSlug.value || selectedWaterHeatingSlug.value === 'other'
   },
   {
@@ -2121,8 +2125,20 @@ onMounted(() => {
   if (el?.dataset?.pageHeatingType) {
     pageHeatingType.value = el.dataset.pageHeatingType
   }
+  if (el?.dataset?.pageHeatingTypes) {
+    pageHeatingTypes.value = el.dataset.pageHeatingTypes
+      .split(',')
+      .map(item => item.trim())
+      .filter(Boolean)
+  }
   if (el?.dataset?.pageWaterHeatingType) {
     pageWaterHeatingType.value = el.dataset.pageWaterHeatingType
+  }
+  if (el?.dataset?.pageBuildingGroup) {
+    pageBuildingGroup.value = el.dataset.pageBuildingGroup
+  }
+  if (el?.dataset?.pageRebateType) {
+    pageRebateType.value = el.dataset.pageRebateType
   }
   singleModeRebateTypeClass.value = detectSingleModeRebateTypeClass(el)
 
@@ -3010,7 +3026,7 @@ function withQueryString(baseUrl) {
       /* X mark */
       .question-container:has(.location-input.is-error) .num-label:after,
       :has(.select.error) .num-label::after {
-        border: 3px solid darkred !important;
+        border: 3px solid #8b0000 !important;
         /* Error */
         background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJyZWQiIG9wYWNpdHk9Ii40IiBkPSJNMCAyNTZhMjU2IDI1NiAwIDEgMCA1MTIgMEEyNTYgMjU2IDAgMSAwIDAgMjU2em0xNTguMS02NGMxMS4zLTExLjMgMjIuNi0yMi42IDMzLjktMzMuOWM1LjcgNS43IDExLjMgMTEuMyAxNyAxN2MxNS43IDE1LjcgMzEuMyAzMS4zIDQ3IDQ3YzE1LjctMTUuNyAzMS4zLTMxLjMgNDctNDdjNS43LTUuNyAxMS4zLTExLjMgMTctMTdjMTEuMyAxMS4zIDIyLjYgMjIuNiAzMy45IDMzLjljLTUuNyA1LjctMTEuMyAxMS4zLTE3IDE3Yy0xNS43IDE1LjctMzEuMyAzMS4zLTQ3IDQ3YzE1LjcgMTUuNyAzMS40IDMxLjQgNDcgNDdjNS43IDUuNyAxMS4zIDExLjMgMTcgMTdMMzIwIDM1My45bC0xNy0xNy00Ny00N2MtMTUuNyAxNS43LTMxLjMgMzEuMy00NyA0N2MtNS43IDUuNy0xMS4zIDExLjMtMTcgMTdjLTExLjMtMTEuMy0yMi42LTIyLjYtMzMuOS0zMy45YzUuNy01LjcgMTEuMy0xMS4zIDE3LTE3YzE1LjctMTUuNyAzMS40LTMxLjQgNDctNDdjLTE1LjctMTUuNy0zMS4zLTMxLjMtNDctNDdjLTUuNy01LjctMTEuMy0xMS4zLTE3LTE3eiIvPjxwYXRoIGZpbGw9ImRhcmtyZWQiIGQ9Ik0zMzcgMjA5bDE3LTE3TDMyMCAxNTguMWwtMTcgMTctNDcgNDctNDctNDctMTctMTdMMTU4LjEgMTkybDE3IDE3IDQ3IDQ3LTQ3IDQ3LTE3IDE3TDE5MiAzNTMuOWwxNy0xNyA0Ny00NyA0NyA0NyAxNyAxN0wzNTMuOSAzMjBsLTE3LTE3LTQ3LTQ3IDQ3LTQ3eiIvPjwvc3ZnPg==) !important;
       }
@@ -3062,8 +3078,8 @@ function withQueryString(baseUrl) {
 
           &.error {
             /* background-color: #ffe5e5; */
-            color: darkred;
-            outline-color: darkred !important;
+            color: #8b0000;
+            outline-color: #8b0000 !important;
           }
 
           &:disabled {
@@ -3297,6 +3313,16 @@ function withQueryString(baseUrl) {
 
         &:is(:focus-visible, :focus) {
           outline: 3px solid #369 !important;
+        }
+
+        &.error {
+          background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48cGF0aCBmaWxsPSIjOGIwMDAwIiBkPSJNMjM5IDQ5OC43bDE2MC0xMjggMTguNy0xNS0zMC0zNy41LTE4LjcgMTUtMTQ1IDExNkw3OSAzMzMuM2wtMTguNy0xNS0zMCAzNy41IDE4LjcgMTUgMTYwIDEyOCAxNSAxMiAxNS0xMnptMC00ODUuNWwtMTUtMTItMTUgMTJMNDkgMTQxLjNsLTE4LjcgMTUgMzAgMzcuNSAxOC43LTE1IDE0NS0xMTYgMTQ1IDExNiAxOC43IDE1IDMwLTM3LjUtMTguNy0xNUwyMzkgMTMuM3oiLz48L3N2Zz4=);
+          color: #8b0000;
+          outline: 2px solid #8b0000;
+
+           &:is(:focus-visible, :focus) {
+            outline: 3px solid #8b0000!important;
+          }
         }
 
         &:has(option[data-default="Select an option"]:checked) {
@@ -3614,6 +3640,10 @@ function withQueryString(baseUrl) {
       top: 0.65rem;
     }
 
+    &.error::after {
+      content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNOTQgMTg3LjFDMTIwLjggMTI0LjEgMTgzLjMgODAgMjU2IDgwYzM5LjcgMCA3Ny44IDE1LjggMTA1LjkgNDMuOUw0MTQuMSAxNzYgMzYwIDE3NmMtMTMuMyAwLTI0IDEwLjctMjQgMjRzMTAuNyAyNCAyNCAyNGwxMTIgMGMxMy4zIDAgMjQtMTAuNyAyNC0yNGwwLTExMmMwLTEzLjMtMTAuNy0yNC0yNC0yNHMtMjQgMTAuNy0yNCAyNGwwIDU0LjFMMzk1LjkgODkuOUMzNTguOCA1Mi44IDMwOC41IDMyIDI1NiAzMkMxNjMuNCAzMiA4My45IDg4LjIgNDkuOCAxNjguM2MtNS4yIDEyLjIgLjUgMjYuMyAxMi43IDMxLjVzMjYuMy0uNSAzMS41LTEyLjd6bTM2OCAxNTdjNS4yLTEyLjItLjQtMjYuMy0xMi42LTMxLjVzLTI2LjMgLjQtMzEuNSAxMi42QzM5MSAzODguMSAzMjguNiA0MzIgMjU2IDQzMmMtMzkuNyAwLTc3LjgtMTUuOC0xMDUuOS00My45TDk3LjkgMzM2bDU0LjEgMGMxMy4zIDAgMjQtMTAuNyAyNC0yNHMtMTAuNy0yNC0yNC0yNEw0MCAyODhjLTEzLjMgMC0yNCAxMC43LTI0IDI0bDAgMTEyYzAgMTMuMyAxMC43IDI0IDI0IDI0czI0LTEwLjcgMjQtMjRsMC01NC4xIDUyLjEgNTIuMUMxNTMuMiA0NTkuMiAyMDMuNSA0ODAgMjU2IDQ4MGM5Mi41IDAgMTcxLjgtNTYgMjA2LTEzNS45eiIgZmlsbD0iIzhiMDAwMCIvPjwvc3ZnPg==);
+    }
+
     &.gas::after {
       background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NDAgNTEyIj48IS0tZ2FzIGZpcmUtLT48cGF0aCBmaWxsPSIjMzY5IiBkPSJNMzQ1LjcgNDguM0wzNTggMzQuNWM1LjQtNi4xIDEzLjMtOC44IDIwLjktOC45YzcuMiAwIDE0LjMgMi42IDE5LjkgNy44YzE5LjcgMTguMyAzOS44IDQzLjIgNTUgNzAuNkM0NjkgMTMxLjIgNDgwIDE2Mi4yIDQ4MCAxOTIuMkM0ODAgMjgwLjggNDA4LjcgMzUyIDMyMCAzNTJjLTg5LjYgMC0xNjAtNzEuMy0xNjAtMTU5LjhjMC0zNy4zIDE2LTczLjQgMzYuOC0xMDQuNWMyMC45LTMxLjMgNDcuNS01OSA3MC45LTgwLjJDMjczLjQgMi4zIDI4MC43LS4yIDI4OCAwYzE0LjEgLjMgMjMuOCAxMS40IDMyLjcgMjEuNmMwIDAgMCAwIDAgMGMyIDIuMyA0IDQuNiA2IDYuN2wxOSAxOS45ek0zODQgMjQwLjJjMC0zNi41LTM3LTczLTU0LjgtODguNGMtNS40LTQuNy0xMy4xLTQuNy0xOC41IDBDMjkzIDE2Ny4xIDI1NiAyMDMuNiAyNTYgMjQwLjJjMCAzNS4zIDI4LjcgNjQgNjQgNjRzNjQtMjguNyA2NC02NHpNMzIgMjg4YzAtMTcuNyAxNC4zLTMyIDMyLTMybDMyIDBjMTcuNyAwIDMyIDE0LjMgMzIgMzJzLTE0LjMgMzItMzIgMzJsMCA2NCA0NDggMCAwLTY0Yy0xNy43IDAtMzItMTQuMy0zMi0zMnMxNC4zLTMyIDMyLTMybDMyIDBjMTcuNyAwIDMyIDE0LjMgMzIgMzJsMCA5NmMxNy43IDAgMzIgMTQuMyAzMiAzMmwwIDY0YzAgMTcuNy0xNC4zIDMyLTMyIDMyTDMyIDUxMmMtMTcuNyAwLTMyLTE0LjMtMzItMzJsMC02NGMwLTE3LjcgMTQuMy0zMiAzMi0zMmwwLTk2ek0zMjAgNDgwYTMyIDMyIDAgMSAwIDAtNjQgMzIgMzIgMCAxIDAgMCA2NHptMTYwLTMyYTMyIDMyIDAgMSAwIC02NCAwIDMyIDMyIDAgMSAwIDY0IDB6TTE5MiA0ODBhMzIgMzIgMCAxIDAgMC02NCAzMiAzMiAwIDEgMCAwIDY0eiIvPjwvc3ZnPg==);
     }
@@ -3695,6 +3725,11 @@ function withQueryString(baseUrl) {
       color: #369;
     }
 
+    &.error {
+      color: #8b0000;
+      border-color: #8b0000;
+    }
+
     &::after {
       content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNOTQgMTg3LjFDMTIwLjggMTI0LjEgMTgzLjMgODAgMjU2IDgwYzM5LjcgMCA3Ny44IDE1LjggMTA1LjkgNDMuOUw0MTQuMSAxNzYgMzYwIDE3NmMtMTMuMyAwLTI0IDEwLjctMjQgMjRzMTAuNyAyNCAyNCAyNGwxMTIgMGMxMy4zIDAgMjQtMTAuNyAyNC0yNGwwLTExMmMwLTEzLjMtMTAuNy0yNC0yNC0yNHMtMjQgMTAuNy0yNCAyNGwwIDU0LjFMMzk1LjkgODkuOUMzNTguOCA1Mi44IDMwOC41IDMyIDI1NiAzMkMxNjMuNCAzMiA4My45IDg4LjIgNDkuOCAxNjguM2MtNS4yIDEyLjIgLjUgMjYuMyAxMi43IDMxLjVzMjYuMy0uNSAzMS41LTEyLjd6bTM2OCAxNTdjNS4yLTEyLjItLjQtMjYuMy0xMi42LTMxLjVzLTI2LjMgLjQtMzEuNSAxMi42QzM5MSAzODguMSAzMjguNiA0MzIgMjU2IDQzMmMtMzkuNyAwLTc3LjgtMTUuOC0xMDUuOS00My45TDk3LjkgMzM2bDU0LjEgMGMxMy4zIDAgMjQtMTAuNyAyNC0yNHMtMTAuNy0yNC0yNC0yNEw0MCAyODhjLTEzLjMgMC0yNCAxMC43LTI0IDI0bDAgMTEyYzAgMTMuMyAxMC43IDI0IDI0IDI0czI0LTEwLjcgMjQtMjRsMC01NC4xIDUyLjEgNTIuMUMxNTMuMiA0NTkuMiAyMDMuNSA0ODAgMjU2IDQ4MGM5Mi41IDAgMTcxLjgtNTYgMjA2LTEzNS45eiIgZmlsbD0iIzM2OSIgLz48L3N2Zz4=);
       transform-origin: 50% 62%;
@@ -3705,6 +3740,10 @@ function withQueryString(baseUrl) {
       position: absolute;
       right: 0.5rem;
       top: 0.65rem;
+    }
+
+    &.error::after {
+      content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNOTQgMTg3LjFDMTIwLjggMTI0LjEgMTgzLjMgODAgMjU2IDgwYzM5LjcgMCA3Ny44IDE1LjggMTA1LjkgNDMuOUw0MTQuMSAxNzYgMzYwIDE3NmMtMTMuMyAwLTI0IDEwLjctMjQgMjRzMTAuNyAyNCAyNCAyNGwxMTIgMGMxMy4zIDAgMjQtMTAuNyAyNC0yNGwwLTExMmMwLTEzLjMtMTAuNy0yNC0yNC0yNHMtMjQgMTAuNy0yNCAyNGwwIDU0LjFMMzk1LjkgODkuOUMzNTguOCA1Mi44IDMwOC41IDMyIDI1NiAzMkMxNjMuNCAzMiA4My45IDg4LjIgNDkuOCAxNjguM2MtNS4yIDEyLjIgLjUgMjYuMyAxMi43IDMxLjVzMjYuMy0uNSAzMS41LTEyLjd6bTM2OCAxNTdjNS4yLTEyLjItLjQtMjYuMy0xMi42LTMxLjVzLTI2LjMgLjQtMzEuNSAxMi42QzM5MSAzODguMSAzMjguNiA0MzIgMjU2IDQzMmMtMzkuNyAwLTc3LjgtMTUuOC0xMDUuOS00My45TDk3LjkgMzM2bDU0LjEgMGMxMy4zIDAgMjQtMTAuNyAyNC0yNHMtMTAuNy0yNC0yNC0yNEw0MCAyODhjLTEzLjMgMC0yNCAxMC43LTI0IDI0bDAgMTEyYzAgMTMuMyAxMC43IDI0IDI0IDI0czI0LTEwLjcgMjQtMjRsMC01NC4xIDUyLjEgNTIuMUMxNTMuMiA0NTkuMiAyMDMuNSA0ODAgMjU2IDQ4MGM5Mi41IDAgMTcxLjgtNTYgMjA2LTEzNS45eiIgZmlsbD0iIzhiMDAwMCIvPjwvc3ZnPg==);
     }
 
     &:disabled {
@@ -3719,6 +3758,11 @@ function withQueryString(baseUrl) {
     &:is(:hover, :focus, :focus-visible)::after {
       content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNOTQgMTg3LjFDMTIwLjggMTI0LjEgMTgzLjMgODAgMjU2IDgwYzM5LjcgMCA3Ny44IDE1LjggMTA1LjkgNDMuOUw0MTQuMSAxNzYgMzYwIDE3NmMtMTMuMyAwLTI0IDEwLjctMjQgMjRzMTAuNyAyNCAyNCAyNGwxMTIgMGMxMy4zIDAgMjQtMTAuNyAyNC0yNGwwLTExMmMwLTEzLjMtMTAuNy0yNC0yNC0yNHMtMjQgMTAuNy0yNCAyNGwwIDU0LjFMMzk1LjkgODkuOUMzNTguOCA1Mi44IDMwOC41IDMyIDI1NiAzMkMxNjMuNCAzMiA4My45IDg4LjIgNDkuOCAxNjguM2MtNS4yIDEyLjIgLjUgMjYuMyAxMi43IDMxLjVzMjYuMy0uNSAzMS41LTEyLjd6bTM2OCAxNTdjNS4yLTEyLjItLjQtMjYuMy0xMi42LTMxLjVzLTI2LjMgLjQtMzEuNSAxMi42QzM5MSAzODguMSAzMjguNiA0MzIgMjU2IDQzMmMtMzkuNyAwLTc3LjgtMTUuOC0xMDUuOS00My45TDk3LjkgMzM2bDU0LjEgMGMxMy4zIDAgMjQtMTAuNyAyNC0yNHMtMTAuNy0yNC0yNC0yNEw0MCAyODhjLTEzLjMgMC0yNCAxMC43LTI0IDI0bDAgMTEyYzAgMTMuMyAxMC43IDI0IDI0IDI0czI0LTEwLjcgMjQtMjRsMC01NC4xIDUyLjEgNTIuMUMxNTMuMiA0NTkuMiAyMDMuNSA0ODAgMjU2IDQ4MGM5Mi41IDAgMTcxLjgtNTYgMjA2LTEzNS45eiIgZmlsbD0iI2ZmZiIgLz48L3N2Zz4=);
       filter: var(--blue-filter);
+    }
+
+    &.error:is(:hover, :focus, :focus-visible)::after {
+      content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNOTQgMTg3LjFDMTIwLjggMTI0LjEgMTgzLjMgODAgMjU2IDgwYzM5LjcgMCA3Ny44IDE1LjggMTA1LjkgNDMuOUw0MTQuMSAxNzYgMzYwIDE3NmMtMTMuMyAwLTI0IDEwLjctMjQgMjRzMTAuNyAyNCAyNCAyNGwxMTIgMGMxMy4zIDAgMjQtMTAuNyAyNC0yNGwwLTExMmMwLTEzLjMtMTAuNy0yNC0yNC0yNHMtMjQgMTAuNy0yNCAyNGwwIDU0LjFMMzk1LjkgODkuOUMzNTguOCA1Mi44IDMwOC41IDMyIDI1NiAzMkMxNjMuNCAzMiA4My45IDg4LjIgNDkuOCAxNjguM2MtNS4yIDEyLjIgLjUgMjYuMyAxMi43IDMxLjVzMjYuMy0uNSAzMS41LTEyLjd6bTM2OCAxNTdjNS4yLTEyLjItLjQtMjYuMy0xMi42LTMxLjVzLTI2LjMgLjQtMzEuNSAxMi42QzM5MSAzODguMSAzMjguNiA0MzIgMjU2IDQzMmMtMzkuNyAwLTc3LjgtMTUuOC0xMDUuOS00My45TDk3LjkgMzM2bDU0LjEgMGMxMy4zIDAgMjQtMTAuNyAyNC0yNHMtMTAuNy0yNC0yNC0yNEw0MCAyODhjLTEzLjMgMC0yNCAxMC43LTI0IDI0bDAgMTEyYzAgMTMuMyAxMC43IDI0IDI0IDI0czI0LTEwLjcgMjQtMjRsMC01NC4xIDUyLjEgNTIuMUMxNTMuMiA0NTkuMiAyMDMuNSA0ODAgMjU2IDQ4MGM5Mi41IDAgMTcxLjgtNTYgMjA2LTEzNS45eiIgZmlsbD0iIzhiMDAwMCIvPjwvc3ZnPg==);
+      filter: none;
     }
   }
 }
@@ -3816,6 +3860,12 @@ p.rebate-detail.rebate-detail.rebate-detail {
 
 .filter-container.labels-hidden p.rebate-detail.rebate-detail.rebate-detail {
   font-weight: 400;
+}
+
+p.rebate-detail.rebate-detail.rebate-detail.error {
+  color: #8b0000;
+  background: transparent;
+  border: 0;
 }
 
 #vnextRebateFilterApp:not([data-mode="archive"]) #rebatesFilterControls:has(.editBtn:is(:focus-visible, :focus, :hover)) {
@@ -3938,7 +3988,7 @@ p.rebate-detail.rebate-detail.rebate-detail {
 }
 .error-message {
   background:#ffe5e5;
-  outline:2px solid darkred;
+  outline:2px solid #8b0000;
   outline-offset: 2px;
   padding-inline:2rem 1rem;
   position:relative;
@@ -3958,7 +4008,7 @@ body.betterhomesbc #dialog .dialog-content h2 {
 .message {
   background: #fff7e5;
   border: 1px solid #facc15;
-  color: darkred;
+  color: #8b0000;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
   font-weight: 500;
@@ -3985,7 +4035,7 @@ body.betterhomesbc #dialog .dialog-content h2 {
 
 .error-message {
   background: #ffe5e5;
-  border: 2px solid darkred;
+  border: 2px solid #8b0000;
   padding-inline: 0.5rem !important;
   position: relative;
 

@@ -348,7 +348,11 @@ class EnableVueApp {
 		$mode       = isset( $attributes['mode'] ) ? $attributes['mode'] : 'archive'; // fallback default.
 
 		// Detect taxonomy terms when on a single rebate page.
-		$page_heating_type = '';
+		$page_heating_type       = '';
+		$page_heating_types      = [];
+		$page_water_heating_type = '';
+		$page_building_group     = '';
+		$page_rebate_type        = '';
 
 		if ( 'single' === $mode && is_singular( 'incentives' ) ) {
 			global $post;
@@ -362,16 +366,60 @@ class EnableVueApp {
 					if ( $first_term instanceof \WP_Term ) {
 						$page_heating_type = $first_term->slug;
 					}
+
+					foreach ( $heating_terms as $term ) {
+						if ( $term instanceof \WP_Term ) {
+							$page_heating_types[] = $term->slug;
+						}
+					}
+				}
+
+				$building_terms = get_the_terms( $post->ID, 'rebate-building-types' );
+
+				if ( ! empty( $building_terms ) && ! is_wp_error( $building_terms ) ) {
+					// For simplicity, use the first assigned term.
+					$first_term = $building_terms[0];
+					if ( $first_term instanceof \WP_Term ) {
+						$page_building_group = $first_term->slug;
+					}
+				}
+
+				if ( function_exists( 'get_field' ) ) {
+					$acf_rebate_type = get_field( 'rebate_types', $post->ID );
+					if ( is_string( $acf_rebate_type ) ) {
+						$page_rebate_type = $acf_rebate_type;
+					} elseif ( is_array( $acf_rebate_type ) ) {
+						// Store a simple label when the field is a multi-select.
+						$page_rebate_type = implode( ', ', array_filter( $acf_rebate_type ) );
+					}
+				}
+
+				$rebate_type_is_hpwh = false;
+				if ( is_string( $page_rebate_type ) && '' !== $page_rebate_type ) {
+					$rebate_type_is_hpwh = false !== stripos( $page_rebate_type, 'Heat pump water heater rebates' );
+				}
+
+				if ( $rebate_type_is_hpwh && ! empty( $heating_terms ) && ! is_wp_error( $heating_terms ) ) {
+					foreach ( $heating_terms as $term ) {
+						if ( $term instanceof \WP_Term && 'wood' !== $term->slug ) {
+							$page_water_heating_type = $term->slug;
+							break;
+						}
+					}
 				}
 			}
 		}
 
 		// Wrapper element with data-mode attribute.
 		return sprintf(
-            '<div id="vnextRebateFilterApp" class="%s" data-mode="%s" data-page-heating-type="%s">Loading...</div>',
+            '<div id="vnextRebateFilterApp" class="%s" data-mode="%s" data-page-heating-type="%s" data-page-heating-types="%s" data-page-water-heating-type="%s" data-page-building-group="%s" data-page-rebate-type="%s">Loading...</div>',
             esc_attr( $classes ),
             esc_attr( $mode ),
-            esc_attr( $page_heating_type )
+            esc_attr( $page_heating_type ),
+            esc_attr( implode( ',', array_filter( $page_heating_types ) ) ),
+            esc_attr( $page_water_heating_type ),
+            esc_attr( $page_building_group ),
+            esc_attr( $page_rebate_type )
 		);
 	}
 

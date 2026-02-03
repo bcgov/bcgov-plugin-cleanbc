@@ -829,6 +829,15 @@
 				transition: all $default_transition_timing_fn $default_transition_duration;
 				outline: $default_outline_offset solid darken($bondiblue, 7.5%);
 			}
+
+			&.error {
+
+				&:hover,
+				&:focus {
+					background-color: #8b0000;
+					outline: $default_outline_offset solid #8b0000;
+				}
+			}
 		}
 
 		&:is(.copy-link) {
