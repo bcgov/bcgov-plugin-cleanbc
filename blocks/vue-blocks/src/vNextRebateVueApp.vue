@@ -47,7 +47,7 @@
           </template>
           <div class="dialog-actions">
             <div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex" style="margin-top:1rem;margin-bottom:0rem">
-              <div class="wp-block-button has-size-regular is-style-outline"><button tabindex="0" class="wp-block-button__link has-extra-small-font-size has-custom-font-size wp-element-button" @click="closeSingleModeDialog">Stay on this page</button></div>
+              <div class="wp-block-button has-size-regular is-style-outline"><a tabindex="0" href="#top" class="wp-block-button__link has-extra-small-font-size has-custom-font-size wp-element-button" @click="closeSingleModeDialog">Stay on this page</a></div>
               <div class="wp-block-button has-size-regular is-style-fill"><a tabindex="0" class="wp-block-button__link has-extra-small-font-size has-custom-font-size wp-element-button" href="/find-a-rebate/">Return to the rebate questionnaire</a></div>
             </div>
           </div>
@@ -4270,8 +4270,6 @@ body:has(#single-mode-dialog[open]) {
 }
 
 #single-mode-dialog .dialog-content h2 {
-  border-bottom: 7px solid var(--wp--preset--color--secondary-brand);
-  color: var(--wp--preset--color--secondary-brand);
   display: inline-block;
   font-size: 1.5rem;
   padding-top: 0.5rem;
@@ -4306,6 +4304,7 @@ body:has(#single-mode-dialog[open]) {
   color: var(--wp--preset--color--text-color);
   padding-inline: 0.5rem;
   padding-top: 0.25rem;
+  min-width: 3rem;
 }
 
 #single-mode-dialog .close-dialog::after {
@@ -4339,6 +4338,10 @@ body:has(#single-mode-dialog[open]) {
   align-items: baseline;
 }
 
+#single-mode-dialog :is(ul) {
+  padding-inline: 2rem;
+}
+
 #single-mode-dialog :is(li) {
   margin-bottom: 0.33rem;
 }
@@ -4355,6 +4358,16 @@ body:has(#single-mode-dialog[open]) {
 #single-mode-dialog .rebate-title-link.rebate-title-link:focus-visible,
 #single-mode-dialog .rebate-title-link.rebate-title-link:hover {
   text-decoration: underline;
+}
+
+#single-mode-dialog .wp-block-button .wp-block-button__link {
+  border: 2px solid currentcolor;
+  border-radius: 0.25rem;
+  font-size: 0.85rem;
+}
+
+#single-mode-dialog .wp-block-button.is-style-outline .wp-block-button__link {
+  border: 2px solid currentcolor;
 }
 
 .template {
