@@ -849,6 +849,19 @@ const fieldErrors = computed(() => {
   const shouldValidateHeating = heatingOptionsSet && !isHpwhRebatePage.value
   const shouldValidateWaterHeating = !!pageWaterHeatingType.value && isHpwhRebatePage.value
   const shouldValidateBuildingGroup = !!pageBuildingGroup.value
+  const normalizedSelectedHeating = normalizeHeatingSlug(
+    selectedHeatingSlug.value || selectedHeatingName.value
+  )
+  const normalizedSelectedWaterHeating = normalizeHeatingSlug(
+    selectedWaterHeatingSlug.value || selectedWaterHeatingName.value
+  )
+  const allowedHeatingTypes = Array.isArray(pageHeatingTypes.value)
+    ? pageHeatingTypes.value.map(item => normalizeHeatingSlug(item)).filter(Boolean)
+    : []
+  const allowedWaterHeatingTypes = String(pageWaterHeatingType.value || '')
+    .split(',')
+    .map(item => normalizeHeatingSlug(item))
+    .filter(Boolean)
 
   return {
     location: !isLocationFocused.value && !isLocationValid.value && !!locationInputValue.value,
@@ -865,12 +878,12 @@ const fieldErrors = computed(() => {
       selectedHeatingSlug.value === 'other' ||
       (shouldValidateHeating &&
         !!selectedHeatingSlug.value &&
-        !pageHeatingTypes.value.includes(selectedHeatingSlug.value)),
+        !allowedHeatingTypes.includes(normalizedSelectedHeating)),
     water:
       selectedWaterHeatingSlug.value === 'other' ||
       (shouldValidateWaterHeating &&
         !!selectedWaterHeatingSlug.value &&
-        selectedWaterHeatingSlug.value !== pageWaterHeatingType.value),
+        !allowedWaterHeatingTypes.includes(normalizedSelectedWaterHeating)),
     utility: selectedUtilitySlug.value === 'other'
     // gas: selectedGasSlug.value === 'other'
   }
