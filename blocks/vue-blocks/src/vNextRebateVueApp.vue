@@ -1590,7 +1590,7 @@ const fields = computed(() => [
   },
   {
     key: 'water',
-    shortDesc: 'Hot water heating type',
+    shortDesc: 'Water heating type',
     label: 'How do you heat your water?',
     description:
       'If you have more than one system, choose the one that heats most of your water.',
