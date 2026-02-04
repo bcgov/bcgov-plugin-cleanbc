@@ -817,9 +817,13 @@ const fieldErrors = computed(() => {
   }
 })
 
-const hasAnyError = computed(() =>
-  Object.values(fieldErrors.value).some(Boolean)
-)
+const hasAnyError = computed(() => {
+  const hasFieldError = Object.values(fieldErrors.value).some(Boolean)
+  const hasNoResults =
+    hasAllSelection.value && 0 === filteredResults.value.length
+
+  return hasFieldError || hasNoResults
+})
 
 /**
  * Toggle visibility of field labels.
@@ -1493,6 +1497,10 @@ onMounted(async () => {
     // Hydrate preferredSettings from restored rebateToolSettings/state
     hydratePreferredSettingsFromRebateToolSettings()
 
+    if (mode.value === 'single') {
+      updateAddressBar()
+    }
+
     watch(
       urlStateDeps,
       () => {
@@ -2074,9 +2082,13 @@ const assembledQueryString = computed(() => {
   return q ? `?${q}` : ''
 })
 
+const currentQueryString = ref(window.location.search)
+
 // Dirty states 
 // URL does not match the settings currently showing.
-const urlOutOfSync = computed(() => assembledQueryString.value !== window.location.search)
+const urlOutOfSync = computed(
+  () => assembledQueryString.value !== currentQueryString.value
+)
 
 // Use this everywhere inside Vue for warnings/outline.
 const isDirty = urlOutOfSync
@@ -2406,6 +2418,7 @@ function updateAddressBar() {
   const url = assembledUrl.value
   try {
     window.history.replaceState(null, '', url)
+    currentQueryString.value = assembledQueryString.value
   } catch (e) {
     // no-op.
   }

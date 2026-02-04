@@ -1,6 +1,8 @@
 ## 1.30.14 February 4, 2026
 – Error message applied to single mode fields when invalid
 – New state query key with valid|invalid applied for better condition checks
+– Include no-results state in single mode error tracking
+– Ensure single mode initial load syncs state query param without marking the tool dirty
 
 ## 1.30.13 February 3, 2026
 – Remmoved locking of page specific fields to allow editing (and errors)
