@@ -844,6 +844,16 @@ const isHpwhRebatePage = computed(() =>
   pageRebateType.value.toLowerCase().includes('heat pump water heater rebates')
 )
 
+const normalizeHeatingSlug = (val) => {
+  if (!val) return ''
+  const v = val.toLowerCase().trim()
+  if (v.includes('gas')) return 'gas'
+  if (v.includes('oil')) return 'oil'
+  if (v.includes('wood')) return 'wood'
+  if (v.includes('electric')) return 'electricity'
+  return v.replace(/\s+/g, '-') // fallback.
+}
+
 const fieldErrors = computed(() => {
   const heatingOptionsSet = pageHeatingTypes.value.length > 0
   const shouldValidateHeating = heatingOptionsSet && !isHpwhRebatePage.value
@@ -2697,16 +2707,6 @@ watch(
   },
   { immediate: true }
 )
-
-const normalizeHeatingSlug = (val) => {
-  if (!val) return ''
-  const v = val.toLowerCase().trim()
-  if (v.includes('gas')) return 'gas'
-  if (v.includes('oil')) return 'oil'
-  if (v.includes('wood')) return 'wood'
-  if (v.includes('electric')) return 'electricity'
-  return v.replace(/\s+/g, '-') // fallback.
-}
 
 const normalizeUtilitySlug = (val) => {
   if (!val) return ''
