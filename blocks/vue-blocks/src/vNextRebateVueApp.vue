@@ -1,5 +1,7 @@
 <template>
-  <div class="inner">
+  <div>
+    <p v-if="!isReadyToRender" role="status" class="loader">Preparing rebate tool...</p>
+    <div v-else class="inner">
     <!-- Heading for screen readers -->
     <h2 class="sr-only">Rebate Listings</h2>
 
@@ -403,6 +405,7 @@
       </div>
 
     </template>
+    </div>
   </div>
 </template>
 
@@ -769,6 +772,7 @@ const pageBuildingGroup = ref('')
 const pageRebateType = ref('')
 const heatPumpWaterHeaterRebateSlug = 'heat-pump-water-heater-rebates'
 const singleModeRebateTypeClass = ref('')
+const isReadyToRender = ref(false)
 
 // Focus map for selects 
 const selectRefs = ref({})
@@ -1463,6 +1467,7 @@ onMounted(() => {
 
 
 onMounted(async () => {
+  let shouldRedirect = false
   try {
     const res = await fetch(rebatesAPI, { cache: 'no-store' })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -1483,6 +1488,7 @@ onMounted(async () => {
         updateAddressBar()
       } else {
         // This is needed on single mode pages so the page receives the SSR details aligned with localStorage when accessed without the query string.
+        shouldRedirect = true
         window.location.href = assembledUrl.value
         return  // stop further initialization until page reloads.
       }
@@ -1490,6 +1496,12 @@ onMounted(async () => {
       // First visit — nothing special.
       console.log('No saved settings — starting fresh')
     }
+
+    if (mode.value === 'single' && !hasAllSelection.value) {
+      isCollapseView.value = true
+    }
+
+    isReadyToRender.value = true
 
     // Bootstrap completes here.
     bootstrapped.value = true
@@ -1548,6 +1560,9 @@ onMounted(async () => {
     console.error('Failed to fetch rebates:', e)
   } finally {
     isLoading.value = false
+    if (!shouldRedirect) {
+      isReadyToRender.value = true
+    }
   }
 
   // load the definitions links nextTick.
