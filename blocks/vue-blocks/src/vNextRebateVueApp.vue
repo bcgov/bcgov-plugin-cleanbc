@@ -823,6 +823,34 @@ const fieldErrors = computed(() => {
   }
 })
 
+const normalizeRebateLabel = (val) =>
+  String(val || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim()
+
+const singleModePageEligible = computed(() => {
+  if (mode.value !== 'single') return true
+
+  const pageClass = normalizeRebateLabel(singleModeRebateTypeClass.value)
+  const pageType = normalizeRebateLabel(pageRebateType.value)
+
+  if (!pageClass && !pageType) return true
+
+  return filteredResults.value.some(item => {
+    const itemClass = normalizeRebateLabel(item.rebate_type_class)
+    const itemHeadline = normalizeRebateLabel(item.rebate_type_headline_card)
+    const itemTitle = normalizeRebateLabel(item.title)
+
+    if (pageClass && itemClass === pageClass) return true
+    if (pageType && (itemHeadline.includes(pageType) || itemTitle.includes(pageType))) {
+      return true
+    }
+
+    return false
+  })
+})
+
 const hasAnyError = computed(() => {
   const hasFieldError = Object.values(fieldErrors.value).some(Boolean)
   const hasNoResults =
@@ -2274,7 +2302,9 @@ function assembleUrl() {
   }
 
   if (mode.value === 'single') {
-    urlParams.set('state', hasAnyError.value ? 'invalid' : 'valid')
+    const isInvalid =
+      hasAnyError.value || !hasAllSelection.value || !singleModePageEligible.value
+    urlParams.set('state', isInvalid ? 'invalid' : 'valid')
   } else {
     urlParams.delete('state')
   }
@@ -2422,7 +2452,7 @@ const urlStateDeps = computed(() => ({
   region: selectedRegion.value
 }))
 
-watch([hasAnyError, mode], () => {
+watch([hasAnyError, mode, singleModePageEligible], () => {
   if (!bootstrapped.value) return
   if (mode.value !== 'single') return
   updateAddressBar()
