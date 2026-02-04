@@ -48,7 +48,7 @@
           <div class="dialog-actions">
             <div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex" style="margin-top:1rem;margin-bottom:0rem">
               <div class="wp-block-button has-size-regular is-style-outline"><a tabindex="0" href="#top" class="wp-block-button__link has-extra-small-font-size has-custom-font-size wp-element-button" @click="closeSingleModeDialog">Stay on this page</a></div>
-              <div class="wp-block-button has-size-regular is-style-fill"><a tabindex="0" class="wp-block-button__link has-extra-small-font-size has-custom-font-size wp-element-button" href="/find-a-rebate/">Return to the rebate questionnaire</a></div>
+              <div class="wp-block-button has-size-regular is-style-fill"><a tabindex="0" class="wp-block-button__link has-extra-small-font-size has-custom-font-size wp-element-button" href="/find-rebates/">Return to the rebate questionnaire</a></div>
             </div>
           </div>
         </div>
@@ -4339,7 +4339,7 @@ body:has(#single-mode-dialog[open]) {
 }
 
 #single-mode-dialog :is(ul) {
-  padding-inline: 2rem;
+  padding-inline: 2rem !important;
 }
 
 #single-mode-dialog :is(li) {
