@@ -7,6 +7,7 @@
 – Delay single mode render until after redirect decision to avoid flash
 – Keep single mode collapsed on load when required settings are missing
 – Single mode state now reflects eligibility of the current page’s rebate type against filtered results
+– Added single mode eligibility modal with alternative rebate links and MURB ineligibility messaging
 
 ## 1.30.13 February 3, 2026
 – Remmoved locking of page specific fields to allow editing (and errors)

@@ -14,6 +14,53 @@
 
     <template v-else>
 
+      <dialog
+        v-if="mode === 'single'"
+        ref="singleModeDialogRef"
+        id="single-mode-dialog"
+        class="dialog"
+        aria-modal="true"
+        aria-live="polite"
+        :aria-labelledby="'single-mode-dialog-title'"
+        :aria-describedby="'single-mode-dialog-desc'"
+        @close="handleSingleModeDialogClosed"
+        @cancel.prevent="closeSingleModeDialog">
+        <div class="dialog-content">
+          <h2 id="single-mode-dialog-title" tabindex="0" ref="singleModeDialogHeadingRef">
+            Woops! This page doesn’t match your home details.
+          </h2>
+          <template v-if="singleModeMurbIneligible">
+            <p id="single-mode-dialog-desc">
+              Sorry! Apartments and condos with oil, propane or natural gas heating aren’t eligible for individual rebates.
+            </p>
+            <p>Try the BC Hydro multi-unit building retrofit program.</p>
+          </template>
+          <template v-else>
+            <p id="single-mode-dialog-desc">These rebates are a better match:</p>
+            <ul v-if="singleModeDialogOptions.length">
+              <li v-for="item in singleModeDialogOptions" :key="item.key">
+                <a :href="item.href" class="rebate-title-link">
+                  <span class="rebate-title-headline">{{ item.combinedSentence }}</span>
+                </a>
+              </li>
+            </ul>
+          </template>
+          <div class="dialog-actions">
+            <div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex" style="margin-top:1rem;margin-bottom:0rem">
+              <div class="wp-block-button has-size-regular is-style-outline"><button tabindex="0" class="wp-block-button__link has-extra-small-font-size has-custom-font-size wp-element-button" @click="closeSingleModeDialog">Stay on this page</button></div>
+              <div class="wp-block-button has-size-regular is-style-fill"><a tabindex="0" class="wp-block-button__link has-extra-small-font-size has-custom-font-size wp-element-button" href="/find-a-rebate/">Return to the rebate questionnaire</a></div>
+            </div>
+          </div>
+        </div>
+        <button
+          type="button"
+          class="close-dialog"
+          aria-label="Close dialog"
+          @click="closeSingleModeDialog">
+          Close
+        </button>
+      </dialog>
+
       <div v-if="(!hasAllSelection || isDirty) && mode === 'single'" class="wp-block-group info has-icon is-layout-flow wp-block-group-is-layout-flow" style="border-radius:1rem;margin:0;padding:0.5rem 1rem;">
         <p style='font-size:1rem;margin-block:0.5rem;'>
           You may be looking at default or incomplete information.
@@ -772,9 +819,15 @@ const pageHeatingTypes = ref([])
 const pageWaterHeatingType = ref('')
 const pageBuildingGroup = ref('')
 const pageRebateType = ref('')
+// -- Mode (archive|single) --
+const mode = ref('archive')
 const heatPumpWaterHeaterRebateSlug = 'heat-pump-water-heater-rebates'
 const singleModeRebateTypeClass = ref('')
 const isReadyToRender = ref(false)
+const singleModeDialogRef = ref(null)
+const singleModeDialogHeadingRef = ref(null)
+const singleModeDialogDismissed = ref(false)
+const singleModeDialogOffered = ref(false)
 
 // Focus map for selects 
 const selectRefs = ref({})
@@ -829,6 +882,12 @@ const normalizeRebateLabel = (val) =>
     .replace(/\s+/g, ' ')
     .trim()
 
+const toSentenceCase = (val) => {
+  const text = String(val || '').trim()
+  if (!text) return ''
+  return text.charAt(0).toUpperCase() + text.slice(1)
+}
+
 const singleModePageEligible = computed(() => {
   if (mode.value !== 'single') return true
 
@@ -851,6 +910,71 @@ const singleModePageEligible = computed(() => {
   })
 })
 
+const singleModeDialogOptions = computed(() => {
+  const currentPath = typeof window !== 'undefined'
+    ? window.location.pathname
+    : ''
+  const seen = new Set()
+
+  return filteredResults.value.reduce((acc, item, index) => {
+    const rawUrl = item.post_url ?? item.url ?? ''
+    if (!rawUrl) return acc
+
+    let normalizedPath = ''
+    try {
+      const urlObj = new URL(rawUrl, window.location.origin)
+      normalizedPath = urlObj.pathname
+    } catch (e) {
+      // fallback: skip path normalization
+    }
+
+    if (normalizedPath && normalizedPath === currentPath) return acc
+    if (seen.has(rawUrl)) return acc
+
+    const headline = item.rebate_type_headline_card || item.title || 'Rebate page'
+    const subtitle =
+      item.rebate_type_headline_card &&
+      !item.rebate_type_headline_card.includes('Insulation') &&
+      !item.rebate_type_headline_card.includes('Windows')
+        ? item.title
+        : ''
+
+    const combinedRaw = subtitle ? `${headline} ${subtitle.toLowerCase()}` : headline
+
+    acc.push({
+      key: item.id ?? `${index}-${rawUrl}`,
+      href: withQueryString(rawUrl),
+      combinedSentence: toSentenceCase(combinedRaw)
+    })
+    seen.add(rawUrl)
+    return acc
+  }, [])
+})
+
+const singleModeMurbIneligible = computed(() => {
+  if (mode.value !== 'single') return false
+  if (selectedBuildingGroupSlug.value !== 'murb') return false
+
+  const normalizedHeating = normalizeHeatingSlug(selectedHeatingName.value)
+  const normalizedWaterHeating = normalizeHeatingSlug(selectedWaterHeatingName.value)
+  const hasIneligibleHeating = ['gas', 'oil'].includes(normalizedHeating)
+  const hasIneligibleWaterHeating = ['gas', 'oil'].includes(normalizedWaterHeating)
+
+  return filteredResults.value.length === 0 && (hasIneligibleHeating || hasIneligibleWaterHeating)
+})
+
+const singleModeDialogEligible = computed(() => {
+  if (mode.value !== 'single') return false
+  if (!isReadyToRender.value) return false
+  if (!hasAllSelection.value) return false
+  if (!singleModeMurbIneligible.value) {
+    if (filteredResults.value.length === 0) return false
+    if (singleModeDialogOptions.value.length === 0) return false
+    if (singleModePageEligible.value && !hasAnyError.value) return false
+  }
+  return true
+})
+
 const hasAnyError = computed(() => {
   const hasFieldError = Object.values(fieldErrors.value).some(Boolean)
   const hasNoResults =
@@ -858,6 +982,51 @@ const hasAnyError = computed(() => {
 
   return hasFieldError || hasNoResults
 })
+
+function openSingleModeDialog() {
+  const dialog = singleModeDialogRef.value
+  if (!dialog || dialog.open) return false
+  try {
+    dialog.showModal()
+    nextTick(() => {
+      singleModeDialogHeadingRef.value?.focus?.()
+    })
+    return true
+  } catch (e) {
+    // no-op.
+    return false
+  }
+}
+
+function closeSingleModeDialog(e) {
+  e.preventDefault()
+  const dialog = singleModeDialogRef.value
+  if (dialog?.open) {
+    dialog.close()
+  }
+  singleModeDialogDismissed.value = true
+}
+
+function handleSingleModeDialogClosed() {
+  singleModeDialogDismissed.value = true
+}
+
+watch(
+  singleModeDialogEligible,
+  (now, prev) => {
+    if (!now) return
+    if (singleModeDialogDismissed.value) return
+    if (singleModeDialogOffered.value) return
+    if (!prev && now) {
+      nextTick(() => {
+        if (openSingleModeDialog()) {
+          singleModeDialogOffered.value = true
+        }
+      })
+    }
+  },
+  { immediate: true }
+)
 
 /**
  * Toggle visibility of field labels.
@@ -1469,9 +1638,6 @@ function applyDirtyClasses(val) {
     .querySelectorAll('.multi-query-content-block > span[data-replace="value"]')
     .forEach(el => el.classList.toggle('is-dirty', val))
 }
-
-// -- Mode (archive|single) --
-const mode = ref('archive')
 
 // Show the info card only if any heat pump rebate exists
 const showHeatPumpInfo = computed(() =>
@@ -4084,6 +4250,111 @@ body.betterhomesbc #dialog .dialog-content h2 {
   border-bottom: 3px solid var(--wp--preset--color--primary-brand);
   color: var(--wp--preset--color--primary-brand);
   margin-bottom: 1rem;
+}
+
+body:has(#single-mode-dialog[open]) {
+  overflow: hidden;
+}
+
+#single-mode-dialog {
+  background-color: var(--wp--preset--color--white);
+  border: 0;
+  box-shadow: var(--box-shadow);
+  color: var(--wp--preset--color--text-color);
+  max-width: 600px;
+}
+
+#single-mode-dialog::backdrop {
+  background-color: rgba(0 0 0 / 0.5);
+  backdrop-filter: blur(2px);
+}
+
+#single-mode-dialog .dialog-content h2 {
+  border-bottom: 7px solid var(--wp--preset--color--secondary-brand);
+  color: var(--wp--preset--color--secondary-brand);
+  display: inline-block;
+  font-size: 1.5rem;
+  padding-top: 0.5rem;
+  padding-inline: 3rem;
+  padding-bottom: 0.5rem;
+  margin-top: 0;
+  margin-bottom: 0;
+  position: relative;
+  left: -2rem;
+  outline: none;
+}
+
+#single-mode-dialog .dialog-content > * {
+  padding-inline: 1rem;
+}
+
+#single-mode-dialog  #single-mode-dialog-desc {
+  padding-block-start: 1rem;
+}
+
+#single-mode-dialog .dialog-content > *:last-child {
+  padding-bottom: 0.5rem;
+}
+
+#single-mode-dialog .close-dialog {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 0;
+  background: top;
+  border: thin solid var(--wp--preset--color--transparent);
+  color: var(--wp--preset--color--text-color);
+  padding-inline: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+#single-mode-dialog .close-dialog::after {
+  content: "×";
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  font-size: 1rem;
+  display: inline-block;
+  padding: 0.25rem;
+  width: 1rem;
+}
+
+#single-mode-dialog .close-dialog:hover,
+#single-mode-dialog .close-dialog:focus-visible {
+  border: thin solid var(--wp--preset--color--text-color);
+  border-radius: 0.25rem;
+  outline: none;
+  cursor: pointer;
+}
+
+#single-mode-dialog .dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+#single-mode-dialog .rebate-title {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: baseline;
+}
+
+#single-mode-dialog :is(li) {
+  margin-bottom: 0.33rem;
+}
+#single-mode-dialog .rebate-title-headline {
+  font-weight: 400;
+  font-size: 1rem;
+}
+
+#single-mode-dialog .rebate-title-link.rebate-title-link {
+  display: inline;
+  text-decoration: none;
+}
+
+#single-mode-dialog .rebate-title-link.rebate-title-link:focus-visible,
+#single-mode-dialog .rebate-title-link.rebate-title-link:hover {
+  text-decoration: underline;
 }
 
 .template {
