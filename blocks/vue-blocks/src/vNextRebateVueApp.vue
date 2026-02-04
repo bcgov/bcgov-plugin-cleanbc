@@ -1716,6 +1716,10 @@ onMounted(async () => {
       console.log('No saved settings — starting fresh')
     }
 
+    if (mode.value === 'single') {
+      await updateRebateDetails()
+    }
+
     if (mode.value === 'single' && !hasAllSelection.value) {
       isCollapseView.value = true
     }
