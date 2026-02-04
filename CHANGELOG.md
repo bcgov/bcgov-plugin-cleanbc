@@ -5,6 +5,7 @@
 – Ensure single mode initial load syncs state query param without marking the tool dirty
 – Delay single mode render until after redirect decision to avoid flash
 – Keep single mode collapsed on load when required settings are missing
+– Restyled update warning message for single mode tool
 
 ## 1.30.13 February 3, 2026
 – Remmoved locking of page specific fields to allow editing (and errors)

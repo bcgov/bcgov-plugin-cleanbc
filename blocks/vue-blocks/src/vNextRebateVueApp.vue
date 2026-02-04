@@ -14,15 +14,17 @@
 
     <template v-else>
 
-      <p v-if="(!hasAllSelection || isDirty) && mode === 'single'" class='has-icon info tool-message'>
-        You may be looking at default or incomplete information.
-        <a v-if='!isDirty' @click="toggleCollapseView" @keydown.enter.space.prevent="toggleCollapseView" tabindex='0'>
-          Please update your home's details.
-        </a>
-        <span v-if='isDirty'>
-          The page URL does not match your settings. Please update and save your selections.
-        </span>
-      </p>
+      <div class="wp-block-group info has-icon is-layout-flow wp-block-group-is-layout-flow" style="border-radius:1rem;margin-top:0rem;margin-bottom:2rem;padding-top:1rem;padding-right:1rem;padding-bottom:1rem;padding-left:1rem">
+        <p v-if="(!hasAllSelection || isDirty) && mode === 'single'" style='margin-top:0.5rem;margin-bottom:0.5rem'>
+          You may be looking at default or incomplete information.
+          <a v-if='!isDirty' @click="toggleCollapseView" @keydown.enter.space.prevent="toggleCollapseView" tabindex='0'>
+            Please update your home's details.
+          </a>
+          <span v-if='isDirty'>
+            The page URL does not match your settings. Please update and save your selections.
+          </span>
+        </p>
+      </div>
 
       <!-- Filter Controls -->
       <div id="rebatesFilterControls" class="filter-container"
