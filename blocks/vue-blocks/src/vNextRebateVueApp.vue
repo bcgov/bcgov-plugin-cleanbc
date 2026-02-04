@@ -935,7 +935,7 @@ const singleModeDialogOptions = computed(() => {
     const subtitle =
       item.rebate_type_headline_card &&
       !item.rebate_type_headline_card.includes('Insulation') &&
-      !item.rebate_type_headline_card.includes('Windows')
+      !item.rebate_type_headline_card.includes('Window')
         ? item.title
         : ''
 
