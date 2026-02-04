@@ -57,6 +57,9 @@
                       @click="openEdit(field.key)" :ref="el => (buttonRefs[field.key] = el)">
                       {{ field.displayValue }}
                     </button>
+                    <p v-if="fieldErrors[field.key]" class="rebate-setting-warning">
+                      This setting is not supported for this rebate.
+                    </p>
                   </div>
                   <!-- Show select if open -->
                   <div v-else-if="editable && activeEdit === field.key">
@@ -102,6 +105,9 @@
                     <label class='small'>{{ field.shortDesc }}</label>
                     <p class="rebate-detail" :class="fieldErrors[field.key] ? 'error' : ''">
                       {{ field.displayValue }}
+                    </p>
+                    <p v-if="fieldErrors[field.key]" class="rebate-detail-warning">
+                      This setting is not supported for this rebate.
                     </p>
                   </div>
                 </template>
@@ -2238,6 +2244,12 @@ function assembleUrl() {
     urlParams.delete('rebate_tier')
   }
 
+  if (mode.value === 'single') {
+    urlParams.set('state', hasAnyError.value ? 'invalid' : 'valid')
+  } else {
+    urlParams.delete('state')
+  }
+
   if (selectedLocationSlug.value) {
     urlParams.set('location', selectedLocationName.value)
     if (selectedRegionName.value) urlParams.set('region', selectedRegionName.value)
@@ -2380,6 +2392,12 @@ const urlStateDeps = computed(() => ({
   gas: selectedGasSlug.value,
   region: selectedRegion.value
 }))
+
+watch([hasAnyError, mode], () => {
+  if (!bootstrapped.value) return
+  if (mode.value !== 'single') return
+  updateAddressBar()
+})
 
 /**
  * Update the browser address bar to match assembled state.
@@ -3866,6 +3884,13 @@ p.rebate-detail.rebate-detail.rebate-detail.error {
   color: #8b0000;
   background: transparent;
   border: 0;
+}
+
+.rebate-detail-warning,
+.rebate-setting-warning {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: #8b0000;
 }
 
 #vnextRebateFilterApp:not([data-mode="archive"]) #rebatesFilterControls:has(.editBtn:is(:focus-visible, :focus, :hover)) {

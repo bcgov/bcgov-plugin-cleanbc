@@ -1,3 +1,7 @@
+## 1.30.14 February 4, 2026
+– Error message applied to single mode fields when invalid
+– New state query key with valid|invalid applied for better condition checks
+
 ## 1.30.13 February 3, 2026
 – Remmoved locking of page specific fields to allow editing (and errors)
 – Added rebate page context tracking for building group, rebate type, and heating types
