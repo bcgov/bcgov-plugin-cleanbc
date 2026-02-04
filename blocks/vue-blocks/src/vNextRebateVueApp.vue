@@ -14,8 +14,8 @@
 
     <template v-else>
 
-      <div class="wp-block-group info has-icon is-layout-flow wp-block-group-is-layout-flow" style="border-radius:1rem;margin-top:0rem;margin-bottom:2rem;padding-top:1rem;padding-right:1rem;padding-bottom:1rem;padding-left:1rem">
-        <p v-if="(!hasAllSelection || isDirty) && mode === 'single'" style='margin-top:0.5rem;margin-bottom:0.5rem'>
+      <div v-if="(!hasAllSelection || isDirty) && mode === 'single'" class="wp-block-group info has-icon is-layout-flow wp-block-group-is-layout-flow" style="border-radius:1rem;margin:0;padding:0.5rem 1rem;">
+        <p style='font-size:1rem;margin-block:0.5rem;'>
           You may be looking at default or incomplete information.
           <a v-if='!isDirty' @click="toggleCollapseView" @keydown.enter.space.prevent="toggleCollapseView" tabindex='0'>
             Please update your home's details.
