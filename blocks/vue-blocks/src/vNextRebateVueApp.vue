@@ -33,7 +33,7 @@
             <p id="single-mode-dialog-desc">
               Sorry! Apartments and condos with oil, propane or natural gas heating aren’t eligible for individual rebates.
             </p>
-            <p>Try the BC Hydro multi-unit building retrofit program.</p>
+            <p>Try the <a href="https://www.bchydro.com/powersmart/stratas-housing-providers/condo-rental-building/multi-unit-residential-building-retrofit-program.html">BC Hydro multi-unit building retrofit program</a>.</p>
           </template>
           <template v-else>
             <p id="single-mode-dialog-desc">These rebates are a better match:</p>
@@ -109,7 +109,7 @@
                       {{ field.displayValue }}
                     </button>
                     <p v-if="fieldErrors[field.key]" class="rebate-setting-warning">
-                      This setting is not supported for this rebate.
+                      This page is based on {{ field.key === 'building' ? 'home type' : 'current heating type' }}. To see rebates for a different home type, <a href="/find-rebates/" style="color:darkred;text-underline-offset:2px;">go back to the questionnaire</a>
                     </p>
                   </div>
                   <!-- Show select if open -->
@@ -1576,7 +1576,7 @@ const fields = computed(() => [
   },
   {
     key: 'heating',
-    shortDesc: 'Heating type',
+    shortDesc: 'Room heating type',
     label: 'How do you heat the rooms in your home?',
     description:
       'If you have multiple heat sources, choose the option that applies to most of your home. If your home is heated with both a wood stove and another source, choose the other source as your primary heating type.',
@@ -1590,7 +1590,7 @@ const fields = computed(() => [
   },
   {
     key: 'water',
-    shortDesc: 'Hot water heating',
+    shortDesc: 'Hot water heating type',
     label: 'How do you heat your water?',
     description:
       'If you have more than one system, choose the one that heats most of your water.',

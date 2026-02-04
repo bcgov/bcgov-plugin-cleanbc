@@ -9,6 +9,7 @@
 – Single mode state now reflects eligibility of the current page’s rebate type against filtered results
 – Added single mode eligibility modal with alternative rebate links and MURB ineligibility messaging
 – Fixed validation to support multiple allowed types for heating and water heating
+– Fixed single mode error message template interpolation and updated error messages and field labels
 
 ## 1.30.13 February 3, 2026
 – Remmoved locking of page specific fields to allow editing (and errors)
