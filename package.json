@@ -2,7 +2,7 @@
   "name": "bcgov-plugin-cleanbc",
   "author": "Nate King",
   "private": true,
-  "version": "1.30.13",
+  "version": "1.30.15",
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -1,3 +1,8 @@
+## 1.30.15 February 5, 2026
+- Expanded heating/water heating validation for multi-fuel pages
+– Refine single-mode rebate validation and eligibility UX
+- Fix state sync, initial AJAX refresh, and warning template output
+
 ## 1.30.14 February 4, 2026
 – Error message applied to single mode fields when invalid
 – Restyled update warning message for single mode tool
