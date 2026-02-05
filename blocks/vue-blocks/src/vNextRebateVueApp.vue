@@ -854,6 +854,18 @@ const normalizeHeatingSlug = (val) => {
   return v.replace(/\s+/g, '-') // fallback.
 }
 
+const extractHeatingTokens = (val) => {
+  if (!val) return []
+  const v = String(val).toLowerCase()
+  const tokens = []
+  if (v.includes('gas')) tokens.push('gas')
+  if (v.includes('oil')) tokens.push('oil')
+  if (v.includes('wood')) tokens.push('wood')
+  if (v.includes('electric')) tokens.push('electricity')
+  if (tokens.length > 0) return Array.from(new Set(tokens))
+  return [normalizeHeatingSlug(val)]
+}
+
 const fieldErrors = computed(() => {
   const heatingOptionsSet = pageHeatingTypes.value.length > 0
   const shouldValidateHeating = heatingOptionsSet && !isHpwhRebatePage.value
@@ -866,11 +878,13 @@ const fieldErrors = computed(() => {
     selectedWaterHeatingSlug.value || selectedWaterHeatingName.value
   )
   const allowedHeatingTypes = Array.isArray(pageHeatingTypes.value)
-    ? pageHeatingTypes.value.map(item => normalizeHeatingSlug(item)).filter(Boolean)
+    ? pageHeatingTypes.value
+        .flatMap(item => extractHeatingTokens(item))
+        .filter(Boolean)
     : []
   const allowedWaterHeatingTypes = String(pageWaterHeatingType.value || '')
     .split(',')
-    .map(item => normalizeHeatingSlug(item))
+    .flatMap(item => extractHeatingTokens(item))
     .filter(Boolean)
 
   return {
