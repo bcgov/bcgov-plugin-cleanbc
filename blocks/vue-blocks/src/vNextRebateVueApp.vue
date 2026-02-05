@@ -886,6 +886,10 @@ const fieldErrors = computed(() => {
     .split(',')
     .flatMap(item => extractHeatingTokens(item))
     .filter(Boolean)
+  const pageRebateWaterHeatingTokens = extractHeatingTokens(pageRebateType.value)
+  const resolvedWaterHeatingTypes = Array.from(
+    new Set([...allowedWaterHeatingTypes, ...pageRebateWaterHeatingTokens])
+  )
 
   return {
     location: !isLocationFocused.value && !isLocationValid.value && !!locationInputValue.value,
@@ -907,7 +911,7 @@ const fieldErrors = computed(() => {
       selectedWaterHeatingSlug.value === 'other' ||
       (shouldValidateWaterHeating &&
         !!selectedWaterHeatingSlug.value &&
-        !allowedWaterHeatingTypes.includes(normalizedSelectedWaterHeating)),
+        !resolvedWaterHeatingTypes.includes(normalizedSelectedWaterHeating)),
     utility: selectedUtilitySlug.value === 'other'
     // gas: selectedGasSlug.value === 'other'
   }
@@ -2411,6 +2415,14 @@ onMounted(() => {
     pageRebateType.value = el.dataset.pageRebateType
   }
   singleModeRebateTypeClass.value = detectSingleModeRebateTypeClass(el)
+
+  if (mode.value === 'single') {
+    const params = new URLSearchParams(window.location.search)
+    const currentWaterHeating = params.get('water_heating')
+    if (currentWaterHeating) {
+      pageWaterHeatingType.value = currentWaterHeating
+    }
+  }
 
   // If SSR heating type exists, set the model directly unless URL specifies a heating type
   if (mode.value === 'single' && pageHeatingType.value) {
