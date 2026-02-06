@@ -136,44 +136,10 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 
 	.query-conditional-group-block.details-check {
 
-		.details-container {
-			grid-template-areas: "a" "b" "c" "d" "e";
+		.details-container:has(.contractor-container) {
 
-			> div:nth-child(1) {
-				grid-area: a;
-			}
-
-			> div:nth-child(2) { /* Find a contractor */
-				grid-area: b;
-			}
-
-			> div:nth-child(3) { /* Apply online */
-				grid-area: c;
-			}
-
-			> div:nth-child(4) {
-				grid-area: d;
-			}
-
-			> div:nth-child(5) {
-				grid-area: e;
-			}
-
-		}
-
-		.details-container:has(.is-details-hrr) {
-
-			> div:nth-child(3) { /* Find a contractor */
-				grid-area: b;
-			}
-
-			> div:nth-child(2) { /* Apply online */
-				grid-area: c;
-			}
-
-			> div:nth-child(2) > .wp-block-columns,
-			> div:nth-child(3) > .wp-block-columns {
-				flex-direction: row-reverse; /* Position changed, so flip column orientation */
+			.hrr-columns-reverse {
+				flex-direction: row-reverse; /* HRR, so flip column orientation */
 			}
 		}
 	}
