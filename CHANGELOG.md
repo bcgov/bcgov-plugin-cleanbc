@@ -1,3 +1,6 @@
+## 1.30.16 February 6, 2026
+– Minor style adjustments
+
 ## 1.30.15 February 5, 2026
 - Expanded heating/water heating validation for multi-fuel pages
 – Refine single-mode rebate validation and eligibility UX
