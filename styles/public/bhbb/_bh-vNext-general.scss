@@ -163,33 +163,44 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 				padding-block: 1rem;
 			}
 
-			&.featured-blue::before {
+			&.featured::before {
+				width: 2rem;
+				height: 2rem;
+				padding: 1.5rem;
+				margin: auto;
+			}
+
+			&.featured.blue::before {
 				filter: var(--blue-filter);
-				background-color: oklch(from #369 95% c h);
-				border-radius: 100vw;
-				width: 2rem;
-				height: 2rem;
-				padding: 1.5rem;
-				margin: auto;
 			}
 
-			&.featured-green::before {
+			&.featured.green::before {
 				filter: var(--green-filter);
-				background-color: oklch(from #42814a 95% c h);
-				border-radius: 100vw;
-				width: 2rem;
-				height: 2rem;
-				padding: 1.5rem;
-				margin: auto;
 			}
 
-			&.featured-grey::before {
-				background-color: oklch(from #eceae8 95% c h);
+			&.featured::after {
 				border-radius: 100vw;
-				width: 2rem;
-				height: 2rem;
-				padding: 1.5rem;
-				margin: auto;
+				content: "";
+				width: 5rem;
+				height: 5rem;
+				position: absolute;
+				top: 0;
+				z-index: -1;
+				left: 50%;
+				margin-right: -50%;
+				transform: translate(-50%, 0%);
+			}
+
+			&.featured.blue::after {
+				background-color: oklch(from #369 95% c h);
+			}
+
+			&.featured.green::after {
+				background-color: oklch(from #42814a 95% c h);
+			}
+
+			&.featured.grey::after {
+				background-color: oklch(from #eceae8 95% c h);
 			}
 
 			&.icon-contact::before {
