@@ -163,8 +163,24 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 				padding-block: 1rem;
 			}
 
-			&.icon-learn::before {
-				content: $icon_learn;
+			&.centred::before {
+				margin: auto;
+			}
+
+			&.filter-blue::before {
+				filter: var(--blue-filter);
+			}
+
+			&.filter-green::before {
+				filter: var(--green-filter);
+			}
+
+			&.icon-contact::before {
+				content: $icon_contact;
+			}
+
+			&.icon-email::before {
+				content: $icon_email;
 			}
 
 			&.icon-find::before {
@@ -182,8 +198,16 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 				scale: 1.2;
 			}
 
-			&.icon-contact::before {
-				content: $icon_contact;
+			&.icon-keyboard::before {
+				content: $icon_keyboard;
+			}
+
+			&.icon-learn::before {
+				content: $icon_learn;
+			}
+
+			&.icon-phone::before {
+				content: $icon_phone;
 			}
 
 			&.icon-understand::before {
@@ -248,6 +272,15 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 				content: $info_icon;
 				margin-right: 0;
 				top: 6px;
+				filter: var(--blue-filter);
+				rotate: 180deg;
+			}
+
+			&.small {
+
+				&.icon-info::before {
+					top: 0;
+				}
 			}
 
 			&.icon-qualified::before {
@@ -308,6 +341,30 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 			text-wrap: pretty !important;
 		}
 
+	}
+
+	:is(div, p) {
+
+		&.has-icon {
+
+			&::before {
+				content: "";
+				display: inline-block;
+				padding-inline: 0;
+			}
+
+			&.heat {
+				content: $icon_available;
+			}
+
+			&.electric {
+				content: $icon_available;
+			}
+
+			&.gas {
+				content: $icon_available;
+			}
+		}
 	}
 
 	/* -------------------------------------------------------------------------- */

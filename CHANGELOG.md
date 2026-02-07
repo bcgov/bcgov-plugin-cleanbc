@@ -1,5 +1,6 @@
 ## 1.30.16 February 6, 2026
 – Minor style adjustments
+– Added contact icons
 
 ## 1.30.15 February 5, 2026
 - Expanded heating/water heating validation for multi-fuel pages
