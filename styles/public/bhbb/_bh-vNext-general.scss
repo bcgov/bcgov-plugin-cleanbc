@@ -391,7 +391,7 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 
 			&.heat::before {
 				content: $icon_heat;
-				filter: var(--darkred-filter);
+				filter: var(--vividred-filter);
 			}
 
 			&.electric::before {
