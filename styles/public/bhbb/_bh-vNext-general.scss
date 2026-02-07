@@ -384,20 +384,26 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 				content: "";
 				padding-inline: 0;
 				display: block;
-				height: 2rem;
-				width: 2rem;
+				height: 1rem;
+				width: 1rem;
+				top: 0;
 			}
 
 			&.heat::before {
-				content: $icon_available;
+				content: $icon_heat;
+				filter: var(--darkred-filter);
 			}
 
 			&.electric::before {
-				content: $icon_available;
+				content: $icon_electricity;
+				filter: var(--green-filter);
 			}
 
 			&.gas::before {
-				content: $icon_available;
+				content: $icon_gas;
+				filter: var(--yellow-filter);
+				scale: 1.2;
+				top: 0.25rem;
 			}
 		}
 	}
