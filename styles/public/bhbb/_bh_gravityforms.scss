@@ -68,7 +68,10 @@
 
 /* ---- Labels ---- */
 #gform_2 .gfield .gfield_label {
-	font-size: var(--wp--preset--font-size--extra-small);
+	font-size: 0.9rem;
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
 	font-weight: normal;
 	line-height: 1.5;
 	margin-block-start: 0.15rem;
@@ -76,6 +79,12 @@
 	text-wrap: balance;
 	text-align: right;
 	width: 100%;
+}
+
+#gform_2  .subscribe-gform > div:nth-child(2) {
+	display: flex;
+	align-items: center;
+	padding-block: 0;
 }
 
 /* ---- Pending state (placeholder selected / empty required fields) ----
@@ -215,6 +224,7 @@
 	display: flex;
 	align-items: center;
 	gap: 0.5rem;
+	margin-block-end: 0;
 }
 
 #gform_2 .gfield_checkbox .gchoice label {
