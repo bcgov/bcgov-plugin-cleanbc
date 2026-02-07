@@ -163,16 +163,33 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 				padding-block: 1rem;
 			}
 
-			&.centred::before {
+			&.featured-blue::before {
+				filter: var(--blue-filter);
+				background-color: oklch(from #369 95% c h);
+				border-radius: 100vw;
+				width: 2rem;
+				height: 2rem;
+				padding: 1.5rem;
 				margin: auto;
 			}
 
-			&.filter-blue::before {
-				filter: var(--blue-filter);
+			&.featured-green::before {
+				filter: var(--green-filter);
+				background-color: oklch(from #42814a 95% c h);
+				border-radius: 100vw;
+				width: 2rem;
+				height: 2rem;
+				padding: 1.5rem;
+				margin: auto;
 			}
 
-			&.filter-green::before {
-				filter: var(--green-filter);
+			&.featured-grey::before {
+				background-color: oklch(from #eceae8 95% c h);
+				border-radius: 100vw;
+				width: 2rem;
+				height: 2rem;
+				padding: 1.5rem;
+				margin: auto;
 			}
 
 			&.icon-contact::before {
@@ -349,19 +366,21 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 
 			&::before {
 				content: "";
-				display: inline-block;
 				padding-inline: 0;
+				display: block;
+				height: 2rem;
+				width: 2rem;
 			}
 
-			&.heat {
+			&.heat::before {
 				content: $icon_available;
 			}
 
-			&.electric {
+			&.electric::before {
 				content: $icon_available;
 			}
 
-			&.gas {
+			&.gas::before {
 				content: $icon_available;
 			}
 		}
