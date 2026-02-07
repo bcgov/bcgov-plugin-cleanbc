@@ -163,11 +163,16 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 				padding-block: 1rem;
 			}
 
-			&.featured::before {
-				width: 2rem;
-				height: 2rem;
-				padding: 1.5rem;
-				margin: auto;
+			&.featured {
+				position: relative;
+				isolation: isolate;
+
+				&::before {
+					width: 2rem;
+					height: 2rem;
+					padding: 1.5rem;
+					margin: auto;
+				}
 			}
 
 			&.featured.blue::before {
