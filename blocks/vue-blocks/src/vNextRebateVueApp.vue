@@ -386,7 +386,7 @@
                     <header>
                       <h3 class="rebate-title">
                         <div>{{ item.rebate_type_headline_card }}</div>
-                        <small v-if='!item.rebate_type_headline_card.includes("Insulation") && !item.rebate_type_headline_card.includes("Windows")'>{{ item.title }}</small>
+                        <small v-if='!item.rebate_type_headline_card.includes("Insulation") && !item.rebate_type_headline_card.includes("Window")'>{{ item.title }}</small>
                       </h3>
                     </header>
 
@@ -494,14 +494,19 @@ const displayGridOrList = ref(true)
 const STORAGE_KEY = 'displayGridOrList'
 const PREFERRED_SETTINGS_KEY = 'preferredSettings'
 const REBATE_TOOL_SETTINGS_KEY = 'rebateToolSettings'
+const viewPreferenceLoaded = ref(false)
+
+function persistDisplayViewPreference() {
+  localStorage.setItem(STORAGE_KEY, String(displayGridOrList.value))
+}
 
 function onViewToggleChange() {
-  localStorage.setItem(STORAGE_KEY, String(displayGridOrList.value))
+  persistDisplayViewPreference()
 }
 
 function toggleViewWithKeyboard() {
   displayGridOrList.value = !displayGridOrList.value
-  localStorage.setItem(STORAGE_KEY, String(displayGridOrList.value))
+  persistDisplayViewPreference()
 }
 
 function readPreferredSettings() {
@@ -2495,6 +2500,7 @@ onMounted(() => {
   if (saved !== null) {
     displayGridOrList.value = (saved === 'true')
   }
+  viewPreferenceLoaded.value = true
 })
 
 /**
@@ -2917,7 +2923,6 @@ const filteredResults = computed(() => {
     // GUARD : Heat pump water heater business rules for MURB
     const hpwhIneligible =
       ( isHPWH && isMurbBuilding ) && (
-        !roomIsElectric    ||   // room heating must be electricity
         !waterIsElectric       // water heating must be electricity
       ) || ( isHPWH && isMurbBuilding && isHighTier ) && (
         !utilityIsBCHydroOrNW // utility must be BC Hydro or New Westminster
@@ -2926,7 +2931,7 @@ const filteredResults = computed(() => {
     if (hpwhIneligible) {
       if (debug) {
         console.group('GUARD 0 (HPWH MURB):', item.rebate_type_headline_card, item.title?.toLowerCase?.())
-        console.log('Not in rebate list:', false, '(HPWH MURB rules: utility BC Hydro/New West, room+water electric)')
+        console.log('Not in rebate list:', false, '(HPWH MURB rules: utility BC Hydro/New West, water electric)')
         console.log('normalizedBuildingGroup:', normalizedBuildingGroup)
         console.log('normalizedUtility:', normalizedUtility)
         console.log('normalizedHeating (rooms):', normalizedHeating)
@@ -2937,13 +2942,13 @@ const filteredResults = computed(() => {
     }
 
     // GUARD : MURB utility rules
-    // Disallow ANY non-BC Hydro utility when MURB + HRR is selected
-    // New Westminster utilities here too
+    // Apply to room-heating rebates. HPWH utility logic is handled by GUARD 0 above.
     const murbUtilityBlocked =
       isMurbBuilding &&
       isHrrTier &&
+      !isHPWH &&
       currentUtility &&
-      (!currentUtility.includes('bc-hydro') && !currentUtility.includes('new-westminster'))
+      !utilityIsBCHydroOrNW
 
     if (murbUtilityBlocked) {
       if (debug) {
@@ -2951,10 +2956,11 @@ const filteredResults = computed(() => {
         console.log(
           'Not in rebate list:',
           false,
-          '(blocked by MURB+HRR: utility must be BC Hydro or New Westminster)'
+          '(blocked by MURB+HRR room-heating rules: utility must be BC Hydro or New Westminster)'
         )
         console.log('isMurbBuilding',isMurbBuilding)
         console.log('isHrrTier',isHrrTier)
+        console.log('isHPWH', isHPWH)
         console.log('currentUtility',currentUtility)
         console.groupEnd()
       }
@@ -3106,6 +3112,24 @@ const filteredResults = computed(() => {
     return nameA.localeCompare(nameB)
   })
 })
+
+// Archive UX: default to list view when results narrow to a single card.
+watch(
+  [mode, () => filteredResults.value.length, viewPreferenceLoaded],
+  ([currentMode, resultCount, isLoaded], oldValues = []) => {
+    if (!isLoaded) return
+    if (currentMode !== 'archive') return
+
+    const previousResultCount = oldValues[1]
+    const enteredSingleResult = resultCount === 1 && previousResultCount !== 1
+
+    if (enteredSingleResult) {
+      displayGridOrList.value = false
+      persistDisplayViewPreference()
+    }
+  },
+  { immediate: true }
+)
 
 /**
  * Return a URL with the current query string appended.

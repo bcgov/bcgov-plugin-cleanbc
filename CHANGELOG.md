@@ -2,6 +2,8 @@
 – Rebate headline style adjustments
 – Hide external link svg repetition
 – Support icon style adjustments
+– Patched hiding Window and door subhead in results
+– Fixed HPWH guard to allow alternate room heating type 
 
 ## 1.30.16 February 6-7, 2026
 – Minor style adjustments
