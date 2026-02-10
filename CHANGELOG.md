@@ -1,5 +1,6 @@
 ## 1.30.17 February 10, 2026
 – Rebate headline style adjustments
+– Hide external link svg repetition
 
 ## 1.30.16 February 6-7, 2026
 – Minor style adjustments
