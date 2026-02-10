@@ -379,12 +379,12 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 
 	:is(div, p) {
 
-		&.has-icon {
+		&.has-icon:is(.heat, .electric, .gas) {
 
 			&::before {
 				content: "";
 				padding-inline: 0;
-				display: block;
+				display: inline-block;
 				height: 1rem;
 				width: 1rem;
 				top: 0;
