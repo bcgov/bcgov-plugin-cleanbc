@@ -1,3 +1,6 @@
+## 1.30.18 February 10, 2026
+– Updated window and doors rebate type reference for validity guard
+
 ## 1.30.17 February 10, 2026
 – Rebate headline style adjustments
 – Hide external link svg repetition

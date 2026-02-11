@@ -2875,7 +2875,7 @@ const filteredResults = computed(() => {
     const isGodBuilding = normalizedBuildingGroup === 'ground-oriented-dwellings'
     const isHP = rebateClass === 'heat-pump-rebates'
     const isHPWH = rebateClass === 'heat-pump-water-heater-rebates'
-    const isWindowsDoors = rebateClass === 'windows-doors-rebates'
+    const isWindowsDoors = rebateClass === 'window-and-door-rebates'
     const isInsulation = rebateClass === 'insulation-rebates'
     const utilityIsBCHydro = normalizedUtility === 'bc-hydro'
     const utilityIsBCHydroOrNW = normalizedUtility === 'bc-hydro' || normalizedUtility === 'new-westminster'
