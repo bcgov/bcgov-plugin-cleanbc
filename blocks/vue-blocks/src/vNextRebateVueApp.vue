@@ -1499,6 +1499,21 @@ const sortOtherLast = (items = []) => {
   return [...rest, ...others]
 }
 
+const sortBySlugWithOtherLast = (items = []) => {
+  if (!Array.isArray(items)) return items
+
+  return [...items].sort((a, b) => {
+    const aSlug = String(a?.slug || '')
+    const bSlug = String(b?.slug || '')
+    const aIsOther = aSlug === 'other'
+    const bIsOther = bSlug === 'other'
+
+    if (aIsOther && !bIsOther) return 1
+    if (!aIsOther && bIsOther) return -1
+    return aSlug.localeCompare(bSlug)
+  })
+}
+
 
 /**
  * Unified fields config.
@@ -1901,13 +1916,13 @@ function initFromLocalStorage(data) {
 const buildingTypeGroups = computed(() => {
   const raw = api.value?.['settings-selects']?.['building-types'] ?? []
 
-  // Sort children inside each group, then move any `other` group to the end
+  // Sort children and groups alphabetically by slug, with `other` last.
   const withChildrenSorted = raw.map(group => ({
     ...group,
-    children: sortOtherLast(group.children ?? [])
+    children: sortBySlugWithOtherLast(group.children ?? [])
   }))
 
-  const sorted = sortOtherLast(withChildrenSorted)
+  const sorted = sortBySlugWithOtherLast(withChildrenSorted)
 
   // Single mode: do NOT include the "other" group at all
   if (mode.value === 'single') {
