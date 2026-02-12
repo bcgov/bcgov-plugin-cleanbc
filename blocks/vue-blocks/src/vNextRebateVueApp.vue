@@ -270,6 +270,7 @@
                       </datalist>
                       <p v-if="field.error_desc && fieldErrors[field.key]" class="message error-message" v-html="field.error_desc" aria-live='polite'></p>
 
+                      <figcaption v-if="field.description">{{ field.description }}</figcaption>
                       <figcaption v-if="field.filter_desc && !field.disabled">
                         {{ field.filter_desc }}
                       </figcaption>
@@ -320,6 +321,7 @@
                         </template>
                       </select>
 
+                      <figcaption v-if="field.description">{{ field.description }}</figcaption>
                       <figcaption v-if="field.filter_desc && !field.disabled">{{ field.filter_desc }}</figcaption>
                       <figcaption v-if="field.disabled_desc && field.disabled">{{ field.disabled_desc }}</figcaption>
                       <p v-if="field.error_desc && fieldErrors[field.key]" class="message error-message" aria-live='polite' v-html='field.error_desc'></p>
@@ -1505,7 +1507,7 @@ const fields = computed(() => [
   {
     key: 'location',
     shortDesc: 'Home location',
-    label: 'What community do you live in or are closest to?',
+    label: 'What community do you live in or closest to?',
     model: selectedLocationSlug,
     options: locationOptionsForInput.value,
     displayValue: selectedLocationName.value
@@ -1513,8 +1515,8 @@ const fields = computed(() => [
       : '',
     missingMessage: 'Missing location details',
     isInvalid: () => !selectedLocationSlug.value,
-    filter_desc: 'Start typing to narrow down your choice of options. Select the icon to see available choices.',
-    error_desc: 'Please choose a community from the list of supported locations.'
+    filter_desc: 'Start typing to narrow down the communities. To see all the options use the down arrow.',
+    error_desc: 'Please choose a community from the list.'
   },
   {
     key: 'murbTenure',
@@ -1538,18 +1540,18 @@ const fields = computed(() => [
   {
     key: 'building',
     shortDesc: 'Type of home',
-    label: 'What kind of home do you live in?',
+    label: 'What type of home do you live in?',
     model: selectedBuildingTypeSlug,
     groups: buildingTypeGroups.value,
     isGrouped: true,
     displayValue: selectedBuildingTypeName.value,
     missingMessage: 'Missing home type',
     description:
-      'Changing between Ground Oriented / MURB types will require you to update the assessed property value information.',
-    filter_desc:
-      'Each unit must have its own electricity meter and the utility account must be in the name of a resident in the household that is applying to the rebate.',
+      'Your home must have its own electricity meter. The utility account must be in the name of a resident of the household.',
+    // filter_desc:
+    //   'Changing between Ground Oriented / MURB types will require you to update the assessed property value information.',
     error_desc:
-      'Only the listed home types are currently eligible for Better Homes rebates. <a href="/get-support/">Contact an Energy Coach</a> to find out if your home type fits into one of these categories.',
+      'Only the listed home types are currently eligible for Better Homes rebates. <strong><a href="/get-support/" style="color: #8b0000;">Contact an Energy Coach</a></strong> to find out if your home type fits into one of these categories.',
     isInvalid: () => selectedBuildingTypeSlug.value === 'other'
   },
   {
@@ -1562,10 +1564,10 @@ const fields = computed(() => [
     missingMessage: 'Missing home value',
     disabled: !selectedBuildingGroupSlug.value || selectedBuildingTypeSlug.value === 'other',
     ready: homeValueOptions.value.length > 0,
-    description:
-      'The amount options shown change based on the set type of home.',
+    // filter_desc:
+    //   'The amount options shown change based on the set type of home.',
     disabled_desc:
-      'Please answer the "kind of home you live in" question to enable this selection.',
+      'Please answer the "type of home you live in" first.',
     definition: 'How to find the assessed value of your property',
     glossary_link: '/definitions/assessed-home-value/',
     isInvalid: () =>
@@ -1580,8 +1582,8 @@ const fields = computed(() => [
     options: personCountOptions.value,
     displayValue: selectedPersonsCount.value,
     missingMessage: 'Missing household number',
-    description:
-      'Changing this field will require you to update the pre-tax income range information as well.',
+    // description:
+    //   'Changing this field will require you to update the pre-tax income range information as well.',
     isInvalid: () => !selectedPersonsSlug.value
   },
   {
@@ -1595,11 +1597,11 @@ const fields = computed(() => [
     missingMessage: 'Missing household income',
     disabled: !selectedPersonsSlug.value,
     ready: incomeRangeOptions.value.length > 0,
-    description:
-      'The amount options shown change based on the set number of people in the household.',
+    // description:
+    //   'The amount options shown change based on the set number of people in the household.',
     disabled_desc:
-      'Please answer the "number of people in your home" question to enable this selection.',
-    definition: 'Why we ask for annual household income',
+      'Please answer "how many people live in your home" to enable this selection.',
+    definition: 'Why we ask for household income',
     glossary_link: '/definitions/household-income/',
     isInvalid: () => !!selectedPersonsSlug.value && !selectedIncomeRangeSlug.value
   },
@@ -1640,7 +1642,7 @@ const fields = computed(() => [
     displayValue: selectedUtilityName.value,
     missingMessage: 'Missing service details',
     error_desc:
-      'Your electricity must be from one of the listed providers. <a href="/get-support/">Contact an Energy Coach</a> if you have questions or need help figuring out who your provider is. ',
+      'Your electricity must be from one of the listed providers. <strong><a href="/get-support/" style="color: #8b0000;">Contact an Energy Coach</a></strong> if you have questions or need help figuring out who your provider is. ',
     isInvalid: () => !selectedUtilitySlug.value || selectedUtilitySlug.value === 'other'
   },
   {
@@ -2887,6 +2889,19 @@ const filteredResults = computed(() => {
     const userRegionNorth = normalizedRegion === 'north'
     const currentUtility = normalizedUtility // slug ('bc-hydro', 'fortisbc', etc.)
     const locationIsVancouver = normalizedLocation === 'vancouver'
+    const utilityIsOther = selectedUtilitySlug.value === 'other' || normalizedUtility === 'other'
+
+    // GUARD : Utility "other" should return no eligible rebates.
+    if (utilityIsOther) {
+      if (debug) {
+        console.group('GUARD utility-other:', item.rebate_type_headline_card, item.title?.toLowerCase?.())
+        console.log('Not in rebate list:', false, '(blocked: electricity provider is "other")')
+        console.log('selectedUtilitySlug:', selectedUtilitySlug.value)
+        console.log('normalizedUtility:', normalizedUtility)
+        console.groupEnd()
+      }
+      return false
+    }
 
 
      // Guard : Ground-oriented heat pump/hp water heaters rules for ESP-3 + HRR wood

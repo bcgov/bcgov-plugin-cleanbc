@@ -2,6 +2,7 @@
 – Updated contact form mobile styles
 – Expanded PDF link checker to include links with "PDF" in href values
 – Set text-wrap default to pretty with balance as fallback
+– Added archive results guard to return no rebates when electricity provider is set to "other"
 
 ## 1.30.18 February 11, 2026
 – Updated window and doors rebate type reference for validity guard
@@ -12,7 +13,8 @@
 – Hide external link svg repetition
 – Support icon style adjustments
 – Patched hiding Window and door subhead in results
-– Fixed HPWH guard to allow alternate room heating type 
+– Fixed HPWH guard to allow alternate room heating type
+– Added descriptions to questionnaire selects in archive mode
 
 ## 1.30.16 February 6-7, 2026
 – Minor style adjustments
