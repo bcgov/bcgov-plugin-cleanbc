@@ -262,6 +262,13 @@
 	width: 100%;
 }
 
+#gform_2 .gform_button[type="submit"] {
+	background-color: var(--wp--preset--color--white);
+	border: 1px solid currentcolor;
+	border-radius: 0.33rem;
+	color: var(--wp--preset--color--primary-brand);
+}
+
 /* ---- Footer spacing ---- */
 #gform_2 .gform_footer {
 	padding: 0 2rem 2rem;
