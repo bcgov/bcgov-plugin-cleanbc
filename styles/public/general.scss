@@ -176,6 +176,7 @@ a:where(:not(.wp-element-button, .wp-block-navigation-item__content)) {
 		text-underline-offset: 4px;
 		text-decoration: currentcolor underline 1px solid;
 		text-wrap: balance;
+		text-wrap: pretty;
 
 		&:is(:hover) {
 			text-underline-offset: 3px;

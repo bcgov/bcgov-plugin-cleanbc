@@ -3587,6 +3587,7 @@ function withQueryString(baseUrl) {
         font-weight: 400;
         line-height: 1.5;
         text-wrap: balance;
+		    text-wrap: pretty;
         text-align: left;
       }
 

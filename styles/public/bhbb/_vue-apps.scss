@@ -422,6 +422,7 @@
 
 			label {
 				text-wrap: balance;
+				text-wrap: pretty;
 				align-content: center;
 				font-size: var(--wp--preset--font-size--small);
 				color: $shark;
@@ -440,6 +441,7 @@
 					label {
 						color: $white;
 						text-wrap: balance;
+						text-wrap: pretty;
 					}
 				}
 			}
@@ -812,6 +814,7 @@
 
 	button {
 		text-wrap: balance;
+		text-wrap: pretty;
 		color: $scorpiongrey;
 		background-color: $vehiclegrey;
 		transition: all $default_transition_timing_fn $default_transition_duration;
@@ -944,6 +947,7 @@
 		border-radius: 0.25rem;
 		text-align: center;
 		text-wrap: balance;
+		text-wrap: pretty;
 
 		@media (min-width: $breakpoint-lg) {
 			top: unset;
@@ -1054,6 +1058,7 @@
 			// border of 0.25rem.
 			padding-left: 1.75rem;
 			text-wrap: balance;
+			text-wrap: pretty;
 		}
 	}
 
@@ -1265,6 +1270,7 @@
 	td,
 	tr {
 		text-wrap: balance;
+		text-wrap: pretty;
 
 		@media (max-width: $breakpoint-sm) {
 			display: block;
@@ -1273,6 +1279,7 @@
 		a,
 		li {
 			text-wrap: balance;
+			text-wrap: pretty;
 		}
 	}
 
@@ -2140,6 +2147,7 @@
 
 		h3 {
 			text-wrap: balance;
+			text-wrap: pretty;
 		}
 
 		a,
