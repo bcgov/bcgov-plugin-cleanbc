@@ -2,6 +2,11 @@
    Gravity Forms (Form ID: 2) – converted styling
    ========================================================================== */
 
+#gform_2 {
+	container-name: contact;
+	container-type: inline-size;
+}
+
 /* ---- Layout container (replaces .control-container) ---- */
 #gform_2 .gform_fields {
 	display: grid;
@@ -11,6 +16,10 @@
 	margin: 0;
 	list-style: none;
 	counter-reset: gf_question;
+
+	@container contact (width <= 680px) {
+		padding: 0 !important;
+	}
 }
 
 /* Small screens */
@@ -35,6 +44,13 @@
 	grid-template-columns: minmax(20%, 220px) 1fr;
 	margin: 0;
 	padding: 0;
+
+	@container contact (width <= 680px) {
+		grid-template-columns: 100%;
+		justify-content: start;
+		align-content: start;
+		width: 100%;
+	}
 }
 
 /* Terms and conditions column */
@@ -64,6 +80,12 @@
 	margin-left: 2.5rem;
 	margin-top: 0;
 	width: 85%;
+
+	@container contact (width <= 680px) {
+		margin: 0;
+		width: 100%;
+	}
+
 }
 
 /* ---- Labels ---- */
@@ -79,6 +101,14 @@
 	text-wrap: balance;
 	text-align: right;
 	width: 100%;
+
+	@container contact (width <= 680px) {
+		width: 100%;
+		text-align: left;
+		margin: 0;
+		justify-content: flex-start;
+		padding-block: 0.5rem;
+	}
 }
 
 #gform_2  .subscribe-gform > div:nth-child(2) {

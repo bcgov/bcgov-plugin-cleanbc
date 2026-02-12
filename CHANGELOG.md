@@ -1,4 +1,7 @@
-## 1.30.18 February 10, 2026
+## 1.30.19 February 12, 2026
+– Updated contact form mobile styles
+
+## 1.30.18 February 11, 2026
 – Updated window and doors rebate type reference for validity guard
 – Modified modal style
 
