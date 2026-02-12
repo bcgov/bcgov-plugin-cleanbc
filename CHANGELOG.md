@@ -1,5 +1,6 @@
 ## 1.30.19 February 12, 2026
 – Updated contact form mobile styles
+– Expanded PDF link checker to include links with "PDF" in href values
 
 ## 1.30.18 February 11, 2026
 – Updated window and doors rebate type reference for validity guard
