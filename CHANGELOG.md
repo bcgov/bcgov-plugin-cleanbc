@@ -3,8 +3,10 @@
 – Expanded PDF link checker to include links with "PDF" in href values
 – Set text-wrap default to pretty with balance as fallback
 – Added archive results guard to return no rebates when electricity provider is set to "other"
+– Reset gas provider selection from "no provider" to "Select an option" when heating or water heating is changed to natural gas/propane
 – Added descriptions to questionnaire selects in archive mode
 – Sorting building types by slug for manual ordering
+– Removed region from home location button label
 
 ## 1.30.18 February 11, 2026
 – Updated window and doors rebate type reference for validity guard

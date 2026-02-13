@@ -1526,7 +1526,7 @@ const fields = computed(() => [
     model: selectedLocationSlug,
     options: locationOptionsForInput.value,
     displayValue: selectedLocationName.value
-      ? `${selectedLocationName.value} (${selectedRegionName.value})`
+      ? selectedLocationName.value // was: `${selectedLocationName.value} (${selectedRegionName.value})`
       : '',
     missingMessage: 'Missing location details',
     isInvalid: () => !selectedLocationSlug.value,
@@ -2284,9 +2284,26 @@ const findNoGasOptionSlug = (opts = []) => {
   const match = opts.find(opt => {
     const slug = String(opt?.slug ?? '').toLowerCase()
     const name = String(opt?.name ?? '').toLowerCase()
-    return /no\s*gas/.test(name) || /no[-\s]*gas/.test(slug)
+    return (
+      /no\s*gas/.test(name) ||
+      /no[-\s]*gas/.test(slug) ||
+      /no\s*provider/.test(name) ||
+      /no[-\s]*provider/.test(slug)
+    )
   })
   return match?.slug || ''
+}
+
+const isNoGasProviderOption = (opt) => {
+  if (!opt) return false
+  const slug = String(opt.slug ?? '').toLowerCase()
+  const name = String(opt.name ?? '').toLowerCase()
+  return (
+    /no\s*gas/.test(name) ||
+    /no[-\s]*gas/.test(slug) ||
+    /no\s*provider/.test(name) ||
+    /no[-\s]*provider/.test(slug)
+  )
 }
 
 watch(
@@ -2310,6 +2327,25 @@ watch(
     }
     updateAddressBar()
     debouncedUpdateRebateDetails()
+  },
+  { immediate: true }
+)
+
+watch(
+  [selectedHeatingSlug, selectedWaterHeatingSlug, gasOptions],
+  () => {
+    if (!selectedGasSlug.value) return
+
+    const currentGasOption =
+      gasOptions.value.find(g => g.slug === selectedGasSlug.value) || null
+    if (!isNoGasProviderOption(currentGasOption)) return
+
+    const heatingIsGasOrPropane = isNaturalGasOrPropaneOption(selectedHeating.value)
+    const waterHeatingIsGasOrPropane = isNaturalGasOrPropaneOption(selectedWaterHeating.value)
+
+    if (heatingIsGasOrPropane || waterHeatingIsGasOrPropane) {
+      selectedGasSlug.value = ''
+    }
   },
   { immediate: true }
 )
