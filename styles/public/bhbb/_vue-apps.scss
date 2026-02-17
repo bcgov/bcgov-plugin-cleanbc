@@ -2112,6 +2112,21 @@
 
 }
 
+#pqeaFilterApp .reset-filters {
+	container: filter / inline-size;
+}
+
+@container filter (width > 730px) and (width < 992px) {
+
+	#pqeaFilterApp .control.copy-link-btn {
+		margin-top: -3.5rem;
+	}
+
+	#pqeaFilterApp .control.reset-filters .clear-filters {
+		margin-top: -3.5rem;
+	}
+}
+
 
 .rebateFilterApp {
 

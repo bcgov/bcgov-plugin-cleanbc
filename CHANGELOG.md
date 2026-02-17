@@ -1,3 +1,6 @@
+## 1.30.20 February 17, 2026
+– Updated styles for PQEA tool additions
+
 ## 1.30.20 February 13, 2026
 – Added PQEA post-type filtering for 'pqeas-renovation' and 'pqeas-construction' with a select control, defaulting to renovation
 – Added PQEA URL/state support for post type ('post_type' query param), including share-link syncing and hydration
