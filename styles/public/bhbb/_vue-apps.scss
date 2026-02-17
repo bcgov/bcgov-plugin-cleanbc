@@ -2127,6 +2127,17 @@
 	}
 }
 
+#pqeaFilterApp #pqeasFilterControls {
+	container: controls / inline-size;
+}
+
+@container controls (width < 600px) {
+
+	.control.reset-filters {
+		grid-template-columns: 1fr;
+	}
+}
+
 
 .rebateFilterApp {
 
