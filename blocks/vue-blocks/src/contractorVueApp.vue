@@ -6,20 +6,6 @@
     <div v-if="isVisible || (1 < totalPages && !isVisible)" id="contractorsFilterControls" class="contractorsFilterControls filter-container">
       <h2 class='settings-headline'>Filter registered contractor list</h2>
         <div class='filter-controls-container'>
-          <!--Name filter -->
-          <div v-if='isVisible' class="control type-input">
-            <label for="nameInput" class="">Filter by company name</label>
-            <div class="custom-input">
-              <input
-                id="nameInput"
-                type="search"
-                v-model.trim="nameQuery"
-                autocomplete="organization"
-                placeholder="Type a company name"
-              />
-            </div>
-          </div>
-
           <!-- Deprecated Location Select -->
           <div v-if='false && isVisible' class="control location-select">
             <label for="locationSelect" class="">Choose a service region</label>
@@ -75,6 +61,20 @@
             <p v-if="locationTouched && locationError" id="locationError" class="message error-message" role="alert">
               {{ locationError }}
             </p>
+          </div>
+
+          <!--Name filter -->
+          <div v-if='isVisible' class="control type-input">
+            <label for="nameInput" class="">Filter by company name</label>
+            <div class="custom-input">
+              <input
+                id="nameInput"
+                type="search"
+                v-model.trim="nameQuery"
+                autocomplete="organization"
+                placeholder="Type a company name"
+              />
+            </div>
           </div>
 
           

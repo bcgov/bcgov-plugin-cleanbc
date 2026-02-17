@@ -1,3 +1,11 @@
+## 1.30.20 February 13, 2026
+– Added PQEA post-type filtering for 'pqeas-renovation' and 'pqeas-construction' with a select control, defaulting to renovation
+– Added PQEA URL/state support for post type ('post_type' query param), including share-link syncing and hydration
+– Added 'post_type' to the PQEA API response payload for explicit client-side filtering
+– Updated PQEA post-type select to use the same select class styling pattern as contractor tool selects
+– Reordered PQEA filter controls so service region appears first and advisor type appears last
+– Reordered contractor filter controls so service region appears first
+
 ## 1.30.19 February 12, 2026
 – Updated contact form mobile styles
 – Expanded PDF link checker to include links with "PDF" in href values
@@ -7,6 +15,13 @@
 – Added descriptions to questionnaire selects in archive mode
 – Sorting building types by slug for manual ordering
 – Removed region from home location button label
+– Updated MURB + HPWH guard logic to differentiate room vs water heating, allowing HPWH eligibility based on electric water heating with BC Hydro/New Westminster utility rules
+– Added archive-mode view behavior to default to list view when filtered results narrow to a single rebate (while still allowing users to toggle back to grid)
+– Added explicit rebate guard so selecting electricity provider "other" returns no eligible archive results
+– Updated archive insertion handling to run only in archive mode and only inject eligible/not-eligible content when source description content exists
+– Updated archive question captions to render 'description' when present (in addition to existing 'filter_desc'/'disabled_desc' content)
+– Sorted grouped building options by slug (with 'other' last) for both archive and single mode
+– Added gas-provider reset behavior: when heating or water heating is changed to natural gas/propane and gas is currently set to no provider, gas resets to "Select an option"
 
 ## 1.30.18 February 11, 2026
 – Updated window and doors rebate type reference for validity guard
@@ -251,7 +266,7 @@
 
 ## 1.18.4 Nov 4, 2025 (changes made to main)
 - [DESCW-3206 bcgov-plugin-cleanbc dependabot fixes](https://citz-gdx.atlassian.net/browse/DESCW-3206)
-- Update Dev Dependencies to Resolve most warnings found by `npm audit`
+- Update Dev Dependencies to Resolve most warnings found by 'npm audit'
 - Update composer.json reference to satis
 - rebuild for production
 - tested that build works without error

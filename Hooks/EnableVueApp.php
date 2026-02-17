@@ -819,6 +819,7 @@ class EnableVueApp {
 				'title'      => get_the_title( $post_id ),
 				'url'        => '', // kept for parity with old output.
 				'post_url'   => get_permalink( $post_id ),
+				'post_type'  => $post_type,
 				'categories' => $category_label,
 				'locations'  => $locations,
 				'services'   => $services,

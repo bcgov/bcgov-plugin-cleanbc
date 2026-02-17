@@ -16,20 +16,6 @@
         <h2 class="settings-headline">Filter energy advisor list</h2>
 
         <div class="filter-controls-container">
-          <!-- Name filter -->
-          <div v-if="isVisible" class="control type-input">
-            <label for="nameInput">Filter by company name</label>
-            <div class="custom-input">
-              <input
-                id="nameInput"
-                type="search"
-                v-model.trim="nameQuery"
-                autocomplete="organization"
-                placeholder="Type a company name"
-              />
-            </div>
-          </div>
-
           <!-- Location input (contractor-tool style) -->
           <div v-if="isVisible" class="control type-input location-input-control">
             <label for="pqeaLocation">Filter by service region</label>
@@ -72,6 +58,31 @@
               {{ locationError }}
             </p>
           </div>
+
+          <!-- Name filter -->
+          <div v-if="isVisible" class="control type-input">
+            <label for="nameInput">Filter by company name</label>
+            <div class="custom-input">
+              <input
+                id="nameInput"
+                type="search"
+                v-model.trim="nameQuery"
+                autocomplete="organization"
+                placeholder="Type a company name"
+              />
+            </div>
+          </div>
+
+          <!-- Post type filter -->
+          <div v-if="isVisible" class="control type-select">
+            <label for="pqeaPostType">Filter by advisor type</label>
+            <div class="custom-select">
+              <select id="pqeaPostType" class="select select--type" v-model="selectedPostType">
+                <option value="pqeas-renovation">Home renovation</option>
+                <option value="pqeas-construction">New home construction</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         <!-- Clear Filters -->
@@ -86,7 +97,7 @@
                 class="copy-link share"
                 @click.prevent="addLinkToClipboard"
                 @keydown.enter.prevent="addLinkToClipboard"
-                :disabled="!nameQuery.trim() && selectedLocation === 'all'"
+                :disabled="!nameQuery.trim() && selectedLocation === 'all' && selectedPostType === defaultPostType"
                 type="button"
               >
                 Share
@@ -368,6 +379,8 @@ const nameQuery = ref('')
 
 const defaultSelectedLocation = ref('all')
 const selectedLocation = ref('all')
+const defaultPostType = ref('pqeas-renovation')
+const selectedPostType = ref(defaultPostType.value)
 
 // Load-more state (pagination removed)
 const pageSize = ref(30)
@@ -605,34 +618,37 @@ const locations = computed(() => {
  * Filtering + load more (pagination removed)
  * -------------------------------------------------------------------------- */
 
-const RENOVATIONS_CATEGORY_LABEL = 'Renovating a home' // API category label
+const RENOVATIONS_CATEGORY_LABEL = 'Renovating a home'
+const CONSTRUCTION_CATEGORY_LABEL = 'Constructing a home'
+const normalizePostTypeFromItem = (item) => {
+  const direct = String(item?.post_type || '').trim().toLowerCase()
+  if (direct === 'pqeas-renovation' || direct === 'pqeas-construction') return direct
 
-const renovationsOnlyPqeas = computed(() => {
-  return (shuffledPqeas.value || []).filter(p => {
-    const cats = p?.categories
+  const categories = item?.categories
+  if (typeof categories === 'string') {
+    const c = categories.toLowerCase()
+    if (c === RENOVATIONS_CATEGORY_LABEL.toLowerCase()) return 'pqeas-renovation'
+    if (c === CONSTRUCTION_CATEGORY_LABEL.toLowerCase()) return 'pqeas-construction'
+  }
 
-    // categories may be: string, array of strings, or array of objects
-    if (!cats) return false
-
-    if (typeof cats === 'string') {
-      return cats === RENOVATIONS_CATEGORY_LABEL
+  if (Array.isArray(categories)) {
+    for (const c of categories) {
+      const name = typeof c === 'string' ? c : c?.name
+      const n = String(name || '').toLowerCase()
+      if (n === RENOVATIONS_CATEGORY_LABEL.toLowerCase()) return 'pqeas-renovation'
+      if (n === CONSTRUCTION_CATEGORY_LABEL.toLowerCase()) return 'pqeas-construction'
     }
+  }
 
-    if (Array.isArray(cats)) {
-      return cats.some(c => {
-        if (!c) return false
-        if (typeof c === 'string') return c === RENOVATIONS_CATEGORY_LABEL
-        // object form: { name: 'Renovating a home', ... }
-        return c?.name === RENOVATIONS_CATEGORY_LABEL
-      })
-    }
-
-    return false
-  })
-})
+  return ''
+}
 
 const filteredPqeas = computed(() => {
-  let results = [...renovationsOnlyPqeas.value]
+  let results = [...(shuffledPqeas.value || [])]
+
+  if (selectedPostType.value) {
+    results = results.filter((p) => normalizePostTypeFromItem(p) === selectedPostType.value)
+  }
 
   // name filter
   if (nameQuery.value) {
@@ -694,6 +710,12 @@ const assembleUrl = () => {
 
   // IMPORTANT: correct tool name for this component
   url.searchParams.set('tool', 'pqeas')
+
+  // post type (default: renovation)
+  // NOTE: use custom query key to avoid WP `post_type` conflicts/404s.
+  if (selectedPostType.value && selectedPostType.value !== defaultPostType.value) {
+    url.searchParams.set('pqea_type', selectedPostType.value)
+  }
 
   // company
   if (nameQuery.value?.trim()) {
@@ -813,6 +835,7 @@ const onEmailPhoneClick = (pqea, linkType) => {
 
 const clearFilters = () => {
   nameQuery.value = ''
+  selectedPostType.value = defaultPostType.value
 
   selectedLocation.value = defaultSelectedLocation.value
   locationInputValue.value = ''
@@ -859,8 +882,18 @@ watch(nameQuery, (newVal, oldVal) => {
   })
 })
 
+watch(selectedPostType, (newVal, oldVal) => {
+  if (newVal === oldVal) return
+  trackProviderFilterChange({
+    filterName: 'pqea',
+    upgradeType: '',
+    location: selectedLocation.value,
+    label: `Post type changed to: ${newVal}`
+  })
+})
+
 // Reset load-more on any filter change
-watch([selectedLocation, nameQuery], () => {
+watch([selectedLocation, nameQuery, selectedPostType], () => {
   visibleCount.value = pageSize.value
 })
 
@@ -936,6 +969,13 @@ function hydrateFromUrl() {
   const company = urlParams.get('company')
   nameQuery.value = company?.trim() ? company.trim() : ''
 
+  // post type (default to renovation when missing/invalid)
+  const postTypeParam = urlParams.get('pqea_type')
+  const allowedPostTypes = ['pqeas-renovation', 'pqeas-construction']
+  selectedPostType.value = allowedPostTypes.includes(postTypeParam)
+    ? postTypeParam
+    : defaultPostType.value
+
   // region (already decoded)
   const serviceRegion = urlParams.get('region')
   if (serviceRegion) {
@@ -990,7 +1030,7 @@ const syncUrlFromState = debounce(() => {
   window.history.replaceState({}, '', assembleUrl())
 }, 250)
 
-watch([nameQuery, selectedLocation], () => {
+watch([nameQuery, selectedLocation, selectedPostType], () => {
   if (!didHydrateFromUrl.value) return
   syncUrlFromState()
 })
