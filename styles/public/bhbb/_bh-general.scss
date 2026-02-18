@@ -280,7 +280,7 @@ html:has(body.betterhomesbc, body.betterbuildingsbc) {
 
 	.single-incentives.single-incentives table h3,
 	.single-incentives.single-incentives table thead th {
-		font-size: var(--wp--preset--font-size--medium);
+		font-size: inherit;
 		margin: 0;
 	}
 
