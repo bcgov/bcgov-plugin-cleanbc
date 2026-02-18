@@ -95,7 +95,10 @@
             <p><span>Rentals of your home type are not eligible</span></p>
             <p>Only rentals in multi-unit residential buildings are currently eligible.</p>
           </div>
-          <div class='control-container'>
+          <div
+            class='control-container'
+            :inert="isCollapseView ? '' : null"
+            :aria-hidden="isCollapseView ? 'true' : 'false'">
             <template v-for="field in fields" :key="field.key">
               <template v-if="field.condition === undefined || field.condition">
                 <!-- If field has a value -->
@@ -1165,6 +1168,9 @@ function toggleEditModeView() {
  */
 function toggleCollapseView() {
   isCollapseView.value = !isCollapseView.value
+  if (isCollapseView.value) {
+    activeEdit.value = ''
+  }
   localStorage.setItem('rebateCollapseView', JSON.stringify(isCollapseView.value))
 }
 
@@ -1594,7 +1600,7 @@ const fields = computed(() => [
       : '',
     missingMessage: 'Missing location details',
     isInvalid: () => !selectedLocationSlug.value,
-    filter_desc: 'Start typing to narrow down the communities. To see all the options use the down arrow.',
+    filter_desc: 'Start typing to search communities.',
     error_desc: 'Please choose a community from the list.'
   },
   {

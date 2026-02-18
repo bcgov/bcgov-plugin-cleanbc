@@ -7,6 +7,7 @@
 – Updated contractor, PQEA, and rebate archive location inputs to swap arrow-to-clear icon on valid selection, with clear/reset + refocus behavior
 – Updated rebate archive auto-scroll to results to trigger only once after full questionnaire completion
 – Updated archive keyboard flow to suppress auto-scroll on reverse tabbing and during completed-form review
+– Updated single-mode collapsed settings to be inert and aria-hidden so hidden controls are removed from keyboard and screen-reader navigation
 – Various styles updated
 
 ## 1.30.21 February 17, 2026
