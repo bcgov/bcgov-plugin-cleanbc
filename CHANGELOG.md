@@ -1,5 +1,6 @@
 ## 1.30.21 February 17, 2026
 – Updated styles for PQEA tool additions
+– Styles for full rebates tables
 
 ## 1.30.20 February 13, 2026
 – Added PQEA post-type filtering for 'pqeas-renovation' and 'pqeas-construction' with a select control, defaulting to renovation

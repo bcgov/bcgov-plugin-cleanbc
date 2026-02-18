@@ -4123,9 +4123,9 @@ body.custom-goelectricbc.single-post body.custom-goelectricbc .post-content .ent
   padding: 1rem;
 }
 .single-incentives th {
-  font-size: var(--wp--preset--font-size--small);
+  font-size: var(--wp--preset--font-size--extra-small);
   text-align: left;
-  background-color: #369;
+  background-color: color: #002a4e;
   color: #fff;
 }
 .single-incentives th.even {
@@ -4166,7 +4166,7 @@ body.custom-goelectricbc.single-post body.custom-goelectricbc .post-content .ent
 .single-incentives .bcgov-body-content nav .wp-block-navigation-item a {
   width: inherit;
   padding: 0.5rem 1rem;
-  font-size: var(--wp--preset--font-size--medium);
+  font-size: var(--wp--preset--font-size--small);
   outline: none !important;
   border-radius: 0;
 }
@@ -7398,7 +7398,8 @@ html:has(body.betterhomesbc, body.betterbuildingsbc) .single-incentives.single-i
 }
 html:has(body.betterhomesbc, body.betterbuildingsbc) .single-incentives.single-incentives table h3,
 html:has(body.betterhomesbc, body.betterbuildingsbc) .single-incentives.single-incentives table thead th {
-  font-size: var(--wp--preset--font-size--medium);
+  font-size: var(--wp--preset--font-size--extra-small);
+  line-height: 1.5;
   margin: 0;
 }
 html:has(body.betterhomesbc, body.betterbuildingsbc) .single-incentives.single-incentives table thead th,
