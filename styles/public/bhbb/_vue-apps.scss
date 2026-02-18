@@ -1594,7 +1594,7 @@
 		min-width: 1.25rem;
 		padding: 0;
 		border: 0;
-		border-radius: 0.25rem;
+		border-radius: 100vw;
 		background-color: transparent;
 		background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzODQgNTEyIj48cGF0aCBkPSJNMzQ1IDEzN2M5LjQtOS40IDkuNC0yNC42IDAtMzMuOXMtMjQuNi05LjQtMzMuOSAwbC0xMTkgMTE5TDczIDEwM2MtOS40LTkuNC0yNC42LTkuNC0zMy45IDBzLTkuNCAyNC42IDAgMzMuOWwxMTkgMTE5TDM5IDM3NWMtOS40IDkuNC05LjQgMjQuNiAwIDMzLjlzMjQuNiA5LjQgMzMuOSAwbDExOS0xMTlMMzExIDQwOWM5LjQgOS40IDI0LjYgOS40IDMzLjkgMHM5LjQtMjQuNiAwLTMzLjlsLTExOS0xMTlMMzQ1IDEzN3oiLz48L3N2Zz4=);
 		background-repeat: no-repeat;
@@ -2208,7 +2208,7 @@
 	min-height: 1.25rem;
 	padding: 0;
 	border: 0;
-	border-radius: 0.25rem;
+	border-radius: 100vw;
 	background-color: transparent;
 	background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzODQgNTEyIj48cGF0aCBkPSJNMzQ1IDEzN2M5LjQtOS40IDkuNC0yNC42IDAtMzMuOXMtMjQuNi05LjQtMzMuOSAwbC0xMTkgMTE5TDczIDEwM2MtOS40LTkuNC0yNC42LTkuNC0zMy45IDBzLTkuNCAyNC42IDAgMzMuOWwxMTkgMTE5TDM5IDM3NWMtOS40IDkuNC05LjQgMjQuNiAwIDMzLjlzMjQuNiA5LjQgMzMuOSAwbDExOS0xMTlMMzExIDQwOWM5LjQgOS40IDI0LjYgOS40IDMzLjkgMHM5LjQtMjQuNiAwLTMzLjlsLTExOS0xMTlMMzQ1IDEzN3oiLz48L3N2Zz4=);
 	background-repeat: no-repeat;
@@ -2219,7 +2219,6 @@
 }
 
 .location-clear-btn:is(:hover, :focus, :focus-visible) {
-	border-radius: 100vw;
 	outline: 2px solid #369;
 	outline-offset: 2px;
 }
