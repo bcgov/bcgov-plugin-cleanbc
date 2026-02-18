@@ -214,7 +214,7 @@
               :class="isSavingEditMode ? 'saving' : editModeView ? 'show-edit-mode' : 'show-readonly-mode'"
               @click="toggleEditModeView" :aria-label="editModeView ? 'Exit edit mode' : 'Enter edit mode'"
               :title="editModeView ? 'Exit edit mode' : 'Enter edit mode'">
-              <span>{{ isSavingEditMode ? 'Saving edit...' : editModeView ? 'Hide edit mode' : 'View edit mode' }}</span>
+              <span>{{ isSavingEditMode ? 'Saving edit...' : editModeView ? 'Edit' : 'Edit' }}</span>
               </button>
               <button v-if='false' class='editBtn labels' :class="labelsVisible ? 'show-labels' : 'hide-labels'"
                 @click="toggleLabels" :title="labelsVisible ? 'Hide settings labels' : 'Show settings labels'">Show or hide settings labels</button>
@@ -3680,9 +3680,9 @@ function withQueryString(baseUrl) {
       &.instruction-group {
         height: fit-content;
         align-self: end;
-        text-align: center;
+        justify-content: end;
         grid-column: -2 / -1;
-        grid-template-columns: 1fr 11rem;
+        grid-template-columns: 1fr 5.75rem;
         gap: 1rem;
         &:has(.show-edit-mode) {
           grid-column: 1 / -1;
@@ -4364,8 +4364,7 @@ p.rebate-detail.rebate-detail.rebate-detail.error {
 }
 
 #vnextRebateFilterApp:not([data-mode="archive"]) #rebatesFilterControls .editBtn {
-  width: 100%;
-  min-width: 10rem;
+  width: fit-content;
   padding: 0 0.66rem 0 0;
   height: 1rem;
   background-color: #fff;
@@ -4382,7 +4381,7 @@ p.rebate-detail.rebate-detail.rebate-detail.error {
     font-size: 0.85rem;
     display: inline-block;
     text-align: right;
-    padding-inline-end: 1rem;
+    padding-inline: 1rem;
   }
 
   &:is(:focus-visible, :focus, :hover) {

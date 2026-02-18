@@ -251,7 +251,7 @@
 
 			@media (min-width: $breakpoint-md) {
 				width: auto;
-				min-width: $default_button_min_width;
+				// min-width: $default_button_min_width;
 			}
 
 			&.share {
@@ -578,6 +578,7 @@
 		outline: $default_outline_offset solid transparent;
 		outline-offset: $default_outline_offset;
 		cursor: pointer;
+		min-width: auto;
 
 		&:hover,
 		&:focus {
