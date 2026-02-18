@@ -832,6 +832,7 @@ const isCollapseView = ref(true)
 const isSavingEditMode = ref(false)
 const hasError = ref(false)
 const ariaStatusMessage = ref('')
+const hasArchiveAutoScrolledToResults = ref(false)
 const pageHeatingType = ref('')
 const pageHeatingTypes = ref([])
 const pageWaterHeatingType = ref('')
@@ -1374,16 +1375,22 @@ async function runArchiveFlowForField(fieldKey) {
   }
 
   // 4) If everything is answered and valid, go to results
-  if (allValid) {
-    const resultsSection = document.getElementById('rebatesResults')
-    if (resultsSection) {
-      setTimeout(() => {
-        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        resultsSection.setAttribute('tabindex', '-1')
-        resultsSection.focus({ preventScroll: true })
-      }, 100)
-    }
+  if (allValid && !hasArchiveAutoScrolledToResults.value) {
+    scrollToArchiveResultsOnce()
   }
+}
+
+function scrollToArchiveResultsOnce() {
+  if (hasArchiveAutoScrolledToResults.value) return
+  const resultsSection = document.getElementById('rebatesResults')
+  if (!resultsSection) return
+
+  hasArchiveAutoScrolledToResults.value = true
+  setTimeout(() => {
+    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    resultsSection.setAttribute('tabindex', '-1')
+    resultsSection.focus({ preventScroll: true })
+  }, 100)
 }
 
 
@@ -1464,8 +1471,13 @@ function handleSelectKeydown(event, fieldKey, currentValue) {
   }
 
   if (event.key === 'Tab') {
-    const direction = event.shiftKey ? 'up' : 'down'
-    nextTick(() => scrollToNextVisibleField(fieldKey, direction))
+    // Archive auto-scroll should only assist forward progression while form is incomplete.
+    // Do not auto-scroll on reverse tabbing (Shift+Tab) or once all selections are complete.
+    if (mode.value !== 'archive') return
+    if (event.shiftKey) return
+    if (hasAllSelection.value) return
+
+    nextTick(() => scrollToNextVisibleField(fieldKey, 'down'))
   }
 }
 
@@ -1527,6 +1539,7 @@ function clearSettings(event) {
 
   selectedUtilitySlug.value = ''
   selectedGasSlug.value = ''
+  hasArchiveAutoScrolledToResults.value = false
 
   const url = window.location.origin + window.location.pathname
   window.history.replaceState(null, '', url)
@@ -2460,6 +2473,19 @@ const hasAllSelection = computed(() => {
     hasGas
   )
 })
+
+watch(
+  [bootstrapped, isReadyToRender, mode, hasAllSelection],
+  async ([isBootstrapped, readyToRender, currentMode, allSelected]) => {
+    if (!isBootstrapped || !readyToRender) return
+    if (currentMode !== 'archive' || !allSelected) return
+    if (hasArchiveAutoScrolledToResults.value) return
+
+    await nextTick()
+    scrollToArchiveResultsOnce()
+  },
+  { immediate: true }
+)
 
 // -- URL assembly --
 const assembledUrl = computed(() => assembleUrl())
@@ -3846,6 +3872,7 @@ function withQueryString(baseUrl) {
   #rebatesResults {
     container-type: inline-size;
     container-name: results;
+    outline: none;
 
     :is(a) {
       height: 100%;

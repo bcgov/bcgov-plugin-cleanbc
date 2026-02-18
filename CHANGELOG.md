@@ -5,7 +5,9 @@
 – Updated single-mode rebate controls to close on outside click/close button/select change and return focus to the control button
 – Updated definitions dialog width detection to apply 'wide' when the trigger link or an ancestor has '.wide'
 – Updated contractor, PQEA, and rebate archive location inputs to swap arrow-to-clear icon on valid selection, with clear/reset + refocus behavior
-– Table styles updated
+– Updated rebate archive auto-scroll to results to trigger only once after full questionnaire completion
+– Updated archive keyboard flow to suppress auto-scroll on reverse tabbing and during completed-form review
+– Various styles updated
 
 ## 1.30.21 February 17, 2026
 – Updated styles for PQEA tool additions
