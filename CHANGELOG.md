@@ -1,3 +1,6 @@
+## 1.30.22 February 17, 2026
+– Added side scrolling navigation observer and related styles
+
 ## 1.30.21 February 17, 2026
 – Updated styles for PQEA tool additions
 – Styles for full rebates tables
