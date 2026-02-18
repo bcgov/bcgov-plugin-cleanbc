@@ -8,6 +8,7 @@
 – Updated rebate archive auto-scroll to results to trigger only once after full questionnaire completion
 – Updated archive keyboard flow to suppress auto-scroll on reverse tabbing and during completed-form review
 – Updated single-mode collapsed settings to be inert and aria-hidden so hidden controls are removed from keyboard and screen-reader navigation
+– Added electric-hp / electric-hpwh handling: labels, field option exclusions, and HP/HPWH-specific eligibility/error guards
 – Various styles updated
 
 ## 1.30.21 February 17, 2026

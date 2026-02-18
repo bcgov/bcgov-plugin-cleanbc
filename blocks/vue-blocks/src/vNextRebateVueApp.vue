@@ -918,6 +918,29 @@ const fieldErrors = computed(() => {
       ...pagePathWaterHeatingTokens
     ])
   )
+  const isSingleMode = mode.value === 'single'
+  const pageRebateTypeText = String(pageRebateType.value || '').toLowerCase()
+  const pageRebateClass = String(singleModeRebateTypeClass.value || '').toLowerCase()
+  const isInsulationOrWindowsPage =
+    pageRebateTypeText.includes('insulation') ||
+    pageRebateTypeText.includes('window') ||
+    pageRebateTypeText.includes('door')
+  const isHeatPumpRebatePage =
+    pageRebateClass === 'heat-pump-rebates' ||
+    (pageRebateTypeText.includes('heat pump') && !pageRebateTypeText.includes('water heater'))
+  const isHeatPumpWaterHeaterRebatePage =
+    pageRebateClass === heatPumpWaterHeaterRebateSlug ||
+    pageRebateTypeText.includes('heat pump water heater')
+  const forceHeatingElectricHpError =
+    isSingleMode &&
+    selectedHeatingSlug.value === 'electric-hp' &&
+    !isInsulationOrWindowsPage &&
+    isHeatPumpRebatePage
+  const forceWaterElectricHpwhError =
+    isSingleMode &&
+    selectedWaterHeatingSlug.value === 'electric-hpwh' &&
+    !isInsulationOrWindowsPage &&
+    isHeatPumpWaterHeaterRebatePage
 
   return {
     location: !isLocationFocused.value && !isLocationValid.value && !!locationInputValue.value,
@@ -932,11 +955,13 @@ const fieldErrors = computed(() => {
         selectedBuildingGroupSlug.value !== pageBuildingGroup.value),
     heating:
       selectedHeatingSlug.value === 'other' ||
+      forceHeatingElectricHpError ||
       (shouldValidateHeating &&
         !!selectedHeatingSlug.value &&
         !allowedHeatingTypes.includes(normalizedSelectedHeating)),
     water:
       selectedWaterHeatingSlug.value === 'other' ||
+      forceWaterElectricHpwhError ||
       (shouldValidateWaterHeating &&
         !!selectedWaterHeatingSlug.value &&
         !resolvedWaterHeatingTypes.includes(normalizedSelectedWaterHeating)),
@@ -2281,9 +2306,22 @@ const selectedRegionName = computed(
 )
 
 // -- Heating --
-const heatingOptions = computed(
-  () => sortOtherLast(api.value?.['settings-selects']?.['heating-types'] ?? [])
-)
+const heatingOptions = computed(() => {
+  const opts = sortOtherLast(api.value?.['settings-selects']?.['heating-types'] ?? [])
+    .map((o) => {
+      if (String(o?.slug ?? '').toLowerCase() !== 'electricity') {
+        return o
+      }
+
+      return {
+        ...o,
+        name: `${o.name} (e.g. baseboard or furnace)`
+      }
+    })
+
+  // Omit water-heating-specific electric HPWH option from room heating question.
+  return opts.filter((o) => String(o?.slug ?? '').toLowerCase() !== 'electric-hpwh')
+})
 const selectedHeatingSlug = ref('')
 const selectedHeating = computed(
   () =>
@@ -2294,15 +2332,28 @@ const selectedHeatingName = computed(
 )
 
 // -- Water Heating --
-// -- Water Heating --
 const waterHeatingOptions = computed(() => {
   const opts = sortOtherLast(api.value?.['settings-selects']?.['heating-types'] ?? [])
+    .map((o) => {
+      if (String(o?.slug ?? '').toLowerCase() !== 'electricity') {
+        return o
+      }
 
-  // Omit "wood" for the water heating question
+      return {
+        ...o,
+        name: `${o.name} (e.g. tank or tankless)`
+      }
+    })
+
+  // Omit room-heating-only and non-water options for water heating question.
   return opts.filter(o => {
     const slug = String(o?.slug ?? '').toLowerCase()
     const name = String(o?.name ?? '').toLowerCase()
-    return slug !== 'wood' && !name.includes('wood')
+    return (
+      slug !== 'wood' &&
+      !name.includes('wood') &&
+      slug !== 'electric-hp'
+    )
   })
 })
 
@@ -3041,6 +3092,8 @@ const filteredResults = computed(() => {
     const roomIsWood = normalizedHeating === 'wood'
     const waterIsElectric = normalizedWaterHeating === 'electricity'
     const waterIsWood = normalizedWaterHeating === 'wood'
+    const roomIsElectricHP = selectedHeatingSlug.value === 'electric-hp'
+    const waterIsElectricHPWH = selectedWaterHeatingSlug.value === 'electric-hpwh'
     const northernRequired = applicableSet.has('hrr') && applicableSet.has('north')
     const userRegionNorth = normalizedRegion === 'north'
     const currentUtility = normalizedUtility // slug ('bc-hydro', 'fortisbc', etc.)
@@ -3109,6 +3162,16 @@ const filteredResults = computed(() => {
         console.log('normalizedWaterHeating (water):', normalizedWaterHeating)
         console.groupEnd()
       }
+      return false
+    }
+
+    // GUARD : Electric HP room-heating selection cannot qualify for generic HP rebates.
+    if (isHP && roomIsElectricHP) {
+      return false
+    }
+
+    // GUARD : Electric HPWH water-heating selection cannot qualify for generic HPWH rebates.
+    if (isHPWH && waterIsElectricHPWH) {
       return false
     }
 
