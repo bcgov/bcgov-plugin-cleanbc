@@ -1,6 +1,10 @@
 ## 1.30.22 February 18, 2026
 – Added side scrolling navigation observer and related styles
 – Border fix on in-page nav highlighting
+– Fixed side-nav nested width overflow so inner items stay within parent container width
+– Updated single-mode rebate controls to close on outside click/close button/select change and return focus to the control button
+– Updated definitions dialog width detection to apply 'wide' when the trigger link or an ancestor has '.wide'
+– Updated contractor, PQEA, and rebate archive location inputs to swap arrow-to-clear icon on valid selection, with clear/reset + refocus behavior
 – Table styles updated
 
 ## 1.30.21 February 17, 2026

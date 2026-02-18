@@ -20,10 +20,11 @@
           <div v-if="isVisible" class="control type-input location-input-control">
             <label for="pqeaLocation">Filter by service region</label>
 
-            <div class="custom-input">
+            <div class="custom-input location-input-wrapper">
               <input
                 id="pqeaLocation"
                 class="location-input"
+                :class="{ 'has-valid-selection': hasValidLocationSelection }"
                 type="text"
                 inputmode="search"
                 autocomplete="off"
@@ -37,6 +38,14 @@
                 :aria-invalid="locationTouched && locationError ? 'true' : 'false'"
                 :aria-describedby="locationTouched && locationError ? 'locationError' : null"
               />
+              <button
+                v-if="hasValidLocationSelection"
+                type="button"
+                class="location-clear-btn"
+                aria-label="Clear selected service region"
+                @mousedown.prevent
+                @click.prevent="clearLocationSelection"
+              ></button>
             </div>
 
             <!-- Desktop: full datalist -->
@@ -474,6 +483,24 @@ const locationQuery = computed(() => {
 })
 
 const locationQueryIsEmpty = computed(() => !locationQuery.value)
+const hasValidLocationSelection = computed(() =>
+  selectedLocation.value !== 'all' &&
+  !locationError.value &&
+  locations.value.includes(selectedLocation.value)
+)
+
+function clearLocationSelection() {
+  selectedLocation.value = 'all'
+  locationInputValue.value = ''
+  locationInputDisplay.value = ''
+  locationTouched.value = false
+  locationError.value = ''
+  isLocationFocused.value = true
+
+  nextTick(() => {
+    document.querySelector('#pqeaLocation')?.focus()
+  })
+}
 
 const mobileLocationOptions = computed(() => {
   const list = locations.value || []

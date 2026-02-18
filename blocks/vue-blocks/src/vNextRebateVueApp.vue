@@ -115,7 +115,7 @@
                   <!-- Show select if open -->
                   <div v-else-if="editable && activeEdit === field.key">
                     <figure class="control editable" :aria-label="`${field.shortDesc} setting`">
-                      <button :disabled="!field.model.value"  type="button" class="close-btn" @click="activeEdit = ''"
+                      <button :disabled="!field.model.value"  type="button" class="close-btn" @click="closeEdit(field.key)"
                         aria-label="Close edit field"></button>
                       <label :for="`${field.key}Select`">{{ field.label }}</label>
                       <select :key="field.key + '-' + (fieldRenderKeys[field.key] ?? 0)" class="select"
@@ -166,7 +166,7 @@
                 <!-- If field is missing show select immediately -->
                 <template v-else>
                   <figure class="control editable" :aria-label="`${field.shortDesc} setting`">
-                    <button :disabled="!field.model.value" type="button" class="close-btn" @click="activeEdit = ''"
+                    <button :disabled="!field.model.value" type="button" class="close-btn" @click="closeEdit(field.key)"
                       aria-label="Close edit field"></button>
                     <label :for="`${field.key}Select`">{{ field.label }}</label>
                     <select :key="field.key + '-' + (fieldRenderKeys[field.key] ?? 0)" class="select"
@@ -244,12 +244,14 @@
 
                     <!-- Location input -->
                     <template v-if="field.key === 'location'">
-                      <input :list="isMobile ? `${field.key}ListMobile` : `${field.key}List`" :id="`${field.key}Select`" type="text" autocomplete="off"
+                      <div class="custom-input location-input-wrapper">
+                        <input :list="isMobile ? `${field.key}ListMobile` : `${field.key}List`" :id="`${field.key}Select`" type="text" autocomplete="off"
                         class="location-input" :class="{
                           'is-empty': !locationInputValue,
                           'is-valid': !isLocationFocused && isLocationValid,
                           'is-error': !isLocationFocused  && !isLocationValid && locationInputValue,
-                          'is-invalid': isLocationFocused && !isLocationValid && locationInputValue 
+                          'is-invalid': isLocationFocused && !isLocationValid && locationInputValue,
+                          'has-valid-selection': hasValidArchiveLocationSelection
                         }" :aria-invalid="locationInputValue && !isLocationValid ? 'true' : 'false'"
                         :aria-describedby="fieldErrors[field.key] ? `${field.key}Error` : null"
                         placeholder="Your community..."
@@ -259,6 +261,15 @@
                         @blur="handleLocationInputCommit('blur')"
                         @change="handleLocationInputCommit('change')"
                         @keydown.enter.prevent="handleLocationInputCommit('enter')" />
+                        <button
+                          v-if="hasValidArchiveLocationSelection"
+                          type="button"
+                          class="location-clear-btn"
+                          aria-label="Clear selected community"
+                          @mousedown.prevent
+                          @click.prevent="clearArchiveLocationSelection"
+                        ></button>
+                      </div>
                       <!-- Desktop: full datalist -->
                       <datalist v-if="!isMobile" :id="`${field.key}List`">
                         <option v-for="opt in locationOptionsForInput" :key="opt.slug" :value="opt.name"></option>
@@ -462,7 +473,7 @@
 
 <script setup>
 // See vNextRebateVueApp.docs.js for full JSDoc reference.
-import { computed, ref, nextTick, onMounted, watch } from 'vue'
+import { computed, ref, nextTick, onMounted, onBeforeUnmount, watch } from 'vue'
 
 /** Public domain fallback */
 const publicDomain = ref('https://www.betterhomesbc.ca')
@@ -1102,6 +1113,45 @@ function openEdit(field) {
 }
 
 /**
+ * Close a specific field edit state and restore focus to its trigger button.
+ */
+function closeEdit(fieldKey = activeEdit.value) {
+  const keyToFocus = fieldKey || activeEdit.value
+  activeEdit.value = ''
+
+  if (!keyToFocus) return
+
+  nextTick(() => {
+    const controlButton = buttonRefs.value[keyToFocus]
+    if (controlButton && typeof controlButton.focus === 'function') {
+      controlButton.focus({ preventScroll: true })
+    }
+  })
+}
+
+/**
+ * In single mode, close an open editable control when clicking outside it,
+ * while keeping keyboard focus on the same control.
+ */
+function handleSingleModeOutsidePointerDown(event) {
+  if (mode.value !== 'single' || !activeEdit.value) return
+
+  const activeFieldKey = activeEdit.value
+  const activeSelect =
+    selectRefs.value[activeFieldKey] ||
+    document.getElementById(`${activeFieldKey}Select`)
+  const activeEditableContainer = activeSelect?.closest('.control.editable')
+  if (!activeEditableContainer) return
+
+  const target = event.target
+  if (!(target instanceof Node)) return
+  if (activeEditableContainer.contains(target)) return
+
+  event.preventDefault()
+  closeEdit(activeFieldKey)
+}
+
+/**
  * Toggle the edit mode view on/off.
  */
 function toggleEditModeView() {
@@ -1231,10 +1281,11 @@ async function handleSelectChange(fieldKey, newValue) {
   lastChangedField.value = fieldKey
   isSavingEditMode.value = true
 
-  // Close edit "bubble" in single-mode summary UI
-  await nextTick()
-  activeEdit.value = ''
-  await nextTick()
+  // Close edit "bubble" in single-mode summary UI and restore focus to its button.
+  if (mode.value === 'single' && activeEdit.value === fieldKey) {
+    closeEdit(fieldKey)
+    await nextTick()
+  }
 
   // Mark Vue + external blocks as dirty
   isExternalDirty.value = true
@@ -2157,6 +2208,22 @@ const locationQuery = computed(() => {
 })
 
 const locationQueryIsEmpty = computed(() => !locationQuery.value)
+const hasValidArchiveLocationSelection = computed(() =>
+  mode.value === 'archive' &&
+  isLocationValid.value &&
+  Boolean(selectedLocationSlug.value)
+)
+
+function clearArchiveLocationSelection() {
+  selectedLocationSlug.value = ''
+  locationInputValue.value = ''
+  locationInputDisplay.value = ''
+  isLocationFocused.value = true
+
+  nextTick(() => {
+    document.getElementById('locationSelect')?.focus()
+  })
+}
 
 const mobileLocationOptions = computed(() => {
   const q = locationQuery.value
@@ -2554,6 +2621,12 @@ onMounted(() => {
     displayGridOrList.value = (saved === 'true')
   }
   viewPreferenceLoaded.value = true
+
+  document.addEventListener('pointerdown', handleSingleModeOutsidePointerDown, true)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('pointerdown', handleSingleModeOutsidePointerDown, true)
 })
 
 /**
@@ -4107,7 +4180,8 @@ function withQueryString(baseUrl) {
     }
 
     &::after {
-      content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNOTQgMTg3LjFDMTIwLjggMTI0LjEgMTgzLjMgODAgMjU2IDgwYzM5LjcgMCA3Ny44IDE1LjggMTA1LjkgNDMuOUw0MTQuMSAxNzYgMzYwIDE3NmMtMTMuMyAwLTI0IDEwLjctMjQgMjRzMTAuNyAyNCAyNCAyNGwxMTIgMGMxMy4zIDAgMjQtMTAuNyAyNC0yNGwwLTExMmMwLTEzLjMtMTAuNy0yNC0yNC0yNHMtMjQgMTAuNy0yNCAyNGwwIDU0LjFMMzk1LjkgODkuOUMzNTguOCA1Mi44IDMwOC41IDMyIDI1NiAzMkMxNjMuNCAzMiA4My45IDg4LjIgNDkuOCAxNjguM2MtNS4yIDEyLjIgLjUgMjYuMyAxMi43IDMxLjVzMjYuMy0uNSAzMS41LTEyLjd6bTM2OCAxNTdjNS4yLTEyLjItLjQtMjYuMy0xMi42LTMxLjVzLTI2LjMgLjQtMzEuNSAxMi42QzM5MSAzODguMSAzMjguNiA0MzIgMjU2IDQzMmMtMzkuNyAwLTc3LjgtMTUuOC0xMDUuOS00My45TDk3LjkgMzM2bDU0LjEgMGMxMy4zIDAgMjQtMTAuNyAyNC0yNHMtMTAuNy0yNC0yNC0yNEw0MCAyODhjLTEzLjMgMC0yNCAxMC43LTI0IDI0bDAgMTEyYzAgMTMuMyAxMC43IDI0IDI0IDI0czI0LTEwLjcgMjQtMjRsMC01NC4xIDUyLjEgNTIuMUMxNTMuMiA0NTkuMiAyMDMuNSA0ODAgMjU2IDQ4MGM5Mi41IDAgMTcxLjgtNTYgMjA2LTEzNS45eiIgZmlsbD0iIzM2OSIgLz48L3N2Zz4=);
+      /* Pencil */
+      content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBkPSJNMzk1LjggMzkuNmM5LjQtOS40IDI0LjYtOS40IDMzLjkgMGw0Mi42IDQyLjZjOS40IDkuNCA5LjQgMjQuNiAwIDMzLjlMNDE3LjYgMTcxIDM0MSA5NC40bDU0LjgtNTQuOHpNMzE4LjQgMTE3TDM5NSAxOTMuNmwtMjE5IDIxOSAwLTEyLjZjMC04LjgtNy4yLTE2LTE2LTE2bC0zMiAwIDAtMzJjMC04LjgtNy4yLTE2LTE2LTE2bC0xMi42IDAgMjE5LTIxOXpNNjYuOSAzNzkuNWMxLjItNCAyLjctNy45IDQuNy0xMS41TDk2IDM2OGwwIDMyYzAgOC44IDcuMiAxNiAxNiAxNmwzMiAwIDAgMjQuNGMtMy43IDEuOS03LjUgMy41LTExLjYgNC43TDM5LjYgNDcyLjRsMjcuMy05Mi44ek00NTIuNCAxN2MtMjEuOS0yMS45LTU3LjMtMjEuOS03OS4yIDBMNjAuNCAzMjkuN2MtMTEuNCAxMS40LTE5LjcgMjUuNC0yNC4yIDQwLjhMLjcgNDkxLjVjLTEuNyA1LjYtLjEgMTEuNyA0IDE1LjhzMTAuMiA1LjcgMTUuOCA0bDEyMS0zNS42YzE1LjQtNC41IDI5LjQtMTIuOSA0MC44LTI0LjJMNDk1IDEzOC44YzIxLjktMjEuOSAyMS45LTU3LjMgMC03OS4yTDQ1Mi40IDE3ek0zMzEuMyAyMDIuN2M2LjItNi4yIDYuMi0xNi40IDAtMjIuNnMtMTYuNC02LjItMjIuNiAwbC0xMjggMTI4Yy02LjIgNi4yLTYuMiAxNi40IDAgMjIuNnMxNi40IDYuMiAyMi42IDBsMTI4LTEyOHoiLz48L3N2Zz4=);
       transform-origin: 50% 62%;
       width: 1rem;
       height: 1rem;
@@ -4119,7 +4193,7 @@ function withQueryString(baseUrl) {
     }
 
     &.error::after {
-      content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNOTQgMTg3LjFDMTIwLjggMTI0LjEgMTgzLjMgODAgMjU2IDgwYzM5LjcgMCA3Ny44IDE1LjggMTA1LjkgNDMuOUw0MTQuMSAxNzYgMzYwIDE3NmMtMTMuMyAwLTI0IDEwLjctMjQgMjRzMTAuNyAyNCAyNCAyNGwxMTIgMGMxMy4zIDAgMjQtMTAuNyAyNC0yNGwwLTExMmMwLTEzLjMtMTAuNy0yNC0yNC0yNHMtMjQgMTAuNy0yNCAyNGwwIDU0LjFMMzk1LjkgODkuOUMzNTguOCA1Mi44IDMwOC41IDMyIDI1NiAzMkMxNjMuNCAzMiA4My45IDg4LjIgNDkuOCAxNjguM2MtNS4yIDEyLjIgLjUgMjYuMyAxMi43IDMxLjVzMjYuMy0uNSAzMS41LTEyLjd6bTM2OCAxNTdjNS4yLTEyLjItLjQtMjYuMy0xMi42LTMxLjVzLTI2LjMgLjQtMzEuNSAxMi42QzM5MSAzODguMSAzMjguNiA0MzIgMjU2IDQzMmMtMzkuNyAwLTc3LjgtMTUuOC0xMDUuOS00My45TDk3LjkgMzM2bDU0LjEgMGMxMy4zIDAgMjQtMTAuNyAyNC0yNHMtMTAuNy0yNC0yNC0yNEw0MCAyODhjLTEzLjMgMC0yNCAxMC43LTI0IDI0bDAgMTEyYzAgMTMuMyAxMC43IDI0IDI0IDI0czI0LTEwLjcgMjQtMjRsMC01NC4xIDUyLjEgNTIuMUMxNTMuMiA0NTkuMiAyMDMuNSA0ODAgMjU2IDQ4MGM5Mi41IDAgMTcxLjgtNTYgMjA2LTEzNS45eiIgZmlsbD0iIzhiMDAwMCIvPjwvc3ZnPg==);
+      filter: var(--darkred-filter);
     }
 
     &:disabled {
@@ -4132,13 +4206,12 @@ function withQueryString(baseUrl) {
     }
 
     &:is(:hover, :focus, :focus-visible)::after {
-      content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNOTQgMTg3LjFDMTIwLjggMTI0LjEgMTgzLjMgODAgMjU2IDgwYzM5LjcgMCA3Ny44IDE1LjggMTA1LjkgNDMuOUw0MTQuMSAxNzYgMzYwIDE3NmMtMTMuMyAwLTI0IDEwLjctMjQgMjRzMTAuNyAyNCAyNCAyNGwxMTIgMGMxMy4zIDAgMjQtMTAuNyAyNC0yNGwwLTExMmMwLTEzLjMtMTAuNy0yNC0yNC0yNHMtMjQgMTAuNy0yNCAyNGwwIDU0LjFMMzk1LjkgODkuOUMzNTguOCA1Mi44IDMwOC41IDMyIDI1NiAzMkMxNjMuNCAzMiA4My45IDg4LjIgNDkuOCAxNjguM2MtNS4yIDEyLjIgLjUgMjYuMyAxMi43IDMxLjVzMjYuMy0uNSAzMS41LTEyLjd6bTM2OCAxNTdjNS4yLTEyLjItLjQtMjYuMy0xMi42LTMxLjVzLTI2LjMgLjQtMzEuNSAxMi42QzM5MSAzODguMSAzMjguNiA0MzIgMjU2IDQzMmMtMzkuNyAwLTc3LjgtMTUuOC0xMDUuOS00My45TDk3LjkgMzM2bDU0LjEgMGMxMy4zIDAgMjQtMTAuNyAyNC0yNHMtMTAuNy0yNC0yNC0yNEw0MCAyODhjLTEzLjMgMC0yNCAxMC43LTI0IDI0bDAgMTEyYzAgMTMuMyAxMC43IDI0IDI0IDI0czI0LTEwLjcgMjQtMjRsMC01NC4xIDUyLjEgNTIuMUMxNTMuMiA0NTkuMiAyMDMuNSA0ODAgMjU2IDQ4MGM5Mi41IDAgMTcxLjgtNTYgMjA2LTEzNS45eiIgZmlsbD0iI2ZmZiIgLz48L3N2Zz4=);
+      content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNNDEwLjMgMjMxbDExLjMtMTEuMy0zMy45LTMzLjktNjIuMS02Mi4xTDI5MS43IDg5LjhsLTExLjMgMTEuMy0yMi42IDIyLjZMNTguNiAzMjIuOWMtMTAuNCAxMC40LTE4IDIzLjMtMjIuMiAzNy40TDEgNDgwLjdjLTIuNSA4LjQtLjIgMTcuNSA2LjEgMjMuN3MxNS4zIDguNSAyMy43IDYuMWwxMjAuMy0zNS40YzE0LjEtNC4yIDI3LTExLjggMzcuNC0yMi4yTDM4Ny43IDI1My43IDQxMC4zIDIzMXpNMTYwIDM5OS40bC05LjEgMjIuN2MtNCAzLjEtOC41IDUuNC0xMy4zIDYuOUw1OS40IDQ1MmwyMy03OC4xYzEuNC00LjkgMy44LTkuNCA2LjktMTMuM2wyMi43LTkuMSAwIDMyYzAgOC44IDcuMiAxNiAxNiAxNmwzMiAwek0zNjIuNyAxOC43TDM0OC4zIDMzLjIgMzI1LjcgNTUuOCAzMTQuMyA2Ny4xbDMzLjkgMzMuOSA2Mi4xIDYyLjEgMzMuOSAzMy45IDExLjMtMTEuMyAyMi42LTIyLjYgMTQuNS0xNC41YzI1LTI1IDI1LTY1LjUgMC05MC41TDQ1My4zIDE4LjdjLTI1LTI1LTY1LjUtMjUtOTAuNSAwem0tNDcuNCAxNjhsLTE0NCAxNDRjLTYuMiA2LjItMTYuNCA2LjItMjIuNiAwcy02LjItMTYuNCAwLTIyLjZsMTQ0LTE0NGM2LjItNi4yIDE2LjQtNi4yIDIyLjYgMHM2LjIgMTYuNCAwIDIyLjZ6Ii8+PC9zdmc+);
       filter: var(--blue-filter);
     }
 
     &.error:is(:hover, :focus, :focus-visible)::after {
-      content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNOTQgMTg3LjFDMTIwLjggMTI0LjEgMTgzLjMgODAgMjU2IDgwYzM5LjcgMCA3Ny44IDE1LjggMTA1LjkgNDMuOUw0MTQuMSAxNzYgMzYwIDE3NmMtMTMuMyAwLTI0IDEwLjctMjQgMjRzMTAuNyAyNCAyNCAyNGwxMTIgMGMxMy4zIDAgMjQtMTAuNyAyNC0yNGwwLTExMmMwLTEzLjMtMTAuNy0yNC0yNC0yNHMtMjQgMTAuNy0yNCAyNGwwIDU0LjFMMzk1LjkgODkuOUMzNTguOCA1Mi44IDMwOC41IDMyIDI1NiAzMkMxNjMuNCAzMiA4My45IDg4LjIgNDkuOCAxNjguM2MtNS4yIDEyLjIgLjUgMjYuMyAxMi43IDMxLjVzMjYuMy0uNSAzMS41LTEyLjd6bTM2OCAxNTdjNS4yLTEyLjItLjQtMjYuMy0xMi42LTMxLjVzLTI2LjMgLjQtMzEuNSAxMi42QzM5MSAzODguMSAzMjguNiA0MzIgMjU2IDQzMmMtMzkuNyAwLTc3LjgtMTUuOC0xMDUuOS00My45TDk3LjkgMzM2bDU0LjEgMGMxMy4zIDAgMjQtMTAuNyAyNC0yNHMtMTAuNy0yNC0yNC0yNEw0MCAyODhjLTEzLjMgMC0yNCAxMC43LTI0IDI0bDAgMTEyYzAgMTMuMyAxMC43IDI0IDI0IDI0czI0LTEwLjcgMjQtMjRsMC01NC4xIDUyLjEgNTIuMUMxNTMuMiA0NTkuMiAyMDMuNSA0ODAgMjU2IDQ4MGM5Mi41IDAgMTcxLjgtNTYgMjA2LTEzNS45eiIgZmlsbD0iIzhiMDAwMCIvPjwvc3ZnPg==);
-      filter: none;
+      filter: var(--darkred-filter);
     }
   }
 }
@@ -4196,6 +4269,7 @@ function withQueryString(baseUrl) {
 
 .rebate-setting.is-external-dirty::after {
   animation: spin1440 4s linear;
+  content: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBvcGFjaXR5PSIuNCIgZD0iTTAgMjU2QzAgMTE0LjkgMTE0LjEgLjUgMjU1LjEgMEMyMzcuOSAuNSAyMjQgMTQuNiAyMjQgMzJjMCAxNy43IDE0LjMgMzIgMzIgMzJDMTUwIDY0IDY0IDE1MCA2NCAyNTZzODYgMTkyIDE5MiAxOTJjNjkuNyAwIDEzMC43LTM3LjEgMTY0LjUtOTIuNmMtMyA2LjYtMy4zIDE0LjgtMSAyMi4yYzEuMiAzLjcgMyA3LjIgNS40IDEwLjNjMS4yIDEuNSAyLjYgMyA0LjEgNC4zYy44IC43IDEuNiAxLjMgMi40IDEuOWMuNCAuMyAuOCAuNiAxLjMgLjlzLjkgLjYgMS4zIC44YzUgMi45IDEwLjYgNC4zIDE2IDQuM2MxMSAwIDIxLjgtNS43IDI3LjctMTZjLTQ0LjMgNzYuNS0xMjcgMTI4LTIyMS43IDEyOEMxMTQuNiA1MTIgMCAzOTcuNCAwIDI1NnoiLz48cGF0aCBkPSJNMjI0IDMyYzAtMTcuNyAxNC4zLTMyIDMyLTMyQzM5Ny40IDAgNTEyIDExNC42IDUxMiAyNTZjMCA0Ni42LTEyLjUgOTAuNC0zNC4zIDEyOGMtOC44IDE1LjMtMjguNCAyMC41LTQzLjcgMTEuN3MtMjAuNS0yOC40LTExLjctNDMuN2MxNi4zLTI4LjIgMjUuNy02MSAyNS43LTk2YzAtMTA2LTg2LTE5Mi0xOTItMTkyYy0xNy43IDAtMzItMTQuMy0zMi0zMnoiLz48L3N2Zz4=) !important;
 }
 
 @keyframes spin1440 {
@@ -4204,7 +4278,7 @@ function withQueryString(baseUrl) {
   }
 
   to {
-    transform: rotate(4turn);
+    transform: rotate(6turn);
   }
 }
 

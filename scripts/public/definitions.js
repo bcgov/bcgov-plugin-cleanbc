@@ -50,7 +50,7 @@ export const bcgovBlockThemePluginDefnitions = () => {
             ) {
                 event.preventDefault();
                 setDialogWidth(
-                    event.currentTarget.classList.contains('wide')
+                    shouldUseWideDialog(event.currentTarget)
                 );
                 const url = event.currentTarget.getAttribute('href');
                 const cachedData = window.sessionStorage.getItem(url);
@@ -154,6 +154,18 @@ export const bcgovBlockThemePluginDefnitions = () => {
             }
 
             dialog.classList.toggle('wide', isWide);
+        }
+
+        const shouldUseWideDialog = (triggerElement) => {
+            if (!triggerElement) {
+                return false;
+            }
+
+            if (triggerElement.classList.contains('wide')) {
+                return true;
+            }
+
+            return Boolean(triggerElement.closest('.wide'));
         }
 
         if (definitionLinks.length > 0) {
