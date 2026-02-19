@@ -1,4 +1,4 @@
-html:has(body.betterbuildingsbc, body.betterhomesbc) {
+html:has(body.betterbuildingsbc, body.betterhomesbc, body.goelectricbc) {
 
 	/* -------------------------------------------------------------------------- */
 
@@ -214,6 +214,10 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 				content: $icon_contact;
 			}
 
+			&.icon-electrify::before {
+				content: $icon_electrify;
+			}
+
 			&.icon-email::before {
 				content: $icon_email;
 			}
@@ -243,6 +247,10 @@ html:has(body.betterbuildingsbc, body.betterhomesbc) {
 
 			&.icon-phone::before {
 				content: $icon_phone;
+			}
+
+			&.icon-power::before {
+				content: $icon_power;
 			}
 
 			&.icon-understand::before {

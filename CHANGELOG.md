@@ -1,3 +1,6 @@
+## 1.30.23 February 19, 2026
+– Added new icons
+
 ## 1.30.22 February 18, 2026
 – Added side scrolling navigation observer and related styles
 – Border fix on in-page nav highlighting
