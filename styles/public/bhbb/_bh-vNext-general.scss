@@ -216,6 +216,10 @@ html:has(body.betterbuildingsbc, body.betterhomesbc, body.goelectricbc) {
 
 			&.icon-electrify::before {
 				content: $icon_electrify;
+				scale: 1.2;
+				position: relative;
+				top: 4px;
+				filter: var(--blue-filter);
 			}
 
 			&.icon-email::before {
@@ -251,6 +255,7 @@ html:has(body.betterbuildingsbc, body.betterhomesbc, body.goelectricbc) {
 
 			&.icon-power::before {
 				content: $icon_power;
+				filter: var(--blue-filter);
 			}
 
 			&.icon-understand::before {
