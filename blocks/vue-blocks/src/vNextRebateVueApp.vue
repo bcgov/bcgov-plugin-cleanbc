@@ -1976,16 +1976,12 @@ function initFromLocalStorage(data) {
   }
 
   if (data.heating) {
-    const heating =
-      heatingOptions.value.find(w => w.slug === data.heating) ||
-      heatingOptions.value.find(w => w.name === data.heating)
+    const heating = findHeatingOptionByValue(heatingOptions.value, data.heating)
     if (heating) selectedHeatingSlug.value = heating.slug
   }
 
   if (data.water_heating) {
-    const waterHeating =
-      waterHeatingOptions.value.find(w => w.slug === data.water_heating) ||
-      waterHeatingOptions.value.find(w => w.name === data.water_heating)
+    const waterHeating = findHeatingOptionByValue(waterHeatingOptions.value, data.water_heating)
     if (waterHeating) selectedWaterHeatingSlug.value = waterHeating.slug
   }
 
@@ -2746,8 +2742,12 @@ function assembleUrl() {
     if (selectedRegionName.value) urlParams.set('region', selectedRegionName.value)
   }
 
-  if (selectedHeatingSlug.value) urlParams.set('heating', selectedHeatingName.value)
-  if (selectedWaterHeatingSlug.value) urlParams.set('water_heating', selectedWaterHeatingName.value)
+  if (selectedHeatingSlug.value) {
+    urlParams.set('heating', getHeatingUrlValue(selectedHeating.value))
+  }
+  if (selectedWaterHeatingSlug.value) {
+    urlParams.set('water_heating', getHeatingUrlValue(selectedWaterHeating.value))
+  }
   if (selectedUtilitySlug.value) urlParams.set('utility', selectedUtilityName.value)
   if (selectedGasSlug.value) urlParams.set('gas', selectedGasName.value)
 
@@ -2789,6 +2789,37 @@ function handleLinkCopiedMessageContent(event, targetSelector, msg) {
   setTimeout(() => {
     el.textContent = ''
   }, 1800)
+}
+
+const normalizeHeatingLabelForMatch = (value) =>
+  String(value || '')
+    .toLowerCase()
+    .replace(/\s*\(e\.g\.[^)]+\)\s*/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+const findHeatingOptionByValue = (options, value) => {
+  if (!value) return null
+
+  const raw = String(value).trim()
+  const rawSlug = raw.toLowerCase()
+  const normalized = normalizeHeatingLabelForMatch(raw)
+  const isElectricAlias = normalized === 'electric' || normalized === 'electricity'
+
+  return (
+    options.find((opt) => String(opt?.slug || '').toLowerCase() === rawSlug) ||
+    options.find((opt) => normalizeHeatingLabelForMatch(opt?.name) === normalized) ||
+    (isElectricAlias
+      ? options.find((opt) => String(opt?.slug || '').toLowerCase() === 'electricity')
+      : null)
+  )
+}
+
+const getHeatingUrlValue = (option) => {
+  if (!option) return ''
+  return String(option.slug || '').toLowerCase() === 'electricity'
+    ? 'Electricity'
+    : option.name
 }
 
 /**
@@ -2844,16 +2875,12 @@ function initFromQueryString() {
   }
 
   if (heating) {
-    const foundHeat = heatingOptions.value.find(
-      l => l.slug === heating || l.name === heating
-    )
+    const foundHeat = findHeatingOptionByValue(heatingOptions.value, heating)
     if (foundHeat) selectedHeatingSlug.value = foundHeat.slug
   }
 
   if (waterHeating) {
-    const foundWaterHeat = waterHeatingOptions.value.find(
-      l => l.slug === waterHeating || l.name === waterHeating
-    )
+    const foundWaterHeat = findHeatingOptionByValue(waterHeatingOptions.value, waterHeating)
     if (foundWaterHeat) selectedWaterHeatingSlug.value = foundWaterHeat.slug
   }
 

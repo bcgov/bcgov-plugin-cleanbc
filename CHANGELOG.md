@@ -9,6 +9,7 @@
 – Updated archive keyboard flow to suppress auto-scroll on reverse tabbing and during completed-form review
 – Updated single-mode collapsed settings to be inert and aria-hidden so hidden controls are removed from keyboard and screen-reader navigation
 – Added electric-hp / electric-hpwh handling: labels, field option exclusions, and HP/HPWH-specific eligibility/error guards
+– Patched URL serialization to keep the legacy "Electricity" value for room and water heating key/values
 – Various styles updated
 
 ## 1.30.21 February 17, 2026

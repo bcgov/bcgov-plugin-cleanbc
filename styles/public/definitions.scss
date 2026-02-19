@@ -57,23 +57,21 @@ body:has(#dialog[open]) {
 
 	.dialog-content {
 
+		padding-inline: 1rem;
+
 		h2 {
 			border-bottom: 2px solid var(--wp--preset--color--tertiary);
 			color: var(--wp--preset--color--tertiary);
 			display: inline-block;
 			font-size: 1.5rem;
 			padding-top: 0.5rem;
-			padding-inline: 3rem;
+			padding-inline: 2rem;
 			padding-bottom: 0.5rem;
 			margin-top: 0;
 			margin-bottom: 0;
 			position: relative;
 			left: -2rem;
 			outline: none;
-		}
-
-		> * {
-			padding-inline: 1rem;
 		}
 
 		> *:last-child {
