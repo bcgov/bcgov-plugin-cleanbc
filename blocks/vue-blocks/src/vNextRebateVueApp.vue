@@ -81,14 +81,30 @@
             { 'loading': isLoading }
           ]">
 
-        <div v-if="mode === 'single'" class="selection-summary" aria-live="polite">
+        <article
+          v-if="mode === 'single'"
+          ref="singleModeSummaryRef"
+          class="selection-summary"
+          role="grid"
+          aria-live="polite"
+          aria-labelledby="single-mode-settings-title"
+          @keydown="handleSingleModeGridKeydown"
+          @click="handleSummaryCardClick"
+        >
 
-          <h2 class='settings-headline'>Your home's details</h2>
-          <button class="rebate-collapse-setting"
+          <h2 id="single-mode-settings-title" class='settings-headline'>Your home's details</h2>
+          <button
+              ref="collapseButtonRef"
+              class="rebate-collapse-setting"
+              data-grid-nav="collapse"
+              tabindex="0"
               :class="isCollapseView ? 'collapsed' : ''"
-              :aria-pressed="isCollapseView ? false : true"
+              :aria-expanded="isCollapseView ? 'false' : 'true'"
+              aria-controls="single-mode-controls"
+              aria-labelledby="single-mode-settings-title single-mode-settings-details-label"
+              @focus="setSingleModeGridActiveFromElement"
               @click="toggleCollapseView">
-              collapse
+              <span id="single-mode-settings-details-label" class="sr-only">Details</span>
           </button>
 
           <div v-if="false && selectedBuildingGroupSlug !== 'murb' && murbTenure === 'rent'" class='message error-message'>
@@ -96,6 +112,7 @@
             <p>Only rentals in multi-unit residential buildings are currently eligible.</p>
           </div>
           <div
+            id="single-mode-controls"
             class='control-container'
             :inert="isCollapseView ? '' : null"
             :aria-hidden="isCollapseView ? 'true' : 'false'">
@@ -107,7 +124,10 @@
                   <div class="control button-group" v-if="activeEdit !== field.key">
                     <label class='small'>{{ field.shortDesc }}</label>
                     <button class="rebate-setting" :disabled="field.disabled"
+                      :data-grid-nav="`field-${field.key}`"
+                      tabindex="-1"
                       :class="{ 'is-external-dirty': isExternalDirty && lastChangedField === field.key, 'error': fieldErrors[field.key] }"
+                      @focus="setSingleModeGridActiveFromElement"
                       @click="openEdit(field.key)" :ref="el => (buttonRefs[field.key] = el)">
                       {{ field.displayValue }}
                     </button>
@@ -210,8 +230,10 @@
                 <p v-if="editModeView" name="instructions" class="small-text" style="text-align: left; line-height: 1.665; padding-top: 0.5rem;">Updating your home's details will refresh the page content.
                 </p>
               </div>
-              <button class="editBtn toggle-edit-mode readonly-toggle" :tabindex="isCollapseView ? '-1' : '0'"
+              <button class="editBtn toggle-edit-mode readonly-toggle" tabindex="-1"
+              data-grid-nav="edit-toggle"
               :class="isSavingEditMode ? 'saving' : editModeView ? 'show-edit-mode' : 'show-readonly-mode'"
+              @focus="setSingleModeGridActiveFromElement"
               @click="toggleEditModeView" :aria-label="editModeView ? 'Exit edit mode' : 'Enter edit mode'"
               :title="editModeView ? 'Exit edit mode' : 'Enter edit mode'">
               <span>{{ isSavingEditMode ? 'Saving edit...' : editModeView ? 'Edit' : 'Edit' }}</span>
@@ -221,7 +243,7 @@
             </div>
           </div>
 
-        </div>
+        </article>
 
         <template v-if="mode === 'archive'">
 
@@ -850,6 +872,9 @@ const singleModeDialogRef = ref(null)
 const singleModeDialogHeadingRef = ref(null)
 const singleModeDialogDismissed = ref(false)
 const singleModeDialogOffered = ref(false)
+const singleModeSummaryRef = ref(null)
+const collapseButtonRef = ref(null)
+const singleModeGridActiveId = ref('collapse')
 
 // Focus map for selects 
 const selectRefs = ref({})
@@ -1139,6 +1164,7 @@ function toggleLabels() {
 function openEdit(field) {
   editable.value = true
   activeEdit.value = field
+  nextTick(() => syncSingleModeGridTabStops())
 }
 
 /**
@@ -1154,8 +1180,223 @@ function closeEdit(fieldKey = activeEdit.value) {
     const controlButton = buttonRefs.value[keyToFocus]
     if (controlButton && typeof controlButton.focus === 'function') {
       controlButton.focus({ preventScroll: true })
+      syncSingleModeGridTabStops(controlButton.dataset.gridNav || '')
     }
   })
+}
+
+const GRID_VERTICAL_PAGE_SIZE = 5
+const GRID_ROW_TOP_TOLERANCE_PX = 8
+
+const getSingleModeGridItems = () => {
+  const root = singleModeSummaryRef.value
+  if (!root) return []
+
+  return Array.from(root.querySelectorAll('[data-grid-nav]'))
+    .filter(el => el instanceof HTMLElement)
+    .filter(el => !el.hasAttribute('disabled'))
+    .filter(el => !el.closest('[inert]'))
+    .filter(el => el.offsetParent !== null)
+}
+
+const buildSingleModeGridRows = (items) => {
+  const rows = []
+
+  items.forEach(item => {
+    const top = Math.round(item.getBoundingClientRect().top)
+    const row = rows.find(r => Math.abs(r.top - top) <= GRID_ROW_TOP_TOLERANCE_PX)
+    if (row) {
+      row.items.push(item)
+    } else {
+      rows.push({ top, items: [item] })
+    }
+  })
+
+  rows.sort((a, b) => a.top - b.top)
+  rows.forEach(row => {
+    row.items.sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left)
+  })
+
+  return rows
+}
+
+const findSingleModeGridPosition = (rows, targetEl) => {
+  for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
+    const colIndex = rows[rowIndex].items.findIndex(item => item === targetEl)
+    if (colIndex !== -1) return { rowIndex, colIndex }
+  }
+  return { rowIndex: -1, colIndex: -1 }
+}
+
+function syncSingleModeGridTabStops(preferredId = '') {
+  if (mode.value !== 'single') return
+
+  const items = getSingleModeGridItems()
+  if (!items.length) return
+
+  const desiredId = preferredId || singleModeGridActiveId.value
+  let activeIndex = items.findIndex(item => item.dataset.gridNav === desiredId)
+  if (activeIndex === -1) activeIndex = 0
+
+  items.forEach(item => item.setAttribute('tabindex', '-1'))
+  const activeEl = items[activeIndex]
+  activeEl.setAttribute('tabindex', '0')
+  singleModeGridActiveId.value = activeEl.dataset.gridNav || ''
+}
+
+function setSingleModeGridActiveFromElement(event) {
+  const target = event?.target
+  if (!(target instanceof HTMLElement)) return
+  const gridId = target.dataset.gridNav || ''
+  if (!gridId) return
+  singleModeGridActiveId.value = gridId
+  syncSingleModeGridTabStops(gridId)
+}
+
+function focusSingleModeGridItem(targetEl) {
+  if (!(targetEl instanceof HTMLElement)) return
+  singleModeGridActiveId.value = targetEl.dataset.gridNav || ''
+  syncSingleModeGridTabStops(singleModeGridActiveId.value)
+  targetEl.focus({ preventScroll: true })
+}
+
+function handleSingleModeGridKeydown(event) {
+  if (mode.value !== 'single') return
+  const target = event.target
+  if (!(target instanceof HTMLElement)) return
+  if (!target.matches('[data-grid-nav]')) return
+
+  const items = getSingleModeGridItems()
+  if (!items.length) return
+
+  const rows = buildSingleModeGridRows(items)
+  const { rowIndex, colIndex } = findSingleModeGridPosition(rows, target)
+  if (rowIndex === -1 || colIndex === -1) return
+
+  const currentRow = rows[rowIndex].items
+  let nextTarget = null
+
+  switch (event.key) {
+    case 'ArrowRight': {
+      if (colIndex < currentRow.length - 1) {
+        nextTarget = currentRow[colIndex + 1]
+      } else if (rowIndex < rows.length - 1) {
+        nextTarget = rows[rowIndex + 1].items[0]
+      }
+      break
+    }
+    case 'ArrowLeft': {
+      if (colIndex > 0) {
+        nextTarget = currentRow[colIndex - 1]
+      } else if (rowIndex > 0) {
+        const previousRow = rows[rowIndex - 1].items
+        nextTarget = previousRow[previousRow.length - 1]
+      }
+      break
+    }
+    case 'ArrowDown': {
+      if (rowIndex < rows.length - 1) {
+        const nextRow = rows[rowIndex + 1].items
+        nextTarget = nextRow[Math.min(colIndex, nextRow.length - 1)]
+      }
+      break
+    }
+    case 'ArrowUp': {
+      if (rowIndex > 0) {
+        const previousRow = rows[rowIndex - 1].items
+        nextTarget = previousRow[Math.min(colIndex, previousRow.length - 1)]
+      }
+      break
+    }
+    case 'PageDown': {
+      const targetRowIndex = Math.min(rows.length - 1, rowIndex + GRID_VERTICAL_PAGE_SIZE)
+      if (targetRowIndex !== rowIndex) {
+        const targetRow = rows[targetRowIndex].items
+        nextTarget = targetRow[Math.min(colIndex, targetRow.length - 1)]
+      }
+      break
+    }
+    case 'PageUp': {
+      const targetRowIndex = Math.max(0, rowIndex - GRID_VERTICAL_PAGE_SIZE)
+      if (targetRowIndex !== rowIndex) {
+        const targetRow = rows[targetRowIndex].items
+        nextTarget = targetRow[Math.min(colIndex, targetRow.length - 1)]
+      }
+      break
+    }
+    case 'Home': {
+      if (event.ctrlKey || event.metaKey) {
+        nextTarget = rows[0].items[0]
+      } else {
+        nextTarget = currentRow[0]
+      }
+      break
+    }
+    case 'End': {
+      if (event.ctrlKey || event.metaKey) {
+        const lastRow = rows[rows.length - 1].items
+        nextTarget = lastRow[lastRow.length - 1]
+      } else {
+        nextTarget = currentRow[currentRow.length - 1]
+      }
+      break
+    }
+    default:
+      return
+  }
+
+  if (!nextTarget || nextTarget === target) return
+  event.preventDefault()
+  focusSingleModeGridItem(nextTarget)
+}
+
+const isDisclosureSuppressedTarget = (target) => {
+  if (!(target instanceof Element)) return false
+
+  if (
+    target.closest(
+      [
+        '.rebate-collapse-setting',
+        'a[href]',
+        'button',
+        'input',
+        'select',
+        'textarea',
+        '[role="button"]',
+        '[role="link"]',
+        '[contenteditable="true"]',
+        '[tabindex]:not([tabindex="-1"])',
+        'label'
+      ].join(', ')
+    )
+  ) {
+    return true
+  }
+
+  return false
+}
+
+const hasCardTextSelection = () => {
+  const selectedText = window.getSelection?.()?.toString?.() || ''
+  return selectedText.trim().length > 0
+}
+
+function handleSummaryCardClick(event) {
+  if (mode.value !== 'single') return
+  const summaryCard = singleModeSummaryRef.value
+  if (!summaryCard) return
+
+  const target = event.target
+  if (!(target instanceof Element)) return
+  if (!summaryCard.contains(target)) return
+  if (isDisclosureSuppressedTarget(target)) return
+  if (hasCardTextSelection()) return
+
+  if (collapseButtonRef.value) {
+    collapseButtonRef.value.focus({ preventScroll: true })
+  }
+
+  toggleCollapseView()
 }
 
 /**
@@ -1186,6 +1427,7 @@ function handleSingleModeOutsidePointerDown(event) {
 function toggleEditModeView() {
   editModeView.value = !editModeView.value
   localStorage.setItem('rebateEditModeView', JSON.stringify(editModeView.value))
+  nextTick(() => syncSingleModeGridTabStops())
 }
 
 /**
@@ -1197,6 +1439,7 @@ function toggleCollapseView() {
     activeEdit.value = ''
   }
   localStorage.setItem('rebateCollapseView', JSON.stringify(isCollapseView.value))
+  nextTick(() => syncSingleModeGridTabStops())
 }
 
 function handleFocus() {
@@ -2311,7 +2554,8 @@ const heatingOptions = computed(() => {
 
       return {
         ...o,
-        name: `${o.name} (e.g. baseboard or furnace)`
+        // name: `${o.name} (e.g. baseboard or furnace)`
+        name: `Electric (e.g. baseboard or furnace)`
       }
     })
 
@@ -2337,7 +2581,8 @@ const waterHeatingOptions = computed(() => {
 
       return {
         ...o,
-        name: `${o.name} (e.g. tank or tankless)`
+        // name: `${o.name} (e.g. tank or tankless)`
+        name: `Electric (e.g. tank or tankless)`
       }
     })
 
@@ -2701,8 +2946,17 @@ onMounted(() => {
   }
   viewPreferenceLoaded.value = true
 
+  nextTick(() => syncSingleModeGridTabStops())
   document.addEventListener('pointerdown', handleSingleModeOutsidePointerDown, true)
 })
+
+watch(
+  [mode, isCollapseView, editModeView, activeEdit, isReadyToRender],
+  () => {
+    nextTick(() => syncSingleModeGridTabStops())
+  },
+  { flush: 'post' }
+)
 
 onBeforeUnmount(() => {
   document.removeEventListener('pointerdown', handleSingleModeOutsidePointerDown, true)
@@ -3465,10 +3719,6 @@ function withQueryString(baseUrl) {
       overflow: clip;
     }
 
-     &.collapsed:has(button:focus-visible) {
-      overflow: visible clip;
-    }
-
     :is(button).rebate-collapse-setting {
       all: unset;
       height: calc(1.25rem + 2px);
@@ -3480,16 +3730,15 @@ function withQueryString(baseUrl) {
       right: 0;
       top: 0.25rem;
       padding: 1rem;
-      /* down arrow */
-        background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBkPSJNMjM5IDQ5OC43bDE2MC0xMjggMTguNy0xNS0zMC0zNy41LTE4LjcgMTUtMTQ1IDExNkw3OSAzMzMuM2wtMTguNy0xNS0zMCAzNy41IDE4LjcgMTUgMTYwIDEyOCAxNSAxMiAxNS0xMnptMC00ODUuNWwtMTUtMTItMTUgMTJMNDkgMTQxLjNsLTE4LjcgMTUgMzAgMzcuNSAxOC43LTE1IDE0NS0xMTYgMTQ1IDExNiAxOC43IDE1IDMwLTM3LjUtMTguNy0xNUwyMzkgMTMuM3oiLz48L3N2Zz4=);
-        background-repeat: no-repeat;
-        background-position: center right 2rem;
-        background-size: 1rem;
+      background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48cGF0aCBmaWxsPSIjMzY5IiBkPSJNMjM5IDQ5OC43bDE2MC0xMjggMTguNy0xNS0zMC0zNy41LTE4LjcgMTUtMTQ1IDExNkw3OSAzMzMuM2wtMTguNy0xNS0zMCAzNy41IDE4LjcgMTUgMTYwIDEyOCAxNSAxMiAxNS0xMnptMC00ODUuNWwtMTUtMTItMTUgMTJMNDkgMTQxLjNsLTE4LjcgMTUgMzAgMzcuNSAxOC43LTE1IDE0NS0xMTYgMTQ1IDExNiAxOC43IDE1IDMwLTM3LjUtMTguNy0xNUwyMzkgMTMuM3oiLz48L3N2Zz4=);
+      background-repeat: no-repeat;
+      background-position: center right 2rem;
+      background-size: 1rem;
 
-        &:is(:focus-visible) {
-          outline: 2px solid #369;
-          outline-offset: 0 -4px;
-        }
+      /* &:is(:focus, :focus-visible) {
+        outline: 2px solid #369;
+        outline-offset: 0 -4px;
+      } */
     }
 
     &:has(.stacked) {
@@ -3498,7 +3747,7 @@ function withQueryString(baseUrl) {
     }
   }
 
-  .rebate-collapse-setting[aria-pressed="false"] + .control-container {
+  .rebate-collapse-setting[aria-expanded="false"] + .control-container {
     opacity: 0;
   }
 
@@ -3927,7 +4176,6 @@ function withQueryString(baseUrl) {
 
 
   .selection-summary {
-    /* background: #f7f7f8; */
     background: #fff;
     padding: 0;
     border-radius: 1rem;
@@ -3935,6 +4183,11 @@ function withQueryString(baseUrl) {
     grid-template-columns: 4fr 1fr;
     gap: 0.5rem;
     position: relative;
+  }
+
+  #rebatesFilterControls:focus-within {
+    outline: 3px solid #369;
+    outline-offset: -1px;
   }
 
   .link-tools {
@@ -4458,7 +4711,6 @@ p.rebate-detail.rebate-detail.rebate-detail.error {
   padding: 0 0.66rem 0 0;
   height: 1rem;
   background-color: #fff;
-  outline: 0 !important;
   color: #369;
   display: flex;
   justify-content: end;
@@ -4474,8 +4726,19 @@ p.rebate-detail.rebate-detail.rebate-detail.error {
     padding-inline: 1rem;
   }
 
-  &:is(:focus-visible, :focus, :hover) {
-    outline: 0;
+  &:is(:hover) {
+    background-color: rgb(235, 245, 255);
+
+    & :is(span) {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+  }
+
+  &:is(:focus-visible, :focus) {
+    outline: 3px solid #369;
+    outline-offset: 2px;
     background-color: rgb(235, 245, 255);
 
     & :is(span) {

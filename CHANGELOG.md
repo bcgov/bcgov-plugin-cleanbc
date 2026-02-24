@@ -1,3 +1,7 @@
+## 1.30.24 February 24, 2026
+– Updated single-mode settings disclosure semantics (aria-expanded/aria-controls/labeling), focus behavior, and collapsed-state focus outline handling
+– Added single-mode roving tabindex + grid-style keyboard navigation for settings buttons (including Edit), with matching visible focus outline on Edit
+
 ## 1.30.23 February 19, 2026
 – Added new icons
 
