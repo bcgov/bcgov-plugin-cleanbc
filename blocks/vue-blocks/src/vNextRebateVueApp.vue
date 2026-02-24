@@ -3,7 +3,7 @@
     <p v-if="!isReadyToRender" role="status" class="loader">Preparing rebate tool...</p>
     <div v-else class="inner">
     <!-- Heading for screen readers -->
-    <h2 class="sr-only">Rebate Listings</h2>
+    <p class="sr-only">The next section, Your Home’s Details, shows the answers currently being used to determine rebate eligibility. If your details are correct, you can skip this section. To change a setting in the regular interface, expand details if needed, select Edit, then activate a setting and choose a new value. A screen-reader-only button is also available to enhance this area. Screen reader enhanced mode shows settings directly as select fields, removes extra edit controls and provides easier to understand context.</p>
 
     <!-- Skip to results link (only in archive mode) -->
     <a v-if="mode === 'archive'" href="#rebatesResults" class="sr-only skip-to-results">Skip to results</a>
@@ -19,6 +19,8 @@
         ref="singleModeDialogRef"
         id="single-mode-dialog"
         class="dialog"
+        :aria-hidden="isSingleModeDialogOpen ? 'false' : 'true'"
+        :inert="isSingleModeDialogOpen ? null : ''"
         aria-modal="true"
         aria-live="polite"
         :aria-labelledby="'single-mode-dialog-title'"
@@ -64,7 +66,7 @@
       <div v-if="(!hasAllSelection || isDirty) && mode === 'single'" class="wp-block-group info has-icon is-layout-flow wp-block-group-is-layout-flow" style="border-radius:1rem;margin:0;padding:0.5rem 1rem;">
         <p style='font-size:1rem;margin-block:0.5rem;'>
           You may be looking at default or incomplete information.
-          <a v-if='!isDirty' @click="toggleCollapseView" @keydown.enter.space.prevent="toggleCollapseView" tabindex='0'>
+          <a v-if='!isDirty && !assistiveSimpleMode' @click="toggleCollapseView" @keydown.enter.space.prevent="toggleCollapseView" tabindex='0'>
             Please update your home's details.
           </a>
           <span v-if='isDirty'>
@@ -72,6 +74,13 @@
           </span>
         </p>
       </div>
+      <button
+        v-if="mode === 'single' && !assistiveSimpleMode"
+        type="button"
+        class="sr-only sr-only-focusable simplify-assistive-toggle"
+        @click="enableAssistiveSimpleMode">
+        Screen reader enhanced interface
+      </button>
 
       <!-- Filter Controls -->
       <div id="rebatesFilterControls" class="filter-container"
@@ -83,28 +92,36 @@
 
         <article
           v-if="mode === 'single'"
-          ref="singleModeSummaryRef"
-          class="selection-summary"
-          role="grid"
-          aria-live="polite"
+          :class="['selection-summary', { 'assistive-simple-mode': assistiveSimpleMode }]"
+          role="region"
           aria-labelledby="single-mode-settings-title"
-          @keydown="handleSingleModeGridKeydown"
-          @click="handleSummaryCardClick"
+          :aria-describedby="'single-mode-summary-instructions single-mode-summary-status'"
         >
 
           <h2 id="single-mode-settings-title" class='settings-headline'>Your home's details</h2>
+          <p id="single-mode-summary-instructions" class="sr-only">
+            <template v-if="assistiveSimpleMode">
+              Screen reader enhanced interface is active. Settings are shown directly as select fields.
+            </template>
+            <template v-else-if="editModeView">
+              Edit mode is active. Use Tab to move between settings buttons, then press Enter or Space to edit a setting.
+            </template>
+            <template v-else>
+              Read-only summary of your current home details. Use Tab to move through controls, including the Edit button.
+            </template>
+          </p>
+          <p id="single-mode-summary-status" class="sr-only" role="status" aria-live="polite">{{ singleModeSettingsContextMessage }}</p>
           <button
+              v-if="!assistiveSimpleMode"
               ref="collapseButtonRef"
               class="rebate-collapse-setting"
-              data-grid-nav="collapse"
               tabindex="0"
               :class="isCollapseView ? 'collapsed' : ''"
               :aria-expanded="isCollapseView ? 'false' : 'true'"
               aria-controls="single-mode-controls"
               aria-labelledby="single-mode-settings-title single-mode-settings-details-label"
-              @focus="setSingleModeGridActiveFromElement"
               @click="toggleCollapseView">
-              <span id="single-mode-settings-details-label" class="sr-only">Details</span>
+              <span id="single-mode-settings-details-label" class="sr-only">{{ isCollapseView ? 'Expand details' : 'Collapse details' }}</span>
           </button>
 
           <div v-if="false && selectedBuildingGroupSlug !== 'murb' && murbTenure === 'rent'" class='message error-message'>
@@ -124,26 +141,30 @@
                   <div class="control button-group" v-if="activeEdit !== field.key">
                     <label class='small'>{{ field.shortDesc }}</label>
                     <button class="rebate-setting" :disabled="field.disabled"
-                      :data-grid-nav="`field-${field.key}`"
-                      tabindex="-1"
+                      tabindex="0"
+                      :data-field-key="field.key"
+                      :aria-label="getEditFieldButtonLabel(field)"
+                      :aria-describedby="[`${field.key}-edit-hint`, fieldErrors[field.key] ? `${field.key}-edit-warning` : null].filter(Boolean).join(' ')"
                       :class="{ 'is-external-dirty': isExternalDirty && lastChangedField === field.key, 'error': fieldErrors[field.key] }"
-                      @focus="setSingleModeGridActiveFromElement"
-                      @click="openEdit(field.key)" :ref="el => (buttonRefs[field.key] = el)">
+                      @click="openEdit(field.key, $event)" :ref="el => (buttonRefs[field.key] = el)">
                       {{ field.displayValue }}
                     </button>
-                    <p v-if="fieldErrors[field.key]" class="rebate-setting-warning">
+                    <span :id="`${field.key}-edit-hint`" class="sr-only">Activate to edit {{ field.shortDesc }}.</span>
+                    <p v-if="fieldErrors[field.key]" :id="`${field.key}-edit-warning`" class="rebate-setting-warning">
                       This page is based on {{ field.key === 'building' ? 'home type' : 'current heating type' }}. To see rebates for a different home type, <a href="/find-rebates/" style="color:darkred;text-underline-offset:2px;">go back to the questionnaire</a>
                     </p>
                   </div>
                   <!-- Show select if open -->
                   <div v-else-if="editable && activeEdit === field.key">
-                    <figure class="control editable" :aria-label="`${field.shortDesc} setting`">
-                      <button :disabled="!field.model.value"  type="button" class="close-btn" @click="closeEdit(field.key)"
-                        aria-label="Close edit field"></button>
-                      <label :for="`${field.key}Select`">{{ field.label }}</label>
+                    <figure class="control editable">
+                      <button v-if="!assistiveSimpleMode" :disabled="!field.model.value"  type="button" class="close-btn" tabindex="-1" aria-hidden="true" @click="closeEdit(field.key)"
+                        :aria-label="`Close ${field.shortDesc} editor`"></button>
+                      <label :id="`${field.key}SelectLabel`" :for="`${field.key}Select`">{{ field.label }}</label>
                       <select :key="field.key + '-' + (fieldRenderKeys[field.key] ?? 0)" class="select"
                         :class="fieldErrors[field.key] ? 'error' : ''"
-                        :id="`${field.key}Select`" v-model="field.model.value" :disabled="field.disabled"  @change="handleSelectChange(field.key, $event.target.value)" @keydown="handleSelectKeydown($event, field.key, field.model.value)" :ref="el => (selectRefs[field.key] = el)">
+                        :id="`${field.key}Select`"
+                        :aria-describedby="([field.description ? `${field.key}SelectDesc` : null, fieldErrors[field.key] && field.error_desc ? `${field.key}SelectError` : null].filter(Boolean).join(' ')) || null"
+                        v-model="field.model.value" :disabled="field.disabled"  @change="handleSelectChange(field.key, $event.target.value)" @keydown="handleSelectKeydown($event, field.key, field.model.value)" :ref="el => (selectRefs[field.key] = el)">
                         <option disabled :selected="!field.model.value" data-default='Select an option' value="">Select
                           an option</option>
 
@@ -165,7 +186,8 @@
                         </template>
                       </select>
 
-                      <figcaption v-if="field.description">{{ field.description }}</figcaption>
+                      <figcaption v-if="field.description" :id="`${field.key}SelectDesc`">{{ field.description }}</figcaption>
+                      <p v-if="field.error_desc && fieldErrors[field.key]" :id="`${field.key}SelectError`" class="message error-message" aria-live='polite' v-html="field.error_desc"></p>
                       <figcaption v-if="field.key === 'heating' && field.disabled">
                         This heating type is preselected for this rebate.
                       </figcaption>
@@ -174,10 +196,10 @@
                 </template>
 
 
-                <template v-else-if="field.displayValue && !editModeView">
-                  <div class="control label-group">
-                    <label class='small'>{{ field.shortDesc }}</label>
-                    <p class="rebate-detail" :class="fieldErrors[field.key] ? 'error' : ''">
+                <template v-else-if="field.displayValue && !editModeView && !assistiveSimpleMode">
+                  <div class="control label-group" role="group" :aria-labelledby="`${field.key}-summary-label ${field.key}-summary-value`">
+                    <label class='small' :id="`${field.key}-summary-label`">{{ field.shortDesc }}</label>
+                    <p class="rebate-detail" :id="`${field.key}-summary-value`" :class="fieldErrors[field.key] ? 'error' : ''">
                       {{ field.displayValue }}
                     </p>
                     <p v-if="fieldErrors[field.key]" class="rebate-detail-warning">
@@ -188,13 +210,15 @@
 
                 <!-- If field is missing show select immediately -->
                 <template v-else>
-                  <figure class="control editable" :aria-label="`${field.shortDesc} setting`">
-                    <button :disabled="!field.model.value" type="button" class="close-btn" @click="closeEdit(field.key)"
-                      aria-label="Close edit field"></button>
-                    <label :for="`${field.key}Select`">{{ field.label }}</label>
+                  <figure class="control editable">
+                    <button v-if="!assistiveSimpleMode" :disabled="!field.model.value" type="button" class="close-btn" tabindex="-1" aria-hidden="true" @click="closeEdit(field.key)"
+                      :aria-label="`Close ${field.shortDesc} editor`"></button>
+                    <label :id="`${field.key}SelectLabel`" :for="`${field.key}Select`">{{ field.label }}</label>
                     <select :key="field.key + '-' + (fieldRenderKeys[field.key] ?? 0)" class="select"
                       :class="fieldErrors[field.key] ? 'error' : ''"
-                      :id="`${field.key}Select`" v-model="field.model.value" :disabled="field.disabled"
+                      :id="`${field.key}Select`"
+                      :aria-describedby="([field.description ? `${field.key}SelectDesc` : null, fieldErrors[field.key] && field.error_desc ? `${field.key}SelectError` : null].filter(Boolean).join(' ')) || null"
+                      v-model="field.model.value" :disabled="field.disabled"
                       @change="handleSelectChange(field.key, $event.target.value)"
                       @keydown="handleSelectKeydown($event, field.key, field.model.value)"
                       :ref="el => (selectRefs[field.key] = el)">
@@ -219,24 +243,35 @@
                       </template>
                     </select>
 
-                    <figcaption v-if="field.description">{{ field.description }}</figcaption>
+                    <figcaption v-if="field.description" :id="`${field.key}SelectDesc`">{{ field.description }}</figcaption>
+                    <p v-if="field.error_desc && fieldErrors[field.key]" :id="`${field.key}SelectError`" class="message error-message" aria-live='polite' v-html='field.error_desc'></p>
                   </figure>
                 </template>
               </template>
             </template>
             <div class="control instruction-group">
               <div>
-                <label class='small sr-only' for="instructions">Settings instructions</label>
+                <label v-if="editModeView" class='small sr-only' for="instructions">Settings instructions</label>
                 <p v-if="editModeView" name="instructions" class="small-text" style="text-align: left; line-height: 1.665; padding-top: 0.5rem;">Updating your home's details will refresh the page content.
                 </p>
               </div>
-              <button class="editBtn toggle-edit-mode readonly-toggle" tabindex="-1"
-              data-grid-nav="edit-toggle"
+              <button class="editBtn toggle-edit-mode readonly-toggle"
+              v-if="!assistiveSimpleMode"
+              tabindex="0"
               :class="isSavingEditMode ? 'saving' : editModeView ? 'show-edit-mode' : 'show-readonly-mode'"
-              @focus="setSingleModeGridActiveFromElement"
+              aria-describedby="single-mode-summary-instructions"
               @click="toggleEditModeView" :aria-label="editModeView ? 'Exit edit mode' : 'Enter edit mode'"
               :title="editModeView ? 'Exit edit mode' : 'Enter edit mode'">
               <span>{{ isSavingEditMode ? 'Saving edit...' : editModeView ? 'Edit' : 'Edit' }}</span>
+              </button>
+              <button
+                v-if="assistiveSimpleMode"
+                type="button"
+                class="reset-simplified-interface-btn"
+                tabindex="0"
+                aria-hidden="true"
+                @click="disableAssistiveSimpleMode">
+                <span>Reset screen reader enhanced interface</span>
               </button>
               <button v-if='false' class='editBtn labels' :class="labelsVisible ? 'show-labels' : 'hide-labels'"
                 @click="toggleLabels" :title="labelsVisible ? 'Hide settings labels' : 'Show settings labels'">Show or hide settings labels</button>
@@ -499,6 +534,15 @@
 <script setup>
 // See vNextRebateVueApp.docs.js for full JSDoc reference.
 import { computed, ref, nextTick, onMounted, onBeforeUnmount, watch } from 'vue'
+import {
+  hasRelevantSingleModeIneligibleHeating,
+  isGroundOrientedHeatPumpIneligible,
+  isHeatPumpWaterHeaterRebatePage,
+  shouldForceElectricHpError,
+  shouldForceElectricHpwhError,
+  shouldValidateRoomHeatingField,
+  shouldValidateWaterHeatingField
+} from './singleModeEligibility'
 
 /** Public domain fallback */
 const publicDomain = ref('https://www.betterhomesbc.ca')
@@ -532,6 +576,7 @@ const displayGridOrList = ref(true)
 const STORAGE_KEY = 'displayGridOrList'
 const PREFERRED_SETTINGS_KEY = 'preferredSettings'
 const REBATE_TOOL_SETTINGS_KEY = 'rebateToolSettings'
+const ASSISTIVE_SIMPLE_MODE_KEY = 'rebateAssistiveSimpleMode'
 const viewPreferenceLoaded = ref(false)
 
 function persistDisplayViewPreference() {
@@ -872,9 +917,11 @@ const singleModeDialogRef = ref(null)
 const singleModeDialogHeadingRef = ref(null)
 const singleModeDialogDismissed = ref(false)
 const singleModeDialogOffered = ref(false)
-const singleModeSummaryRef = ref(null)
+const isSingleModeDialogOpen = ref(false)
+const singleModeDialogLastFocusedEl = ref(null)
 const collapseButtonRef = ref(null)
-const singleModeGridActiveId = ref('collapse')
+const singleModeSettingsContextMessage = ref('')
+const assistiveSimpleMode = ref(false)
 
 // Focus map for selects 
 const selectRefs = ref({})
@@ -946,26 +993,31 @@ const fieldErrors = computed(() => {
   const isSingleMode = mode.value === 'single'
   const pageRebateTypeText = String(pageRebateType.value || '').toLowerCase()
   const pageRebateClass = String(singleModeRebateTypeClass.value || '').toLowerCase()
-  const isInsulationOrWindowsPage =
-    pageRebateTypeText.includes('insulation') ||
-    pageRebateTypeText.includes('window') ||
-    pageRebateTypeText.includes('door')
-  const isHeatPumpRebatePage =
-    pageRebateClass === 'heat-pump-rebates' ||
-    (pageRebateTypeText.includes('heat pump') && !pageRebateTypeText.includes('water heater'))
-  const isHeatPumpWaterHeaterRebatePage =
-    pageRebateClass === heatPumpWaterHeaterRebateSlug ||
-    pageRebateTypeText.includes('heat pump water heater')
-  const forceHeatingElectricHpError =
-    isSingleMode &&
-    selectedHeatingSlug.value === 'electric-hp' &&
-    !isInsulationOrWindowsPage &&
-    isHeatPumpRebatePage
-  const forceWaterElectricHpwhError =
-    isSingleMode &&
-    selectedWaterHeatingSlug.value === 'electric-hpwh' &&
-    !isInsulationOrWindowsPage &&
-    isHeatPumpWaterHeaterRebatePage
+  const isHeatPumpWaterHeaterPage = isHeatPumpWaterHeaterRebatePage({
+    pageRebateClass,
+    pageRebateTypeText,
+    hpwhRebateSlug: heatPumpWaterHeaterRebateSlug
+  })
+  const validateRoomHeatingField = shouldValidateRoomHeatingField({
+    isSingleMode,
+    isHeatPumpWaterHeaterRebatePage: isHeatPumpWaterHeaterPage
+  })
+  const validateWaterHeatingField = shouldValidateWaterHeatingField({
+    isSingleMode,
+    isHeatPumpWaterHeaterRebatePage: isHeatPumpWaterHeaterPage
+  })
+  const forceHeatingElectricHpError = shouldForceElectricHpError({
+    isSingleMode,
+    selectedHeatingSlug: selectedHeatingSlug.value,
+    pageRebateClass,
+    pageRebateTypeText
+  })
+  const forceWaterElectricHpwhError = shouldForceElectricHpwhError({
+    isSingleMode,
+    selectedWaterHeatingSlug: selectedWaterHeatingSlug.value,
+    pageRebateClass,
+    pageRebateTypeText
+  })
 
   return {
     location: !isLocationFocused.value && !isLocationValid.value && !!locationInputValue.value,
@@ -979,13 +1031,13 @@ const fieldErrors = computed(() => {
         !!selectedBuildingGroupSlug.value &&
         selectedBuildingGroupSlug.value !== pageBuildingGroup.value),
     heating:
-      selectedHeatingSlug.value === 'other' ||
+      (validateRoomHeatingField && selectedHeatingSlug.value === 'other') ||
       forceHeatingElectricHpError ||
       (shouldValidateHeating &&
         !!selectedHeatingSlug.value &&
         !allowedHeatingTypes.includes(normalizedSelectedHeating)),
     water:
-      selectedWaterHeatingSlug.value === 'other' ||
+      (validateWaterHeatingField && selectedWaterHeatingSlug.value === 'other') ||
       forceWaterElectricHpwhError ||
       (shouldValidateWaterHeating &&
         !!selectedWaterHeatingSlug.value &&
@@ -1005,6 +1057,19 @@ const toSentenceCase = (val) => {
   const text = String(val || '').trim()
   if (!text) return ''
   return text.charAt(0).toUpperCase() + text.slice(1)
+}
+
+const toA11yText = (val) =>
+  String(val || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+function getEditFieldButtonLabel(field) {
+  const fieldName = toA11yText(field?.shortDesc || field?.label || 'setting')
+  const value = toA11yText(field?.displayValue || '')
+  if (!fieldName) return 'Edit setting'
+  if (!value) return `Edit ${fieldName}`
+  return `Edit ${fieldName}. Current value: ${value}.`
 }
 
 const singleModePageEligible = computed(() => {
@@ -1074,12 +1139,26 @@ const singleModeMurbIneligible = computed(() => {
   if (mode.value !== 'single') return false
   if (selectedBuildingGroupSlug.value !== 'murb') return false
 
+  const pageRebateTypeText = String(pageRebateType.value || '').toLowerCase()
+  const pageRebateClass = String(singleModeRebateTypeClass.value || '').toLowerCase()
+  const isHeatPumpWaterHeaterPage = isHeatPumpWaterHeaterRebatePage({
+    pageRebateClass,
+    pageRebateTypeText,
+    hpwhRebateSlug: heatPumpWaterHeaterRebateSlug
+  })
+
   const normalizedHeating = normalizeHeatingSlug(selectedHeatingName.value)
   const normalizedWaterHeating = normalizeHeatingSlug(selectedWaterHeatingName.value)
   const hasIneligibleHeating = ['gas', 'oil'].includes(normalizedHeating)
   const hasIneligibleWaterHeating = ['gas', 'oil'].includes(normalizedWaterHeating)
 
-  return filteredResults.value.length === 0 && (hasIneligibleHeating || hasIneligibleWaterHeating)
+  const hasRelevantIneligibleHeating = hasRelevantSingleModeIneligibleHeating({
+    isHeatPumpWaterHeaterRebatePage: isHeatPumpWaterHeaterPage,
+    hasIneligibleHeating,
+    hasIneligibleWaterHeating
+  })
+
+  return filteredResults.value.length === 0 && hasRelevantIneligibleHeating
 })
 
 const singleModeDialogEligible = computed(() => {
@@ -1106,19 +1185,23 @@ function openSingleModeDialog() {
   const dialog = singleModeDialogRef.value
   if (!dialog || dialog.open) return false
   try {
+    const activeEl = document.activeElement
+    singleModeDialogLastFocusedEl.value = activeEl instanceof HTMLElement ? activeEl : null
     dialog.showModal()
+    isSingleModeDialogOpen.value = true
     nextTick(() => {
       singleModeDialogHeadingRef.value?.focus?.()
     })
     return true
   } catch (e) {
     // no-op.
+    isSingleModeDialogOpen.value = false
     return false
   }
 }
 
 function closeSingleModeDialog(e) {
-  e.preventDefault()
+  e?.preventDefault?.()
   const dialog = singleModeDialogRef.value
   if (dialog?.open) {
     dialog.close()
@@ -1127,7 +1210,27 @@ function closeSingleModeDialog(e) {
 }
 
 function handleSingleModeDialogClosed() {
+  isSingleModeDialogOpen.value = false
   singleModeDialogDismissed.value = true
+  const previouslyFocused = singleModeDialogLastFocusedEl.value
+  nextTick(() => {
+    if (
+      previouslyFocused &&
+      previouslyFocused instanceof HTMLElement &&
+      previouslyFocused.isConnected &&
+      typeof previouslyFocused.focus === 'function'
+    ) {
+      previouslyFocused.focus({ preventScroll: true })
+      singleModeDialogLastFocusedEl.value = null
+      return
+    }
+
+    const fallback = collapseButtonRef.value
+    if (fallback && typeof fallback.focus === 'function') {
+      fallback.focus({ preventScroll: true })
+    }
+    singleModeDialogLastFocusedEl.value = null
+  })
 }
 
 watch(
@@ -1161,10 +1264,14 @@ function toggleLabels() {
 /**
  * Open a specific field for editing.
  */
-function openEdit(field) {
+function openEdit(field, event) {
   editable.value = true
   activeEdit.value = field
-  nextTick(() => syncSingleModeGridTabStops())
+  const trigger = event?.currentTarget
+  if (trigger instanceof HTMLElement && typeof trigger.blur === 'function') {
+    trigger.blur()
+  }
+  focusSingleModeSelectForField(field)
 }
 
 /**
@@ -1180,223 +1287,37 @@ function closeEdit(fieldKey = activeEdit.value) {
     const controlButton = buttonRefs.value[keyToFocus]
     if (controlButton && typeof controlButton.focus === 'function') {
       controlButton.focus({ preventScroll: true })
-      syncSingleModeGridTabStops(controlButton.dataset.gridNav || '')
     }
   })
 }
 
-const GRID_VERTICAL_PAGE_SIZE = 5
-const GRID_ROW_TOP_TOLERANCE_PX = 8
-
-const getSingleModeGridItems = () => {
-  const root = singleModeSummaryRef.value
-  if (!root) return []
-
-  return Array.from(root.querySelectorAll('[data-grid-nav]'))
-    .filter(el => el instanceof HTMLElement)
-    .filter(el => !el.hasAttribute('disabled'))
-    .filter(el => !el.closest('[inert]'))
-    .filter(el => el.offsetParent !== null)
-}
-
-const buildSingleModeGridRows = (items) => {
-  const rows = []
-
-  items.forEach(item => {
-    const top = Math.round(item.getBoundingClientRect().top)
-    const row = rows.find(r => Math.abs(r.top - top) <= GRID_ROW_TOP_TOLERANCE_PX)
-    if (row) {
-      row.items.push(item)
-    } else {
-      rows.push({ top, items: [item] })
-    }
-  })
-
-  rows.sort((a, b) => a.top - b.top)
-  rows.forEach(row => {
-    row.items.sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left)
-  })
-
-  return rows
-}
-
-const findSingleModeGridPosition = (rows, targetEl) => {
-  for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
-    const colIndex = rows[rowIndex].items.findIndex(item => item === targetEl)
-    if (colIndex !== -1) return { rowIndex, colIndex }
-  }
-  return { rowIndex: -1, colIndex: -1 }
-}
-
-function syncSingleModeGridTabStops(preferredId = '') {
-  if (mode.value !== 'single') return
-
-  const items = getSingleModeGridItems()
-  if (!items.length) return
-
-  const desiredId = preferredId || singleModeGridActiveId.value
-  let activeIndex = items.findIndex(item => item.dataset.gridNav === desiredId)
-  if (activeIndex === -1) activeIndex = 0
-
-  items.forEach(item => item.setAttribute('tabindex', '-1'))
-  const activeEl = items[activeIndex]
-  activeEl.setAttribute('tabindex', '0')
-  singleModeGridActiveId.value = activeEl.dataset.gridNav || ''
-}
-
-function setSingleModeGridActiveFromElement(event) {
-  const target = event?.target
-  if (!(target instanceof HTMLElement)) return
-  const gridId = target.dataset.gridNav || ''
-  if (!gridId) return
-  singleModeGridActiveId.value = gridId
-  syncSingleModeGridTabStops(gridId)
-}
-
-function focusSingleModeGridItem(targetEl) {
-  if (!(targetEl instanceof HTMLElement)) return
-  singleModeGridActiveId.value = targetEl.dataset.gridNav || ''
-  syncSingleModeGridTabStops(singleModeGridActiveId.value)
-  targetEl.focus({ preventScroll: true })
-}
-
-function handleSingleModeGridKeydown(event) {
-  if (mode.value !== 'single') return
-  const target = event.target
-  if (!(target instanceof HTMLElement)) return
-  if (!target.matches('[data-grid-nav]')) return
-
-  const items = getSingleModeGridItems()
-  if (!items.length) return
-
-  const rows = buildSingleModeGridRows(items)
-  const { rowIndex, colIndex } = findSingleModeGridPosition(rows, target)
-  if (rowIndex === -1 || colIndex === -1) return
-
-  const currentRow = rows[rowIndex].items
-  let nextTarget = null
-
-  switch (event.key) {
-    case 'ArrowRight': {
-      if (colIndex < currentRow.length - 1) {
-        nextTarget = currentRow[colIndex + 1]
-      } else if (rowIndex < rows.length - 1) {
-        nextTarget = rows[rowIndex + 1].items[0]
-      }
-      break
-    }
-    case 'ArrowLeft': {
-      if (colIndex > 0) {
-        nextTarget = currentRow[colIndex - 1]
-      } else if (rowIndex > 0) {
-        const previousRow = rows[rowIndex - 1].items
-        nextTarget = previousRow[previousRow.length - 1]
-      }
-      break
-    }
-    case 'ArrowDown': {
-      if (rowIndex < rows.length - 1) {
-        const nextRow = rows[rowIndex + 1].items
-        nextTarget = nextRow[Math.min(colIndex, nextRow.length - 1)]
-      }
-      break
-    }
-    case 'ArrowUp': {
-      if (rowIndex > 0) {
-        const previousRow = rows[rowIndex - 1].items
-        nextTarget = previousRow[Math.min(colIndex, previousRow.length - 1)]
-      }
-      break
-    }
-    case 'PageDown': {
-      const targetRowIndex = Math.min(rows.length - 1, rowIndex + GRID_VERTICAL_PAGE_SIZE)
-      if (targetRowIndex !== rowIndex) {
-        const targetRow = rows[targetRowIndex].items
-        nextTarget = targetRow[Math.min(colIndex, targetRow.length - 1)]
-      }
-      break
-    }
-    case 'PageUp': {
-      const targetRowIndex = Math.max(0, rowIndex - GRID_VERTICAL_PAGE_SIZE)
-      if (targetRowIndex !== rowIndex) {
-        const targetRow = rows[targetRowIndex].items
-        nextTarget = targetRow[Math.min(colIndex, targetRow.length - 1)]
-      }
-      break
-    }
-    case 'Home': {
-      if (event.ctrlKey || event.metaKey) {
-        nextTarget = rows[0].items[0]
-      } else {
-        nextTarget = currentRow[0]
-      }
-      break
-    }
-    case 'End': {
-      if (event.ctrlKey || event.metaKey) {
-        const lastRow = rows[rows.length - 1].items
-        nextTarget = lastRow[lastRow.length - 1]
-      } else {
-        nextTarget = currentRow[currentRow.length - 1]
-      }
-      break
-    }
-    default:
+function focusSingleModeSelectForField(fieldKey) {
+  if (!fieldKey) return
+  let attempts = 0
+  const maxAttempts = 8
+  const tryFocus = () => {
+    const targetSelect =
+      selectRefs.value[fieldKey] || document.getElementById(`${fieldKey}Select`)
+    if (
+      targetSelect &&
+      typeof targetSelect.focus === 'function' &&
+      !targetSelect.hasAttribute('disabled')
+    ) {
+      targetSelect.focus({ preventScroll: true })
       return
+    }
+
+    attempts += 1
+    if (attempts < maxAttempts) {
+      setTimeout(tryFocus, 30)
+    }
   }
 
-  if (!nextTarget || nextTarget === target) return
-  event.preventDefault()
-  focusSingleModeGridItem(nextTarget)
-}
-
-const isDisclosureSuppressedTarget = (target) => {
-  if (!(target instanceof Element)) return false
-
-  if (
-    target.closest(
-      [
-        '.rebate-collapse-setting',
-        'a[href]',
-        'button',
-        'input',
-        'select',
-        'textarea',
-        '[role="button"]',
-        '[role="link"]',
-        '[contenteditable="true"]',
-        '[tabindex]:not([tabindex="-1"])',
-        'label'
-      ].join(', ')
-    )
-  ) {
-    return true
-  }
-
-  return false
-}
-
-const hasCardTextSelection = () => {
-  const selectedText = window.getSelection?.()?.toString?.() || ''
-  return selectedText.trim().length > 0
-}
-
-function handleSummaryCardClick(event) {
-  if (mode.value !== 'single') return
-  const summaryCard = singleModeSummaryRef.value
-  if (!summaryCard) return
-
-  const target = event.target
-  if (!(target instanceof Element)) return
-  if (!summaryCard.contains(target)) return
-  if (isDisclosureSuppressedTarget(target)) return
-  if (hasCardTextSelection()) return
-
-  if (collapseButtonRef.value) {
-    collapseButtonRef.value.focus({ preventScroll: true })
-  }
-
-  toggleCollapseView()
+  nextTick(() => {
+    nextTick(() => {
+      tryFocus()
+    })
+  })
 }
 
 /**
@@ -1421,13 +1342,75 @@ function handleSingleModeOutsidePointerDown(event) {
   closeEdit(activeFieldKey)
 }
 
+function focusFirstSingleModeEditableControl() {
+  const controlsRoot = document.getElementById('single-mode-controls')
+  if (!controlsRoot) return
+
+  const firstVisibleSelect = controlsRoot.querySelector(
+    '.control.editable .select:not([disabled])'
+  )
+  if (firstVisibleSelect && typeof firstVisibleSelect.focus === 'function') {
+    firstVisibleSelect.focus({ preventScroll: true })
+    return
+  }
+
+  const firstEditButton = controlsRoot.querySelector(
+    '.control.button-group .rebate-setting:not([disabled])'
+  )
+
+  if (firstEditButton instanceof HTMLElement) {
+    const fieldKey = firstEditButton.dataset.fieldKey || ''
+    if (fieldKey) {
+      openEdit(fieldKey)
+      return
+    }
+    if (typeof firstEditButton.focus === 'function') {
+      firstEditButton.focus({ preventScroll: true })
+    }
+    return
+  }
+}
+
+function enableAssistiveSimpleMode() {
+  assistiveSimpleMode.value = true
+  editModeView.value = false
+  editable.value = true
+  activeEdit.value = ''
+  isCollapseView.value = false
+  singleModeSettingsContextMessage.value = 'Screen reader enhanced interface enabled. Settings are now shown as select fields.'
+  localStorage.setItem(ASSISTIVE_SIMPLE_MODE_KEY, 'true')
+
+  nextTick(() => {
+    focusFirstSingleModeEditableControl()
+  })
+}
+
+function disableAssistiveSimpleMode() {
+  assistiveSimpleMode.value = false
+  editModeView.value = false
+  editable.value = false
+  activeEdit.value = ''
+  isCollapseView.value = true
+  singleModeSettingsContextMessage.value = 'Screen reader enhanced interface disabled. Regular interface restored.'
+  localStorage.removeItem(ASSISTIVE_SIMPLE_MODE_KEY)
+}
+
 /**
  * Toggle the edit mode view on/off.
  */
 function toggleEditModeView() {
+  if (assistiveSimpleMode.value) return
   editModeView.value = !editModeView.value
+  singleModeSettingsContextMessage.value = editModeView.value
+    ? 'Edit mode enabled. Use Tab to move between settings and Enter to edit.'
+    : 'Edit mode disabled. Read-only details view enabled. Use Tab to reach the Edit button.'
   localStorage.setItem('rebateEditModeView', JSON.stringify(editModeView.value))
-  nextTick(() => syncSingleModeGridTabStops())
+
+  if (editModeView.value) {
+    nextTick(() => {
+      focusFirstSingleModeEditableControl()
+    })
+  }
 }
 
 /**
@@ -1435,11 +1418,13 @@ function toggleEditModeView() {
  */
 function toggleCollapseView() {
   isCollapseView.value = !isCollapseView.value
+  singleModeSettingsContextMessage.value = isCollapseView.value
+    ? 'Home details collapsed.'
+    : 'Home details expanded.'
   if (isCollapseView.value) {
     activeEdit.value = ''
   }
   localStorage.setItem('rebateCollapseView', JSON.stringify(isCollapseView.value))
-  nextTick(() => syncSingleModeGridTabStops())
 }
 
 function handleFocus() {
@@ -1566,6 +1551,27 @@ async function handleSelectChange(fieldKey, newValue) {
   isExternalDirty.value = true
 
   if (mode.value !== 'archive') {
+    const fieldMeta = fields.value.find(f => f.key === fieldKey) || null
+    const fieldName = fieldMeta?.shortDesc || fieldMeta?.label || fieldKey
+
+    let selectedText = ''
+    if (fieldMeta?.isGrouped && Array.isArray(fieldMeta.groups)) {
+      selectedText =
+        fieldMeta.groups
+          .flatMap(group => Array.isArray(group?.children) ? group.children : [])
+          .find(option => option?.slug === newValue)?.name || ''
+    } else if (Array.isArray(fieldMeta?.options)) {
+      selectedText =
+        fieldMeta.options.find(option => option?.slug === newValue)?.name || ''
+    }
+
+    if (!selectedText) {
+      selectedText =
+        fieldMeta?.displayValue ||
+        String(newValue)
+    }
+
+    singleModeSettingsContextMessage.value = `${fieldName} updated to ${selectedText}.`
     isSavingEditMode.value = false
     return
   }
@@ -1790,9 +1796,9 @@ async function scrollToNextVisibleField(currentKey, direction = 'down') {
  */
 watch(activeEdit, async newKey => {
   if (!newKey) return
-  await nextTick()
-  const el = selectRefs.value[newKey]
-  if (el) el.focus()
+  if (mode.value !== 'single') return
+  if (!editModeView.value) return
+  focusSingleModeSelectForField(newKey)
 })
 
 /**
@@ -2930,9 +2936,20 @@ onMounted(() => {
     editModeView.value = JSON.parse(savedEditModeView)
   }
 
+  const savedAssistiveSimpleMode = localStorage.getItem(ASSISTIVE_SIMPLE_MODE_KEY)
+  if (savedAssistiveSimpleMode === 'true') {
+    assistiveSimpleMode.value = true
+    editModeView.value = false
+    editable.value = true
+    activeEdit.value = ''
+    isCollapseView.value = false
+  }
+
   const savedCollapseView = localStorage.getItem('rebateCollapseView')
   if (savedCollapseView !== null) {
-    isCollapseView.value = JSON.parse(savedCollapseView)
+    if (!assistiveSimpleMode.value) {
+      isCollapseView.value = JSON.parse(savedCollapseView)
+    }
   }
 
   const observer = new MutationObserver(() => {
@@ -2946,17 +2963,8 @@ onMounted(() => {
   }
   viewPreferenceLoaded.value = true
 
-  nextTick(() => syncSingleModeGridTabStops())
   document.addEventListener('pointerdown', handleSingleModeOutsidePointerDown, true)
 })
-
-watch(
-  [mode, isCollapseView, editModeView, activeEdit, isReadyToRender],
-  () => {
-    nextTick(() => syncSingleModeGridTabStops())
-  },
-  { flush: 'post' }
-)
 
 onBeforeUnmount(() => {
   document.removeEventListener('pointerdown', handleSingleModeOutsidePointerDown, true)
@@ -3395,11 +3403,14 @@ const filteredResults = computed(() => {
 
 
      // Guard : Ground-oriented heat pump/hp water heaters rules for ESP-3 + HRR wood
-    const godHPIneligible =
-      isGodBuilding &&
-      isHighTier &&
-      (isHP || isHPWH) &&
-      roomIsWood
+    const godHPIneligible = isGroundOrientedHeatPumpIneligible({
+      isGodBuilding,
+      isHighTier,
+      isHP,
+      isHPWH,
+      roomIsWood,
+      waterIsWood
+    })
     
     if (godHPIneligible) {
       return false
@@ -4183,6 +4194,26 @@ function withQueryString(baseUrl) {
     grid-template-columns: 4fr 1fr;
     gap: 0.5rem;
     position: relative;
+  }
+
+  .selection-summary.assistive-simple-mode .control.editable {
+    outline: none;
+    border: 0;
+    box-shadow: none;
+  }
+
+  .selection-summary.assistive-simple-mode .control.instruction-group {
+    grid-template-columns: 1fr;
+  }
+
+  .simplify-assistive-toggle {
+    z-index: 9;
+    padding-inline: 1rem !important;
+    margin: 0.5rem !important;
+  }
+
+  .reset-simplified-interface-btn {
+    width: unset;
   }
 
   #rebatesFilterControls:focus-within {

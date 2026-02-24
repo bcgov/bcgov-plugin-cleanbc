@@ -1,6 +1,17 @@
-## 1.30.24 February 24, 2026
+## 1.30.24 February 20-24, 2026
 – Updated single-mode settings disclosure semantics (aria-expanded/aria-controls/labeling), focus behavior, and collapsed-state focus outline handling
 – Added single-mode roving tabindex + grid-style keyboard navigation for settings buttons (including Edit), with matching visible focus outline on Edit
+– Fixed single-mode cross-heating validation/eligibility so HP pages ignore HPWH-only settings and HPWH pages ignore HP-only settings (plus insulation/window and door types ignor both)
+– Added build test for single mode eligibilty as a sanity check
+– Updated single-mode dialog accessibility so it is hidden from assistive tech when closed and returns focus on close
+– Updated single-mode "Your home's details" accessibility: grid keyboard behavior now applies only in edit mode; read-only mode uses standard region semantics and tab order so screen readers can read details and reach Edit
+– Added single-mode screen-reader context to "Your home's details": mode-specific SR instructions, live mode/collapse announcements, and stronger read-only label/value associations
+– Improved single-mode edit controls for screen readers: clearer edit-button names, select hint/description/error associations, and automatic focus into opened selects
+– Removed single-mode roving/grid keyboard model from "Your home's details" and switched to standard sequential Tab navigation for improved screen-reader interoperability
+– Fixed duplicate screen-reader announcements on editable selects by removing redundant ARIA naming and omitting empty `aria-describedby`
+– Reduced repeated screen-reader announcements during home-details editing by removing live-region behavior from the interactive summary container
+– Added a screen-reader-only "screen reader enhanced interface" mode in single-mode home details that defaults to expanded direct-select controls and hides edit/collapse button workflows
+– Added a visual "Reset screen reader enhanced interface" control in the edit-button area to restore standard single-mode interaction if simplified mode is enabled by keyboard
 
 ## 1.30.23 February 19, 2026
 – Added new icons
