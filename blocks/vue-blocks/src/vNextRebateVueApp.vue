@@ -3,7 +3,7 @@
     <p v-if="!isReadyToRender" role="status" class="loader">Preparing rebate tool...</p>
     <div v-else class="inner">
     <!-- Heading for screen readers -->
-    <p class="sr-only">The next section, Your Home’s Details, shows the answers currently being used to determine rebate eligibility. If your details are correct, you can skip this section. To change a setting in the regular interface, expand details if needed, select Edit, then activate a setting and choose a new value. A screen-reader-only button is also available to enhance this area. Screen reader enhanced mode shows settings directly as select fields, removes extra edit controls and provides easier to understand context.</p>
+    <p v-if="mode === 'single'" class="sr-only">The next section, Your Home’s Details, shows the answers currently being used to determine rebate eligibility. If your details are correct, you can skip this section. To change a setting in the regular interface, expand details if needed, select Edit, then activate a setting and choose a new value. A screen-reader-only Screen reader enhanced interface button is available. After it is enabled, that same button changes to Skip home details and moves focus to the Reset screen reader enhanced interface button.</p>
 
     <!-- Skip to results link (only in archive mode) -->
     <a v-if="mode === 'archive'" href="#rebatesResults" class="sr-only skip-to-results">Skip to results</a>
@@ -75,11 +75,11 @@
         </p>
       </div>
       <button
-        v-if="mode === 'single' && !assistiveSimpleMode"
+        v-if="mode === 'single'"
         type="button"
         class="sr-only sr-only-focusable simplify-assistive-toggle"
-        @click="enableAssistiveSimpleMode">
-        Screen reader enhanced interface
+        @click="handleAssistiveScreenReaderButton">
+        {{ assistiveSimpleMode ? 'Skip home details' : 'Screen reader enhanced interface' }}
       </button>
 
       <!-- Filter Controls -->
@@ -95,19 +95,18 @@
           :class="['selection-summary', { 'assistive-simple-mode': assistiveSimpleMode }]"
           role="region"
           aria-labelledby="single-mode-settings-title"
-          :aria-describedby="'single-mode-summary-instructions single-mode-summary-status'"
         >
 
           <h2 id="single-mode-settings-title" class='settings-headline'>Your home's details</h2>
           <p id="single-mode-summary-instructions" class="sr-only">
             <template v-if="assistiveSimpleMode">
-              Screen reader enhanced interface is active. Settings are shown directly as select fields.
+              Screen reader enhanced interface is active. Settings are shown directly as select fields. Use Tab to move through the fields, or use the reset button to return to the regular interface.
             </template>
             <template v-else-if="editModeView">
               Edit mode is active. Use Tab to move between settings buttons, then press Enter or Space to edit a setting.
             </template>
             <template v-else>
-              Read-only summary of your current home details. Use Tab to move through controls, including the Edit button.
+              Read-only summary of your current home details. Use Tab to move through controls.
             </template>
           </p>
           <p id="single-mode-summary-status" class="sr-only" role="status" aria-live="polite">{{ singleModeSettingsContextMessage }}</p>
@@ -266,10 +265,11 @@
               </button>
               <button
                 v-if="assistiveSimpleMode"
+                ref="resetSimplifiedButtonRef"
                 type="button"
                 class="reset-simplified-interface-btn"
                 tabindex="0"
-                aria-hidden="true"
+                aria-label="Collapse your home's details and reset the screen reader enhanced interface"
                 @click="disableAssistiveSimpleMode">
                 <span>Reset screen reader enhanced interface</span>
               </button>
@@ -298,7 +298,7 @@
 
                 <div class='question-container'>
                   <div class='num-label'></div>
-                  <figure class="control" :aria-label="`${field.shortDesc} setting`">
+                  <figure class="control" role="none">
                     <label :for="`${field.key}Select`">{{ field.label }} <a v-if="field.definition"
                         :href='field.glossary_link'>{{ field.definition }}</a></label>
 
@@ -920,6 +920,7 @@ const singleModeDialogOffered = ref(false)
 const isSingleModeDialogOpen = ref(false)
 const singleModeDialogLastFocusedEl = ref(null)
 const collapseButtonRef = ref(null)
+const resetSimplifiedButtonRef = ref(null)
 const singleModeSettingsContextMessage = ref('')
 const assistiveSimpleMode = ref(false)
 
@@ -1371,7 +1372,7 @@ function focusFirstSingleModeEditableControl() {
   }
 }
 
-function enableAssistiveSimpleMode() {
+function enableAssistiveSimpleMode({ focusWithinTool = true } = {}) {
   assistiveSimpleMode.value = true
   editModeView.value = false
   editable.value = true
@@ -1380,8 +1381,26 @@ function enableAssistiveSimpleMode() {
   singleModeSettingsContextMessage.value = 'Screen reader enhanced interface enabled. Settings are now shown as select fields.'
   localStorage.setItem(ASSISTIVE_SIMPLE_MODE_KEY, 'true')
 
+  if (focusWithinTool) {
+    nextTick(() => {
+      focusFirstSingleModeEditableControl()
+    })
+  }
+}
+
+function handleAssistiveScreenReaderButton() {
+  if (!assistiveSimpleMode.value) {
+    enableAssistiveSimpleMode()
+    return
+  }
+
   nextTick(() => {
-    focusFirstSingleModeEditableControl()
+    nextTick(() => {
+      const resetButton = resetSimplifiedButtonRef.value
+      if (resetButton && typeof resetButton.focus === 'function') {
+        resetButton.focus({ preventScroll: true })
+      }
+    })
   })
 }
 
@@ -3892,10 +3911,7 @@ function withQueryString(baseUrl) {
           }
 
           &::before {
-            counter-increment: question;
-            content: counter(question) '.';
-            display: inline-block;
-            margin-right: 0.5rem;
+            content: none;
           }
         }
 
@@ -4209,7 +4225,7 @@ function withQueryString(baseUrl) {
   .simplify-assistive-toggle {
     z-index: 9;
     padding-inline: 1rem !important;
-    margin: 0.5rem !important;
+    margin: 0.665rem !important;
   }
 
   .reset-simplified-interface-btn {
