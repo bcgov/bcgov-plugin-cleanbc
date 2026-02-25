@@ -60,6 +60,14 @@ const bcgovBlockThemePluginDomLoader = () => {
 
 		// Re-process external links added by the Block Theme.
 		const processExternalLinks = () => {
+			const splitTrailingPunctuation = (text = '') => {
+				const match = text.match(/^([\s\S]*?)([^\w\s[\]]+)$/);
+				if (!match) {
+					return { main: text, trailing: '' };
+				}
+				return { main: match[1], trailing: match[2] };
+			};
+
 			const observer = new MutationObserver((mutationsList, observer) => {
 				// Check if any links have been given the 'external' class.
 				const externalLinks = document.querySelectorAll('a.external:not(#postFilterApp a, #pqeasResults a, #contractorFilterApp a, .vue-card-content a)');
@@ -85,14 +93,18 @@ const bcgovBlockThemePluginDomLoader = () => {
 								const words = linkText.trim().split(' ');
 								const lastWord = words.pop();
 								const restOfText = words.join(' ');
+								const { main: lastWordMain, trailing: trailingPunctuation } = splitTrailingPunctuation(lastWord);
 		
 								const span = document.createElement('span');
 								span.classList.add('last-word', 'no-wrap');
-								span.textContent = lastWord;
+								span.textContent = lastWordMain;
 		
 								span.appendChild(svg);
 								link.innerHTML = `${restOfText} `;
 								link.appendChild(span);
+								if (trailingPunctuation) {
+									link.appendChild(document.createTextNode(trailingPunctuation));
+								}
 							}
 						}
 					});

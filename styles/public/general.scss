@@ -91,6 +91,10 @@ textarea {
 
 .external {
 
+	svg.external-link-icon {
+		margin-left: 0.1rem !important;
+	}
+
 	&:where([href^="tel"]),
 	&:where([href^="mailto"]) {
 

@@ -1,12 +1,13 @@
 ## 1.30.24 February 20-24, 2026
-– Improved single-mode disclosure semantics, focus behavior, and dialog accessibility.
-– Fixed single-mode heating guards so HP and HPWH settings do not conflict.
-– Added tests for single-mode eligibility behavior.
-– Reworked "Your home's details" for screen readers and removed roving-grid navigation.
-– Improved edit/select announcements, focus handoff, and duplicate readback handling.
-– Added Screen reader enhanced mode with skip/reset controls and simplified styling.
-– Updated skip flow to focus the reset control after enhanced mode is enabled.
-– Reduced duplicate archive-mode announcements by removing redundant semantics and label numbering.
+– Improved single-mode disclosure semantics, focus behavior, and dialog accessibility
+– Fixed single-mode heating guards so HP and HPWH settings do not conflict
+– Added tests for single-mode eligibility behavior
+– Reworked "Your home's details" for screen readers and removed roving-grid navigation
+– Improved edit/select announcements, focus handoff, and duplicate readback handling
+– Added Screen reader enhanced mode with skip/reset controls and simplified styling
+– Updated skip flow to focus the reset control after enhanced mode is enabled
+– Reduced duplicate archive-mode announcements by removing redundant semantics and label numbering
+– Updated PDF label/icon punctuation order so trailing punctuation always appears after the icon
 
 ## 1.30.23 February 19, 2026
 – Added new icons

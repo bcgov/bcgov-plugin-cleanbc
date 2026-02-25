@@ -165,24 +165,115 @@ const bcgovBlockThemePluginAccessibility = () => {
 			path.setAttribute('d', 'M320 480L64 480c-17.7 0-32-14.3-32-32L32 64c0-17.7 14.3-32 32-32l128 0 0 112c0 26.5 21.5 48 48 48l112 0 0 256c0 17.7-14.3 32-32 32zM240 160c-8.8 0-16-7.2-16-16l0-111.5c2.8 .7 5.4 2.1 7.4 4.2L347.3 152.6c2.1 2.1 3.5 4.6 4.2 7.4L240 160zM64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-284.1c0-12.7-5.1-24.9-14.1-33.9L254.1 14.1c-9-9-21.2-14.1-33.9-14.1L64 0zM208 240c0-8.8-7.2-16-16-16s-16 7.2-16 16l0 121.4-52.7-52.7c-6.2-6.2-16.4-6.2-22.6 0s-6.2 16.4 0 22.6l80 80c6.2 6.2 16.4 6.2 22.6 0l80-80c6.2-6.2 6.2-16.4 0-22.6s-16.4-6.2-22.6 0L208 361.4 208 240z');
 			pdfSvg.appendChild(path);
 
+			// Split trailing sentence punctuation so [PDF ...] + icon
+			// can be inserted immediately before punctuation.
+			const splitTrailingNonAlnum = (text = '') => {
+				const trailingWhitespaceMatch = text.match(/\s*$/);
+				const trailingWhitespace = trailingWhitespaceMatch ? trailingWhitespaceMatch[0] : '';
+				const withoutTrailingWhitespace = text.slice(0, text.length - trailingWhitespace.length);
+				// Exclude square brackets so we never move the closing "]" from "[PDF ...]".
+				const trailingNonAlnumMatch = withoutTrailingWhitespace.match(/([^\w\s[\]]+)$/);
+
+				if (!trailingNonAlnumMatch) {
+					return {
+						main: text,
+						trailing: ''
+					};
+				}
+
+				const trailingNonAlnum = trailingNonAlnumMatch[1];
+				return {
+					main: withoutTrailingWhitespace.slice(0, -trailingNonAlnum.length),
+					trailing: `${trailingNonAlnum}${trailingWhitespace}`
+				};
+			};
+
+			// Get the last text node in DOM order so punctuation in nested elements is detected too.
+			const getLastTextNode = (root) => {
+				const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+				let lastTextNode = null;
+				let currentNode = walker.nextNode();
+				while (currentNode) {
+					lastTextNode = currentNode;
+					currentNode = walker.nextNode();
+				}
+				return lastTextNode;
+			};
+
+			// Ensure any trailing punctuation ends up after the injected icon.
+			const moveTrailingPunctuationAfterIcon = (container, icon) => {
+				let candidateTextNode = null;
+				let sibling = icon.previousSibling;
+
+				while (sibling && !candidateTextNode) {
+					if (Node.TEXT_NODE === sibling.nodeType && (sibling.nodeValue || '').trim()) {
+						candidateTextNode = sibling;
+						break;
+					}
+					if (Node.ELEMENT_NODE === sibling.nodeType) {
+						const nestedTextNode = getLastTextNode(sibling);
+						if (nestedTextNode && (nestedTextNode.nodeValue || '').trim()) {
+							candidateTextNode = nestedTextNode;
+							break;
+						}
+					}
+					sibling = sibling.previousSibling;
+				}
+
+				if (!candidateTextNode) {
+					return;
+				}
+
+				const { main, trailing } = splitTrailingNonAlnum(candidateTextNode.nodeValue || '');
+				if (!trailing) {
+					return;
+				}
+
+				candidateTextNode.nodeValue = main;
+				container.insertBefore(document.createTextNode(trailing), icon.nextSibling);
+			};
+
 			const span = link.querySelector('span.last-word.no-wrap');
 
 			if (span) {
 				const existingSvg = span.querySelector('svg');
-				const labelNode = document.createTextNode(labelText);
+				const textNodes = Array.from(span.childNodes).filter(node => Node.TEXT_NODE === node.nodeType);
+				const textNode = textNodes.length > 0 ? textNodes[textNodes.length - 1] : document.createTextNode('');
+				const { main, trailing } = splitTrailingNonAlnum(textNode.nodeValue || '');
+				textNode.nodeValue = main;
+				if (!textNode.parentNode) {
+					span.insertBefore(textNode, existingSvg || null);
+				}
 
 				if (existingSvg) {
-					span.insertBefore(labelNode, existingSvg);
+					span.insertBefore(document.createTextNode(labelText), existingSvg);
 					existingSvg.replaceWith(pdfSvg);
 				} else {
-					span.appendChild(labelNode);
+					span.appendChild(document.createTextNode(labelText));
 					span.appendChild(pdfSvg);
 				}
+
+				if (trailing) {
+					span.insertBefore(document.createTextNode(trailing), pdfSvg.nextSibling);
+				}
+				moveTrailingPunctuationAfterIcon(span, pdfSvg);
 			} else {
-				// No special span — fall back to appending at end of link.
+				// No special span — fall back to appending at end of link, but
+				// insert before trailing non-alphanumeric punctuation if present.
+				const textNode = getLastTextNode(link) || document.createTextNode('');
+				const { main, trailing } = splitTrailingNonAlnum(textNode.nodeValue || '');
+				textNode.nodeValue = main;
+				if (!textNode.parentNode) {
+					link.appendChild(textNode);
+				}
+
 				link.classList.add('external');
 				link.appendChild(document.createTextNode(labelText));
 				link.appendChild(pdfSvg);
+				if (trailing) {
+					link.appendChild(document.createTextNode(trailing));
+				}
+				moveTrailingPunctuationAfterIcon(link, pdfSvg);
 			}
 		};
 
