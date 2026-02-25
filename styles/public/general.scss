@@ -92,7 +92,12 @@ textarea {
 .external {
 
 	svg.external-link-icon {
-		margin-left: 0.1rem !important;
+		margin-left: 0.2rem !important;
+	}
+
+	svg.pdf-download-icon {
+		fill: currentcolor;
+		margin-left: 0.1rem;
 	}
 
 	&:where([href^="tel"]),

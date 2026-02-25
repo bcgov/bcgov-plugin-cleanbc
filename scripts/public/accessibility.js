@@ -156,7 +156,7 @@ const bcgovBlockThemePluginAccessibility = () => {
 
 			// Create the new PDF icon <svg>.
 			const pdfSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-			pdfSvg.setAttribute('class', 'external-link-icon');
+			pdfSvg.setAttribute('class', 'pdf-download-icon');
 			pdfSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
 			pdfSvg.setAttribute('style', 'width: 20px; height: 20px; top: 4px; position: relative;');
 			pdfSvg.setAttribute('viewBox', '0 0 384 512');
