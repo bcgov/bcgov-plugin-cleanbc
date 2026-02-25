@@ -29,28 +29,15 @@
         @cancel.prevent="closeSingleModeDialog">
         <div class="dialog-content">
           <h2 id="single-mode-dialog-title" tabindex="0" ref="singleModeDialogHeadingRef">
-            Woops! This page doesn’t match your home details.
+            {{ singleModeDialogTitle }}
           </h2>
-          <template v-if="singleModeMurbIneligible">
-            <p id="single-mode-dialog-desc">
-              Sorry! Apartments and condos with oil, propane or natural gas heating aren’t eligible for individual rebates.
-            </p>
-            <p>Try the <a href="https://www.bchydro.com/powersmart/stratas-housing-providers/condo-rental-building/multi-unit-residential-building-retrofit-program.html">BC Hydro multi-unit building retrofit program</a>.</p>
-          </template>
-          <template v-else>
-            <p id="single-mode-dialog-desc">These rebates are a better match:</p>
-            <ul v-if="singleModeDialogOptions.length">
-              <li v-for="item in singleModeDialogOptions" :key="item.key">
-                <a :href="item.href" class="rebate-title-link">
-                  <span class="rebate-title-headline">{{ item.combinedSentence }}</span>
-                </a>
-              </li>
-            </ul>
-          </template>
+          <p id="single-mode-dialog-desc">{{ singleModeDialogDescription }}</p>
           <div class="dialog-actions">
             <div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex" style="margin-top:1rem;margin-bottom:0rem">
-              <div class="wp-block-button has-size-regular is-style-outline"><a tabindex="0" href="#top" class="wp-block-button__link has-extra-small-font-size has-custom-font-size wp-element-button" @click="closeSingleModeDialog">Stay on this page</a></div>
-              <div class="wp-block-button has-size-regular is-style-fill"><a tabindex="0" class="wp-block-button__link has-extra-small-font-size has-custom-font-size wp-element-button" href="/find-rebates/">Return to the rebate questionnaire</a></div>
+              <div v-if="isChangeTriggeredAlternateModal" class="wp-block-button has-size-regular is-style-outline"><a tabindex="0" href="#top" class="wp-block-button__link has-extra-small-font-size has-custom-font-size wp-element-button" @click="closeSingleModeDialog">Stay here</a></div>
+              <div v-else class="wp-block-button has-size-regular is-style-outline"><a tabindex="0" class="wp-block-button__link has-extra-small-font-size has-custom-font-size wp-element-button" href="/find-rebates">Find rebates you might qualify for</a></div>
+              <div v-if="singleModeDialogVariant === 'invalid-query'" class="wp-block-button has-size-regular is-style-outline"><a tabindex="0" href="#top" class="wp-block-button__link has-extra-small-font-size has-custom-font-size wp-element-button" @click="closeSingleModeDialog">Continue to this page</a></div>
+              <div v-else-if="singleModeDialogVariant === 'alternate-rebate' && singleModeAlternateRebate" class="wp-block-button has-size-regular"><a tabindex="0" :href="singleModeAlternateRebate.href" class="wp-block-button__link has-extra-small-font-size has-custom-font-size wp-element-button is-style-">{{ singleModeAlternateButtonLabel }}</a></div>
             </div>
           </div>
         </div>
@@ -535,7 +522,7 @@
 // See vNextRebateVueApp.docs.js for full JSDoc reference.
 import { computed, ref, nextTick, onMounted, onBeforeUnmount, watch } from 'vue'
 import {
-  hasRelevantSingleModeIneligibleHeating,
+  isHeatPumpRebatePage,
   isGroundOrientedHeatPumpIneligible,
   isHeatPumpWaterHeaterRebatePage,
   shouldForceElectricHpError,
@@ -693,6 +680,45 @@ function debounce(fn, delay = 500) {
     clearTimeout(timer)
     timer = setTimeout(() => fn(...args), delay)
   }
+}
+
+const singleModeDebugEnabled = computed(() => {
+  if (typeof window === 'undefined') return false
+  try {
+    const params = new URLSearchParams(window.location.search)
+    return (
+      params.get('single_mode_debug') === '1' ||
+      window.localStorage.getItem('singleModeDebug') === '1'
+    )
+  } catch (e) {
+    return false
+  }
+})
+
+function logSingleModeDebug(event, extra = {}) {
+  if (!singleModeDebugEnabled.value) return
+  const payload = {
+    event,
+    mode: mode.value,
+    isReadyToRender: isReadyToRender.value,
+    hasInitialQuery: singleModeHasInitialQueryString.value,
+    pageKind: singleModePageRebateKind.value,
+    primaryFieldsComplete: singleModePrimaryFieldsCompleteForCurrentPage.value,
+    currentPageInVerifiedResults: singleModeCurrentPageInVerifiedResults.value,
+    queryInvalidOnLoad: singleModeQueryInvalidOnPageLoad.value,
+    currentPath: currentPagePathname.value,
+    alternateCount: singleModeAlternateRebateOptions.value.length,
+    alternateHref: singleModeAlternateRebate.value?.href || '',
+    selected: {
+      buildingGroup: selectedBuildingGroupSlug.value,
+      heating: selectedHeatingSlug.value,
+      waterHeating: selectedWaterHeatingSlug.value
+    },
+    ...extra
+  }
+  console.groupCollapsed(`[single-mode-debug] ${event}`)
+  console.table(payload)
+  console.groupEnd()
 }
 
 const debouncedUpdateRebateDetails = debounce(updateRebateDetails, 500)
@@ -911,18 +937,25 @@ const pageRebateType = ref('')
 // -- Mode (archive|single) --
 const mode = ref('archive')
 const heatPumpWaterHeaterRebateSlug = 'heat-pump-water-heater-rebates'
+const heatPumpRebateSlug = 'heat-pump-rebates'
 const singleModeRebateTypeClass = ref('')
 const isReadyToRender = ref(false)
 const singleModeDialogRef = ref(null)
 const singleModeDialogHeadingRef = ref(null)
-const singleModeDialogDismissed = ref(false)
-const singleModeDialogOffered = ref(false)
+const singleModeDialogVariant = ref('')
 const isSingleModeDialogOpen = ref(false)
 const singleModeDialogLastFocusedEl = ref(null)
 const collapseButtonRef = ref(null)
 const resetSimplifiedButtonRef = ref(null)
 const singleModeSettingsContextMessage = ref('')
 const assistiveSimpleMode = ref(false)
+const singleModeHasInitialQueryString = ref(null)
+const singleModePageLoadDialogHandled = ref(false)
+const singleModePageLoadDialogChecking = ref(false)
+const singleModeFirstFilterChangeDialogShown = ref(false)
+const singleModeFirstFilterChangeChecking = ref(false)
+const singleModeAlternateDialogChangeField = ref('')
+const singleModeAlternateDialogSource = ref('')
 
 // Focus map for selects 
 const selectRefs = ref({})
@@ -1095,13 +1128,140 @@ const singleModePageEligible = computed(() => {
   })
 })
 
-const singleModeDialogOptions = computed(() => {
-  const currentPath = typeof window !== 'undefined'
-    ? window.location.pathname
+const singleModePageRebateKind = computed(() => {
+  const pageRebateClass = String(singleModeRebateTypeClass.value || '').toLowerCase()
+  const pageRebateTypeText = String(pageRebateType.value || '').toLowerCase()
+  const isHeatPumpWaterHeaterPage = isHeatPumpWaterHeaterRebatePage({
+    pageRebateClass,
+    pageRebateTypeText,
+    hpwhRebateSlug: heatPumpWaterHeaterRebateSlug
+  })
+  if (isHeatPumpWaterHeaterPage) return 'hpwh'
+
+  const isHeatPumpPage = isHeatPumpRebatePage({
+    pageRebateClass,
+    pageRebateTypeText
+  })
+  if (isHeatPumpPage) return 'hp'
+
+  return ''
+})
+
+const normalizedSelectedRoomHeatingForAlternate = computed(() =>
+  normalizeHeatingSlug(selectedHeatingSlug.value || selectedHeatingName.value)
+)
+
+const normalizedSelectedWaterHeatingForAlternate = computed(() =>
+  normalizeHeatingSlug(selectedWaterHeatingSlug.value || selectedWaterHeatingName.value)
+)
+
+const normalizedSelectedBuildingGroupForAlternate = computed(() =>
+  String(selectedBuildingGroupSlug.value || '').toLowerCase().trim()
+)
+
+const currentPagePathname = computed(() =>
+  typeof window !== 'undefined'
+    ? String(window.location.pathname || '')
     : ''
+)
+
+const currentPageRebateItem = computed(() => {
+  const pagePath = currentPagePathname.value
+  if (!pagePath) return null
+
+  return api.value.results.find((item) => {
+    const rawUrl = item?.post_url ?? item?.url ?? ''
+    if (!rawUrl) return false
+    try {
+      const itemPath = new URL(rawUrl, window.location.origin).pathname
+      return itemPath === pagePath
+    } catch (e) {
+      return false
+    }
+  }) || null
+})
+
+const currentPageAllowedTypeSlugsForAlternate = computed(() => {
+  const fromDataset = String(pageBuildingGroup.value || '').toLowerCase().trim()
+  if (fromDataset) return [fromDataset]
+
+  const itemTypes = Array.isArray(currentPageRebateItem.value?.types)
+    ? currentPageRebateItem.value.types
+        .map(t => String(t?.slug || '').toLowerCase().trim())
+        .filter(Boolean)
+    : []
+
+  return itemTypes
+})
+
+const currentPageTypeEligibleForAlternate = computed(() => {
+  const pageGroups = currentPageAllowedTypeSlugsForAlternate.value
+  if (pageGroups.length === 0) return true
+  if (!normalizedSelectedBuildingGroupForAlternate.value) return false
+  return pageGroups.includes(normalizedSelectedBuildingGroupForAlternate.value)
+})
+
+const currentPageRoomHeatingEligibleForAlternate = computed(() => {
+  const selected = normalizedSelectedRoomHeatingForAlternate.value
+  if (!selected) return false
+
+  const allowed = Array.isArray(pageHeatingTypes.value)
+    ? pageHeatingTypes.value
+        .flatMap(item => extractHeatingTokens(item))
+        .filter(Boolean)
+    : []
+  if (allowed.length === 0) return true
+  return allowed.includes(selected)
+})
+
+const currentPageWaterHeatingEligibleForAlternate = computed(() => {
+  const selected = normalizedSelectedWaterHeatingForAlternate.value
+  if (!selected) return false
+
+  const allowed = extractHeatingTokens(pageWaterHeatingType.value).filter(Boolean)
+  if (allowed.length === 0) return true
+  return allowed.includes(selected)
+})
+
+const singleModeCurrentPageEligibleForPrimaryFields = computed(() => {
+  if (mode.value !== 'single') return true
+  if (!currentPageTypeEligibleForAlternate.value) return false
+  if (singleModePageRebateKind.value === 'hp') {
+    return currentPageRoomHeatingEligibleForAlternate.value
+  }
+  if (singleModePageRebateKind.value === 'hpwh') {
+    return currentPageWaterHeatingEligibleForAlternate.value
+  }
+  return true
+})
+
+const singleModePrimaryFieldsCompleteForCurrentPage = computed(() => {
+  if (mode.value !== 'single') return false
+  if (!normalizedSelectedBuildingGroupForAlternate.value) return false
+  if (singleModePageRebateKind.value === 'hp') {
+    return !!normalizedSelectedRoomHeatingForAlternate.value
+  }
+  if (singleModePageRebateKind.value === 'hpwh') {
+    return !!normalizedSelectedWaterHeatingForAlternate.value
+  }
+  return false
+})
+
+const singleModeAlternateRebateOptions = computed(() => {
+  if (mode.value !== 'single') return []
+  if (singleModePageRebateKind.value === '') return []
+
+  const currentPath = currentPagePathname.value
   const seen = new Set()
 
+  // Use already-verified eligibility output and then pick same-type alternates only.
   return filteredResults.value.reduce((acc, item, index) => {
+    const itemClass = normalizeRebateLabel(item.rebate_type_class)
+    const isSameType =
+      (singleModePageRebateKind.value === 'hp' && itemClass === heatPumpRebateSlug) ||
+      (singleModePageRebateKind.value === 'hpwh' && itemClass === heatPumpWaterHeaterRebateSlug)
+    if (!isSameType) return acc
+
     const rawUrl = item.post_url ?? item.url ?? ''
     if (!rawUrl) return acc
 
@@ -1136,43 +1296,90 @@ const singleModeDialogOptions = computed(() => {
   }, [])
 })
 
-const singleModeMurbIneligible = computed(() => {
-  if (mode.value !== 'single') return false
-  if (selectedBuildingGroupSlug.value !== 'murb') return false
+const singleModeCurrentPageInVerifiedResults = computed(() => {
+  const currentPath = currentPagePathname.value
+  if (!currentPath) return false
 
-  const pageRebateTypeText = String(pageRebateType.value || '').toLowerCase()
-  const pageRebateClass = String(singleModeRebateTypeClass.value || '').toLowerCase()
-  const isHeatPumpWaterHeaterPage = isHeatPumpWaterHeaterRebatePage({
-    pageRebateClass,
-    pageRebateTypeText,
-    hpwhRebateSlug: heatPumpWaterHeaterRebateSlug
+  return filteredResults.value.some((item) => {
+    const rawUrl = item.post_url ?? item.url ?? ''
+    if (!rawUrl) return false
+    try {
+      const itemPath = new URL(rawUrl, window.location.origin).pathname
+      return itemPath === currentPath
+    } catch (e) {
+      return false
+    }
   })
-
-  const normalizedHeating = normalizeHeatingSlug(selectedHeatingName.value)
-  const normalizedWaterHeating = normalizeHeatingSlug(selectedWaterHeatingName.value)
-  const hasIneligibleHeating = ['gas', 'oil'].includes(normalizedHeating)
-  const hasIneligibleWaterHeating = ['gas', 'oil'].includes(normalizedWaterHeating)
-
-  const hasRelevantIneligibleHeating = hasRelevantSingleModeIneligibleHeating({
-    isHeatPumpWaterHeaterRebatePage: isHeatPumpWaterHeaterPage,
-    hasIneligibleHeating,
-    hasIneligibleWaterHeating
-  })
-
-  return filteredResults.value.length === 0 && hasRelevantIneligibleHeating
 })
 
-const singleModeDialogEligible = computed(() => {
+const singleModeQueryInvalidOnPageLoad = computed(() => {
   if (mode.value !== 'single') return false
-  if (!isReadyToRender.value) return false
-  if (!hasAllSelection.value) return false
-  if (!singleModeMurbIneligible.value) {
-    if (filteredResults.value.length === 0) return false
-    if (singleModeDialogOptions.value.length === 0) return false
-    if (singleModePageEligible.value && !hasAnyError.value) return false
+  if (singleModeHasInitialQueryString.value === null) return false
+  if (!singleModeHasInitialQueryString.value) return false
+  if (!singleModePrimaryFieldsCompleteForCurrentPage.value) return false
+  return !singleModeCurrentPageInVerifiedResults.value
+})
+
+const singleModeAlternateRebate = computed(() =>
+  singleModeAlternateRebateOptions.value.length > 0
+    ? singleModeAlternateRebateOptions.value[0]
+    : null
+)
+
+const singleModeDialogTitle = computed(() => {
+  if (singleModeDialogVariant.value === 'alternate-rebate') {
+    if (singleModeAlternateDialogSource.value !== 'change') {
+      return 'You aren’t eligible for these rebates'
+    }
+    const field = singleModeAlternateDialogChangeField.value
+    const label =
+      field === 'building'
+        ? 'home'
+        : field === 'water'
+          ? 'water heating'
+          : field === 'heating'
+            ? 'heating'
+            : 'home'
+    return `You changed the ${label} type`
   }
-  return true
+  return 'Your home details don’t match this rebate'
 })
+
+const singleModeDialogDescription = computed(() => {
+  if (singleModeDialogVariant.value === 'alternate-rebate') {
+    if (singleModeAlternateDialogSource.value === 'change') {
+      const pageTitle = String(
+        currentPageRebateItem.value?.title ||
+        pageRebateType.value ||
+        ''
+      ).trim().toLowerCase() || 'this rebate page'
+      return `Rebates are organized by home and heating type. This rebate is for ${pageTitle}.`
+    }
+    return 'Rebates are organized by heating and home type.'
+  }
+  return 'Rebates are organized by home and heating type. Your home’s details don’t match the rebates on this page.'
+})
+
+const singleModeAlternateButtonLabel = computed(() => {
+  if (singleModeAlternateDialogSource.value !== 'change') {
+    return 'Continue to an eligble rebate'
+  }
+  const field = singleModeAlternateDialogChangeField.value
+  const label =
+    field === 'building'
+      ? 'home'
+      : field === 'water'
+        ? 'water heating'
+        : field === 'heating'
+          ? 'heating'
+          : 'home'
+  return `Go to the rebate for the new ${label} type`
+})
+
+const isChangeTriggeredAlternateModal = computed(() =>
+  singleModeDialogVariant.value === 'alternate-rebate' &&
+  singleModeAlternateDialogSource.value === 'change'
+)
 
 const hasAnyError = computed(() => {
   const hasFieldError = Object.values(fieldErrors.value).some(Boolean)
@@ -1201,18 +1408,30 @@ function openSingleModeDialog() {
   }
 }
 
+function openSingleModeDialogVariant(variant) {
+  if (!variant) return
+  if (variant !== 'alternate-rebate') {
+    singleModeAlternateDialogChangeField.value = ''
+    singleModeAlternateDialogSource.value = ''
+  }
+  singleModeDialogVariant.value = variant
+  nextTick(() => {
+    openSingleModeDialog()
+  })
+}
+
 function closeSingleModeDialog(e) {
   e?.preventDefault?.()
   const dialog = singleModeDialogRef.value
   if (dialog?.open) {
     dialog.close()
   }
-  singleModeDialogDismissed.value = true
 }
 
 function handleSingleModeDialogClosed() {
   isSingleModeDialogOpen.value = false
-  singleModeDialogDismissed.value = true
+  singleModeAlternateDialogChangeField.value = ''
+  singleModeAlternateDialogSource.value = ''
   const previouslyFocused = singleModeDialogLastFocusedEl.value
   nextTick(() => {
     if (
@@ -1234,22 +1453,75 @@ function handleSingleModeDialogClosed() {
   })
 }
 
-watch(
-  singleModeDialogEligible,
-  (now, prev) => {
-    if (!now) return
-    if (singleModeDialogDismissed.value) return
-    if (singleModeDialogOffered.value) return
-    if (!prev && now) {
-      nextTick(() => {
-        if (openSingleModeDialog()) {
-          singleModeDialogOffered.value = true
-        }
-      })
-    }
-  },
-  { immediate: true }
-)
+async function maybeOpenSingleModeInvalidQueryDialogOnLoad() {
+  logSingleModeDebug('load-check:start')
+  if (mode.value !== 'single') return
+  if (singleModePageLoadDialogHandled.value) return
+  if (singleModePageLoadDialogChecking.value) return
+  if (!isReadyToRender.value) return
+  if (singleModeHasInitialQueryString.value === null) {
+    logSingleModeDebug('load-check:exit-query-unresolved')
+    return
+  }
+  if (!singleModeHasInitialQueryString.value) {
+    singleModePageLoadDialogHandled.value = true
+    logSingleModeDebug('load-check:exit-no-query')
+    return
+  }
+  if (!singleModePrimaryFieldsCompleteForCurrentPage.value) {
+    logSingleModeDebug('load-check:exit-primary-incomplete')
+    return
+  }
+
+  singleModePageLoadDialogChecking.value = true
+  await nextTick()
+  await nextTick()
+
+  singleModePageLoadDialogChecking.value = false
+  singleModePageLoadDialogHandled.value = true
+  if (!singleModeQueryInvalidOnPageLoad.value) {
+    logSingleModeDebug('load-check:exit-not-invalid')
+    return
+  }
+
+  // On page load, if we can identify a same-type eligible alternate, use that branch.
+  if (singleModeAlternateRebate.value) {
+    singleModeAlternateDialogSource.value = 'load'
+    logSingleModeDebug('load-check:open-alternate-modal')
+    openSingleModeDialogVariant('alternate-rebate')
+    return
+  }
+
+  logSingleModeDebug('load-check:open-invalid-modal')
+  openSingleModeDialogVariant('invalid-query')
+}
+
+async function maybeOpenSingleModeAlternateRebateDialog(changeField = '') {
+  logSingleModeDebug('first-change-check:start')
+  if (mode.value !== 'single') return
+  if (singleModeFirstFilterChangeDialogShown.value) return
+  if (singleModeFirstFilterChangeChecking.value) return
+  singleModeFirstFilterChangeChecking.value = true
+
+  // Ensure computed eligibility/results are based on the latest edited field value.
+  await nextTick()
+  await nextTick()
+
+  singleModeFirstFilterChangeChecking.value = false
+  if (singleModeCurrentPageInVerifiedResults.value) {
+    logSingleModeDebug('first-change-check:exit-current-page-valid')
+    return
+  }
+  if (!singleModeAlternateRebate.value) {
+    logSingleModeDebug('first-change-check:exit-no-alternate')
+    return
+  }
+  logSingleModeDebug('first-change-check:open-alternate-modal')
+  singleModeAlternateDialogSource.value = 'change'
+  singleModeAlternateDialogChangeField.value = changeField
+  singleModeFirstFilterChangeDialogShown.value = true
+  openSingleModeDialogVariant('alternate-rebate')
+}
 
 /**
  * Toggle visibility of field labels.
@@ -1528,6 +1800,10 @@ const handleLocationInputCommit = debounce(async (trigger = 'change') => {
       }
     })
 
+    if (mode.value === 'single') {
+      maybeOpenSingleModeAlternateRebateDialog('location')
+    }
+
     // NEW: mirror select behaviour in archive mode
     await runArchiveFlowForField('location')
   } else {
@@ -1591,6 +1867,7 @@ async function handleSelectChange(fieldKey, newValue) {
     }
 
     singleModeSettingsContextMessage.value = `${fieldName} updated to ${selectedText}.`
+    maybeOpenSingleModeAlternateRebateDialog(fieldKey)
     isSavingEditMode.value = false
     return
   }
@@ -2103,6 +2380,7 @@ onMounted(async () => {
     api.value = await res.json()
 
     const params = new URLSearchParams(window.location.search)
+    singleModeHasInitialQueryString.value = params.toString().length > 0
     const hasTool = params.get('tool') === 'rebates'
     const saved = localStorage.getItem('rebateToolSettings')
 
@@ -2134,6 +2412,7 @@ onMounted(async () => {
     }
 
     isReadyToRender.value = true
+    maybeOpenSingleModeInvalidQueryDialogOnLoad()
 
     // Bootstrap completes here.
     bootstrapped.value = true
@@ -2155,7 +2434,45 @@ onMounted(async () => {
       { deep: true }
     )
 
-    watch(homeValueOptions, async newVal => {
+    watch(homeValueOptions, async (newVal, oldVal = []) => {
+      const previousSlug = selectedHomeValueSlug.value
+      const hasCurrentSelection = Boolean(previousSlug)
+      const currentSelectionStillValid =
+        hasCurrentSelection && newVal.some(o => o.slug === previousSlug)
+
+      if (currentSelectionStillValid) return
+
+      if (mode.value === 'single') {
+        if (newVal.length === 0) {
+          selectedHomeValueSlug.value = ''
+          return
+        }
+
+        // In single mode, avoid a second forced step after home-type changes.
+        // Keep user intent where possible by mapping under/over style choices.
+        const oldOptions = Array.isArray(oldVal) ? oldVal : []
+        const previousOption = oldOptions.find(o => o.slug === previousSlug) || null
+        const previousText = String(
+          previousOption?.slug || previousOption?.name || previousSlug || ''
+        ).toLowerCase()
+
+        let mapped = null
+        if (previousText.includes('under') || previousText.includes('less')) {
+          mapped = newVal.find((o) => {
+            const t = String(o?.slug || o?.name || '').toLowerCase()
+            return t.includes('under') || t.includes('less')
+          }) || null
+        } else if (previousText.includes('over') || previousText.includes('more')) {
+          mapped = newVal.find((o) => {
+            const t = String(o?.slug || o?.name || '').toLowerCase()
+            return t.includes('over') || t.includes('more')
+          }) || null
+        }
+
+        selectedHomeValueSlug.value = mapped?.slug || newVal[0].slug || ''
+        return
+      }
+
       if (!selectedHomeValueSlug.value && newVal.length > 0) {
         // force remount and focus.
         fieldRenderKeys.value.homeValue++
@@ -3657,6 +3974,14 @@ const filteredResults = computed(() => {
     return nameA.localeCompare(nameB)
   })
 })
+
+watch(
+  [mode, isReadyToRender, singleModePrimaryFieldsCompleteForCurrentPage, () => filteredResults.value.length],
+  () => {
+    void maybeOpenSingleModeInvalidQueryDialogOnLoad()
+  },
+  { immediate: true }
+)
 
 // Archive UX: default to list view when results narrow to a single card.
 watch(

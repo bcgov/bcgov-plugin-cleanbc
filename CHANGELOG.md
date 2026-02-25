@@ -1,3 +1,8 @@
+## 1.30.25 February 25, 2026
+– Refined single-mode dialog decision branches for load and first-change scenarios
+– Updated same-type alternate routing in single mode to use verified eligibility results
+– Added dynamic change-modal copy/actions (context-aware title/content/button labels) and stabilized modal state handling
+
 ## 1.30.24 February 20-24, 2026
 – Improved single-mode disclosure semantics, focus behavior, and dialog accessibility
 – Fixed single-mode heating guards so HP and HPWH settings do not conflict
