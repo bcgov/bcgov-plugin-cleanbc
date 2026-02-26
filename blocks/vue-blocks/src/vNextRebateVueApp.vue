@@ -287,7 +287,7 @@
                   <div class='num-label'></div>
                   <figure class="control" role="none">
                     <label :for="`${field.key}Select`">{{ field.label }} <a v-if="field.definition"
-                        :href='field.glossary_link'>{{ field.definition }}</a></label>
+                        :href='field.glossary_link' :class="{ wide: field.glossary_wide }">{{ field.definition }}</a></label>
 
                     <!-- Location input -->
                     <template v-if="field.key === 'location'">
@@ -2207,6 +2207,9 @@ const fields = computed(() => [
     //   'Changing between Ground Oriented / MURB types will require you to update the assessed property value information.',
     error_desc:
       'Only the listed home types are currently eligible for Better Homes rebates. <strong><a href="/get-support/" style="color: #8b0000;">Contact an Energy Coach</a></strong> to find out if your home type fits into one of these categories.',
+    definition: 'What type of home do you live in?',
+    glossary_link: '/definitions/home-types/',
+    glossary_wide: true,
     isInvalid: () => selectedBuildingTypeSlug.value === 'other'
   },
   {
@@ -2289,6 +2292,16 @@ const fields = computed(() => [
     isInvalid: () => !selectedWaterHeatingSlug.value || selectedWaterHeatingSlug.value === 'other'
   },
   {
+    key: 'gas',
+    shortDesc: 'Natural gas or propane',
+    label: 'Who is your gas or propane provider?',
+    model: selectedGasSlug,
+    options: gasOptions.value,
+    displayValue: selectedGasName.value,
+    missingMessage: 'Missing service details',
+    isInvalid: () => !selectedGasSlug.value
+  },
+  {
     key: 'utility',
     shortDesc: 'Electric utility company',
     label: 'Who is your electricity provider?',
@@ -2299,16 +2312,6 @@ const fields = computed(() => [
     error_desc:
       'Your electricity must be from one of the listed providers. <strong><a href="/get-support/" style="color: #8b0000;">Contact an Energy Coach</a></strong> if you have questions or need help figuring out who your provider is. ',
     isInvalid: () => !selectedUtilitySlug.value || selectedUtilitySlug.value === 'other'
-  },
-  {
-    key: 'gas',
-    shortDesc: 'Natural gas or propane',
-    label: 'Who is your gas or propane provider?',
-    model: selectedGasSlug,
-    options: gasOptions.value,
-    displayValue: selectedGasName.value,
-    missingMessage: 'Missing service details',
-    isInvalid: () => !selectedGasSlug.value
   }
 ])
 

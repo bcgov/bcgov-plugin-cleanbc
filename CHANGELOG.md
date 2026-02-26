@@ -1,3 +1,8 @@
+## 1.30.26 February 26, 2026
+– Added wide modal injection for home types in questionnaire
+– Removed archive mode find-rebates page details injection
+– Reordered questionnaire form fields
+
 ## 1.30.25 February 25, 2026
 – Refined single-mode dialog decision branches for load and first-change scenarios
 – Updated same-type alternate routing in single mode to use verified eligibility results
