@@ -143,7 +143,34 @@ export const bcgovBlockThemePluginDefnitions = () => {
          */
         const showDialog = () => {
             const dialog = document.getElementById('dialog');
+            setBodyScrollLock(true);
             dialog.showModal();
+        }
+
+        const setBodyScrollLock = (isLocked) => {
+            const html = document.documentElement;
+            const body = document.body;
+
+            if (!html || !body) {
+                return;
+            }
+
+            if (isLocked) {
+                html.style.margin = '0';
+                html.style.height = '100%';
+                html.style.overflow = 'hidden';
+                body.style.margin = '0';
+                body.style.height = '100%';
+                body.style.overflow = 'hidden';
+                return;
+            }
+
+            html.style.margin = '';
+            html.style.height = '';
+            html.style.overflow = '';
+            body.style.margin = '';
+            body.style.height = '';
+            body.style.overflow = '';
         }
 
         const setDialogWidth = (isWide) => {
@@ -191,6 +218,7 @@ export const bcgovBlockThemePluginDefnitions = () => {
 
                 dialog.addEventListener('close', () => {
                     setDialogWidth(false);
+                    setBodyScrollLock(false);
                 });
             }
 

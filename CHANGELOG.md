@@ -2,6 +2,7 @@
 – Added wide modal injection for home types in questionnaire
 – Removed archive mode find-rebates page details injection
 – Reordered questionnaire form fields
+– Set scroll lock on body when definitions modal is opened
 
 ## 1.30.25 February 25, 2026
 – Refined single-mode dialog decision branches for load and first-change scenarios
