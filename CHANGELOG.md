@@ -1,6 +1,7 @@
 ## 1.30.27 February 27, 2026
 – Updated search omission rules for Definitions to exclude posts tagged 'hide-from-search'
 – Updated single-mode alternate rebate modal links to set destination URL state to valid
+– Added modal scroll lock position reset after close
 
 ## 1.30.26 February 26, 2026
 – Added wide modal injection for home types in questionnaire
