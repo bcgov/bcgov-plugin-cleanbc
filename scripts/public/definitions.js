@@ -156,36 +156,23 @@ export const bcgovBlockThemePluginDefnitions = () => {
             }
 
             if (isLocked) {
-                const scrollY = window.scrollY || window.pageYOffset || 0;
-                body.dataset.dialogScrollY = String(scrollY);
-                html.style.margin = '0';
-                html.style.height = '100%';
                 html.style.overflow = 'hidden';
                 body.style.margin = '0';
                 body.style.height = '100%';
                 body.style.overflow = 'hidden';
-                body.style.position = 'fixed';
-                body.style.top = `-${scrollY}px`;
                 body.style.left = '0';
                 body.style.right = '0';
                 body.style.width = '100%';
                 return;
             }
 
-            const savedScrollY = Number.parseInt(body.dataset.dialogScrollY || '0', 10) || 0;
-            delete body.dataset.dialogScrollY;
-            html.style.margin = '';
-            html.style.height = '';
             html.style.overflow = '';
             body.style.margin = '';
             body.style.height = '';
             body.style.overflow = '';
-            body.style.position = '';
-            body.style.top = '';
             body.style.left = '';
             body.style.right = '';
             body.style.width = '';
-            window.scrollTo(0, savedScrollY);
         }
 
         const setDialogWidth = (isWide) => {
