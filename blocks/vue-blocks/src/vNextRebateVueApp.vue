@@ -1335,7 +1335,7 @@ const singleModeAlternateRebateOptions = computed(() => {
 
     acc.push({
       key: item.id ?? `${index}-${rawUrl}`,
-      href: withQueryString(rawUrl),
+      href: withQueryString(rawUrl, { state: 'valid' }),
       combinedSentence: toSentenceCase(combinedRaw)
     })
     seen.add(rawUrl)
@@ -4207,15 +4207,31 @@ watch(
 /**
  * Return a URL with the current query string appended.
  */
-function withQueryString(baseUrl) {
+function withQueryString(baseUrl, queryOverrides = null) {
   if (!baseUrl) return '#'
   const qs = assembledQueryString.value
-  if (!qs) return baseUrl
+  if (!qs && !queryOverrides) return baseUrl
   try {
     const urlObj = new URL(baseUrl, window.location.origin)
-    return urlObj.origin + urlObj.pathname + qs
+    const params = new URLSearchParams((qs || '').replace(/^\?/, ''))
+
+    if (queryOverrides && typeof queryOverrides === 'object') {
+      Object.entries(queryOverrides).forEach(([key, value]) => {
+        if (value === null || value === undefined || value === '') {
+          params.delete(key)
+          return
+        }
+
+        params.set(key, String(value))
+      })
+    }
+
+    const queryString = params.toString()
+    return queryString
+      ? `${urlObj.origin}${urlObj.pathname}?${queryString}`
+      : `${urlObj.origin}${urlObj.pathname}`
   } catch (e) {
-    return baseUrl + qs
+    return baseUrl + (qs || '')
   }
 }
 </script>

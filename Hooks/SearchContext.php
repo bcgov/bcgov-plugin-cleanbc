@@ -40,9 +40,11 @@ class SearchContext {
 	}
 
 	/**
-	 * Exclude pages from search when marked with a hide-from-search body class.
+	 * Exclude configured content from search when marked hide-from-search.
 	 *
-	 * This relies on a body-class meta field used by the theme or site configuration.
+	 * This currently supports:
+	 * - pages marked via body-class meta
+	 * - definitions posts tagged with setting=hide-from-search
 	 *
 	 * @since 1.30.12
 	 *
@@ -54,25 +56,70 @@ class SearchContext {
 			return;
 		}
 
-		if ( ! post_type_exists( 'page' ) ) {
-			return;
-		}
-
 		$post_types = $query->get( 'post_type' );
-		if ( ! empty( $post_types ) ) {
-			$post_types = (array) $post_types;
-			if ( ! in_array( 'page', $post_types, true ) ) {
-				return;
-			}
+		$post_types = empty( $post_types ) ? [] : (array) $post_types;
+		$hidden_ids = [];
+
+		$can_check_pages = post_type_exists( 'page' ) && ( empty( $post_types ) || in_array( 'page', $post_types, true ) );
+		if ( $can_check_pages ) {
+			$hidden_ids = array_merge( $hidden_ids, $this->bcgov_get_hide_from_search_ids( 'page' ) );
 		}
 
-		$hidden_ids = $this->bcgov_get_hide_from_search_ids( 'page' );
+		$can_check_definitions = post_type_exists( 'definitions' ) && ( empty( $post_types ) || in_array( 'definitions', $post_types, true ) );
+		if ( $can_check_definitions ) {
+			$hidden_ids = array_merge( $hidden_ids, $this->bcgov_get_hide_from_search_definitions_ids() );
+		}
+
 		if ( empty( $hidden_ids ) ) {
 			return;
 		}
 
 		$existing = (array) $query->get( 'post__not_in' );
 		$query->set( 'post__not_in', array_values( array_unique( array_merge( $existing, $hidden_ids ) ) ) );
+	}
+
+	/**
+	 * Fetch IDs for definitions posts tagged with setting=hide-from-search.
+	 *
+	 * @since 1.30.27
+	 *
+	 * @return int[] Array of post IDs.
+	 */
+	private function bcgov_get_hide_from_search_definitions_ids() {
+		static $cache = null;
+
+		if ( null !== $cache ) {
+			return $cache;
+		}
+
+		$taxonomy = '';
+		if ( taxonomy_exists( 'site-settings' ) ) {
+			$taxonomy = 'site-settings';
+		}
+
+		if ( '' === $taxonomy ) {
+			$cache = [];
+			return $cache;
+		}
+
+		$cache = get_posts(
+			[
+				'post_type'      => 'definitions',
+				'post_status'    => 'publish',
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+				'no_found_rows'  => true,
+				'tax_query'      => [
+					[
+						'taxonomy' => $taxonomy,
+						'field'    => 'slug',
+						'terms'    => [ 'hide-from-search' ],
+					],
+				],
+			]
+		);
+
+		return $cache;
 	}
 
 	/**
