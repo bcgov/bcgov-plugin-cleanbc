@@ -7,7 +7,7 @@
 – Improved single-mode mismatch checks to run from full form-state changes with queued re-checks during rapid edits
 – Added fallback invalid-query handling when no alternate rebate is available after a mismatch
 – Updated single-mode warning copy for installed heat pump selections and kept warning links inline
-– Fixed HP/HWHP no-results bug
+– Fixed HP/HWHP + no-results + injection bug
 
 ## 1.30.25 February 25, 2026
 – Refined single-mode dialog decision branches for load and first-change scenarios
