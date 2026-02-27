@@ -34,10 +34,30 @@
           <p id="single-mode-dialog-desc">{{ singleModeDialogDescription }}</p>
           <div class="dialog-actions">
             <div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex" style="margin-top:1rem;margin-bottom:0rem">
-              <div v-if="isChangeTriggeredAlternateModal" class="wp-block-button has-size-regular is-style-outline"><a tabindex="0" href="#top" class="wp-block-button__link has-extra-small-font-size has-custom-font-size wp-element-button" @click="closeSingleModeDialog">Stay here</a></div>
-              <div v-else class="wp-block-button has-size-regular is-style-outline"><a tabindex="0" class="wp-block-button__link has-extra-small-font-size has-custom-font-size wp-element-button" href="/find-rebates">Find rebates you might qualify for</a></div>
-              <div v-if="singleModeDialogVariant === 'invalid-query'" class="wp-block-button has-size-regular is-style-outline"><a tabindex="0" href="#top" class="wp-block-button__link has-extra-small-font-size has-custom-font-size wp-element-button" @click="closeSingleModeDialog">Continue to this page</a></div>
-              <div v-else-if="singleModeDialogVariant === 'alternate-rebate' && singleModeAlternateRebate" class="wp-block-button has-size-regular"><a tabindex="0" :href="singleModeAlternateRebate.href" class="wp-block-button__link has-extra-small-font-size has-custom-font-size wp-element-button is-style-">{{ singleModeAlternateButtonLabel }}</a></div>
+              <div class="guardrails-dialog__actions is-layout-flex">
+                <!-- Secondary (always shown) -->
+                <div class="wp-block-button has-size-regular is-style-outline">
+                  <a href="#top"
+                    class="wp-block-button__link has-extra-small-font-size has-custom-font-size wp-element-button"
+                    @click.prevent="closeSingleModeDialog"
+                  >Stay here</a>
+                </div>
+                <!-- Primary (always shown, but varies by state) -->
+                <div
+                  v-if="singleModeDialogVariant === 'alternate-rebate' && singleModeAlternateRebate"
+                  class="wp-block-button has-size-regular is-style-fill"
+                ><a :href="singleModeAlternateRebate.href"
+                    class="wp-block-button__link has-extra-small-font-size has-custom-font-size wp-element-button"
+                  >{{ singleModeAlternateButtonLabel }}</a>
+                </div>
+                <div
+                  v-else
+                  class="wp-block-button has-size-regular is-style-fill"
+                ><a href="/find-rebates"
+                    class="wp-block-button__link has-extra-small-font-size has-custom-font-size wp-element-button"
+                  >Find rebates you might qualify for</a>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -137,7 +157,12 @@
                     </button>
                     <span :id="`${field.key}-edit-hint`" class="sr-only">Activate to edit {{ field.shortDesc }}.</span>
                     <p v-if="fieldErrors[field.key]" :id="`${field.key}-edit-warning`" class="rebate-setting-warning">
-                      This page is based on {{ field.key === 'building' ? 'home type' : 'current heating type' }}. To see rebates for a different home type, <a href="/find-rebates/" style="color:darkred;text-underline-offset:2px;">go back to the questionnaire</a>
+                      <template v-if="isIneligibleInstalledHeatPumpSelection(field.key)">
+                        You can't get a rebate if <strong>you already have a {{ getInstalledHeatPumpLabel(field.key) }}.</strong> To see other rebates, <a href="/find-rebates/" style="color:darkred;text-underline-offset:2px;">go back to the questionnaire.</a>
+                      </template>
+                      <template v-else>
+                        This page is based on {{ field.key === 'building' ? 'home type' : 'current heating type' }}. To see rebates for a different home type, <a href="/find-rebates/" style="color:darkred;text-underline-offset:2px;">go back to the questionnaire.</a>
+                      </template>
                     </p>
                   </div>
                   <!-- Show select if open -->
@@ -952,8 +977,9 @@ const assistiveSimpleMode = ref(false)
 const singleModeHasInitialQueryString = ref(null)
 const singleModePageLoadDialogHandled = ref(false)
 const singleModePageLoadDialogChecking = ref(false)
-const singleModeFirstFilterChangeDialogShown = ref(false)
 const singleModeFirstFilterChangeChecking = ref(false)
+const singleModePendingFilterChangeCheck = ref(false)
+const singleModeQueuedChangeField = ref('')
 const singleModeAlternateDialogChangeField = ref('')
 const singleModeAlternateDialogSource = ref('')
 
@@ -1104,6 +1130,26 @@ function getEditFieldButtonLabel(field) {
   if (!fieldName) return 'Edit setting'
   if (!value) return `Edit ${fieldName}`
   return `Edit ${fieldName}. Current value: ${value}.`
+}
+
+function isIneligibleInstalledHeatPumpSelection(fieldKey) {
+  if (fieldKey === 'heating') {
+    return selectedHeatingSlug.value === 'electric-hp'
+  }
+
+  if (fieldKey === 'water') {
+    return selectedWaterHeatingSlug.value === 'electric-hpwh'
+  }
+
+  return false
+}
+
+function getInstalledHeatPumpLabel(fieldKey) {
+  if (fieldKey === 'water') {
+    return 'heat pump water heater'
+  }
+
+  return 'heat pump'
 }
 
 const singleModePageEligible = computed(() => {
@@ -1312,6 +1358,26 @@ const singleModeCurrentPageInVerifiedResults = computed(() => {
   })
 })
 
+const singleModeCurrentPageMismatchField = computed(() => {
+  if (mode.value !== 'single') return ''
+  if (!singleModePrimaryFieldsCompleteForCurrentPage.value) return ''
+  if (singleModeCurrentPageInVerifiedResults.value) return ''
+
+  if (!currentPageTypeEligibleForAlternate.value) {
+    return 'building'
+  }
+
+  if (singleModePageRebateKind.value === 'hp') {
+    return currentPageRoomHeatingEligibleForAlternate.value ? '' : 'heating'
+  }
+
+  if (singleModePageRebateKind.value === 'hpwh') {
+    return currentPageWaterHeatingEligibleForAlternate.value ? '' : 'water'
+  }
+
+  return ''
+})
+
 const singleModeQueryInvalidOnPageLoad = computed(() => {
   if (mode.value !== 'single') return false
   if (singleModeHasInitialQueryString.value === null) return false
@@ -1328,9 +1394,6 @@ const singleModeAlternateRebate = computed(() =>
 
 const singleModeDialogTitle = computed(() => {
   if (singleModeDialogVariant.value === 'alternate-rebate') {
-    if (singleModeAlternateDialogSource.value !== 'change') {
-      return 'You aren’t eligible for these rebates'
-    }
     const field = singleModeAlternateDialogChangeField.value
     const label =
       field === 'building'
@@ -1340,6 +1403,12 @@ const singleModeDialogTitle = computed(() => {
           : field === 'heating'
             ? 'heating'
             : 'home'
+    if (singleModeAlternateDialogSource.value === 'load-mismatch') {
+      return `This isn't your ${label} type`
+    }
+    if (singleModeAlternateDialogSource.value !== 'change') {
+      return 'You aren’t eligible for these rebates'
+    }
     return `You changed the ${label} type`
   }
   return 'Your home details don’t match this rebate'
@@ -1347,6 +1416,18 @@ const singleModeDialogTitle = computed(() => {
 
 const singleModeDialogDescription = computed(() => {
   if (singleModeDialogVariant.value === 'alternate-rebate') {
+    if (singleModeAlternateDialogSource.value === 'load-mismatch') {
+      const field = singleModeAlternateDialogChangeField.value
+      const label =
+        field === 'building'
+          ? 'home'
+          : field === 'water'
+            ? 'water heating'
+            : field === 'heating'
+              ? 'heating'
+              : 'home'
+      return `This rebate is for a different ${label} type than the one in your details.`
+    }
     if (singleModeAlternateDialogSource.value === 'change') {
       const pageTitle = String(
         currentPageRebateItem.value?.title ||
@@ -1361,6 +1442,18 @@ const singleModeDialogDescription = computed(() => {
 })
 
 const singleModeAlternateButtonLabel = computed(() => {
+  if (singleModeAlternateDialogSource.value === 'load-mismatch') {
+    const field = singleModeAlternateDialogChangeField.value
+    const label =
+      field === 'building'
+        ? 'home'
+        : field === 'water'
+          ? 'water heating'
+          : field === 'heating'
+            ? 'heating'
+            : 'home'
+    return `See rebates for your ${label} type`
+  }
   if (singleModeAlternateDialogSource.value !== 'change') {
     return 'Continue to an eligble rebate'
   }
@@ -1410,6 +1503,8 @@ function openSingleModeDialog() {
 
 function openSingleModeDialogVariant(variant) {
   if (!variant) return
+  const dialog = singleModeDialogRef.value
+  if (dialog?.open) return
   if (variant !== 'alternate-rebate') {
     singleModeAlternateDialogChangeField.value = ''
     singleModeAlternateDialogSource.value = ''
@@ -1486,7 +1581,14 @@ async function maybeOpenSingleModeInvalidQueryDialogOnLoad() {
 
   // On page load, if we can identify a same-type eligible alternate, use that branch.
   if (singleModeAlternateRebate.value) {
-    singleModeAlternateDialogSource.value = 'load'
+    const mismatchField = singleModeCurrentPageMismatchField.value
+    if (mismatchField) {
+      singleModeAlternateDialogSource.value = 'load-mismatch'
+      singleModeAlternateDialogChangeField.value = mismatchField
+    } else {
+      singleModeAlternateDialogSource.value = 'load'
+      singleModeAlternateDialogChangeField.value = ''
+    }
     logSingleModeDebug('load-check:open-alternate-modal')
     openSingleModeDialogVariant('alternate-rebate')
     return
@@ -1499,28 +1601,69 @@ async function maybeOpenSingleModeInvalidQueryDialogOnLoad() {
 async function maybeOpenSingleModeAlternateRebateDialog(changeField = '') {
   logSingleModeDebug('first-change-check:start')
   if (mode.value !== 'single') return
-  if (singleModeFirstFilterChangeDialogShown.value) return
-  if (singleModeFirstFilterChangeChecking.value) return
-  singleModeFirstFilterChangeChecking.value = true
 
-  // Ensure computed eligibility/results are based on the latest edited field value.
-  await nextTick()
-  await nextTick()
+  if (changeField) {
+    singleModeQueuedChangeField.value = changeField
+  }
+
+  if (singleModeFirstFilterChangeChecking.value) {
+    singleModePendingFilterChangeCheck.value = true
+    return
+  }
+
+  singleModeFirstFilterChangeChecking.value = true
+  do {
+    singleModePendingFilterChangeCheck.value = false
+    const dialogChangeField = singleModeQueuedChangeField.value || changeField
+    singleModeQueuedChangeField.value = ''
+
+    // Ensure computed eligibility/results are based on the latest edited field value.
+    await nextTick()
+    await nextTick()
+
+    if (singleModeCurrentPageInVerifiedResults.value) {
+      logSingleModeDebug('first-change-check:exit-current-page-valid')
+      continue
+    }
+    if (!singleModeAlternateRebate.value) {
+      logSingleModeDebug('first-change-check:open-invalid-modal-no-alternate')
+      singleModeAlternateDialogSource.value = 'change'
+      singleModeAlternateDialogChangeField.value = dialogChangeField
+      openSingleModeDialogVariant('invalid-query')
+      continue
+    }
+
+    logSingleModeDebug('first-change-check:open-alternate-modal')
+    singleModeAlternateDialogSource.value = 'change'
+    singleModeAlternateDialogChangeField.value = dialogChangeField
+    openSingleModeDialogVariant('alternate-rebate')
+  } while (singleModePendingFilterChangeCheck.value)
 
   singleModeFirstFilterChangeChecking.value = false
-  if (singleModeCurrentPageInVerifiedResults.value) {
-    logSingleModeDebug('first-change-check:exit-current-page-valid')
-    return
+}
+
+const singleModeDialogFieldByStateKey = {
+  type: 'building',
+  group: 'building',
+  tenure: 'building',
+  home_value: 'homeValue',
+  persons: 'persons',
+  income: 'income',
+  location: 'location',
+  heating: 'heating',
+  water_heating: 'water',
+  utility: 'utility',
+  gas: 'gas'
+}
+
+function getSingleModeChangedField(currentState = {}, previousState = {}) {
+  for (const key of Object.keys(singleModeDialogFieldByStateKey)) {
+    if (currentState[key] !== previousState[key]) {
+      return singleModeDialogFieldByStateKey[key]
+    }
   }
-  if (!singleModeAlternateRebate.value) {
-    logSingleModeDebug('first-change-check:exit-no-alternate')
-    return
-  }
-  logSingleModeDebug('first-change-check:open-alternate-modal')
-  singleModeAlternateDialogSource.value = 'change'
-  singleModeAlternateDialogChangeField.value = changeField
-  singleModeFirstFilterChangeDialogShown.value = true
-  openSingleModeDialogVariant('alternate-rebate')
+
+  return ''
 }
 
 /**
@@ -1800,10 +1943,6 @@ const handleLocationInputCommit = debounce(async (trigger = 'change') => {
       }
     })
 
-    if (mode.value === 'single') {
-      maybeOpenSingleModeAlternateRebateDialog('location')
-    }
-
     // NEW: mirror select behaviour in archive mode
     await runArchiveFlowForField('location')
   } else {
@@ -1867,7 +2006,6 @@ async function handleSelectChange(fieldKey, newValue) {
     }
 
     singleModeSettingsContextMessage.value = `${fieldName} updated to ${selectedText}.`
-    maybeOpenSingleModeAlternateRebateDialog(fieldKey)
     isSavingEditMode.value = false
     return
   }
@@ -2207,7 +2345,7 @@ const fields = computed(() => [
     //   'Changing between Ground Oriented / MURB types will require you to update the assessed property value information.',
     error_desc:
       'Only the listed home types are currently eligible for Better Homes rebates. <strong><a href="/get-support/" style="color: #8b0000;">Contact an Energy Coach</a></strong> to find out if your home type fits into one of these categories.',
-    definition: 'What type of home do you live in?',
+    definition: 'See the different home types',
     glossary_link: '/definitions/home-types/',
     glossary_wide: true,
     isInvalid: () => selectedBuildingTypeSlug.value === 'other'
@@ -3511,6 +3649,24 @@ const urlStateDeps = computed(() => ({
   gas: selectedGasSlug.value,
   region: selectedRegion.value
 }))
+
+watch(
+  urlStateDeps,
+  (currentState, previousState) => {
+    if (!bootstrapped.value) return
+    if (!isReadyToRender.value) return
+    if (mode.value !== 'single') return
+    if (!previousState) return
+    if (!singleModePageLoadDialogHandled.value) return
+    if (isSingleModeDialogOpen.value) return
+
+    const changedField = getSingleModeChangedField(currentState, previousState)
+    if (!changedField) return
+
+    void maybeOpenSingleModeAlternateRebateDialog(changedField)
+  },
+  { deep: true, flush: 'post' }
+)
 
 watch([hasAnyError, mode, singleModePageEligible], () => {
   if (!bootstrapped.value) return
@@ -5074,6 +5230,10 @@ p.rebate-detail.rebate-detail.rebate-detail.error {
   margin: 0.25rem 0 0;
   font-size: 0.85rem;
   color: #8b0000;
+}
+
+.rebate-setting-warning a {
+  display: inline;
 }
 
 #vnextRebateFilterApp:not([data-mode="archive"]) #rebatesFilterControls:has(.editBtn:is(:focus-visible, :focus, :hover)) {
