@@ -26,6 +26,7 @@
         :aria-labelledby="'single-mode-dialog-title'"
         :aria-describedby="'single-mode-dialog-desc'"
         @close="handleSingleModeDialogClosed"
+        @click="handleSingleModeDialogBackdropClick"
         @cancel.prevent="closeSingleModeDialog">
         <div class="dialog-content">
           <h2 id="single-mode-dialog-title" tabindex="0" ref="singleModeDialogHeadingRef">
@@ -1482,12 +1483,37 @@ const hasAnyError = computed(() => {
   return hasFieldError || hasNoResults
 })
 
+function setSingleModeDialogScrollLock(isLocked) {
+  const html = document.documentElement
+  const body = document.body
+
+  if (!html || !body) return
+
+  if (isLocked) {
+    html.style.margin = '0'
+    html.style.height = '100%'
+    html.style.overflow = 'hidden'
+    body.style.margin = '0'
+    body.style.height = '100%'
+    body.style.overflow = 'hidden'
+    return
+  }
+
+  html.style.margin = ''
+  html.style.height = ''
+  html.style.overflow = ''
+  body.style.margin = ''
+  body.style.height = ''
+  body.style.overflow = ''
+}
+
 function openSingleModeDialog() {
   const dialog = singleModeDialogRef.value
   if (!dialog || dialog.open) return false
   try {
     const activeEl = document.activeElement
     singleModeDialogLastFocusedEl.value = activeEl instanceof HTMLElement ? activeEl : null
+    setSingleModeDialogScrollLock(true)
     dialog.showModal()
     isSingleModeDialogOpen.value = true
     nextTick(() => {
@@ -1496,6 +1522,7 @@ function openSingleModeDialog() {
     return true
   } catch (e) {
     // no-op.
+    setSingleModeDialogScrollLock(false)
     isSingleModeDialogOpen.value = false
     return false
   }
@@ -1523,7 +1550,24 @@ function closeSingleModeDialog(e) {
   }
 }
 
+function handleSingleModeDialogBackdropClick(e) {
+  const dialog = singleModeDialogRef.value
+  if (!dialog || !dialog.open) return
+
+  const rect = dialog.getBoundingClientRect()
+  const isInsideDialogBounds =
+    e.clientX >= rect.left &&
+    e.clientX <= rect.right &&
+    e.clientY >= rect.top &&
+    e.clientY <= rect.bottom
+
+  if (!isInsideDialogBounds) {
+    closeSingleModeDialog()
+  }
+}
+
 function handleSingleModeDialogClosed() {
+  setSingleModeDialogScrollLock(false)
   isSingleModeDialogOpen.value = false
   singleModeAlternateDialogChangeField.value = ''
   singleModeAlternateDialogSource.value = ''

@@ -183,6 +183,25 @@ export const bcgovBlockThemePluginDefnitions = () => {
             dialog.classList.toggle('wide', isWide);
         }
 
+        const closeDialogOnBackdropClick = (event) => {
+            const dialog = event.currentTarget;
+
+            if (!dialog || !dialog.open) {
+                return;
+            }
+
+            const rect = dialog.getBoundingClientRect();
+            const isInsideDialogBounds =
+                event.clientX >= rect.left &&
+                event.clientX <= rect.right &&
+                event.clientY >= rect.top &&
+                event.clientY <= rect.bottom;
+
+            if (!isInsideDialogBounds) {
+                dialog.close();
+            }
+        }
+
         const shouldUseWideDialog = (triggerElement) => {
             if (!triggerElement) {
                 return false;
@@ -220,6 +239,8 @@ export const bcgovBlockThemePluginDefnitions = () => {
                     setDialogWidth(false);
                     setBodyScrollLock(false);
                 });
+
+                dialog.addEventListener('click', closeDialogOnBackdropClick);
             }
 
             definitionLinks.forEach((link) => {
