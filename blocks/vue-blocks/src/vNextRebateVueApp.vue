@@ -73,7 +73,7 @@
 
       <div v-if="(!hasAllSelection || isDirty) && mode === 'single'" class="wp-block-group info has-icon is-layout-flow wp-block-group-is-layout-flow" style="border-radius:1rem;margin:0;padding:0.5rem 1rem;">
         <p style='font-size:1rem;margin-block:0.5rem;'>
-          You may be looking at default or incomplete information.
+          We can't recommend a rebate.
           <a v-if='!isDirty && !assistiveSimpleMode' @click="toggleCollapseView" @keydown.enter.space.prevent="toggleCollapseView" tabindex='0'>
             Please update your home's details.
           </a>
@@ -1439,7 +1439,7 @@ const singleModeDialogDescription = computed(() => {
     }
     return 'Rebates are organized by heating and home type.'
   }
-  return 'Rebates are organized by home and heating type. Your home’s details don’t match the rebates on this page.'
+  return 'Rebates are organized by home and heating type.'
 })
 
 const singleModeAlternateButtonLabel = computed(() => {
