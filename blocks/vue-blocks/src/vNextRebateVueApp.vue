@@ -110,7 +110,7 @@
             <template v-if="assistiveSimpleMode">
               Screen reader enhanced interface is active. Settings are shown directly as select fields. Use Tab to move through the fields, or use the reset button to return to the regular interface.
             </template>
-            <template v-else-if="editModeView">
+            <template v-else-if="isSingleModeEditModeActive">
               Edit mode is active. Use Tab to move between settings buttons, then press Enter or Space to edit a setting.
             </template>
             <template v-else>
@@ -143,7 +143,7 @@
             <template v-for="field in fields" :key="field.key">
               <template v-if="field.condition === undefined || field.condition">
                 <!-- If field has a value -->
-                <template v-if="field.displayValue && editModeView">
+                <template v-if="field.displayValue && isSingleModeEditModeActive">
                   <!-- Show button (unless its select is open) -->
                   <div class="control button-group" v-if="activeEdit !== field.key">
                     <label class='small'>{{ field.shortDesc }}</label>
@@ -208,7 +208,7 @@
                 </template>
 
 
-                <template v-else-if="field.displayValue && !editModeView && !assistiveSimpleMode">
+                <template v-else-if="field.displayValue && !isSingleModeEditModeActive && !assistiveSimpleMode">
                   <div class="control label-group" role="group" :aria-labelledby="`${field.key}-summary-label ${field.key}-summary-value`">
                     <label class='small' :id="`${field.key}-summary-label`">{{ field.shortDesc }}</label>
                     <p class="rebate-detail" :id="`${field.key}-summary-value`" :class="fieldErrors[field.key] ? 'error' : ''">
@@ -263,18 +263,20 @@
             </template>
             <div class="control instruction-group">
               <div>
-                <label v-if="editModeView" class='small sr-only' for="instructions">Settings instructions</label>
-                <p v-if="editModeView" name="instructions" class="small-text" style="text-align: left; line-height: 1.665; padding-top: 0.5rem;">Updating your home's details will refresh the page content.
+                <label v-if="isSingleModeEditModeActive" class='small sr-only' for="instructions">Settings instructions</label>
+                <p v-if="isSingleModeEditModeActive" name="instructions" class="small-text" style="text-align: left; line-height: 1.665; padding-top: 0.5rem;">Updating your home's details will refresh the page content.
                 </p>
               </div>
               <button class="editBtn toggle-edit-mode readonly-toggle"
               v-if="!assistiveSimpleMode"
               tabindex="0"
-              :class="isSavingEditMode ? 'saving' : editModeView ? 'show-edit-mode' : 'show-readonly-mode'"
+              :disabled="isSingleModeEditToggleDisabled"
+              :class="isSavingEditMode ? 'saving' : isSingleModeEditModeActive ? 'show-edit-mode' : 'show-readonly-mode'"
               aria-describedby="single-mode-summary-instructions"
-              @click="toggleEditModeView" :aria-label="editModeView ? 'Exit edit mode' : 'Enter edit mode'"
-              :title="editModeView ? 'Exit edit mode' : 'Enter edit mode'">
-              <span>{{ isSavingEditMode ? 'Saving edit...' : editModeView ? 'Edit' : 'Edit' }}</span>
+              @click="toggleEditModeView"
+              :aria-label="editModeToggleLabel"
+              :title="editModeToggleLabel">
+              <span>{{ isSavingEditMode ? 'Saving edit...' : isSingleModeEditModeActive ? 'Edit' : 'Edit' }}</span>
               </button>
               <button
                 v-if="assistiveSimpleMode"
@@ -546,7 +548,7 @@
 
 <script setup>
 // See vNextRebateVueApp.docs.js for full JSDoc reference.
-import { computed, ref, nextTick, onMounted, onBeforeUnmount, watch } from 'vue'
+import { computed, ref, nextTick, onMounted, onBeforeUnmount, watch, watchEffect } from 'vue'
 import {
   isHeatPumpRebatePage,
   isGroundOrientedHeatPumpIneligible,
@@ -950,6 +952,7 @@ const labelsVisible = ref(true)
 const showReadOnlyFields = ref(true)
 const showEditModeUI = ref(false)
 const editModeView = ref(false)
+const singleModeEditModePreference = ref(false)
 const isCollapseView = ref(true)
 const isSavingEditMode = ref(false)
 const hasError = ref(false)
@@ -1879,12 +1882,13 @@ function disableAssistiveSimpleMode() {
  * Toggle the edit mode view on/off.
  */
 function toggleEditModeView() {
-  if (assistiveSimpleMode.value) return
+  if (assistiveSimpleMode.value || isSingleModeEditToggleDisabled.value) return
   editModeView.value = !editModeView.value
+  singleModeEditModePreference.value = editModeView.value
   singleModeSettingsContextMessage.value = editModeView.value
     ? 'Edit mode enabled. Use Tab to move between settings and Enter to edit.'
     : 'Edit mode disabled. Read-only details view enabled. Use Tab to reach the Edit button.'
-  localStorage.setItem('rebateEditModeView', JSON.stringify(editModeView.value))
+  localStorage.setItem('rebateEditModeView', JSON.stringify(singleModeEditModePreference.value))
 
   if (editModeView.value) {
     nextTick(() => {
@@ -1901,8 +1905,10 @@ function toggleCollapseView() {
   singleModeSettingsContextMessage.value = isCollapseView.value
     ? 'Home details collapsed.'
     : 'Home details expanded.'
-  if (isCollapseView.value) {
-    activeEdit.value = ''
+  if (!isCollapseView.value && mode.value === 'single' && !assistiveSimpleMode.value) {
+    editModeView.value = isSingleModeEditToggleLocked.value
+      ? true
+      : singleModeEditModePreference.value
   }
   localStorage.setItem('rebateCollapseView', JSON.stringify(isCollapseView.value))
 }
@@ -2277,7 +2283,7 @@ async function scrollToNextVisibleField(currentKey, direction = 'down') {
 watch(activeEdit, async newKey => {
   if (!newKey) return
   if (mode.value !== 'single') return
-  if (!editModeView.value) return
+  if (!isSingleModeEditModeActive.value) return
   focusSingleModeSelectForField(newKey)
 })
 
@@ -2635,8 +2641,8 @@ onMounted(async () => {
           return
         }
 
-        // In single mode, avoid a second forced step after home-type changes.
-        // Keep user intent where possible by mapping under/over style choices.
+        // In single mode, do not auto-select assessed value options.
+        // Only preserve intent when a prior selection can be mapped to new options.
         const oldOptions = Array.isArray(oldVal) ? oldVal : []
         const previousOption = oldOptions.find(o => o.slug === previousSlug) || null
         const previousText = String(
@@ -2656,7 +2662,7 @@ onMounted(async () => {
           }) || null
         }
 
-        selectedHomeValueSlug.value = mapped?.slug || newVal[0].slug || ''
+        selectedHomeValueSlug.value = mapped?.slug || ''
         return
       }
 
@@ -3301,6 +3307,62 @@ const hasAllSelection = computed(() => {
   )
 })
 
+const isSingleModeEditToggleLocked = computed(
+  () => mode.value === 'single' && !assistiveSimpleMode.value && !hasAllSelection.value
+)
+
+const isSingleModeEditModeActive = computed(
+  () => editModeView.value && !(mode.value === 'single' && isCollapseView.value)
+)
+
+const isSingleModeEditToggleDisabled = computed(
+  () =>
+    mode.value === 'single' &&
+    !assistiveSimpleMode.value &&
+    (isCollapseView.value || isSingleModeEditToggleLocked.value)
+)
+
+const editModeToggleLabel = computed(() =>
+  (mode.value === 'single' && isCollapseView.value)
+    ? 'Expand home details to change edit mode.'
+    : isSingleModeEditToggleLocked.value
+      ? 'Edit mode is locked until all home details are completed.'
+      : isSingleModeEditModeActive.value
+      ? 'Exit edit mode'
+      : 'Enter edit mode'
+)
+
+watchEffect(() => {
+  if (mode.value !== 'single' || assistiveSimpleMode.value) return
+
+  if (isCollapseView.value) {
+    activeEdit.value = ''
+    if (editModeView.value) {
+      editModeView.value = false
+    }
+    return
+  }
+
+  if (isSingleModeEditToggleLocked.value && !editModeView.value) {
+    editModeView.value = true
+  }
+})
+
+watch(
+  isSingleModeEditToggleLocked,
+  (isLocked, wasLocked) => {
+    if (
+      !isLocked &&
+      wasLocked &&
+      mode.value === 'single' &&
+      !assistiveSimpleMode.value &&
+      !isCollapseView.value
+    ) {
+      editModeView.value = singleModeEditModePreference.value
+    }
+  }
+)
+
 watch(
   [bootstrapped, isReadyToRender, mode, hasAllSelection],
   async ([isBootstrapped, readyToRender, currentMode, allSelected]) => {
@@ -3400,43 +3462,8 @@ onMounted(() => {
   }
   singleModeRebateTypeClass.value = detectSingleModeRebateTypeClass(el)
 
-  // If SSR heating type exists, set the model directly unless URL specifies a heating type
-  if (mode.value === 'single' && pageHeatingType.value) {
-    const params = new URLSearchParams(window.location.search)
-    const currentHeating = params.get('heating')
-    if (!currentHeating) {
-      // find a matching option from heatingOptions by slug
-      watch(
-        heatingOptions,
-        (opts) => {
-          const match = opts.find(o => o.slug === pageHeatingType.value)
-          if (match) {
-            selectedHeatingSlug.value = match.slug
-          }
-        },
-        { immediate: true }
-      )
-    }
-  }
-
-   // If SSR waterHeating type exists, set the model directly unless URL specifies a water heating type
-  if (mode.value === 'single' && pageWaterHeatingType.value) {
-    const params = new URLSearchParams(window.location.search)
-    const currentWaterHeating = params.get('water_heating')
-    if (!currentWaterHeating) {
-      // find a matching option from waterHeatingOptions by slug
-      watch(
-        waterHeatingOptions,
-        (opts) => {
-          const match = opts.find(o => o.slug === pageWaterHeatingType.value)
-          if (match) {
-            selectedWaterHeatingSlug.value = match.slug
-          }
-        },
-        { immediate: true }
-      )
-    }
-  }
+  // Keep page-provided heating metadata for eligibility checks only.
+  // Do not auto-populate user selections from page metadata when no saved state exists.
 
 
   const savedLabelsVisible = localStorage.getItem('rebateLabelsVisible')
@@ -3456,7 +3483,9 @@ onMounted(() => {
 
   const savedEditModeView = localStorage.getItem('rebateEditModeView')
   if (savedEditModeView !== null) {
-    editModeView.value = JSON.parse(savedEditModeView)
+    const parsedEditModeView = JSON.parse(savedEditModeView) === true
+    editModeView.value = parsedEditModeView
+    singleModeEditModePreference.value = parsedEditModeView
   }
 
   const savedAssistiveSimpleMode = localStorage.getItem(ASSISTIVE_SIMPLE_MODE_KEY)
@@ -3468,11 +3497,9 @@ onMounted(() => {
     isCollapseView.value = false
   }
 
-  const savedCollapseView = localStorage.getItem('rebateCollapseView')
-  if (savedCollapseView !== null) {
-    if (!assistiveSimpleMode.value) {
-      isCollapseView.value = JSON.parse(savedCollapseView)
-    }
+  if (!assistiveSimpleMode.value && mode.value === 'single') {
+    isCollapseView.value = true
+    editModeView.value = false
   }
 
   const observer = new MutationObserver(() => {

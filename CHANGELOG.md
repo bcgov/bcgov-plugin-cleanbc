@@ -1,3 +1,9 @@
+## 1.30.28 March 3, 2026
+– Updated single-mode initialization to stop auto-populating room and water heating when user details are missing
+– Updated single mode so assessed property value is not auto-selected after choosing type of home
+– Added single-mode edit-mode lock while required home details are incomplete
+– Updated single mode collapse behavior to force edit mode off and default to collapsed on page load
+
 ## 1.30.27 February 27, 2026
 – Updated search omission rules for Definitions to exclude posts tagged 'hide-from-search'
 – Updated single-mode alternate rebate modal links to set destination URL state to valid
