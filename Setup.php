@@ -8,7 +8,8 @@ use Bcgov\Plugin\CleanBC\Hooks\{
     SearchContext,
     BasicBlocks,
     Accessibility,
-    RebateQueryTool
+    RebateQueryTool,
+    GravityForms
 };
 
 /**
@@ -53,6 +54,7 @@ class Setup {
         $basic_blocks              = new BasicBlocks();
         $accessibility             = new Accessibility();
         $rebate_query_tool         = new RebateQueryTool();
+        $gravity_forms             = new GravityForms();
 
         // Filters.
         add_filter( 'wp_theme_json_data_theme', [ $plugin_enqueue_and_inject, 'filter_theme_json_theme_plugin' ] );
@@ -78,6 +80,7 @@ class Setup {
         add_action( 'init', [ $plugin_enable_vue_app, 'vuejs_app_block_init_plugin' ] );
         add_action( 'rest_api_init', [ $plugin_enable_vue_app, 'custom_api_posts_routes' ] );
         add_action( 'init', [ $rebate_query_tool, 'register_shortcode' ] );
+        add_action( 'gform_after_submission', [ $gravity_forms, 'remove_form_entry' ], 10, 2 );
 
         add_action( 'init', [ $accessibility, 'pdf_proxy_rewrite' ] );
         add_filter( 'query_vars', [ $accessibility, 'pdf_proxy_size' ] );

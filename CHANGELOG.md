@@ -1,3 +1,6 @@
+## 1.30.30 March 6, 2026
+– Remove entries from Gravity Forms submissions
+
 ## 1.30.29 March 5-6, 2026
 – Updated single-mode modal behavior to wait until all required fields are completed before opening
 – Added 'source=planner' handling to auto-expand single mode on load
