@@ -1,3 +1,10 @@
+## 1.30.29 March 5-6, 2026
+– Updated single-mode modal behavior to wait until all required fields are completed before opening
+– Added 'source=planner' handling to auto-expand single mode on load
+– Kept 'source=planner' in single-mode URLs only while the form is incomplete
+
+## March 4, 2026 – New vNext site launched
+
 ## 1.30.28 March 3, 2026
 – Updated single-mode initialization to stop auto-populating room and water heating when user details are missing
 – Updated single mode so assessed property value is not auto-selected after choosing type of home

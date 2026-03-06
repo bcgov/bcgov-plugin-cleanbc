@@ -566,6 +566,16 @@ const publicDomain = ref('https://www.betterhomesbc.ca')
 const rebatesAPI = `${window.site?.domain ? window.site.domain : publicDomain.value}/wp-json/custom/v2/rebates`
 
 const debug = false
+const initialSourceParam = (() => {
+  if (typeof window === 'undefined') return ''
+  try {
+    return String(new URLSearchParams(window.location.search).get('source') || '')
+      .trim()
+      .toLowerCase()
+  } catch (e) {
+    return ''
+  }
+})()
 
 // Local state for fetched API payload.
 const api = ref({
@@ -986,6 +996,10 @@ const singleModePendingFilterChangeCheck = ref(false)
 const singleModeQueuedChangeField = ref('')
 const singleModeAlternateDialogChangeField = ref('')
 const singleModeAlternateDialogSource = ref('')
+const singleModeSourceParam = ref(initialSourceParam)
+const singleModeOpenFromPlannerSource = computed(
+  () => singleModeSourceParam.value === 'planner'
+)
 
 // Focus map for selects 
 const selectRefs = ref({})
@@ -1386,6 +1400,7 @@ const singleModeQueryInvalidOnPageLoad = computed(() => {
   if (mode.value !== 'single') return false
   if (singleModeHasInitialQueryString.value === null) return false
   if (!singleModeHasInitialQueryString.value) return false
+  if (!hasAllSelection.value) return false
   if (!singleModePrimaryFieldsCompleteForCurrentPage.value) return false
   return !singleModeCurrentPageInVerifiedResults.value
 })
@@ -1535,6 +1550,10 @@ function openSingleModeDialog() {
 
 function openSingleModeDialogVariant(variant) {
   if (!variant) return
+  if (mode.value === 'single' && !hasAllSelection.value) {
+    logSingleModeDebug('dialog-open-blocked:form-incomplete', { variant })
+    return
+  }
   const dialog = singleModeDialogRef.value
   if (dialog?.open) return
   if (variant !== 'alternate-rebate') {
@@ -1612,6 +1631,10 @@ async function maybeOpenSingleModeInvalidQueryDialogOnLoad() {
     logSingleModeDebug('load-check:exit-no-query')
     return
   }
+  if (!hasAllSelection.value) {
+    logSingleModeDebug('load-check:exit-form-incomplete')
+    return
+  }
   if (!singleModePrimaryFieldsCompleteForCurrentPage.value) {
     logSingleModeDebug('load-check:exit-primary-incomplete')
     return
@@ -1670,6 +1693,10 @@ async function maybeOpenSingleModeAlternateRebateDialog(changeField = '') {
     await nextTick()
     await nextTick()
 
+    if (!hasAllSelection.value) {
+      logSingleModeDebug('first-change-check:exit-form-incomplete')
+      continue
+    }
     if (singleModeCurrentPageInVerifiedResults.value) {
       logSingleModeDebug('first-change-check:exit-current-page-valid')
       continue
@@ -2600,7 +2627,11 @@ onMounted(async () => {
       await updateRebateDetails()
     }
 
-    if (mode.value === 'single' && !hasAllSelection.value) {
+    if (
+      mode.value === 'single' &&
+      !hasAllSelection.value &&
+      !singleModeOpenFromPlannerSource.value
+    ) {
       isCollapseView.value = true
     }
 
@@ -3281,17 +3312,21 @@ const hasAnySelection = computed(
 )
 
 const hasAllSelection = computed(() => {
-  const hasBuilding = !!selectedBuildingTypeName.value
+  const hasBuilding = !!selectedBuildingTypeSlug.value
   const hasMurbTenure =
     selectedBuildingGroupSlug.value === 'murb' ? !!murbTenure.value : true
-  const hasHomeValue = !!selectedHomeValueName.value
-  const hasPersons = !!selectedPersonsCount.value
-  const hasIncome = !!selectedIncomeRangeName.value
-  const hasLocation = !!selectedLocationName.value
-  const hasHeating = !!selectedHeatingName.value
-  const hasWaterHeating = !!selectedWaterHeatingName.value
-  const hasUtility = !!selectedUtilityName.value
-  const hasGas = !!selectedGasName.value
+  const hasHomeValue = !!selectedHomeValueSlug.value
+  const hasPersons = !!selectedPersonsSlug.value
+  const hasIncome = !!selectedIncomeRangeSlug.value
+  const hasLocation = !!selectedLocationSlug.value
+  const requiresRoomHeating =
+    !(mode.value === 'single' && singleModePageRebateKind.value === 'hpwh')
+  const requiresWaterHeating =
+    !(mode.value === 'single' && singleModePageRebateKind.value === 'hp')
+  const hasHeating = requiresRoomHeating ? !!selectedHeatingSlug.value : true
+  const hasWaterHeating = requiresWaterHeating ? !!selectedWaterHeatingSlug.value : true
+  const hasUtility = !!selectedUtilitySlug.value
+  const hasGas = !!selectedGasSlug.value
 
   return (
     hasBuilding &&
@@ -3498,7 +3533,7 @@ onMounted(() => {
   }
 
   if (!assistiveSimpleMode.value && mode.value === 'single') {
-    isCollapseView.value = true
+    isCollapseView.value = !singleModeOpenFromPlannerSource.value
     editModeView.value = false
   }
 
@@ -3545,6 +3580,11 @@ function assembleUrl() {
     const isInvalid =
       hasAnyError.value || !hasAllSelection.value || !singleModePageEligible.value
     urlParams.set('state', isInvalid ? 'invalid' : 'valid')
+    if (singleModeOpenFromPlannerSource.value && !hasAllSelection.value) {
+      urlParams.set('source', 'planner')
+    } else {
+      urlParams.delete('source')
+    }
   } else {
     urlParams.delete('state')
   }
@@ -4208,7 +4248,7 @@ const filteredResults = computed(() => {
 })
 
 watch(
-  [mode, isReadyToRender, singleModePrimaryFieldsCompleteForCurrentPage, () => filteredResults.value.length],
+  [mode, isReadyToRender, hasAllSelection, singleModePrimaryFieldsCompleteForCurrentPage, () => filteredResults.value.length],
   () => {
     void maybeOpenSingleModeInvalidQueryDialogOnLoad()
   },
@@ -4671,7 +4711,7 @@ function withQueryString(baseUrl, queryOverrides = null) {
           filter: var(--blue-filter);
 
           &[disabled] {
-            opacity: 0.25;
+            opacity: 0;
           }
         }
 
