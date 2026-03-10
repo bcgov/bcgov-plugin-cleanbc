@@ -591,6 +591,7 @@ const api = ref({
 
 const isLoading = ref(true)
 const loadError = ref('')
+const isSingleModeTitleAwaitingAjax = ref(false)
 
 /**
  * Set the state of the results. Allow for retrieval from localStorage.
@@ -602,7 +603,18 @@ const STORAGE_KEY = 'displayGridOrList'
 const PREFERRED_SETTINGS_KEY = 'preferredSettings'
 const REBATE_TOOL_SETTINGS_KEY = 'rebateToolSettings'
 const ASSISTIVE_SIMPLE_MODE_KEY = 'rebateAssistiveSimpleMode'
+const SINGLE_MODE_TITLE_PENDING_CLASS = 'vnext-single-mode-title-pending'
+const SINGLE_MODE_TITLE_TRANSITION_MS = 300
 const viewPreferenceLoaded = ref(false)
+let singleModeTitleRevealFrame = 0
+let singleModeTitleSwapTimeout = 0
+
+if (typeof document !== 'undefined') {
+  const initialAppMode = document.getElementById('vnextRebateFilterApp')?.dataset?.mode || ''
+  if (initialAppMode === 'single') {
+    document.documentElement.classList.add(SINGLE_MODE_TITLE_PENDING_CLASS)
+  }
+}
 
 function persistDisplayViewPreference() {
   localStorage.setItem(STORAGE_KEY, String(displayGridOrList.value))
@@ -769,8 +781,20 @@ async function updateRebateDetails() {
   const targetSelector = '#rebate-details-container'
   const container = document.querySelector(targetSelector)
   if (!container) return
+  let didSyncTitleAfterRefresh = false
+  const titleEl = document.querySelector('.subtitle')
+  const nextTitleTarget = titleEl ? getSingleModeHeatingTitleTarget(titleEl) : null
+  const currentTitleSignature = titleEl?.dataset?.singleModeTitleSignature || ''
+  const shouldAnimateTitleSwap =
+    mode.value === 'single' &&
+    Boolean(nextTitleTarget?.signature) &&
+    Boolean(currentTitleSignature) &&
+    currentTitleSignature !== nextTitleTarget.signature
 
   try {
+    if (shouldAnimateTitleSwap) {
+      setSingleModeHeatingTitleVisibility(false)
+    }
     isAjaxLoading.value = true
     const res = await fetch(assembledUrl.value, { credentials: 'same-origin' })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -795,6 +819,7 @@ async function updateRebateDetails() {
       })
 
       window.history.replaceState(null, '', assembledUrl.value)
+      syncCurrentQueryStringFromWindow()
 
       // After DOM swap, clear external dirty + selection markers.
       isExternalDirty.value = false
@@ -806,10 +831,20 @@ async function updateRebateDetails() {
       nextTick(() => betterhomesRebatesArchiveLoader())
       nextTick(() => betterhomesRebatesExternalLinkCheck())
       nextTick(() => bcgovBlockThemePluginAccessibility())
+      isSingleModeTitleAwaitingAjax.value = false
+      nextTick(() => queueHeatingTitleUpdate())
+      didSyncTitleAfterRefresh = true
     }
   } catch (err) {
     console.error('Failed to update rebate details via AJAX:', err)
+    isSingleModeTitleAwaitingAjax.value = false
+    nextTick(() => queueHeatingTitleUpdate())
+    didSyncTitleAfterRefresh = true
   } finally {
+    if (!didSyncTitleAfterRefresh) {
+      isSingleModeTitleAwaitingAjax.value = false
+      nextTick(() => queueHeatingTitleUpdate())
+    }
     isAjaxLoading.value = false
   }
 }
@@ -1036,6 +1071,42 @@ const extractHeatingTokens = (val) => {
   if (v.includes('electric')) tokens.push('electricity')
   if (tokens.length > 0) return Array.from(new Set(tokens))
   return [normalizeHeatingSlug(val)]
+}
+
+const normalizeHeatingTitleKey = (value) => {
+  const raw = String(value || '').toLowerCase().trim()
+  if (!raw) return ''
+  if (raw === 'electric-hpwh' || raw.includes('electric heat pump water heater')) return 'electric-hpwh'
+  if (raw === 'electric-hp' || raw.includes('electric heat pump')) return 'electric-hp'
+  if (raw === 'other' || raw.includes('other') || raw.includes('unsure')) return 'other'
+  if (raw.includes('gas') || raw.includes('propane')) return 'gas'
+  if (raw.includes('oil')) return 'oil'
+  if (raw.includes('wood')) return 'wood'
+  if (raw.includes('electric')) return 'electricity'
+  return raw.replace(/\s+/g, '-')
+}
+
+const extractHeatingTitleKeys = (value) => {
+  if (!value) return []
+
+  const raw = String(value).toLowerCase()
+  const tokens = []
+  if (raw.includes('electric heat pump water heater')) tokens.push('electric-hpwh')
+  if (raw.includes('electric heat pump')) tokens.push('electric-hp')
+  if (raw.includes('gas') || raw.includes('propane')) tokens.push('gas')
+  if (raw.includes('oil')) tokens.push('oil')
+  if (raw.includes('wood')) tokens.push('wood')
+  if (raw.includes('other') || raw.includes('unsure')) tokens.push('other')
+  if (
+    raw.includes('electric') &&
+    !raw.includes('electric heat pump') &&
+    !raw.includes('electric heat pump water heater')
+  ) {
+    tokens.push('electricity')
+  }
+
+  if (tokens.length > 0) return Array.from(new Set(tokens))
+  return [normalizeHeatingTitleKey(value)]
 }
 
 const fieldErrors = computed(() => {
@@ -2336,6 +2407,7 @@ function clearSettings(event) {
 
   const url = window.location.origin + window.location.pathname
   window.history.replaceState(null, '', url)
+  syncCurrentQueryStringFromWindow()
 
   localStorage.removeItem('rebateToolSettings')
   editable.value = true
@@ -2568,6 +2640,177 @@ function applyDirtyClasses(val) {
     .forEach(el => el.classList.toggle('is-dirty', val))
 }
 
+function normalizeSingleModeTitleText(value) {
+  return String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function ensureSingleModeHeatingTitleVisible(titleEl, {
+  titleSelector = '.subtitle'
+} = {}) {
+  if (typeof document === 'undefined') return
+
+  const resolvedTitleEl = titleEl || document.querySelector(titleSelector)
+  if (!resolvedTitleEl) {
+    document.documentElement.classList.remove(SINGLE_MODE_TITLE_PENDING_CLASS)
+    return
+  }
+
+  resolvedTitleEl.dataset.singleModeTitleManaged = 'true'
+  resolvedTitleEl.dataset.singleModeTitleState = 'visible'
+  resolvedTitleEl.removeAttribute('aria-hidden')
+  resolvedTitleEl.style.maxHeight = `${Math.max(resolvedTitleEl.scrollHeight, 1)}px`
+  document.documentElement.classList.remove(SINGLE_MODE_TITLE_PENDING_CLASS)
+}
+
+function setSingleModeHeatingTitleVisibility(isVisible, {
+  titleSelector = '.subtitle'
+} = {}) {
+  if (typeof document === 'undefined' || typeof window === 'undefined') return
+
+  const titleEl = document.querySelector(titleSelector)
+  if (!titleEl) {
+    document.documentElement.classList.toggle(
+      SINGLE_MODE_TITLE_PENDING_CLASS,
+      mode.value === 'single' && !isVisible
+    )
+    return
+  }
+
+  if (singleModeTitleRevealFrame) {
+    window.cancelAnimationFrame(singleModeTitleRevealFrame)
+    singleModeTitleRevealFrame = 0
+  }
+
+  titleEl.dataset.singleModeTitleManaged = 'true'
+  titleEl.dataset.singleModeTitleState = 'hidden'
+  titleEl.setAttribute('aria-hidden', 'true')
+  titleEl.style.maxHeight = '0px'
+
+  if (!isVisible) {
+    document.documentElement.classList.toggle(
+      SINGLE_MODE_TITLE_PENDING_CLASS,
+      mode.value === 'single'
+    )
+    return
+  }
+
+  const targetHeight = Math.max(titleEl.scrollHeight, 1)
+  void titleEl.offsetHeight
+
+  singleModeTitleRevealFrame = window.requestAnimationFrame(() => {
+    document.documentElement.classList.remove(SINGLE_MODE_TITLE_PENDING_CLASS)
+
+    singleModeTitleRevealFrame = window.requestAnimationFrame(() => {
+      titleEl.dataset.singleModeTitleState = 'visible'
+      titleEl.style.maxHeight = `${targetHeight}px`
+      titleEl.removeAttribute('aria-hidden')
+      singleModeTitleRevealFrame = 0
+    })
+  })
+}
+
+function getSingleModeHeatingTitleTarget(titleEl) {
+  const currentText = normalizeSingleModeTitleText(titleEl?.textContent)
+  if (!singleModeTitleOriginalText.value && currentText) {
+    singleModeTitleOriginalText.value = currentText
+  }
+
+  const originalTitle = singleModeTitleOriginalText.value || currentText
+  if (!originalTitle) return null
+
+  if (singleModeResolvedTitleHtml.value) {
+    singleModeLastValidTitleHtml.value = singleModeResolvedTitleHtml.value
+    return {
+      content: singleModeResolvedTitleHtml.value,
+      signature: `html:${singleModeResolvedTitleHtml.value}`,
+      asHtml: true
+    }
+  }
+
+  if (singleModeCanRetainLastValidTitle.value && singleModeLastValidTitleHtml.value) {
+    return {
+      content: singleModeLastValidTitleHtml.value,
+      signature: `html:${singleModeLastValidTitleHtml.value}`,
+      asHtml: true
+    }
+  }
+
+  singleModeLastValidTitleHtml.value = ''
+  return {
+    content: originalTitle,
+    signature: `text:${originalTitle}`,
+    asHtml: false
+  }
+}
+
+function updateSingleModeHeatingTitleContent(titleEl, {
+  content,
+  signature,
+  asHtml = true,
+  titleSelector = '.subtitle'
+} = {}) {
+  if (!titleEl) return
+
+  const applyContent = () => {
+    if (asHtml) {
+      titleEl.innerHTML = content
+    } else {
+      titleEl.textContent = content
+    }
+    titleEl.dataset.singleModeTitleSignature = signature
+  }
+
+  if (singleModeTitleSwapTimeout) {
+    window.clearTimeout(singleModeTitleSwapTimeout)
+    singleModeTitleSwapTimeout = 0
+  }
+
+  const currentSignature = titleEl.dataset.singleModeTitleSignature || ''
+  const isCurrentlyVisible = titleEl.dataset.singleModeTitleState === 'visible'
+
+  if (currentSignature === signature) {
+    ensureSingleModeHeatingTitleVisible(titleEl, { titleSelector })
+    return
+  }
+
+  if (isCurrentlyVisible && currentSignature) {
+    setSingleModeHeatingTitleVisibility(false, { titleSelector })
+    singleModeTitleSwapTimeout = window.setTimeout(() => {
+      applyContent()
+      setSingleModeHeatingTitleVisibility(true, { titleSelector })
+      singleModeTitleSwapTimeout = 0
+    }, SINGLE_MODE_TITLE_TRANSITION_MS)
+    return
+  }
+
+  applyContent()
+  setSingleModeHeatingTitleVisibility(true, { titleSelector })
+}
+
+const singleModeTitleOriginalText = ref('')
+const singleModeLastValidTitleHtml = ref('')
+
+function applySingleModeHeatingTitle({
+  titleSelector = '.subtitle'
+} = {}) {
+  if (typeof document === 'undefined' || typeof window === 'undefined') return
+
+  const titleEl = document.querySelector(titleSelector)
+  if (!titleEl) return
+
+  const nextTarget = getSingleModeHeatingTitleTarget(titleEl)
+  if (!nextTarget) return
+
+  updateSingleModeHeatingTitleContent(titleEl, {
+    content: nextTarget.content,
+    signature: nextTarget.signature,
+    asHtml: nextTarget.asHtml,
+    titleSelector
+  })
+}
+
 // Show the info card only if any heat pump rebate exists
 const showHeatPumpInfo = computed(() =>
   filteredResults.value.some(item =>
@@ -2652,6 +2895,9 @@ onMounted(async () => {
       urlStateDeps,
       () => {
         isExternalDirty.value = true // external goes dirty immediately.
+        if (mode.value === 'single') {
+          isSingleModeTitleAwaitingAjax.value = true
+        }
         updateAddressBar()
         debouncedUpdateRebateDetails()
       },
@@ -3421,6 +3667,27 @@ const assembledQueryString = computed(() => {
 
 const currentQueryString = ref(window.location.search)
 
+function syncCurrentQueryStringFromWindow() {
+  currentQueryString.value = window.location.search
+}
+
+function queueHeatingTitleUpdate() {
+  if (mode.value !== 'single') return
+  if (!isReadyToRender.value) {
+    setSingleModeHeatingTitleVisibility(false)
+    return
+  }
+  if (isSingleModeTitleAwaitingAjax.value) return
+
+  nextTick(() => {
+    applySingleModeHeatingTitle()
+  })
+}
+
+function handleWindowLocationChange() {
+  syncCurrentQueryStringFromWindow()
+}
+
 // Dirty states 
 // URL does not match the settings currently showing.
 const urlOutOfSync = computed(
@@ -3549,10 +3816,23 @@ onMounted(() => {
   viewPreferenceLoaded.value = true
 
   document.addEventListener('pointerdown', handleSingleModeOutsidePointerDown, true)
+  window.addEventListener('popstate', handleWindowLocationChange)
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('pointerdown', handleSingleModeOutsidePointerDown, true)
+  window.removeEventListener('popstate', handleWindowLocationChange)
+  if (typeof window !== 'undefined' && singleModeTitleRevealFrame) {
+    window.cancelAnimationFrame(singleModeTitleRevealFrame)
+    singleModeTitleRevealFrame = 0
+  }
+  if (typeof window !== 'undefined' && singleModeTitleSwapTimeout) {
+    window.clearTimeout(singleModeTitleSwapTimeout)
+    singleModeTitleSwapTimeout = 0
+  }
+  if (typeof document !== 'undefined') {
+    document.documentElement.classList.remove(SINGLE_MODE_TITLE_PENDING_CLASS)
+  }
 })
 
 /**
@@ -3674,6 +3954,112 @@ const getHeatingUrlValue = (option) => {
     : option.name
 }
 
+const singleModeTitleHtmlByKind = {
+  hp: {
+    electricity: 'For homes heated with <span class="electricity">electricity</span>',
+    gas: 'For homes heated with <span class="gas">natural gas or propane</span>',
+    oil: 'For homes heated with <span class="oil">oil</span>',
+    wood: 'For homes heated with <span class="wood">wood</span>',
+    other: 'For homes heated with <span class="other">other or unsure</span>'
+  },
+  hpwh: {
+    electricity: 'For homes with <span class="electricity">electric</span> water heating',
+    gas: 'For homes with <span class="gas">natural gas or propane</span> water heating',
+    oil: 'For homes with <span class="oil">oil</span> water heating',
+    other: 'For homes with <span class="other">other or unsure</span> water heating'
+  }
+}
+
+const currentUrlParams = computed(() => {
+  return new URLSearchParams((currentQueryString.value || '').replace(/^\?/, ''))
+})
+
+const currentUrlHeatingValue = computed(() => currentUrlParams.value.get('heating') || '')
+
+const currentUrlWaterHeatingValue = computed(() =>
+  currentUrlParams.value.get('water_heating') || ''
+)
+
+const currentUrlHeatingOption = computed(() =>
+  findHeatingOptionByValue(heatingOptions.value, currentUrlHeatingValue.value)
+)
+
+const currentUrlWaterHeatingOption = computed(() =>
+  findHeatingOptionByValue(waterHeatingOptions.value, currentUrlWaterHeatingValue.value)
+)
+
+const singleModeCurrentTitleHeatingKey = computed(() => {
+  if (singleModePageRebateKind.value === 'hp') {
+    return normalizeHeatingTitleKey(
+      currentUrlHeatingOption.value?.slug ||
+      currentUrlHeatingOption.value?.name ||
+      currentUrlHeatingValue.value
+    )
+  }
+
+  if (singleModePageRebateKind.value === 'hpwh') {
+    return normalizeHeatingTitleKey(
+      currentUrlWaterHeatingOption.value?.slug ||
+      currentUrlWaterHeatingOption.value?.name ||
+      currentUrlWaterHeatingValue.value
+    )
+  }
+
+  return ''
+})
+
+const singleModeCurrentPageAllowedTitleKeys = computed(() => {
+  if (singleModePageRebateKind.value === 'hp') {
+    const sources = pageHeatingTypes.value.length > 0
+      ? pageHeatingTypes.value
+      : [pageHeatingType.value]
+
+    return Array.from(
+      new Set(
+        sources
+          .flatMap(item => extractHeatingTitleKeys(item))
+          .filter(Boolean)
+      )
+    )
+  }
+
+  if (singleModePageRebateKind.value === 'hpwh') {
+    return Array.from(
+      new Set(extractHeatingTitleKeys(pageWaterHeatingType.value).filter(Boolean))
+    )
+  }
+
+  return []
+})
+
+const singleModeCanRetainLastValidTitle = computed(() =>
+  mode.value === 'single' &&
+  Boolean(singleModePageRebateKind.value) &&
+  singleModeCurrentPageAllowedTitleKeys.value.length > 1
+)
+
+const singleModeResolvedTitleHtml = computed(() => {
+  if (!singleModeCanRetainLastValidTitle.value) return ''
+
+  const selectedKey = singleModeCurrentTitleHeatingKey.value
+  if (!selectedKey) return ''
+
+  if (!singleModeCurrentPageAllowedTitleKeys.value.includes(selectedKey)) {
+    return ''
+  }
+
+  return singleModeTitleHtmlByKind[singleModePageRebateKind.value]?.[selectedKey] || ''
+})
+
+watch(
+  [currentPagePathname, singleModePageRebateKind, pageRebateType, pageHeatingType, pageWaterHeatingType],
+  () => {
+    singleModeTitleOriginalText.value = ''
+    singleModeLastValidTitleHtml.value = ''
+  },
+  { flush: 'post' }
+)
+
 /**
  * Initialize form state from current query string params.
  */
@@ -3762,6 +4148,30 @@ const urlStateDeps = computed(() => ({
   gas: selectedGasSlug.value,
   region: selectedRegion.value
 }))
+
+watch(
+  [
+    mode,
+    isReadyToRender,
+    currentQueryString,
+    singleModeResolvedTitleHtml,
+    singleModeCanRetainLastValidTitle,
+    isSingleModeTitleAwaitingAjax
+  ],
+  ([currentMode, readyToRender, , , , awaitingAjax]) => {
+    if (currentMode !== 'single') {
+      setSingleModeHeatingTitleVisibility(true)
+      return
+    }
+    if (!readyToRender) {
+      setSingleModeHeatingTitleVisibility(false)
+      return
+    }
+    if (awaitingAjax) return
+    queueHeatingTitleUpdate()
+  },
+  { immediate: true, flush: 'post' }
+)
 
 watch(
   urlStateDeps,
@@ -5501,6 +5911,38 @@ p.rebate-detail.rebate-detail.rebate-detail.error {
 }
 </style>
 <style>
+
+html.vnext-single-mode-title-pending .subtitle,
+.subtitle[data-single-mode-title-managed="true"] {
+  display: block;
+  overflow: clip;
+  transform-origin: top center;
+}
+
+.single-incentives .subtitle,
+html.vnext-single-mode-title-pending .subtitle,
+.subtitle[data-single-mode-title-managed="true"][data-single-mode-title-state="hidden"] {
+  visibility: hidden;
+  opacity: 0;
+  max-height: 0;
+  transform: scaleY(0.7) translateY(-0.2rem);
+  transition:
+    max-height 0.3s ease-out,
+    opacity 0.3s ease-out,
+    transform 0.3s ease-out,
+    visibility 0s linear 0.15s;
+}
+
+.subtitle[data-single-mode-title-managed="true"][data-single-mode-title-state="visible"] {
+  visibility: visible;
+  opacity: 1;
+  transform: scaleY(1) translateY(0);
+  transition:
+    max-height 0.3s ease-out,
+    opacity 0.3s ease-out,
+    transform 0.3s ease-out;
+}
+
 body.betterhomesbc #dialog .dialog-content h2 {
   border-bottom: 3px solid var(--wp--preset--color--primary-brand);
   color: var(--wp--preset--color--primary-brand);
