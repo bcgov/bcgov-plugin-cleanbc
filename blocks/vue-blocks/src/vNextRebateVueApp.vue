@@ -1006,6 +1006,7 @@ const hasArchiveAutoScrolledToResults = ref(false)
 const pageHeatingType = ref('')
 const pageHeatingTypes = ref([])
 const pageWaterHeatingType = ref('')
+const pageWaterHeatingTypes = ref([])
 const pageBuildingGroup = ref('')
 const pageRebateType = ref('')
 // -- Mode (archive|single) --
@@ -1109,10 +1110,22 @@ const extractHeatingTitleKeys = (value) => {
   return [normalizeHeatingTitleKey(value)]
 }
 
+const resolvedPageWaterHeatingSources = computed(() => {
+  if (Array.isArray(pageWaterHeatingTypes.value) && pageWaterHeatingTypes.value.length > 0) {
+    return pageWaterHeatingTypes.value.filter(Boolean)
+  }
+
+  return String(pageWaterHeatingType.value || '')
+    .split(',')
+    .map(item => item.trim())
+    .filter(Boolean)
+})
+
 const fieldErrors = computed(() => {
   const heatingOptionsSet = pageHeatingTypes.value.length > 0
   const shouldValidateHeating = heatingOptionsSet && !isHpwhRebatePage.value
-  const shouldValidateWaterHeating = !!pageWaterHeatingType.value && isHpwhRebatePage.value
+  const shouldValidateWaterHeating =
+    resolvedPageWaterHeatingSources.value.length > 0 && isHpwhRebatePage.value
   const shouldValidateBuildingGroup = !!pageBuildingGroup.value
   const normalizedSelectedHeating = normalizeHeatingSlug(
     selectedHeatingSlug.value || selectedHeatingName.value
@@ -1125,8 +1138,7 @@ const fieldErrors = computed(() => {
         .flatMap(item => extractHeatingTokens(item))
         .filter(Boolean)
     : []
-  const allowedWaterHeatingTypes = String(pageWaterHeatingType.value || '')
-    .split(',')
+  const allowedWaterHeatingTypes = resolvedPageWaterHeatingSources.value
     .flatMap(item => extractHeatingTokens(item))
     .filter(Boolean)
   const pageRebateWaterHeatingTokens = extractHeatingTokens(pageRebateType.value)
@@ -1353,7 +1365,9 @@ const currentPageWaterHeatingEligibleForAlternate = computed(() => {
   const selected = normalizedSelectedWaterHeatingForAlternate.value
   if (!selected) return false
 
-  const allowed = extractHeatingTokens(pageWaterHeatingType.value).filter(Boolean)
+  const allowed = resolvedPageWaterHeatingSources.value
+    .flatMap(item => extractHeatingTokens(item))
+    .filter(Boolean)
   if (allowed.length === 0) return true
   return allowed.includes(selected)
 })
@@ -3710,13 +3724,21 @@ const isUrlHeatingMismatch = computed(() => {
 
 const isUrlWaterHeatingMismatch = computed(() => {
   // Only relevant in single mode where SSR heating type is defined
-  if (mode.value !== 'single' || !pageWaterHeatingType.value) return false
+  if (mode.value !== 'single' || resolvedPageWaterHeatingSources.value.length === 0) return false
 
   const params = new URLSearchParams(window.location.search)
   const waterHeatingParam = params.get('water_heating')
+  if (!waterHeatingParam) return false
 
-  // Mismatch occurs if the URL has a heating param that differs from SSR value
-  return waterHeatingParam && waterHeatingParam !== pageWaterHeatingType.value
+  const normalizedWaterHeating = normalizeHeatingSlug(
+    findHeatingOptionByValue(waterHeatingOptions.value, waterHeatingParam)?.slug ||
+    waterHeatingParam
+  )
+  const allowedWaterHeating = resolvedPageWaterHeatingSources.value
+    .flatMap(item => extractHeatingTokens(item))
+    .filter(Boolean)
+
+  return normalizedWaterHeating ? !allowedWaterHeating.includes(normalizedWaterHeating) : false
 })
 
 
@@ -3755,6 +3777,12 @@ onMounted(() => {
   }
   if (el?.dataset?.pageWaterHeatingType) {
     pageWaterHeatingType.value = el.dataset.pageWaterHeatingType
+  }
+  if (el?.dataset?.pageWaterHeatingTypes) {
+    pageWaterHeatingTypes.value = el.dataset.pageWaterHeatingTypes
+      .split(',')
+      .map(item => item.trim())
+      .filter(Boolean)
   }
   if (el?.dataset?.pageBuildingGroup) {
     pageBuildingGroup.value = el.dataset.pageBuildingGroup
@@ -3964,6 +3992,7 @@ const singleModeTitleHtmlByKind = {
   },
   hpwh: {
     electricity: 'For homes with <span class="electricity">electric</span> water heating',
+    'electric-hpwh': 'For homes with <span class="electric-hpwh">electric heat pump water heater</span> water heating',
     gas: 'For homes with <span class="gas">natural gas or propane</span> water heating',
     oil: 'For homes with <span class="oil">oil</span> water heating',
     other: 'For homes with <span class="other">other or unsure</span> water heating'
@@ -4025,7 +4054,11 @@ const singleModeCurrentPageAllowedTitleKeys = computed(() => {
 
   if (singleModePageRebateKind.value === 'hpwh') {
     return Array.from(
-      new Set(extractHeatingTitleKeys(pageWaterHeatingType.value).filter(Boolean))
+      new Set(
+        resolvedPageWaterHeatingSources.value
+          .flatMap(item => extractHeatingTitleKeys(item))
+          .filter(Boolean)
+      )
     )
   }
 
@@ -4052,7 +4085,14 @@ const singleModeResolvedTitleHtml = computed(() => {
 })
 
 watch(
-  [currentPagePathname, singleModePageRebateKind, pageRebateType, pageHeatingType, pageWaterHeatingType],
+  [
+    currentPagePathname,
+    singleModePageRebateKind,
+    pageRebateType,
+    pageHeatingType,
+    pageWaterHeatingType,
+    pageWaterHeatingTypes
+  ],
   () => {
     singleModeTitleOriginalText.value = ''
     singleModeLastValidTitleHtml.value = ''
@@ -5919,7 +5959,12 @@ html.vnext-single-mode-title-pending .subtitle,
   transform-origin: top center;
 }
 
-.single-incentives .subtitle,
+body.single-incentives h2.subtitle {
+  padding-bottom: none;
+  border-bottom: none;
+}
+
+body.single-incentives .subtitle,
 html.vnext-single-mode-title-pending .subtitle,
 .subtitle[data-single-mode-title-managed="true"][data-single-mode-title-state="hidden"] {
   visibility: hidden;
