@@ -1,4 +1,5 @@
 ## 1.30.31 March 9-10, 2026
+– Single mode suppression of invalid query modal if current page is target
 – Updated single-mode rebate headings to react to URL/page state and animate title changes only when the displayed heading actually changes
 
 ## 1.30.30 March 6, 2026

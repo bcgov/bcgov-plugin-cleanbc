@@ -1496,6 +1496,11 @@ const singleModeAlternateRebate = computed(() =>
     : null
 )
 
+const singleModeShouldSuppressInvalidQueryModal = computed(() =>
+  mode.value === 'single' &&
+  Boolean(currentPageRebateItem.value)
+)
+
 const singleModeDialogTitle = computed(() => {
   if (singleModeDialogVariant.value === 'alternate-rebate') {
     const field = singleModeAlternateDialogChangeField.value
@@ -1751,6 +1756,11 @@ async function maybeOpenSingleModeInvalidQueryDialogOnLoad() {
     return
   }
 
+  if (singleModeShouldSuppressInvalidQueryModal.value) {
+    logSingleModeDebug('load-check:skip-invalid-modal-on-target-page')
+    return
+  }
+
   logSingleModeDebug('load-check:open-invalid-modal')
   openSingleModeDialogVariant('invalid-query')
 }
@@ -1787,6 +1797,10 @@ async function maybeOpenSingleModeAlternateRebateDialog(changeField = '') {
       continue
     }
     if (!singleModeAlternateRebate.value) {
+      if (singleModeShouldSuppressInvalidQueryModal.value) {
+        logSingleModeDebug('first-change-check:skip-invalid-modal-on-target-page')
+        continue
+      }
       logSingleModeDebug('first-change-check:open-invalid-modal-no-alternate')
       singleModeAlternateDialogSource.value = 'change'
       singleModeAlternateDialogChangeField.value = dialogChangeField
