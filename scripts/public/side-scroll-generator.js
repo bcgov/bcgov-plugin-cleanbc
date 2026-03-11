@@ -61,8 +61,7 @@ const initializeInPageNav = (sideNav) => {
 	}
 
 	inPageNavLinks.forEach((link) => {
-		link.addEventListener('click', (e) => {
-			e.preventDefault();
+		link.addEventListener('click', () => {
 			setActiveLink(inPageNavLinks, link);
 			clickedOnNav = true;
 
