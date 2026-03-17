@@ -158,11 +158,11 @@
                     </button>
                     <span :id="`${field.key}-edit-hint`" class="sr-only">Activate to edit {{ field.shortDesc }}.</span>
                     <p v-if="fieldErrors[field.key]" :id="`${field.key}-edit-warning`" class="rebate-setting-warning">
-                      <template v-if="isIneligibleInstalledHeatPumpSelection(field.key)">
+                      <template v-if="false && isIneligibleInstalledHeatPumpSelection(field.key)">
                         You can't get a rebate if <strong>you already have a {{ getInstalledHeatPumpLabel(field.key) }}.</strong> To see other rebates, <a href="/find-rebates/" style="color:darkred;text-underline-offset:2px;">go back to the questionnaire.</a>
                       </template>
-                      <template v-else>
-                        This page is based on {{ field.key === 'building' ? 'home type' : 'current heating type' }}. To see rebates for a different home type, <a href="/find-rebates/" style="color:darkred;text-underline-offset:2px;">go back to the questionnaire.</a>
+                      <template v-if='true'>
+                        This page is based on {{ field.key === 'building' ? 'home and heating type' : 'current heating type' }}. To see rebates for a different home type, <a href="/find-rebates/" style="color:darkred;text-underline-offset:2px;">go back to the questionnaire.</a>
                       </template>
                     </p>
                   </div>
@@ -199,7 +199,7 @@
                       </select>
 
                       <figcaption v-if="field.description" :id="`${field.key}SelectDesc`">{{ field.description }}</figcaption>
-                      <p v-if="field.error_desc && fieldErrors[field.key]" :id="`${field.key}SelectError`" class="message error-message" aria-live='polite' v-html="field.error_desc"></p>
+                      <p v-if="getFieldErrorDescription(field) && fieldErrors[field.key]" :id="`${field.key}SelectError`" class="message error-message" aria-live='polite' v-html="getFieldErrorDescription(field)"></p>
                       <figcaption v-if="field.key === 'heating' && field.disabled">
                         This heating type is preselected for this rebate.
                       </figcaption>
@@ -256,7 +256,7 @@
                     </select>
 
                     <figcaption v-if="field.description" :id="`${field.key}SelectDesc`">{{ field.description }}</figcaption>
-                    <p v-if="field.error_desc && fieldErrors[field.key]" :id="`${field.key}SelectError`" class="message error-message" aria-live='polite' v-html='field.error_desc'></p>
+                    <p v-if="getFieldErrorDescription(field) && fieldErrors[field.key]" :id="`${field.key}SelectError`" class="message error-message" aria-live='polite' v-html='getFieldErrorDescription(field)'></p>
                   </figure>
                 </template>
               </template>
@@ -1225,6 +1225,20 @@ const toA11yText = (val) =>
   String(val || '')
     .replace(/\s+/g, ' ')
     .trim()
+
+function getFieldErrorDescription(field) {
+  if (!field?.error_desc) return ''
+
+  if (mode.value === 'single' && field.key === 'heating' && selectedHeatingSlug.value === 'other') {
+    return 'Only the listed heating types are currently eligible for Better Homes rebates. <strong><a href="/get-support/" style="color: #8b0000;">Contact an Energy Coach</a></strong> to find out if your heating type fits into one of these categories.'
+  }
+
+  if (mode.value === 'single' && field.key === 'water' && selectedWaterHeatingSlug.value === 'other') {
+    return 'Only the listed water heating types are currently eligible for Better Homes rebates. <strong><a href="/get-support/" style="color: #8b0000;">Contact an Energy Coach</a></strong> to find out if your water heating type fits into one of these categories.'
+  }
+
+  return field.error_desc
+}
 
 function getEditFieldButtonLabel(field) {
   const fieldName = toA11yText(field?.shortDesc || field?.label || 'setting')
@@ -2524,7 +2538,7 @@ const fields = computed(() => [
     // filter_desc:
     //   'Changing between Ground Oriented / MURB types will require you to update the assessed property value information.',
     error_desc:
-      'Only the listed home types are currently eligible for Better Homes rebates. <strong><a href="/get-support/" style="color: #8b0000;">Contact an Energy Coach</a></strong> to find out if your home type fits into one of these categories.',
+      '<strong><a href="/get-support/" style="color: #8b0000;">Contact an Energy Coach</a></strong> for help with your home type.',
     definition: 'See the different home types',
     glossary_link: '/definitions/home-types/',
     glossary_wide: true,
@@ -2592,7 +2606,7 @@ const fields = computed(() => [
     displayValue: selectedHeatingName.value,
     missingMessage: 'Missing room heating details',
     error_desc:
-      'Only the listed heating types are currently eligible for Better Homes rebates. <strong><a href="/get-support/" style="color: #8b0000;">Contact an Energy Coach</a></strong> to find out if your heating type fits into one of these categories.',
+      '<strong><a href="/get-support/" style="color: #8b0000;">Contact an Energy Coach</a></strong> for help with your room heating type.',
     isInvalid: () => !selectedHeatingSlug.value || selectedHeatingSlug.value === 'other',
   },
   {
@@ -2606,7 +2620,7 @@ const fields = computed(() => [
     displayValue: selectedWaterHeatingName.value,
     missingMessage: 'Missing water heating details',
     error_desc:
-      'Only the listed heating types are eligible for Better Homes heat pump water heater rebates. <strong><a href="/get-support/" style="color: #8b0000;">Contact an Energy Coach</a></strong> to find out if your heating type fits into one of these categories. ',
+      '<strong><a href="/get-support/" style="color: #8b0000;">Contact an Energy Coach</a></strong> for help with your water heating type. ',
     isInvalid: () => !selectedWaterHeatingSlug.value || selectedWaterHeatingSlug.value === 'other'
   },
   {
@@ -2628,7 +2642,7 @@ const fields = computed(() => [
     displayValue: selectedUtilityName.value,
     missingMessage: 'Missing service details',
     error_desc:
-      'Your electricity must be from one of the listed providers. <strong><a href="/get-support/" style="color: #8b0000;">Contact an Energy Coach</a></strong> if you have questions or need help figuring out who your provider is. ',
+      'Without your electricity provider, we can’t determine your rebate eligibility. <strong><a href="/get-support/" style="color: #8b0000;">Contact an Energy Coach</a></strong> for help or choose one of the listed options. ',
     isInvalid: () => !selectedUtilitySlug.value || selectedUtilitySlug.value === 'other'
   }
 ])
