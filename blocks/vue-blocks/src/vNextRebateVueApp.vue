@@ -558,6 +558,7 @@ import {
   shouldValidateRoomHeatingField,
   shouldValidateWaterHeatingField
 } from './singleModeEligibility'
+import { getRestoredBuildingTypeSlug } from './buildingTypeSelection'
 
 /** Public domain fallback */
 const publicDomain = ref('https://www.betterhomesbc.ca')
@@ -3023,14 +3024,14 @@ onMounted(async () => {
 function initFromLocalStorage(data) {
   if (!data || typeof data !== 'object') return
 
-  if (data.group && buildingTypeGroups.value.some(g => g.slug === data.group)) {
-    selectedBuildingTypeSlug.value = data.group
-  }
-
-  if (data.type) {
-    const isParent = buildingTypeGroups.value.some(g => g.slug === data.type)
-    const isChild = Array.from(childToGroupSlug.value.keys()).includes(data.type)
-    if (isParent || isChild) selectedBuildingTypeSlug.value = data.type
+  const restoredBuildingTypeSlug = getRestoredBuildingTypeSlug({
+    type: data.type,
+    group: data.group,
+    mode: mode.value,
+    buildingTypeGroups: buildingTypeGroups.value
+  })
+  if (restoredBuildingTypeSlug) {
+    selectedBuildingTypeSlug.value = restoredBuildingTypeSlug
   }
 
   if (data.tenure && (data.tenure === 'own' || data.tenure === 'rent'))
@@ -3106,11 +3107,19 @@ const buildingTypeGroups = computed(() => {
   return sorted
 })
 
+const selectedBuildingTypeSlug = ref('')
+
 watch(
-  () => mode.value,
+  [() => mode.value, buildingTypeGroups],
   () => {
-    if (mode.value === 'single' && selectedBuildingTypeSlug.value === 'other') {
-      selectedBuildingTypeSlug.value = ''
+    const normalizedSelection = getRestoredBuildingTypeSlug({
+      type: selectedBuildingTypeSlug.value,
+      mode: mode.value,
+      buildingTypeGroups: buildingTypeGroups.value
+    })
+
+    if (normalizedSelection !== selectedBuildingTypeSlug.value) {
+      selectedBuildingTypeSlug.value = normalizedSelection
     }
   },
   { immediate: true }
@@ -3123,8 +3132,6 @@ const childToGroupSlug = computed(() => {
   }
   return map
 })
-
-const selectedBuildingTypeSlug = ref('')
 
 const selectedBuildingGroupSlug = computed(() => {
   if (!selectedBuildingTypeSlug.value) return ''
@@ -4134,14 +4141,14 @@ function initFromQueryString() {
   const utility = urlParams.get('utility')
   const gas = urlParams.get('gas')
 
-  if (group && buildingTypeGroups.value.some(g => g.slug === group)) {
-    selectedBuildingTypeSlug.value = group
-  }
-
-  if (type) {
-    const isParent = buildingTypeGroups.value.some(g => g.slug === type)
-    const isChild = Array.from(childToGroupSlug.value.keys()).includes(type)
-    if (isParent || isChild) selectedBuildingTypeSlug.value = type
+  const restoredBuildingTypeSlug = getRestoredBuildingTypeSlug({
+    type,
+    group,
+    mode: mode.value,
+    buildingTypeGroups: buildingTypeGroups.value
+  })
+  if (restoredBuildingTypeSlug) {
+    selectedBuildingTypeSlug.value = restoredBuildingTypeSlug
   }
 
   if (tenure && (tenure === 'own' || tenure === 'rent')) murbTenure.value = tenure

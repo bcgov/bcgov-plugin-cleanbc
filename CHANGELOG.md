@@ -1,5 +1,8 @@
-## 1.30.32
- March 11, 2026
+## 1.30.33 March 17, 2026
+– Fixed restored building type selection so single mode only keeps valid child types, while archive mode still preserves "other"
+– Added tests for restored building type selection handling
+
+## 1.30.32 March 11, 2026
 – Enabled hash in URL for side menu links
 
 ## 1.30.31 March 9-10, 2026
