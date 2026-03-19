@@ -4471,6 +4471,7 @@ const filteredResults = computed(() => {
     const utilityIsBCHydro = normalizedUtility === 'bc-hydro'
     const utilityIsBCHydroOrNW = normalizedUtility === 'bc-hydro' || normalizedUtility === 'new-westminster'
     const roomIsElectric = normalizedHeating === 'electricity'
+    const roomIsOil = normalizedHeating === 'oil'
     const roomIsWood = normalizedHeating === 'wood'
     const waterIsElectric = normalizedWaterHeating === 'electricity'
     const waterIsWood = normalizedWaterHeating === 'wood'
@@ -4509,23 +4510,27 @@ const filteredResults = computed(() => {
       return false
     }
 
-    // Guard : Ground-oriented windows and doors rules for ESP-3 + HRR wood/Vancouver 
-    const godWindowsWoodVanIneligible =
+    // Guard : Ground-oriented windows and doors rules for ESP-3 + HRR wood/oil/non-FortisBC gas/Vancouver
+    const godWindowsWoodOilVanIneligible =
     ( isGodBuilding && isHighTier && isWindowsDoors ) && (
-      roomIsWood // room cannot be wood
+      roomIsWood ||
+      roomIsOil ||
+      (normalizedHeating === 'gas' && normalizedGas !== 'fortisbc-gas') // room cannot be wood, oil, or non-FortisBC gas
     ) || ( locationIsVancouver && isWindowsDoors )
 
-    if (godWindowsWoodVanIneligible) {
+    if (godWindowsWoodOilVanIneligible) {
       return false
     }
 
-    // Guard : Ground-oriented insulation rules for ESP-3 + HRR wood
-    const godInsulationWoodIneligible =
+    // Guard : Ground-oriented insulation rules for ESP-3 + HRR wood/oil/non-FortisBC gas
+    const godInsulationWoodOilIneligible =
     ( isGodBuilding && isHighTier && isInsulation ) && (
-      roomIsWood // room cannot be wood
+      roomIsWood ||
+      roomIsOil ||
+      (normalizedHeating === 'gas' && normalizedGas !== 'fortisbc-gas') // room cannot be wood, oil, or non-FortisBC gas
     )
 
-    if (godInsulationWoodIneligible) {
+    if (godInsulationWoodOilIneligible) {
       return false
     }
 

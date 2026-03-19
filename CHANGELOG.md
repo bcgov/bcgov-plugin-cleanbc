@@ -1,3 +1,6 @@
+## 1.30.34 March 19, 2026
+– Added ineligible stae for Insulation and Window and doors rebates for oil + non-Fortis gas room heating types
+
 ## 1.30.33 March 17, 2026
 – Fixed restored building type selection so single mode only keeps valid child types, while archive mode still preserves "other"
 – Added tests for restored building type selection handling
