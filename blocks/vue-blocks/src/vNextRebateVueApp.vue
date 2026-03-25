@@ -4561,27 +4561,47 @@ const filteredResults = computed(() => {
       return false
     }
 
-    // Guard : Ground-oriented windows and doors rules for ESP-3 + HRR wood/oil/non-FortisBC gas/Vancouver
-    const godWindowsWoodOilVanIneligible =
+    // // Guard : Ground-oriented windows and doors rules for ESP-3 + HRR wood/oil/non-FortisBC gas/Vancouver
+    // const godWindowsWoodOilVanIneligible =
+    // ( isGodBuilding && isHighTier && isWindowsDoors ) && (
+    //   roomIsWood ||
+    //   roomIsOil ||
+    //   (normalizedHeating === 'gas' && normalizedGas !== 'fortisbc-gas') // room cannot be wood, oil, or non-FortisBC gas
+    // ) || ( locationIsVancouver && isWindowsDoors )
+
+    // if (godWindowsWoodOilVanIneligible) {
+    //   return false
+    // }
+
+    // // Guard : Ground-oriented insulation rules for ESP-3 + HRR wood/oil/non-FortisBC gas
+    // const godInsulationWoodOilIneligible =
+    // ( isGodBuilding && isHighTier && isInsulation ) && (
+    //   roomIsWood ||
+    //   roomIsOil ||
+    //   (normalizedHeating === 'gas' && normalizedGas !== 'fortisbc-gas') // room cannot be wood, oil, or non-FortisBC gas
+    // )
+
+    // if (godInsulationWoodOilIneligible) {
+    //   return false
+    // }
+
+    // Guard : Ground-oriented windows and doors rules for ESP-3 + HRR wood/Vancouver 
+    const godWindowsWoodVanIneligible =
     ( isGodBuilding && isHighTier && isWindowsDoors ) && (
-      roomIsWood ||
-      roomIsOil ||
-      (normalizedHeating === 'gas' && normalizedGas !== 'fortisbc-gas') // room cannot be wood, oil, or non-FortisBC gas
+      roomIsWood // room cannot be wood
     ) || ( locationIsVancouver && isWindowsDoors )
 
-    if (godWindowsWoodOilVanIneligible) {
+    if (godWindowsWoodVanIneligible) {
       return false
     }
 
-    // Guard : Ground-oriented insulation rules for ESP-3 + HRR wood/oil/non-FortisBC gas
-    const godInsulationWoodOilIneligible =
+    // Guard : Ground-oriented insulation rules for ESP-3 + HRR wood
+    const godInsulationWoodIneligible =
     ( isGodBuilding && isHighTier && isInsulation ) && (
-      roomIsWood ||
-      roomIsOil ||
-      (normalizedHeating === 'gas' && normalizedGas !== 'fortisbc-gas') // room cannot be wood, oil, or non-FortisBC gas
+      roomIsWood // room cannot be wood
     )
 
-    if (godInsulationWoodOilIneligible) {
+    if (godInsulationWoodIneligible) {
       return false
     }
 
