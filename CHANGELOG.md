@@ -1,3 +1,9 @@
+## 1.30.35 March 24-25, 2026
+– Updated contractor and PQEA share links to append 'source=share' only when copied from the Share button
+– Contractor and PQEA shared-link hydration to ignore preferred local settings when 'source=share' is present
+– Refined contractor condo/apartment heat pump type handling for ESP/HRR child terms, including display-label and filter-option behavior
+– Synced fetched stylesheet and style nodes during single mode rebate AJAX content refresh so injected content styles are applied after partial page updates
+
 ## 1.30.34 March 19, 2026
 – Added ineligible stae for Insulation and Window and doors rebates for oil + non-Fortis gas room heating types
 

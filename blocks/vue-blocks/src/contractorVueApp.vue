@@ -265,26 +265,18 @@
 
                     <!-- Business Types -->
                     <td data-label="Upgrade type(s)" class="contractor__upgrade-types">
-                        <ul v-if="contractor.types">
-                            <li v-for="(type, index) in contractor.types">{{ type.name }}</li>
+                        <ul v-if="getVisibleContractorTypeLabels(contractor).length">
+                            <li v-for="typeLabel in getVisibleContractorTypeLabels(contractor)" :key="typeLabel">{{ typeLabel }}</li>
                         </ul>
                     </td>
 
                     <!-- Program Designations -->
                     <td data-label="Qualified program(s)" class="contractor__program-designations">
-                        <ul v-if="contractor.program_designations?.length">
-                          <template v-if="selectedProgram !== 'all'">
-                            <li v-for="d in contractor.program_designations.filter(d => d?.name === selectedProgram)"
-                                :key="d?.id || d?.name" :class='d.slug' class='has-icon is-uppercase' :aria-label="d.name + ' qualified'">
-                              {{ d.slug }}
-                            </li>
-                          </template>
-
-                          <template v-else>
-                            <li v-for="d in contractor.program_designations" :key="d?.id || d?.name" :class='d.slug'  class='has-icon is-uppercase' :aria-label="d.name + ' qualified'">
-                              {{ d.slug }}
-                            </li>
-                          </template>
+                        <ul v-if="getVisibleProgramDesignations(contractor).length">
+                          <li v-for="d in getVisibleProgramDesignations(contractor)"
+                              :key="d?.id || d?.name" :class='d.slug' class='has-icon is-uppercase' :aria-label="d.name + ' qualified'">
+                            {{ d.slug }}
+                          </li>
                         </ul>
                     </td>
                 </tr>
@@ -592,6 +584,13 @@ function clearLocationSelection() {
 const publicDomain = ref('https://betterhomes.gov.bc.ca')
 const contractorsAPI = `${window.site?.domain ? window.site.domain : publicDomain.value}/wp-json/custom/v1/contractors`
 
+const CONDO_HEAT_PUMP_NAME = 'Heat Pumps for Condos and Apartments'
+const CONDO_HEAT_PUMP_SLUG = 'heat-pumps-for-condos-and-apartments'
+const CONDO_PROGRAM_SUFFIX_BY_SLUG = {
+  esp: 'ESP only',
+  hrr: 'HRR only'
+}
+
 const itemsToClearFromSessionStorage = ref([
   'faqsData',
   'faqsTimestamp',
@@ -631,7 +630,8 @@ const fetchData = async () => {
       return null
     }
 
-    let cached = readCache(sessionStorage) || readCache(localStorage)
+    let cached = readCache(sessionStorage)
+    if (!cached && !isShareSourceUrl()) cached = readCache(localStorage)
 
     if (cached) {
       contractors.value = cached
@@ -663,8 +663,10 @@ const fetchData = async () => {
     } catch (storageError) {
       if (isQuotaExceededError(storageError)) {
         console.warn('SessionStorage quota exceeded. Falling back to localStorage.')
-        try { writeCache(localStorage) } catch (lsError) {
-          console.error('Error setting data in localStorage:', lsError)
+        if (!isShareSourceUrl()) {
+          try { writeCache(localStorage) } catch (lsError) {
+            console.error('Error setting data in localStorage:', lsError)
+          }
         }
       } else {
         console.error('Error setting data in sessionStorage:', storageError)
@@ -702,7 +704,110 @@ function collectUniqueNames(array, key) {
   return Array.from(unique).sort((a, b) => a.localeCompare(b))
 }
 
-const types = computed(() => collectUniqueNames(contractors.value, 'types'))
+const normalizeSlug = (value = '') => String(value || '').trim().toLowerCase()
+
+const isCondoHeatPumpParentTerm = (term) => {
+  const slug = normalizeSlug(term?.slug)
+  const name = String(term?.name || '').trim()
+  return slug === CONDO_HEAT_PUMP_SLUG || name === CONDO_HEAT_PUMP_NAME
+}
+
+const getVisibleProgramDesignations = (contractor) => {
+  const designations = Array.isArray(contractor?.program_designations)
+    ? contractor.program_designations.filter(Boolean)
+    : []
+
+  if (selectedProgram.value !== 'all') {
+    return designations.filter((designation) => designation?.name === selectedProgram.value)
+  }
+
+  return designations
+}
+
+const getVisibleContractorTypeLabels = (contractor) => {
+  const rawTypes = Array.isArray(contractor?.types) ? contractor.types.filter(Boolean) : []
+  const visibleProgramSlugs = new Set(
+    getVisibleProgramDesignations(contractor)
+      .map((designation) => normalizeSlug(designation?.slug))
+      .filter(Boolean)
+  )
+
+  const condoParent = rawTypes.find(isCondoHeatPumpParentTerm) || null
+  const condoParentId = Number(condoParent?.term_id || condoParent?.id || 0)
+  const condoProgramChildren = rawTypes.filter((term) => {
+    const slug = normalizeSlug(term?.slug)
+    if (!Object.prototype.hasOwnProperty.call(CONDO_PROGRAM_SUFFIX_BY_SLUG, slug)) return false
+
+    const termParentId = Number(term?.parent || 0)
+    if (condoParentId > 0) return termParentId === condoParentId
+    return termParentId > 0
+  })
+  const condoProgramChildSlugs = new Set(
+    condoProgramChildren.map((term) => normalizeSlug(term?.slug)).filter(Boolean)
+  )
+  const hasBothCondoProgramChildren =
+    condoProgramChildSlugs.has('esp') && condoProgramChildSlugs.has('hrr')
+
+  const output = []
+  const seen = new Set()
+  const addLabel = (label) => {
+    if (!label || seen.has(label)) return
+    seen.add(label)
+    output.push(label)
+  }
+
+  for (const term of rawTypes) {
+    if (isCondoHeatPumpParentTerm(term)) continue
+
+    const slug = normalizeSlug(term?.slug)
+    if (Object.prototype.hasOwnProperty.call(CONDO_PROGRAM_SUFFIX_BY_SLUG, slug)) continue
+
+    addLabel(term?.name)
+  }
+
+  if (hasBothCondoProgramChildren) {
+    addLabel(CONDO_HEAT_PUMP_NAME)
+  } else if (condoProgramChildren.length) {
+    for (const term of condoProgramChildren) {
+      const slug = normalizeSlug(term?.slug)
+      if (!visibleProgramSlugs.has(slug)) continue
+      addLabel(
+        selectedProgram.value === 'all'
+          ? `${CONDO_HEAT_PUMP_NAME} (${CONDO_PROGRAM_SUFFIX_BY_SLUG[slug]})`
+          : CONDO_HEAT_PUMP_NAME
+      )
+    }
+  } else if (condoParent) {
+    addLabel(CONDO_HEAT_PUMP_NAME)
+  }
+
+  return output
+}
+
+const getSelectableContractorTypeLabels = (contractor) => {
+  const selectable = new Set()
+
+  for (const typeLabel of getVisibleContractorTypeLabels(contractor)) {
+    if (typeLabel.startsWith(`${CONDO_HEAT_PUMP_NAME} (`)) {
+      selectable.add(CONDO_HEAT_PUMP_NAME)
+      continue
+    }
+
+    selectable.add(typeLabel)
+  }
+
+  return Array.from(selectable)
+}
+
+const types = computed(() => {
+  const unique = new Set()
+  for (const contractor of contractors.value) {
+    for (const typeLabel of getSelectableContractorTypeLabels(contractor)) {
+      unique.add(typeLabel)
+    }
+  }
+  return Array.from(unique).sort((a, b) => a.localeCompare(b))
+})
 const programs = computed(() => collectUniqueNames(contractors.value, 'program_designations'))
 const locations = computed(() => collectUniqueNames(contractors.value, 'locations'))
 
@@ -774,7 +879,7 @@ const contractorIndex = computed(() => {
   const arr = shuffledContractors.value || []
   return arr.map((c) => {
     const companyNorm = normalize(c?.company_name || '')
-    const typeNames = new Set((c?.types || []).map(t => t?.name).filter(Boolean))
+    const typeNames = new Set(getSelectableContractorTypeLabels(c))
     const locNames  = new Set((c?.locations || []).map(l => l?.name).filter(Boolean))
     const progNames = new Set((c?.program_designations || []).map(p => p?.name).filter(Boolean))
 
@@ -861,11 +966,14 @@ const nextPage = () => (currentPage.value < totalPages.value ? currentPage.value
  * URL assembly + copy link
  * -------------------------------------------------------------------------- */
 
-const assembleUrl = () => {
+const assembleUrl = ({ includeSource = false } = {}) => {
   const baseUrl = window.location.origin + window.location.pathname
   const url = new URL(baseUrl)
 
   url.searchParams.set('tool', 'contractors')
+  if (includeSource) {
+    url.searchParams.set('source', 'share')
+  }
 
   if (nameQuery.value?.trim()) {
     url.searchParams.set('company', nameQuery.value.trim())
@@ -930,7 +1038,7 @@ async function copyTextToClipboard(text) {
 }
 
 const addLinkToClipboard = async (event) => {
-  const url = assembleUrl()
+  const url = assembleUrl({ includeSource: true })
 
   try {
     const ok = await copyTextToClipboard(url)
@@ -955,6 +1063,8 @@ const canCopyLink = computed(() => {
   )
 })
 
+const isShareSourceUrl = () => new URLSearchParams(window.location.search).get('source') === 'share'
+
 const normalizeProgramParam = (v = '') =>
   decodeHtmlEntities(String(v)).trim().toLowerCase()
 
@@ -971,6 +1081,7 @@ const PROGRAM_TO_SHORTHAND = {
 const PREFERRED_SETTINGS_KEY = 'preferredSettings'
 
 function readPreferredSettings() {
+  if (isShareSourceUrl()) return null
   try {
     const raw = localStorage.getItem(PREFERRED_SETTINGS_KEY)
     if (!raw) return null
@@ -1215,7 +1326,7 @@ function hydrateFromUrl() {
         'That service region was not recognized. Please choose one from the list of available options.'
       locationTouched.value = true
     }
-  } else {
+  } else if (!isShareSourceUrl()) {
     const preferredLocation = resolvePreferredLocation()
     if (preferredLocation) {
       selectedLocation.value = preferredLocation
@@ -1224,6 +1335,12 @@ function hydrateFromUrl() {
       locationError.value = ''
       locationTouched.value = false
     }
+  } else {
+    selectedLocation.value = 'all'
+    locationInputValue.value = ''
+    locationInputDisplay.value = ''
+    locationError.value = ''
+    locationTouched.value = false
   }
 
   if (upgradeType) {

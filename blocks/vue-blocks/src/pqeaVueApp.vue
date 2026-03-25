@@ -338,8 +338,10 @@ function findClosestLocation(raw, locationList) {
 }
 
 const PREFERRED_SETTINGS_KEY = 'preferredSettings'
+const isShareSourceUrl = () => new URLSearchParams(window.location.search).get('source') === 'share'
 
 function readPreferredSettings() {
+  if (isShareSourceUrl()) return null
   try {
     const raw = localStorage.getItem(PREFERRED_SETTINGS_KEY)
     if (!raw) return null
@@ -570,7 +572,7 @@ const fetchData = async () => {
 
     if (data && timestamp && isDataValid(timestamp)) {
       cachedData = JSON.parse(data)
-    } else {
+    } else if (!isShareSourceUrl()) {
       data = localStorage.getItem('pqeasData')
       timestamp = localStorage.getItem('pqeasTimestamp')
       if (data && timestamp && isDataValid(timestamp)) {
@@ -604,11 +606,13 @@ const fetchData = async () => {
     } catch (storageError) {
       if (isQuotaExceededError(storageError)) {
         console.warn('SessionStorage quota exceeded. Falling back to localStorage.')
-        try {
-          localStorage.setItem('pqeasData', JSON.stringify(json))
-          localStorage.setItem('pqeasTimestamp', Date.now().toString())
-        } catch (lsError) {
-          console.error('Error setting data in localStorage:', lsError)
+        if (!isShareSourceUrl()) {
+          try {
+            localStorage.setItem('pqeasData', JSON.stringify(json))
+            localStorage.setItem('pqeasTimestamp', Date.now().toString())
+          } catch (lsError) {
+            console.error('Error setting data in localStorage:', lsError)
+          }
         }
       } else {
         console.error('Error setting data in sessionStorage:', storageError)
@@ -731,12 +735,15 @@ const loadMore = async () => {
  * URL assembly + copy link
  * -------------------------------------------------------------------------- */
 
-const assembleUrl = () => {
+const assembleUrl = ({ includeSource = false } = {}) => {
   const baseUrl = window.location.origin + window.location.pathname
   const url = new URL(baseUrl)
 
   // IMPORTANT: correct tool name for this component
   url.searchParams.set('tool', 'pqeas')
+  if (includeSource) {
+    url.searchParams.set('source', 'share')
+  }
 
   // post type (default: renovation)
   // NOTE: use custom query key to avoid WP `post_type` conflicts/404s.
@@ -802,7 +809,7 @@ async function copyTextToClipboard(text) {
 }
 
 const addLinkToClipboard = async (event) => {
-  const url = assembleUrl()
+  const url = assembleUrl({ includeSource: true })
   try {
     const ok = await copyTextToClipboard(url)
     handleLinkCopiedMessageContent(event, '.filter-container', ok ? 'Shareable link copied to clipboard!' : 'Copy failed')
@@ -1020,7 +1027,7 @@ function hydrateFromUrl() {
         'That service region was not recognized. Please choose one from the list of available options.'
       locationTouched.value = true
     }
-  } else {
+  } else if (!isShareSourceUrl()) {
     const preferredLocation = resolvePreferredLocation()
     if (preferredLocation) {
       selectedLocation.value = preferredLocation
@@ -1035,6 +1042,12 @@ function hydrateFromUrl() {
       locationError.value = ''
       locationTouched.value = false
     }
+  } else {
+    selectedLocation.value = 'all'
+    locationInputValue.value = ''
+    locationInputDisplay.value = ''
+    locationError.value = ''
+    locationTouched.value = false
   }
 
   showLoadingMessage.value = false

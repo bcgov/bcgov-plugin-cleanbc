@@ -775,6 +775,56 @@ function logSingleModeDebug(event, extra = {}) {
 const debouncedUpdateRebateDetails = debounce(updateRebateDetails, 500)
 const isAjaxLoading = ref(false)
 
+function getAjaxStyleSignature(node) {
+  if (!(node instanceof Element)) return ''
+
+  if (node.tagName === 'LINK') {
+    const rel = String(node.getAttribute('rel') || '').toLowerCase()
+    const href = String(node.getAttribute('href') || '').trim()
+    if (!href) return ''
+    return `link:${rel}:${href}`
+  }
+
+  if (node.tagName === 'STYLE') {
+    const id = String(node.getAttribute('id') || '').trim()
+    if (id) return `style:id:${id}`
+
+    const media = String(node.getAttribute('media') || '').trim()
+    const text = String(node.textContent || '').trim()
+    if (!text) return ''
+    return `style:inline:${media}:${text}`
+  }
+
+  return ''
+}
+
+function syncFetchedDocumentStyles(doc) {
+  if (!(doc instanceof Document)) return
+
+  const fetchedStyleNodes = [
+    ...doc.querySelectorAll('head style, head link[rel~="stylesheet"], body style, body link[rel~="stylesheet"]')
+  ]
+
+  if (!fetchedStyleNodes.length) return
+
+  const existingSignatures = new Set(
+    [
+      ...document.querySelectorAll('head style, head link[rel~="stylesheet"], body style, body link[rel~="stylesheet"]')
+    ]
+      .map(getAjaxStyleSignature)
+      .filter(Boolean)
+  )
+
+  for (const styleNode of fetchedStyleNodes) {
+    const signature = getAjaxStyleSignature(styleNode)
+    if (!signature || existingSignatures.has(signature)) continue
+
+    const clone = styleNode.cloneNode(true)
+    document.head.appendChild(clone)
+    existingSignatures.add(signature)
+  }
+}
+
 /**
  * Fetch and replace the rebate details section asynchronously.
  */
@@ -806,6 +856,7 @@ async function updateRebateDetails() {
     const newContent = doc.querySelector(targetSelector)
 
     if (newContent) {
+      syncFetchedDocumentStyles(doc)
       container.innerHTML = newContent.innerHTML
 
       container.querySelectorAll('script').forEach(oldScript => {
