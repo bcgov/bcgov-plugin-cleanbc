@@ -584,7 +584,7 @@ function clearLocationSelection() {
 const publicDomain = ref('https://betterhomes.gov.bc.ca')
 const contractorsAPI = `${window.site?.domain ? window.site.domain : publicDomain.value}/wp-json/custom/v1/contractors`
 
-const CONDO_HEAT_PUMP_NAME = 'Heat Pumps for Condos and Apartments'
+const CONDO_HEAT_PUMP_NAME = 'Heat pumps for condos and apartments'
 const CONDO_HEAT_PUMP_SLUG = 'heat-pumps-for-condos-and-apartments'
 const CONDO_PROGRAM_SUFFIX_BY_SLUG = {
   esp: 'ESP only',
