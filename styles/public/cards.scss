@@ -15,6 +15,11 @@
 	display: grid;
 	text-decoration: none !important;
 
+	* {
+		text-wrap: wrap;
+		text-wrap: pretty;
+	}
+
 	&:is(:hover, :focus-visible) .linked-card {
 		cursor: pointer;
 		outline: 2px solid var(--wp--preset--color--primary-brand);

@@ -1,3 +1,6 @@
+## 1.30.38 March 31, 2026
+– Updated ESP/HRR rebate tier restrictions based on assessed value
+
 ## 1.30.37 March 30, 2026
 – Linked card DOM processing
 

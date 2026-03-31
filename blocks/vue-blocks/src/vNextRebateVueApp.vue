@@ -4341,8 +4341,7 @@ const espTier = computed(() => {
   const incomeSlug = selectedIncomeRangeSlug.value
   if (!incomeSlug) return ''
 
-  const hasAllSelectionAvailable = hasAllSelection.value
-  if (!hasAllSelectionAvailable) return ''
+  if (!hasAllSelection.value) return ''
 
   const selectedHV = homeValueOptions.value.find(
     v => v.slug === selectedHomeValueSlug.value
@@ -4350,18 +4349,41 @@ const espTier = computed(() => {
   const hvSlug = selectedHV?.slug || ''
   const isMurb = selectedBuildingGroupSlug.value === 'murb'
 
-  // FIX LABELS HERE
-  const homeOverLimit =
-    (isMurb && hvSlug === 'over-772000') ||
-    (!isMurb && hvSlug === 'over-1230000')
+  // Derive rebate tier from income.
+  let derivedTier = ''
 
-  if (/-t1$/.test(incomeSlug)) return homeOverLimit ? (isMurb ? 'HRR' : 'ESP-3') : 'ESP-1' // god: ESP-3
-  if (/-t2$/.test(incomeSlug)) return homeOverLimit ? (isMurb ? 'HRR' : 'ESP-3') : 'ESP-2' // god: ESP-3
-  if (/-t3$/.test(incomeSlug)) return isMurb ? 'HRR' : 'ESP-3'  // god: ESP-3
-  if (/-t0$/.test(incomeSlug)) return 'HRR'
+  if (/-t1$/.test(incomeSlug)) derivedTier = 'ESP-1'
+  else if (/-t2$/.test(incomeSlug)) derivedTier = 'ESP-2'
+  else if (/-t3$/.test(incomeSlug)) derivedTier = 'ESP-3'
+  else if (/-t0$/.test(incomeSlug)) derivedTier = 'HRR'
+  else return ''
+
+  // Enforce minimum tier based on home value.
+
+  // MURB.
+  if (isMurb) {
+    const overLimit = hvSlug === 'over-772000'
+
+    // Over threshold enforces HRR, otherwise preserve income-derived tier.
+    return overLimit ? 'HRR' : derivedTier
+  }
+
+  // Ground-oriented dwellings.
+  if (hvSlug === 'over-1820000') {
+    return 'HRR'
+  }
+
+  if (hvSlug === 'over-1230000') {
+    if (derivedTier === 'HRR') return 'HRR'
+    return 'ESP-3'
+  }
+
+  if (hvSlug === '1230000-or-less') {
+    return derivedTier
+  }
+
   return ''
 })
-
 
 // Hydrate preferredSettings whenever location becomes valid
 watch(
