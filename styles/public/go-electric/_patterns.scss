@@ -71,6 +71,10 @@ body.custom-goelectricbc {
 			background-image: $apply-businesses;
 		}
 
+		&.apply-fleet::before {
+			background-image: $apply-fleet;
+		}
+
 		&.apply-indigenous-communities::before {
 			background-image: $apply-indigenous-communities;
 		}
