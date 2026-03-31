@@ -10,3 +10,14 @@
 		margin-top: auto;
 	}
 }
+
+.card-title-link {
+	display: grid;
+	text-decoration: none !important;
+
+	&:is(:hover, :focus-visible) .linked-card {
+		cursor: pointer;
+		outline: 2px solid var(--wp--preset--color--primary-brand);
+		border-radius: 1rem;
+	}
+}

@@ -58,6 +58,36 @@ const bcgovBlockThemePluginDomLoader = () => {
             });
 		}
 
+		const isLinkedCards = document.querySelector('.linked-cards');
+        const linkedCardGroup = document.querySelectorAll('.linked-card');
+
+        if (isLinkedCards || linkedCardGroup) {
+            if (linkedCardGroup) {
+                linkedCardGroup.forEach((group) => {
+                    const headline = group.querySelector('.linked-card-title');
+                    if (headline) {
+                        const headlineLink = headline.querySelector('a');
+                        if (headlineLink) {
+                            if (headlineLink.firstChild) {
+                                headline.replaceChild(
+                                    headlineLink.firstChild,
+                                    headlineLink
+                                );
+                            } else {
+                                headline.remove();
+                            }
+                            const link = headlineLink.getAttribute('href');
+                            const linkWrapper = document.createElement('a');
+                            linkWrapper.href = link;
+                            group.parentNode.insertBefore(linkWrapper, group);
+                            linkWrapper.appendChild(group);
+                            linkWrapper.classList.add('card-title-link');
+                        }
+                    }
+                });
+            }
+        }
+
 		// Re-process external links added by the Block Theme.
 		const processExternalLinks = () => {
 			const observer = new MutationObserver((mutationsList, observer) => {
