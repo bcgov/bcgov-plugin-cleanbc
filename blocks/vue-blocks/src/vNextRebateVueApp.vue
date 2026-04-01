@@ -4360,10 +4360,11 @@ const espTier = computed(() => {
 
   // Enforce minimum tier based on home value.
 
+  // console.log('isMurb',isMurb)
+
   // MURB.
   if (isMurb) {
     const overLimit = hvSlug === 'over-754000'
-
     // Over threshold enforces HRR, otherwise preserve income-derived tier.
     return overLimit ? 'HRR' : derivedTier
   }
