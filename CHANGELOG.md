@@ -1,3 +1,6 @@
+## 1.30.39 April 1, 2026
+– Updated MURB limit for new home values
+
 ## 1.30.38 March 31, 2026
 – Updated ESP/HRR rebate tier restrictions based on assessed value
 – GoElectric icon styles for rebates

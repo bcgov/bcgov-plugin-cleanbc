@@ -4362,7 +4362,7 @@ const espTier = computed(() => {
 
   // MURB.
   if (isMurb) {
-    const overLimit = hvSlug === 'over-772000'
+    const overLimit = hvSlug === 'over-754000'
 
     // Over threshold enforces HRR, otherwise preserve income-derived tier.
     return overLimit ? 'HRR' : derivedTier
