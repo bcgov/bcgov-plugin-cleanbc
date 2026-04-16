@@ -906,64 +906,28 @@ class EnableVueApp {
 		$query = new \WP_Query( $args );
 
 		// Normalizer for terms (handles false/WP_Error).
-		$normalize_terms = static function ( $terms, $include_region = false ) {
-			if ( is_wp_error( $terms ) || empty( $terms ) ) {
-				return array();
+		foreach ( $rebates->posts as $rebate ) {
+			// Retrieve exclude_from_tool field (may be `null`, `true`, or `false`).
+			$exclude = get_field( 'exclude_from_tool', $rebate->ID );
+
+			if ( $exclude ) {
+				continue;
 			}
-			$out = array();
-			foreach ( (array) $terms as $t ) {
-				if ( ! ( $t instanceof \WP_Term ) ) {
-					continue;
-				}
-				$item = array(
-					'id'   => (int) $t->term_id,
-					'name' => $t->name,
-					'slug' => $t->slug,
-				);
-				if ( $include_region ) {
-					$item['region'] = get_field( 'region', 'term_' . $t->term_id );
-				}
-				$out[] = $item;
-			}
-			return $out;
-		};
 
-		if ( ! empty( $query->posts ) ) {
-			foreach ( $query->posts as $rebate ) {
-				$post_id = (int) $rebate->ID;
-
-				// Skip records the tool should not show.
-				if ( get_field( 'exclude_from_tool', $post_id ) ) {
-					continue;
-				}
-
-				$locations = $normalize_terms( get_the_terms( $post_id, 'prc-locations' ), true );
-				$regions   = array_values(
-					array_unique(
-						array_filter(
-							array_map(
-								static fn( $loc ) => $loc['region'] ?? null,
-								$locations
-							)
-						)
-					)
-				);
-
-				$posts_data[] = array(
-					'id'                  => $post_id,
-					'title'               => get_the_title( $post_id ),
-					'url'                 => get_field( 'url', $post_id ) ? get_field( 'url', $post_id ) : null, // external ACF field (optional).
-					'post_url'            => get_permalink( $post_id ),
-					'rebate_amount'       => get_field( 'rebate', $post_id ),
-					'short_description'   => get_field( 'short_description', $post_id ),
-					'types'               => $normalize_terms( get_the_terms( $post_id, 'building-types' ) ),
-					'locations'           => $locations, // each includes 'region'.
-					'regions'             => $regions,   // deduped list.
-					'upgrade_types'       => $normalize_terms( get_the_terms( $post_id, 'upgrades' ) ),
-					'primary_heating_sys' => $normalize_terms( get_the_terms( $post_id, 'primary-space-heating' ) ),
-					'other_offers'        => $normalize_terms( get_the_terms( $post_id, 'other-offers' ) ),
-				);
-			}
+			// Setup post data for return at the endpoint.
+			$posts_data[] = (object) array(
+				'id'                  => $rebate->ID,
+				'title'               => get_the_title( $rebate->ID ),
+				'url'                 => $rebate->url,
+				'post_url'            => get_permalink( $rebate->ID ),
+				'rebate_amount'       => get_field( 'rebate', $rebate->ID ),
+				'short_description'   => get_field( 'short_description', $rebate->ID ),
+				'types'               => get_the_terms( $rebate->ID, 'building-types' ),
+				'locations'           => get_the_terms( $rebate->ID, 'regions' ),
+				'upgrade_types'       => get_the_terms( $rebate->ID, 'upgrades' ),
+				'primary_heating_sys' => get_the_terms( $rebate->ID, 'primary-space-heating' ),
+				'other_offers'        => get_the_terms( $rebate->ID, 'other-offers' ),
+			);
 		}
 
 		// Return a proper REST response (prevents stray output breaking JSON).
