@@ -894,19 +894,19 @@ class EnableVueApp {
 	 * @return WP_REST_Response
 	 */
 	public function custom_api_rebate_filter_callback() {
-		// Always initialize; avoids "Undefined variable $posts_data".
-		$posts_data = array();
-
+		// Set up the arguments for WP_Query.
 		$args = array(
 			'post_type'      => 'incentives',
 			'posts_per_page' => -1,
 			'post_status'    => 'publish',
 		);
 
-		$query = new \WP_Query( $args );
+		// Query Rebates using WP_Query.
+		$rebates = new \WP_Query( $args );
 
-		// Normalizer for terms (handles false/WP_Error).
+		// Fetch associated meta and ACF fields on a per-post basis.
 		foreach ( $rebates->posts as $rebate ) {
+
 			// Retrieve exclude_from_tool field (may be `null`, `true`, or `false`).
 			$exclude = get_field( 'exclude_from_tool', $rebate->ID );
 
@@ -930,8 +930,8 @@ class EnableVueApp {
 			);
 		}
 
-		// Return a proper REST response (prevents stray output breaking JSON).
-		return rest_ensure_response( $posts_data );
+		// Return the formatted data.
+		return $posts_data;
 	}
 
 	/**
