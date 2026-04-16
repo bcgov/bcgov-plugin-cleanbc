@@ -763,7 +763,7 @@ const addLinkToClipboard = (event) => {
 
 const canCopyLink = computed(() => {
   return Boolean(
-    nameQuery.value?.trim() ||
+    nameQuery?.value?.trim() ||
     (selectedLocation.value && selectedLocation.value !== 'all')
   )
 });
