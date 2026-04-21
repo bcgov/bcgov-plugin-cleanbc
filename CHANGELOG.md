@@ -1,5 +1,6 @@
-## 1.31.0 April 16, 2026
+## 1.31.0 April 21, 2026
 – Testing minor update to remove conditional blocks to align with standalone Better Homes plugin
+– Fixed CleanBC drivers icon processing
 
 ## 1.30.39 April 1, 2026
 – Updated MURB limit for new home values
