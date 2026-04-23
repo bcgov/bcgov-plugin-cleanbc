@@ -21,6 +21,10 @@
 body.custom-goelectricbc {
 	scroll-behavior: smooth;
 
+	#post-content .wp-block-button.light .wp-block-button__link:is(:hover, :focus-visible) {
+		outline: 2px solid var(--wp--preset--color--white);
+	}
+
 	/* Body general layout
 	*
 	*/
