@@ -1,3 +1,6 @@
+## 1.31.1 April 23, 2026
+– Go Electric how it works diagrams
+
 ## 1.31.0 April 21, 2026
 – Testing minor update to remove conditional blocks to align with standalone Better Homes plugin
 – Fixed CleanBC drivers icon processing
@@ -26,7 +29,7 @@
 
 ## 1.30.33 March 17, 2026
 – Fixed restored building type selection so single mode only keeps valid child types, while archive mode still preserves "other"
-– Added tests for restored building type selection handling
+– Added tests for restored buildi3ng type selection handling
 – Updated error messaging
 
 ## 1.30.32 March 11, 2026
