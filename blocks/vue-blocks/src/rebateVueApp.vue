@@ -13,7 +13,7 @@
                     <select id="typeSelect" class="select select--type" @change="selectIsActive"
                         @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive"
                         tabindex="0" v-model="selectedBuildType" required="true">
-                        <option value="all">All Project Types</option>
+                        <option value="all">All project types</option>
                         <option v-for="(type, index) in types" :key="type" :value="type">{{ type }}</option>
                     </select>
                 </div>
@@ -26,7 +26,7 @@
                     <select id="locationSelect" class="select select--location" @change="selectIsActive"
                         @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive"
                         tabindex="0" v-model="selectedLocation" required="true">
-                        <option value="all">All Locations</option>
+                        <option value="all">All locations</option>
                         <option v-for="location in locations" :key="location" :value="location">{{ location }}</option>
                     </select>
                 </div>
@@ -39,7 +39,7 @@
                     <select id="systemSelect" class="select select--system" @change="selectIsActive"
                         @click.prevent="selectIsActive" @touchend="selectIsActive" @keyup.esc="selectIsActive"
                         tabindex="0" v-model="selectedHeatingSystem" required="true">
-                        <option value="all">All Heating Systems</option>
+                        <option value="all">All heating systems</option>
                         <option v-if="!isLoading" v-for="(system, index) in systems" :key="system"
                             :style="'Not sure, view all rebates' == system ? 'display: none;' : null" :value="system">{{
                                 system }}</option>
@@ -149,7 +149,7 @@
 
             <!-- Add Link to Clipboard Button -->
             <div v-if='isVisible' class="control copy-link-btn">
-                <button class="copy-link" @click.prevent="addLinkToClipboard" @touchend="addLinkToClipboard"
+                <button class="copy-link share" @click.prevent="addLinkToClipboard" @touchend="addLinkToClipboard"
                     @keydown.enter.prevent="addLinkToClipboard"
                     :disabled="!canCopyLink"
                     type="button">

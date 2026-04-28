@@ -1,3 +1,6 @@
+## 1.31.2 April 28, 2026
+– Better Buildings updates for PROD on OpenShift deployment.
+
 ## 1.31.1 April 23, 2026
 – Go Electric how it works diagrams
 

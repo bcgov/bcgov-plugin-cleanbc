@@ -87,7 +87,7 @@
 
       <!-- Add Link to Clipboard Button -->
       <div class="control copy-link-btn">
-        <button class="copy-link" @click.prevent="addLinkToClipboard" @touchend="addLinkToClipboard"
+        <button class="copy-link share" @click.prevent="addLinkToClipboard" @touchend="addLinkToClipboard"
           @keydown.enter.prevent="addLinkToClipboard" :disabled="'' === textSearch && selectedCategory === 'all'"
           type="button">
           Copy link
@@ -226,7 +226,7 @@
                     <div class="faq__permalinks">
                       <div class="inner">
                         <div class="faq__link">
-                          <a :href="faq.post_url" class="copy-link" @click.stop.prevent="addFaqLinkToClipboard"
+                          <a :href="faq.post_url" class="copy-link share" @click.stop.prevent="addFaqLinkToClipboard"
                             @touchend.stop.prevent="addFaqLinkToClipboard">
                             Copy FAQ link
                           </a>
