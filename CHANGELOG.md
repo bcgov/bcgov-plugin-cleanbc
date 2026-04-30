@@ -1,5 +1,8 @@
+## 1.31.3 April 30, 2026
+– Updated redirect hit count to reject PDF size checks
+
 ## 1.31.2 April 28, 2026
-– Better Buildings updates for PROD on OpenShift deployment.
+– Better Buildings updates for PROD on OpenShift deployment
 
 ## 1.31.1 April 23, 2026
 – Go Electric how it works diagrams

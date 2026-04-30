@@ -100,7 +100,9 @@ const bcgovBlockThemePluginAccessibility = () => {
 					if (label.includes('[PDF') || label.includes('PDF]') || label.includes('KB]') || label.includes('MB]')) return;
 					if (isSameOrigin(url)) {
 						// Same-origin request
-						fetch(url, { method: 'HEAD' }).then(response => {
+						const checkUrl = url + (url.includes('?') ? '&' : '?') + 'pdf_size_check=1';
+
+						fetch(checkUrl, { method: 'HEAD' }).then(response => {
 							const size = response.headers.get('Content-Length');
 							appendSizeLabel(link, size);
 						});
@@ -109,7 +111,7 @@ const bcgovBlockThemePluginAccessibility = () => {
 						/**
 						 * Cross-origin: use proxy endpoint with nonce passed via header.
 						 */
-						fetch(`${window.site.domain}/index.php?pdf_size_proxy=1&url=${encodeURIComponent(url)}`, {
+						fetch(`${window.site.domain}/index.php?pdf_size_proxy=1&pdf_size_check=1&url=${encodeURIComponent(url)}`, {
 							headers: {
 								'X-WP-Nonce': window.pluginCleanbc.nonce
 							}
