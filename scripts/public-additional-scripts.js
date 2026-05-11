@@ -11,8 +11,8 @@ import './public/tablesPattern';
 import './public/rebate-query-tool';
 
 import './public/cleanbc/accessibility';
-import './public/betterhomes/accessibility';
-import './public/betterhomes/rebates-archive';
-import './public/betterhomes/definitions-form-resubmit';
-import './public/betterbuildings/accessibility';
 import './public/goelectric/accessibility';
+// import './public/betterhomes/accessibility';
+// import './public/betterhomes/rebates-archive';
+// import './public/betterhomes/definitions-form-resubmit';
+// import './public/betterbuildings/accessibility';

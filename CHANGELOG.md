@@ -1,3 +1,6 @@
+## 1.31.4 May 11, 2026
+– Updated to remove BB scripts and styles (as temporary inclusion in BH plugin)
+
 ## 1.31.3 April 30, 2026
 – Updated redirect hit count to reject PDF size checks
 
