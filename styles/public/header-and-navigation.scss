@@ -81,10 +81,10 @@ body.custom-cleanbc {
 		height: 4rem;
 
 		.wp-block-search__input {
-			background-color: $white;
+			background-color: var(--white);
 			border: 1px solid var(--wp--preset--color--gray-80);
 			border-radius: 0.25rem;
-			color: $mineshaft;
+			color: var(--mineshaft);
 			font-size: 1rem;
 			height: 3rem;
 			padding: 0 1rem;
@@ -188,7 +188,7 @@ body.cleanbc {
 			li:has(a.current-menu-ancestor),
 			li.current-menu-item:has(a:hover),
 			a.current-menu-ancestor {
-				background-color: var(--wp--preset--color--custom-light-highlight, $lighthighlightblue) !important;
+				background-color: var(--wp--preset--color--custom-light-highlight, var(--lighthighlightblue)) !important;
 			}
 
 
@@ -197,7 +197,7 @@ body.cleanbc {
 				>.wp-block-navigation-submenu {
 
 					&.current-menu-item {
-						background-color: var(--wp--preset--color--custom-light-highlight, $lighthighlightblue) !important;
+						background-color: var(--wp--preset--color--custom-light-highlight, var(--lighthighlightblue)) !important;
 					}
 				}
 			}
@@ -206,7 +206,7 @@ body.cleanbc {
 
 
 				>a.wp-block-navigation-item__content {
-					background-color: var(--wp--preset--color--custom-light-highlight, $lighthighlightblue) !important;
+					background-color: var(--wp--preset--color--custom-light-highlight, var(--lighthighlightblue)) !important;
 					font-weight: bold !important;
 				}
 			}

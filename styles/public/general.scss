@@ -4,8 +4,8 @@
 
 :root {
 	color-scheme: light dark;
-	color: $white;
-	background-color: $mineshaft;
+	color: var(--white);
+	background-color: var(--mineshaft);
 
 	interpolate-size: allow-keywords;
 
@@ -57,6 +57,10 @@ body:not(body.wp-admin):not(body.editor-styles-wrapper):not(body.error404) {
 	place-items: center;
 	min-height: 100vh;
 	overflow-x: clip;
+}
+
+.admin-instructions {
+	display: none !important;
 }
 
 .wp-site-blocks {

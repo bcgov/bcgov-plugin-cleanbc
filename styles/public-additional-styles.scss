@@ -1,4 +1,5 @@
 @import "./variables";
+@import "./public/svg";
 @import "./public/general";
 @import "./public/action-box";
 @import "./public/bootstrap-legacy";
@@ -11,37 +12,12 @@
 @import "./public/tables";
 @import "./public/block-theme-overrides";
 @import "./public/rebate-query-tool";
-// Go Electric BC
-@import "./public/go-electric/variables";
-@import "./public/go-electric/svg";
-@import "./public/go-electric/rebates";
-@import "./public/go-electric/quiz";
-@import "./public/go-electric/vehicles";
-@import "./public/go-electric/banners";
-@import "./public/go-electric/blocks";
-@import "./public/go-electric/breadcrumbs";
-@import "./public/go-electric/cards";
-@import "./public/go-electric/columns";
-@import "./public/go-electric/footer";
-@import "./public/go-electric/groups";
-@import "./public/go-electric/header";
-@import "./public/go-electric/patterns";
-@import "./public/go-electric/goev-general";
-// BetterHomesBC and BetterBuildingsBC
-// @import "./public/bhbb/variables";
-// @import "./public/bhbb/mixins";
-// @import "./public/bhbb/rebates";
-// @import "./public/bhbb/vue-apps";
-// @import "./public/bhbb/bh-general";
-// @import "./public/bhbb/bb-general";
-// @import "./public/bhbb/side-nav-generator";
-// @import "./public/bhbb/bh-vNext-general";
-// @import "./public/bhbb/bh_gravityforms";
+@import "./public/side-nav-generator";
 
 :root {
 	color-scheme: light dark;
-	color: $white;
-	background-color: $mineshaft;
+	color: var(--white);
+	background-color: var(--mineshaft);
 
 	font-synthesis: none;
 	text-rendering: optimizelegibility;

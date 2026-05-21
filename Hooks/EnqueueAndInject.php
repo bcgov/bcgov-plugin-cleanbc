@@ -1,13 +1,13 @@
 <?php
 
-namespace Bcgov\Plugin\CleanBC\Hooks;
+namespace Bcgov\Plugin\CleanBCDX\Hooks;
 
 /**
  * Sets up Javascript variable handoff from WordPress to theme.
  *
  * @since 1.0.1
  *
- * @package Bcgov\Plugin\CleanBC
+ * @package Bcgov\Plugin\CleanBCDX
  */
 class EnqueueAndInject {
 
@@ -20,15 +20,15 @@ class EnqueueAndInject {
 	 * @return void
 	 */
 	public function bcgov_plugin_enqueue_scripts(): void {
-		$plugin_dir = plugin_dir_path( __DIR__ );
+		$plugin_dir = \Bcgov\Plugin\CleanBCDX\Setup::get_plugin_dir();
 		$assets_dir = $plugin_dir . 'dist/assets/';
 
-		$plugin_data    = get_plugin_data( $plugin_dir . 'index.php' );
-		$plugin_version = $plugin_data['Version'];
+		$plugin_version = \Bcgov\Plugin\CleanBCDX\Setup::get_plugin_version();
+		$plugin_base    = \Bcgov\Plugin\CleanBCDX\Setup::get_plugin_basename();
 
 		$update_check = get_site_transient( 'update_plugins' );
-		if ( isset( $update_check->response['bcgov-plugin-cleanbc/index.php'] ) ) {
-			$latest_version = $update_check->response['bcgov-plugin-cleanbc/index.php']->new_version;
+		if ( isset( $update_check->response[ $plugin_base ] ) ) {
+			$latest_version = $update_check->response[ $plugin_base ]->new_version;
 		} else {
 			$latest_version = $plugin_version; // Fallback to the installed version.
 		}
@@ -65,15 +65,15 @@ class EnqueueAndInject {
 	 * @return void
 	 */
 	public function bcgov_plugin_enqueue_admin_scripts(): void {
-		$plugin_dir = plugin_dir_path( __DIR__ );
+		$plugin_dir = \Bcgov\Plugin\CleanBCDX\Setup::get_plugin_dir();
 		$assets_dir = $plugin_dir . 'dist/assets/';
 
-		$plugin_data    = get_plugin_data( $plugin_dir . 'index.php' );
-		$plugin_version = $plugin_data['Version'];
+		$plugin_version = \Bcgov\Plugin\CleanBCDX\Setup::get_plugin_version();
+		$plugin_base    = \Bcgov\Plugin\CleanBCDX\Setup::get_plugin_basename();
 
 		$update_check = get_site_transient( 'update_plugins' );
-		if ( isset( $update_check->response['bcgov-plugin-cleanbc/index.php'] ) ) {
-			$latest_version = $update_check->response['bcgov-plugin-cleanbc/index.php']->new_version;
+		if ( isset( $update_check->response[ $plugin_base ] ) ) {
+			$latest_version = $update_check->response[ $plugin_base ]->new_version;
 		} else {
 			$latest_version = $plugin_version; // Fallback to the installed version.
 		}

@@ -17,7 +17,7 @@ html body.wp-admin .editor-styles-wrapper {
 		padding: 2rem;
 
 		.wp-block-columns {
-			background-color: $snow;
+			background-color: var(--snow);
 			border-radius: 0.66rem;
 			margin: 0 !important;
 

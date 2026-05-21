@@ -1,13 +1,13 @@
 <?php
 
-namespace Bcgov\Plugin\CleanBC\Hooks;
+namespace Bcgov\Plugin\CleanBCDX\Hooks;
 
 /**
  * The Accessibility class provides methods for modifying accessibility needs in WordPress.
  *
  * @since 1.17.0
  *
- * @package Bcgov\Plugin\CleanBC
+ * @package Bcgov\Plugin\CleanBCDX
  */
 class Accessibility {
 

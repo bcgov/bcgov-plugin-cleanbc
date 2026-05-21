@@ -4,10 +4,10 @@
  *
  * @since 1.1.1
  *
- * @package Bcgov\Plugin\CleanBC
+ * @package Bcgov\Plugin\CleanBCDX
  */
 
-namespace Bcgov\Plugin\CleanBC;
+namespace Bcgov\Plugin\CleanBCDX;
 
 /**
  * Provides a simple autoloader for PHP classes that follow the Bcgov\Theme\Block namespace prefix.
@@ -47,7 +47,7 @@ class Loader {
      */
     public function load_class( $class_name ) {
         // Namespace prefix.
-        $prefix = 'Bcgov\\Plugin\\CleanBC\\';
+        $prefix = 'Bcgov\\Plugin\\CleanBCDX\\';
 
         // Does the class use the namespace prefix?
         if ( strncmp( $prefix, $class_name, strlen( $prefix ) ) !== 0 ) {

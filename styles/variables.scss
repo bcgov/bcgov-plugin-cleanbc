@@ -18,28 +18,92 @@ $breakpoint-lg: $lg;
 $breakpoint-xl: 1440px;
 $breakpoint-wp-content-wide: $breakpoint-xl;
 
-// General colours
-$black: #000;
-$white: #fff;
-$mineshaft: #222;
-$scorpiongrey: #585858;
-$dovegrey: #70777c;
-$dustygrey: #9a9a9a;
-$lightgray: #bababa;
-$lightgrey: #bababa;
-$grey: #808080;
-$porcelain: #f3f4f5;
-$crimsonred: #d71d24; // was: #e01f26
+:root {
+	/* ==========================================================================
+	   Core colours
+	   ========================================================================== */
 
-// Government web colours
-$midnightblue: #002a4e; // was: #036
-$menuBlue: #1c2d64;
-$generallink: #1a5a96;
-$sanmarinoblue: #496ea7;
-$headeryellow: #f4bb2d;
-$curiousblue: #1e9dd3;
-$highlightblue: #d3e1e8;
-$lighthighlightblue: #f3f9fb;
+	--black: #000;
+	--white: #fff;
+
+	--mineshaft: #222;
+	--scorpiongrey: #585858;
+	--dovegrey: #70777c;
+	--dustygrey: #9a9a9a;
+	--lightgrey: #bababa;
+	--grey: #808080;
+	--porcelain: #f3f4f5;
+
+	--crimsonred: #d71d24; /* was: #e01f26 */
+	--bcgov-red-primary: --crimsonred;
+
+	/* ==========================================================================
+	   Government web colours
+	   ========================================================================== */
+
+	--midnightblue: #002a4e; /* was: #036 */
+	--menu-blue: #1c2d64;
+	--generallink: #1a5a96;
+	--sanmarinoblue: #496ea7;
+	--curiousblue: #1e9dd3;
+	--highlightblue: #d3e1e8;
+	--lighthighlightblue: #f3f9fb;
+
+
+	/* Side scroll menu */
+	--menuAncestorBackground: #f6f9fc;
+	--menuAncestorHighlight: #324166;
+	--highlightblue: #c0e6f7;
+	--highlightdark: #2a42b3;
+
+	/* ==========================================================================
+	   Built Environment colours
+	   ========================================================================== */
+
+	/* Better Homes Project Colours */
+	--apple: #61a744;
+	--dark-tangerine: #ffc017;
+	--persian-red: #d23b37;
+	--shark: #313132;
+
+	/* ==========================================================================
+	   Go Electric colours
+	   ========================================================================== */
+
+	--headeryellow: #ecc51d;
+	--highlightyellow: #fcf6dd;
+	--gofootergrey: #1f2639;
+
+	--bondiblue: #0090b5;
+	--aquablue: #b3deea;
+	--squeezeblue: #e7f4f7;
+	--bahamablue: #369;
+	--capergreen: #d8ebc6;
+
+	--silvergrey: #a1a1a1;
+	--vehiclegrey: #ccc;
+
+	--sushigreen: #61a744;
+	--eucalyptus: #1d8045;
+
+	--prussianblue: var(--midnightblue);
+
+	--weborange: #f2a900;
+	--sunorange: #fdb414;
+	--anchororange: #eb7d3b;
+
+	--dawngray: #a49e99;
+	--gallerygray: #edebeb;
+
+
+	/* ==========================================================================
+	   Aliases / semantic tokens
+	   ========================================================================== */
+
+	--snow: var(--white);
+	--bcgov-red-primary: var(--crimsonred);
+	--header-background-color: var(--snow);
+}
 
 body {
 	// WP base font sizes based on :root normal (16px), huge (42px)
@@ -61,7 +125,7 @@ body {
 	--box-shadow: rgba(0, 0, 0, 0.1) 0 20px 25px -5px, rgba(0, 0, 0, 0.04) 0 10px 10px -5px;
 
 	&::selection {
-		background-color: $curiousblue;
+		background-color: var(--curiousblue);
 	}
 }
 

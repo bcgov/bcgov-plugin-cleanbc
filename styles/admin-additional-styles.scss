@@ -1,6 +1,5 @@
 @import "./variables";
-@import "./public/go-electric/variables";
-@import "./public/go-electric/svg";
+@import "./public/svg";
 @import "./admin/patterns";
 
 :root {
@@ -9,7 +8,7 @@
 	--box-shadow: rgba(0, 0, 0, 0.1) 0 20px 25px -5px, rgba(0, 0, 0, 0.04) 0 10px 10px -5px;
 
 	&::selection {
-		background-color: $curiousblue;
+		background-color: var(--curiousblue);
 	}
 }
 
@@ -25,8 +24,8 @@ html :where(.editor-styles-wrapper) {
 
 	#postFilterApp,
 	#vehicleFilterApp {
-		background-color: $lightgrey;
-		border: 1px solid $grey;
+		background-color: var(--lightgrey);
+		border: 1px solid var(--grey);
 		padding: 2rem;
 		text-align: center;
 	}

@@ -1,11 +1,11 @@
 <?php
 
-namespace Bcgov\Plugin\CleanBC\Hooks;
+namespace Bcgov\Plugin\CleanBCDX\Hooks;
 
 /**
  * Gravity Forms hooks.
  *
- * @package Bcgov\Plugin\CleanBC
+ * @package Bcgov\Plugin\CleanBCDX
  */
 class GravityForms {
 	/**

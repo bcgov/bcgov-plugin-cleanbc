@@ -1,6 +1,6 @@
 <?php
 
-namespace Bcgov\Plugin\CleanBC\Hooks;
+namespace Bcgov\Plugin\CleanBCDX\Hooks;
 
 /**
  * Sets up basic php template blocks for CleanBC
@@ -39,7 +39,7 @@ class BasicBlocks {
      */
     public function enqueue_admin_scripts() {
         $name       = 'admin';
-        $asset_info = \Bcgov\Plugin\CleanBC\Setup::get_asset_information( $name, 'dist-basic' );
+        $asset_info = \Bcgov\Plugin\CleanBCDX\Setup::get_asset_information( $name, 'dist-basic' );
 
         wp_enqueue_script(
             $asset_info['handle'],

@@ -1,13 +1,13 @@
 <?php
 
-namespace Bcgov\Plugin\CleanBC\Hooks;
+namespace Bcgov\Plugin\CleanBCDX\Hooks;
 
 /**
  * The SearchContext class provides methods for modifying the search query context in WordPress.
  *
  * @since 1.0.7
  *
- * @package Bcgov\Plugin\CleanBC
+ * @package Bcgov\Plugin\CleanBCDX
  */
 class SearchContext {
 

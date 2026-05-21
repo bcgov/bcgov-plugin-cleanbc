@@ -6,7 +6,7 @@
  *
  * @package Bcgov\Plugin\BasicBlocks
  */
-require WP_PLUGIN_DIR . '/bcgov-plugin-cleanbc/templates/config/template-vars.php';
+require dirname( __DIR__ ) . '/config/template-vars.php';
 
 /**
  * ACF Fields
@@ -31,7 +31,7 @@ if ( $is_gb_editor ) : ?>
 							$content_block_layout    = $content_block['acf_fc_layout'];
 							$content_block_classes[] = $content_block_layout . ' ';
 
-							include WP_PLUGIN_DIR . '/bcgov-plugin-cleanbc/templates/blocks/partials/content-blocks.php';
+							include __DIR__ . '/partials/content-blocks.php';
 						endforeach;
                         ?>
 					</div>

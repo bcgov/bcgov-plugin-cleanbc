@@ -1,12 +1,12 @@
 import './assets/shared.css';
 import { createApp } from 'vue';
-import PostFilterApp from './postFilterApp.vue';
-import VehicleFilterApp from './vehicleFilterApp.vue';
-import PQEAFilterApp from './pqeaVueApp.vue';
-import ContractorFilterApp from './contractorVueApp.vue';
-import RebateFilterApp from './rebateVueApp.vue';
-import vNextRebateFilterApp from './vNextRebateVueApp.vue';
-import FAQFilterApp from './faqVueApp.vue';
+// import PostFilterApp from './postFilterApp.vue';
+// import VehicleFilterApp from './vehicleFilterApp.vue';
+// import PQEAFilterApp from './pqeaVueApp.vue';
+// import ContractorFilterApp from './contractorVueApp.vue';
+// import RebateFilterApp from './rebateVueApp.vue';
+// import vNextRebateFilterApp from './vNextRebateVueApp.vue';
+// import FAQFilterApp from './faqVueApp.vue';
 
 /**
  * Initialize a Vue.js application for a specific component and element.
@@ -29,13 +29,13 @@ function initVueApp(component, selector, props = {}) {
 function initializeApps() {
     // List of all apps with their selectors and optional props
     const apps = [
-        { component: PostFilterApp, selector: '#postFilterApp', props: { appProp: 'Post Filter Data' } },
-        { component: VehicleFilterApp, selector: '#vehicleFilterApp', props: { appProp: 'Vehicle Data' } },
-        { component: PQEAFilterApp, selector: '#pqeaFilterApp', props: { appProp: 'PQEA Data' } },
-        { component: ContractorFilterApp, selector: '#contractorFilterApp', props: { appProp: 'Contractor Data' } },
-        { component: RebateFilterApp, selector: '#rebateFilterApp', props: { appProp: 'Rebate Data' } },
-        { component: vNextRebateFilterApp, selector: '#vnextRebateFilterApp', props: { appProp: 'Rebate Data' } },
-        { component: FAQFilterApp, selector: '#faqFilterApp', props: { appProp: 'FAQ Data' } },
+        // { component: PostFilterApp, selector: '#postFilterApp', props: { appProp: 'Post Filter Data' } },
+        // { component: VehicleFilterApp, selector: '#vehicleFilterApp', props: { appProp: 'Vehicle Data' } },
+        // { component: PQEAFilterApp, selector: '#pqeaFilterApp', props: { appProp: 'PQEA Data' } },
+        // { component: ContractorFilterApp, selector: '#contractorFilterApp', props: { appProp: 'Contractor Data' } },
+        // { component: RebateFilterApp, selector: '#rebateFilterApp', props: { appProp: 'Rebate Data' } },
+        // { component: vNextRebateFilterApp, selector: '#vnextRebateFilterApp', props: { appProp: 'Rebate Data' } },
+        // { component: FAQFilterApp, selector: '#faqFilterApp', props: { appProp: 'FAQ Data' } },
     ];
 
     // Dynamically initialize only apps with existing DOM elements

@@ -7,7 +7,7 @@
  * @package Bcgov\Plugin\BasicBlocks
  */
 
-require WP_PLUGIN_DIR . '/bcgov-plugin-cleanbc/templates/config/template-vars.php';
+require dirname( __DIR__ ) . '/config/template-vars.php';
 
 /**
  * ACF Fields
